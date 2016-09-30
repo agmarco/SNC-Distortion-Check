@@ -1,0 +1,4 @@
+ipython==5.1.0
+numpy==1.11.1
+pydicom==0.9.9
+pytest==3.0.3
