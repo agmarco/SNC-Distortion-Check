@@ -3,7 +3,6 @@ import math
 
 import pytest
 import numpy
-from numpy.random import rand
 
 from process import combine_dicom_slices
 
@@ -51,10 +50,10 @@ def generate_mock_slice(pixel_array, slice_position, row_cosine, column_cosine):
 @pytest.fixture
 def axial_slices():
     return [
-        generate_mock_slice(rand(*arbitrary_shape), 0, x_cos, y_cos),
-        generate_mock_slice(rand(*arbitrary_shape), 1, x_cos, y_cos),
-        generate_mock_slice(rand(*arbitrary_shape), 2, x_cos, y_cos),
-        generate_mock_slice(rand(*arbitrary_shape), 3, x_cos, y_cos),
+        generate_mock_slice(randi(*arbitrary_shape), 0, x_cos, y_cos),
+        generate_mock_slice(randi(*arbitrary_shape), 1, x_cos, y_cos),
+        generate_mock_slice(randi(*arbitrary_shape), 2, x_cos, y_cos),
+        generate_mock_slice(randi(*arbitrary_shape), 3, x_cos, y_cos),
     ]
 
 
@@ -74,8 +73,8 @@ def test_combine_dicom_slices_rows_and_cols_swapped():
     The direction cosines can be swapped.  In this case, these are still
     axial slices, however the slice-images have been transposed.
     '''
-    slice_0_data = rand(*arbitrary_shape)
-    slice_1_data = rand(*arbitrary_shape)
+    slice_0_data = randi(*arbitrary_shape)
+    slice_1_data = randi(*arbitrary_shape)
     slices = [
         generate_mock_slice(slice_0_data, 0, y_cos, x_cos),
         generate_mock_slice(slice_1_data, 1, y_cos, x_cos),
@@ -92,8 +91,8 @@ def test_combine_dicom_slices_row_direction_inverted():
     axial slices, however the slice-images have been reflected across one of
     the image axes.
     '''
-    slice_0_data = rand(*arbitrary_shape)
-    slice_1_data = rand(*arbitrary_shape)
+    slice_0_data = randi(*arbitrary_shape)
+    slice_1_data = randi(*arbitrary_shape)
     slices = [
         generate_mock_slice(slice_0_data, 0, negative_x_cos, y_cos),
         generate_mock_slice(slice_1_data, 1, negative_x_cos, y_cos),
@@ -114,8 +113,8 @@ def test_combine_dicom_slices_sagital():
     coordinate system, and the "column-cosine" points in the negative
     z-direction in the patient coordinate system.
     '''
-    slice_0_data = rand(*arbitrary_shape)
-    slice_1_data = rand(*arbitrary_shape)
+    slice_0_data = randi(*arbitrary_shape)
+    slice_1_data = randi(*arbitrary_shape)
     slices = [
         generate_mock_slice(slice_0_data, 0, y_cos, negative_z_cos),
         generate_mock_slice(slice_1_data, 1, y_cos, negative_z_cos),
@@ -136,8 +135,8 @@ def test_combine_dicom_slices_coronal():
     have the row direction-cosine pointing in the positive x-direction, and the
     column direction-cosine pointing in the negative z-direction.
     '''
-    slice_0_data = rand(*arbitrary_shape)
-    slice_1_data = rand(*arbitrary_shape)
+    slice_0_data = randi(*arbitrary_shape)
+    slice_1_data = randi(*arbitrary_shape)
     slices = [
         generate_mock_slice(slice_0_data, 0, x_cos, negative_z_cos),
         generate_mock_slice(slice_1_data, 1, x_cos, negative_z_cos),
@@ -231,3 +230,7 @@ def test_combine_dicom_slices_missing_end_slice(axial_slices):
     '''
     with pytest.raises(ValueError):
         combine_dicom_slices([axial_slices[0], axial_slices[1], axial_slices[2]])
+
+
+def randi(*shape):
+    return numpy.random.randint(1000, size=shape, dtype='uint16')
