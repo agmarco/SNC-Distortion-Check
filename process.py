@@ -99,8 +99,8 @@ def _axes_mapping(image_orientation):
     slice_axis_cosine = numpy.cross(row_cosine, column_cosine)
     slice_axis = numpy.argmax(numpy.abs(slice_axis_cosine))
 
-    row_flip = numpy.sign(row_cosine[row_axis])
-    column_flip = numpy.sign(column_cosine[column_axis])
+    row_flip = int(numpy.sign(row_cosine[row_axis]))
+    column_flip = int(numpy.sign(column_cosine[column_axis]))
 
     return (row_axis, column_axis, slice_axis), (row_flip, column_flip)
 
@@ -153,5 +153,5 @@ def _ensure_slices_form_a_uniform_grid(slice_datasets):
 
 def _check_for_missing_slices(slice_positions):
     slice_positions_diffs = numpy.diff(sorted(slice_positions))
-    if any(slice_positions_diffs - slice_positions_diffs[0] != 0):
+    if not numpy.allclose(slice_positions_diffs, slice_positions_diffs[0]):
         raise ValueError("Missing slices")
