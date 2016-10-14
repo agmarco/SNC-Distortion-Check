@@ -6,11 +6,12 @@ You will first need to [install conda](http://conda.pydata.org/docs/install/quic
 
 Once you have installed conda, run:
 
-    conda create -n cirs && . activate cirs
-
-You can then build the environment using:
-
     make
+
+and it should install everything.  You may want to enter the conda environment
+(e.g. so you can run tests).  You can do this using
+
+    . activate cirs
 
 ## Tests
 
