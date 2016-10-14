@@ -1,17 +1,19 @@
 # CIRS Geometric Distortion Platform
 
+## System Dependencies
+
+- [Conda](http://conda.pydata.org/docs/install/quick.html).
+- Linux utilities (e.g. Make)
+
+
 ## Installation
 
-You will first need to [install conda](http://conda.pydata.org/docs/install/quick.html), and then setup and enter a virtual environment.
-
-Once you have installed conda, run:
+Once have met all the system dependencies, run:
 
     make
 
 and it should install everything.  You may want to enter the conda environment
-(e.g. so you can run tests).  You can do this using
-
-    . activate cirs
+(e.g. so you can run tests).  You can do this using  `. activate cirs`.
 
 ## Tests
 

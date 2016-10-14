@@ -3,7 +3,7 @@ SHELL := /bin/bash
 .SUFFIXES:
 .DEFAULT:
 
-IN_ENV = . activate cirs &&
+IN_ENV := . activate cirs &&
 
 test_data := $(patsubst data/%,tmp/%.mat,$(wildcard data/*))
 
@@ -15,7 +15,7 @@ BUILD_INFO: environment.yml
 	git rev-parse HEAD > $@
 
 tmp/%.mat: data/% | tmp
-	./dicom2mat $@ $</*
+	$(IN_ENV) ./dicom2mat $@ $</*
 
 tmp:
 	mkdir -p $@
