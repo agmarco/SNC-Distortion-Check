@@ -3,6 +3,11 @@ SHELL := /bin/bash
 .SUFFIXES:
 .DEFAULT:
 
+BUILD_INFO: environment.yml
+	conda install $<
+	nbstripout --install
+	git rev-parse HEAD > $@
+
 tmp/%.mat: data/% | tmp
 	./dicom2mat $@ $</*
 
