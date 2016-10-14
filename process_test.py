@@ -31,6 +31,7 @@ def generate_mock_slice(pixel_array, slice_position, row_cosine, column_cosine):
     dataset.pixel_array = pixel_array
 
     dataset.SeriesInstanceUID = 'arbitrary uid'
+    dataset.SOPClassUID = 'arbitrary sopclass uid'
     dataset.PixelSpacing = [1.0, 1.0]
     dataset.Rows = na
     dataset.Columns = nb
