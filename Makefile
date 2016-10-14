@@ -5,10 +5,13 @@ SHELL := /bin/bash
 
 IN_ENV = . activate cirs &&
 
+test_data := $(patsubst data/%,tmp/%.mat,$(wildcard data/*))
+
+all: BUILD_INFO $(test_data)
 
 BUILD_INFO: environment.yml
 	conda env create --force --file $<
-	$(IN_ENV) nbstripout --install
+	$(IN_ENV) nbstripout --install --attributes .gitattributes
 	git rev-parse HEAD > $@
 
 tmp/%.mat: data/% | tmp
