@@ -67,13 +67,12 @@ class TestAffineMatrix:
 
 def test_basic_registration():
     A = []
-    for x in range(-10, 10):
-        for y in range(-10, 10):
-            for z in range(-10, 10):
+    for x in range(-5, 5):
+        for y in range(-5, 5):
+            for z in range(-5, 5):
                 A.append((x, y, z))
 
     A = np.array(A, dtype=float).T
-    print(A.shape)
 
     x = 0.2
     y = 0.1
@@ -86,7 +85,11 @@ def test_basic_registration():
 
     f = build_f(A, B, g, rho)
 
-    r0 = np.array([0, 0, 0, 0, 0, 0])
-    result = scipy.optimize.minimize(f, r0)
+    deg5 = pi*5/180
+    bounds = [(-50, 50), (-50, 50), (-50, 50), (-deg5, deg5), (-deg5, deg5), (-deg5, deg5)]
 
-    assert_allclose(result.x, [x, y, z, 0, 0, 0])
+    r0 = np.array([0, 0, 0, 0, 0, 0])
+
+    result = scipy.optimize.minimize(f, r0, method='TNC', bounds=bounds)
+
+    assert_allclose(result.x, [x, y, z, 0, 0, 0], rtol=1e-2)
