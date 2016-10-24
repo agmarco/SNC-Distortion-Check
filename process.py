@@ -49,6 +49,8 @@ def combine_dicom_slices(slice_datasets):
 
         data[slices] = slice_data
 
+    # TODO: this should return pixel spacing as well; currently assuming all
+    # pixel spacing is ~1mm
     return data
 
 

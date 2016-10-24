@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import ipywidgets as widgets
 import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
 
 
 def slices(data, x, y, z, cmap='Greys_r'):
@@ -86,3 +87,8 @@ def turn_off_labels():
     )
 
 
+def scatter3(x, y, z):
+    fig = plt.figure(figsize=(10, 10))
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(x, y, z)
+    return fig
