@@ -4,7 +4,9 @@ SHELL := /bin/bash
 
 IN_ENV := . activate cirs &&
 
-test_data := $(patsubst data/%,tmp/%.mat,$(wildcard data/*))
+test_data := $(patsubst data/%,tmp/%-unregistered-points.mat,$(wildcard data/*))
+
+.PRECIOUS: tmp/%-voxels.mat tmp/%-unregistered-points.mat tmp/%-points.mat
 
 all: BUILD_INFO $(test_data)
 
@@ -13,15 +15,23 @@ BUILD_INFO: environment.yml
 	$(IN_ENV) nbstripout --install --attributes .gitattributes
 	git rev-parse HEAD > $@
 
-tmp/%.mat: data/%
-	$(IN_ENV) ./dicom2mat $@ $</*
+tmp/%-voxels.mat: data/%
+	$(IN_ENV) ./dicom2mat $</* $@
+
+tmp/%-unregistered-points.mat: tmp/%-voxels.mat
+	$(IN_ENV) ./detect_features $< $@
+
+tmp/%-points.mat: tmp/%-unregistered-points.mat
+	$(IN_ENV) ./register $< $@
 
 
-.PHONY: clean freezedeps
+.PHONY: clean cleanall freezedeps
 
 clean:
-	. deactivate && conda remove -y --name cirs --all
 	git clean -fqx tmp
+
+cleanall: clean
+	. deactivate && conda remove -y --name cirs --all
 	rm BUILD_INFO
 
 freezedeps:

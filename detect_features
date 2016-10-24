@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+import sys
+
+import dicom
+import scipy.io
+
+from feature_detection import convolution_feature_detection
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 3:
+        print('Usage: detectfeatures INPUTMAT OUTPUTMAT')
+        sys.exit(1)
+
+    input_mat_filenames = sys.argv[1]
+    output_mat_filename = sys.argv[2]
+
+    voxels = scipy.io.loadmat(input_mat_filenames)['voxels']
+
+    # eventually these params will be derived from details
+    nrx, nry, nrz, threshold_frac = 3, 3, 3, 0.6
+
+    x, y, z = convolution_feature_detection(voxels, nrx, nry, nrz, threshold_frac)
+    scipy.io.savemat(output_mat_filename, {
+        'x': x,
+        'y': y,
+        'z': z,
+    })

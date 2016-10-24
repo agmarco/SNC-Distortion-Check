@@ -9,10 +9,10 @@ from process import combine_dicom_slices
 
 if __name__ == '__main__':
     if len(sys.argv) <= 3:
-        print('Usage: dicom2mat MATFILE DICOMFILES...')
+        print('Usage: dicom2mat DICOMFILES... MATFILE')
         sys.exit(1)
-    output_mat_filename = sys.argv[1]
-    input_dicom_filenames = sys.argv[2:]
+    output_mat_filename = sys.argv[-1]
+    input_dicom_filenames = sys.argv[1:-1]
     dicom_datasets = [dicom.read_file(f) for f in input_dicom_filenames]
     voxels = combine_dicom_slices(dicom_datasets)
     scipy.io.savemat(output_mat_filename, {'voxels': voxels})
