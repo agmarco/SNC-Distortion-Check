@@ -54,6 +54,8 @@ def build_f(A, B, g, rho):
     A1 = np.vstack((A, np.ones((1, m), dtype=float)))
     BT = B.T
 
+    matches = {}  # b index -> a index
+
     def f(inputs):
         x, y, z, theta, phi, xi = inputs
         S = R_x(theta) @ R_y(phi) @ R_z(xi) @ T(x, y, z)
@@ -61,13 +63,18 @@ def build_f(A, B, g, rho):
         A_S = A1_S[:3, :]
 
         summation = 0.0
-        for b in BT:
+        for i, b in enumerate(BT):
             b_norm = np.linalg.norm(b)
             g_b = g(b_norm)
             if g_b == 0:
                 continue
-            b_a_distances_squared = np.sum((A_S - b.reshape((3, 1)))**2, axis=0)
-            min_b_a = sqrt(np.amin(b_a_distances_squared))
+
+            if i not in matches:
+                b_a_distances_squared = np.sum((A_S - b.reshape((3, 1)))**2, axis=0)
+                matches[i] = np.argmin(b_a_distances_squared)
+
+            a = A_S[:, matches[i]]
+            min_b_a = np.linalg.norm(a - b)
             rho_b = rho(b_norm)
             if min_b_a > rho_b:
                 continue
