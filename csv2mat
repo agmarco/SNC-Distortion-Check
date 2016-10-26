@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+#
+# Script to convert a CSV file with three columns (x, y, z) of points
+# into a mat file with x, y, z numpy arrays
+import sys
+
+import scipy.io
+import numpy as np
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 3:
+        print('Usage: csv2mat CSVFILE MATFILE')
+        sys.exit(1)
+    input_xyz_csv_filename = sys.argv[1]
+    output_xyz_mat_filename = sys.argv[2]
+
+    data = np.genfromtxt(input_xyz_csv_filename)
+
+    scipy.io.savemat(output_xyz_mat_filename, {
+        'x': data[:, 0],
+        'y': data[:, 1],
+        'z': data[:, 2],
+    })
