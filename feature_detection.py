@@ -18,7 +18,7 @@ def convolution_feature_detection(data, nrx, nry, nrz, threshold_frac):
     labels, number_of_labels = ndimage.label(intersections_thresholded)
     grid_intersections = ndimage.center_of_mass(data, labels, range(1, number_of_labels + 1))
     x, y, z = zip(*grid_intersections)
-    return farray([x, y, z]).T
+    return farray([x, y, z])
 
 
 def grid_intersection_kernel(nrx, nry, nrz):

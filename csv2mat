@@ -18,5 +18,5 @@ if __name__ == '__main__':
 
     output_xyz_mat_filename = sys.argv[2]
     scipy.io.savemat(output_xyz_mat_filename, {
-        'points': points,
+        'points': points.T,
     })
