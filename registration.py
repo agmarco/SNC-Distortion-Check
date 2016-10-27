@@ -1,7 +1,7 @@
 import logging
 
 import numpy as np
-from math import pi
+from math import pi, sqrt
 import scipy.optimize
 
 import affine
@@ -22,8 +22,6 @@ def build_f(A, B, g, rho):
     A1 = np.vstack((A, np.ones((1, m), dtype=float)))
     BT = B.T
 
-    matches = {}  # b index -> a index
-
     def f(inputs):
         x, y, z, theta, phi, xi = inputs
         affine_matrix = affine.translation_rotation(x, y, z, theta, phi, xi)
@@ -31,18 +29,13 @@ def build_f(A, B, g, rho):
         A_S = A1_S[:3, :]
 
         summation = 0.0
-        for i, b in enumerate(BT):
+        for b in BT:
             b_norm = np.linalg.norm(b)
             g_b = g(b_norm)
             if g_b == 0:
                 continue
-
-            if i not in matches:
-                b_a_distances_squared = np.sum((A_S - b.reshape((3, 1)))**2, axis=0)
-                matches[i] = np.argmin(b_a_distances_squared)
-
-            a = A_S[:, matches[i]]
-            min_b_a = np.linalg.norm(a - b)
+            b_a_distances_squared = np.sum((A_S - b.reshape((3, 1)))**2, axis=0)
+            min_b_a = sqrt(np.amin(b_a_distances_squared))
             rho_b = rho(b_norm)
             if min_b_a > rho_b:
                 continue
@@ -51,21 +44,18 @@ def build_f(A, B, g, rho):
     return f
 
 
-def register(A, B):
+def register(A, B, g, rho, tol=1e-4):
     '''
     Our "best known" optimization strategy.
     '''
-    g = lambda bmag: 1.0 if bmag <= 10 else 0.0
-    rho = lambda bmag: 1.0
-
     f = build_f(A, B, g, rho)
-
-    r0 = np.array([0, 0, 0, 0, 0, 0])
-
-    deg5 = pi*5/180
-    bounds = [(-50, 50), (-50, 50), (-50, 50), (-deg5, deg5), (-deg5, deg5), (-deg5, deg5)]
-
-    result = scipy.optimize.minimize(f, r0, method='TNC', bounds=bounds)
+    x0 = np.array([0, 0, 0, 0, 0, 0])
+    options = {
+        'xatol': tol,
+        'fatol': tol,
+        'maxiter': 4000,
+    }
+    result = scipy.optimize.minimize(f, x0, method='Nelder-Mead', options=options)
     _handle_optimization_result(result)
     return result.x
 

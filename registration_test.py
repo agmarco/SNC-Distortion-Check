@@ -47,7 +47,6 @@ class TestSimpleF:
         assert simple_f([-0.5, 0, 0, 0, 0, 0]) == -0.5
 
 
-@pytest.mark.xfail
 def test_basic_registration():
     A = []
     for x in range(-5, 5):
@@ -56,6 +55,8 @@ def test_basic_registration():
                 A.append((x, y, z))
 
     A = np.array(A, dtype=float).T
+    m, mm = A.shape
+    assert m == 3
 
     x = 0.2
     y = 0.1
@@ -63,6 +64,10 @@ def test_basic_registration():
 
     B = apply_affine(translation_rotation(x, y, z, 0, 0, 0), A)
 
-    resulting_params = register(A, B)
+    g = lambda bmag: 1.0 if bmag <= 10 else 0.0
+    rho = lambda bmag: 5.0
 
-    assert_allclose(resulting_params, [x, y, z, 0, 0, 0], rtol=1e-2)
+    tolerance = 1e-5
+    resulting_params = register(A, B, g, rho, tolerance)
+
+    assert_allclose(resulting_params, [x, y, z, 0, 0, 0], atol=tolerance*2)
