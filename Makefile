@@ -4,7 +4,7 @@ SHELL := /bin/bash
 
 IN_ENV := . activate cirs &&
 
-test_data := $(patsubst data/%,tmp/%-unregistered-points.mat,$(wildcard data/*))
+test_data := $(patsubst data/dicom/%,tmp/%-unregistered-points.mat,$(wildcard data/dicom/*))
 
 .PRECIOUS: tmp/%-voxels.mat tmp/%-unregistered-points.mat tmp/%-points.mat
 
@@ -15,7 +15,7 @@ all: $(test_data)
 	$(IN_ENV) nbstripout --install --attributes .gitattributes
 	git rev-parse HEAD > $@
 
-tmp/%-voxels.mat: data/% .CONDABUILD
+tmp/%-voxels.mat: data/dicom/% .CONDABUILD
 	$(IN_ENV) ./dicom2mat $</* $@
 
 tmp/%-unregistered-points.mat: tmp/%-voxels.mat .CONDABUILD
