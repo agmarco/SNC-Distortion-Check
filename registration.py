@@ -51,7 +51,6 @@ def register(A, B, g, rho, tol=1e-4):
     f = build_f(A, B, g, rho)
     x0 = np.array([0, 0, 0, 0, 0, 0])
     options = {
-        'xatol': tol,
         'fatol': tol,
         'maxiter': 4000,
     }
