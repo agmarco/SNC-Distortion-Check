@@ -1,7 +1,25 @@
+import itertools
+
 import matplotlib.pyplot as plt
 import ipywidgets as widgets
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
+
+
+def scatter3(label_to_points):
+    colors = itertools.cycle(["r", "b", "g"])
+
+    fig = plt.figure(figsize=(10, 10))
+    ax = fig.add_subplot(111, projection='3d')
+
+    for label, points in label_to_points.items():
+        color = next(colors)
+        ax.scatter(points[0, :], points[1, :], points[2, :], color=color, label=label)
+
+    ax.set_xlabel('x [mm]')
+    ax.set_ylabel('y [mm]')
+    ax.set_zlabel('z [mm]')
+    plt.legend()
 
 
 def slices(data, x, y, z, cmap='Greys_r'):
@@ -85,10 +103,3 @@ def turn_off_labels():
         labelbottom='off',
         labelleft='off'
     )
-
-
-def scatter3(x, y, z):
-    fig = plt.figure(figsize=(10, 10))
-    ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(x, y, z)
-    return fig
