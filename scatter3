@@ -19,11 +19,8 @@ if __name__ == '__main__':
     ax = fig.add_subplot(111, projection='3d')
 
     for c, f in zip(colors, input_files):
-        data = scipy.io.loadmat(f)
-        x = data['x']
-        y = data['y']
-        z = data['z']
-        ax.scatter(x, y, z, color=c, label=f)
+        points = scipy.io.loadmat(f)['points']
+        ax.scatter(points[:, 0], points[:, 1], points[:, 2], color=c, label=f)
 
     ax.set_xlabel('x [mm]')
     ax.set_ylabel('y [mm]')

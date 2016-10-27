@@ -1,45 +1,13 @@
+import logging
+
 import numpy as np
-from math import cos, sin, sqrt
+from math import pi
+import scipy.optimize
+
+import affine
 
 
-def R_x(theta):
-    return np.array([
-        [1, 0,          0,           0],
-        [0, cos(theta), -sin(theta), 0],
-        [0, sin(theta), cos(theta), 0],
-        [0, 0,          0,           1]
-    ])
-
-
-def R_y(phi):
-    return np.array([
-        [cos(phi),  0, sin(phi), 0],
-        [0,         1,        0, 0],
-        [-sin(phi), 0, cos(phi), 0],
-        [0,         0,        0, 1]
-    ], dtype='f')
-
-
-def R_z(xi):
-    return np.array([
-        [cos(xi),  sin(xi), 0, 0],
-        [-sin(xi), cos(xi), 0, 0],
-        [0,        0,       1, 0],
-        [0,        0,       0, 1]
-    ], dtype='f')
-
-
-def T(x, y, z):
-    return np.array([
-        [1, 0, 0, x],
-        [0, 1, 0, y],
-        [0, 0, 1, z],
-        [0, 0, 0, 1]
-    ], dtype='f')
-
-
-def S(x, y, z, theta, phi, xi):
-    return R_x(theta) @ R_y(phi) @ R_z(xi) @ T(x, y, z)
+logger = logging.getLogger(__name__)
 
 
 def build_f(A, B, g, rho):
@@ -58,8 +26,8 @@ def build_f(A, B, g, rho):
 
     def f(inputs):
         x, y, z, theta, phi, xi = inputs
-        S = R_x(theta) @ R_y(phi) @ R_z(xi) @ T(x, y, z)
-        A1_S = S @ A1
+        affine_matrix = affine.translation_rotation(x, y, z, theta, phi, xi)
+        A1_S = affine_matrix @ A1
         A_S = A1_S[:3, :]
 
         summation = 0.0
@@ -83,12 +51,28 @@ def build_f(A, B, g, rho):
     return f
 
 
-def apply_affine(affine_matrix, A):
-    mm, m = A.shape
-    assert mm == 3
-    assert A.dtype == float
+def register(A, B):
+    '''
+    Our "best known" optimization strategy.
+    '''
+    g = lambda bmag: 1.0 if bmag <= 10 else 0.0
+    rho = lambda bmag: 1.0
 
-    A1 = np.vstack((A, np.ones((1, m), dtype=float)))
-    A1_S = affine_matrix @ A1
-    A_S = A1_S[:3, :]
-    return A_S
+    f = build_f(A, B, g, rho)
+
+    r0 = np.array([0, 0, 0, 0, 0, 0])
+
+    deg5 = pi*5/180
+    bounds = [(-50, 50), (-50, 50), (-50, 50), (-deg5, deg5), (-deg5, deg5), (-deg5, deg5)]
+
+    result = scipy.optimize.minimize(f, r0, method='TNC', bounds=bounds)
+    _handle_optimization_result(result)
+    return result.x
+
+
+def _handle_optimization_result(result):
+    logger.info('Optimization completed in {} iterations'.format(result.nit))
+    logger.info('Objective function evaluated {} times'.format(result.nfev))
+    logger.info('Cause of termination: {}'.format(result.message))
+    if not result.success:
+        raise ValueError('Optimization did not succeed')

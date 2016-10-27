@@ -1,11 +1,9 @@
-from math import pi
-
 import pytest
 import numpy as np
 from numpy.testing import assert_allclose
-import scipy.optimize
 
-from registration import build_f, S, apply_affine
+from registration import build_f, register
+from affine import apply_affine, translation_rotation
 
 
 @pytest.fixture
@@ -18,12 +16,16 @@ def simple_f():
 
 
 class TestSimpleF:
-    def test_overlapping_points(self, simple_f):
+    def test_overlapping_points_no_shift(self, simple_f):
         '''
         The first point in a overlaps with b.
-        With a shift of [0, 0, -1] the second point will overlap.
         '''
         assert simple_f([0, 0, 0, 0, 0, 0]) == -1.0
+
+    def test_overlapping_points_with_shift(self, simple_f):
+        '''
+        With a shift of [0, 0, -1] the second point will overlap.
+        '''
         assert simple_f([0, 0, -1, 0, 0, 0]) == -1.0
 
     def test_grabs_closest_point_at_rho(self, simple_f):
@@ -45,26 +47,7 @@ class TestSimpleF:
         assert simple_f([-0.5, 0, 0, 0, 0, 0]) == -0.5
 
 
-class TestAffineMatrix:
-    def test_shifts(self):
-        assert_allclose(S(1, 0, 0, 0, 0, 0) @ [0, 0, 0, 1], [1, 0, 0, 1], atol=1e-10)
-        assert_allclose(S(0, 1, 0, 0, 0, 0) @ [0, 0, 0, 1], [0, 1, 0, 1], atol=1e-10)
-        assert_allclose(S(0, 0, 1, 0, 0, 0) @ [0, 0, 0, 1], [0, 0, 1, 1], atol=1e-10)
-
-    def test_rotate_x_90(self):
-        assert_allclose(S(0, 0, 0, pi/2, 0, 0) @ [0, 0, 0, 1], [0, 0, 0, 1], atol=1e-10)
-        assert_allclose(S(0, 0, 0, pi/2, 0, 0) @ [1, 0, 0, 1], [1, 0, 0, 1], atol=1e-10)
-        assert_allclose(S(0, 0, 0, pi/2, 0, 0) @ [0, 1, 0, 1], [0, 0, 1, 1], atol=1e-10)
-        assert_allclose(S(0, 0, 0, pi/2, 0, 0) @ [0, 0, 1, 1], [0, -1, 0, 1], atol=1e-10)
-
-    def _test_rotate_y(self):
-        assert_allclose(S(0, 0, 0, 0, pi/2, 0) @ [0, 0, 0, 1], [0, 0, 0, 1], atol=1e-10)
-        assert_allclose(S(0, 0, 0, 0, pi/2, 0) @ [1, 0, 0, 1], [1, 0, 0, 1], atol=1e-10)
-        assert_allclose(S(0, 0, 0, 0, pi/2, 0) @ [0, 1, 0, 1], [0, 0, -1, 1], atol=1e-10)
-        assert_allclose(S(0, 0, 0, 0, pi/2, 0) @ [0, 0, 1, 1], [0, -1, 0, 1], atol=1e-10)
-
-
-
+@pytest.mark.xfail
 def test_basic_registration():
     A = []
     for x in range(-5, 5):
@@ -78,18 +61,8 @@ def test_basic_registration():
     y = 0.1
     z = -0.4
 
-    B = apply_affine(S(x, y, z, 0, 0, 0), A)
+    B = apply_affine(translation_rotation(x, y, z, 0, 0, 0), A)
 
-    g = lambda bmag: 1.0 if bmag <= 10 else 0.0
-    rho = lambda bmag: 1.0
+    resulting_params = register(A, B)
 
-    f = build_f(A, B, g, rho)
-
-    deg5 = pi*5/180
-    bounds = [(-50, 50), (-50, 50), (-50, 50), (-deg5, deg5), (-deg5, deg5), (-deg5, deg5)]
-
-    r0 = np.array([0, 0, 0, 0, 0, 0])
-
-    result = scipy.optimize.minimize(f, r0, method='TNC', bounds=bounds)
-
-    assert_allclose(result.x, [x, y, z, 0, 0, 0], rtol=1e-2)
+    assert_allclose(resulting_params, [x, y, z, 0, 0, 0], rtol=1e-2)
