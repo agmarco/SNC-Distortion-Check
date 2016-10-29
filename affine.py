@@ -23,8 +23,8 @@ def R_y(phi):
 
 def R_z(xi):
     return np.array([
-        [cos(xi),  sin(xi), 0, 0],
-        [-sin(xi), cos(xi), 0, 0],
+        [cos(xi), -sin(xi), 0, 0],
+        [sin(xi), cos(xi), 0, 0],
         [0,        0,       1, 0],
         [0,        0,       0, 1]
     ], dtype='f')
