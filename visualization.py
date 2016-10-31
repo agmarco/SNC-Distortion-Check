@@ -26,19 +26,20 @@ def slices(data, x, y, z, cmap='Greys_r'):
     plt.figure(figsize=(8, 15))
 
     vmax = np.max(data)
+    vmin = min(np.min(data), 0)
 
     plt.subplot(311)
-    plt.imshow(data[x, :, :], cmap=cmap, interpolation="none", vmin=0, vmax=vmax)
+    plt.imshow(data[x, :, :], cmap=cmap, interpolation="none", vmin=vmin, vmax=vmax)
     plt.title('Coronal')
     turn_off_labels()
 
     plt.subplot(312)
-    plt.imshow(data[:, y, :], cmap=cmap, interpolation="none", vmin=0, vmax=vmax)
+    plt.imshow(data[:, y, :], cmap=cmap, interpolation="none", vmin=vmin, vmax=vmax)
     plt.title('Saggital')
     turn_off_labels()
 
     plt.subplot(313)
-    plt.imshow(data[:, :, z], cmap=cmap, interpolation="none", vmin=0, vmax=vmax)
+    plt.imshow(data[:, :, z], cmap=cmap, interpolation="none", vmin=vmin, vmax=vmax)
     plt.title('Axial')
     turn_off_labels()
 

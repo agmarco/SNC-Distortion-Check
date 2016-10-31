@@ -52,3 +52,7 @@ def apply_affine(affine_matrix, A):
     A1_transformed = affine_matrix @ A1
     A_transformed = A1_transformed[:3, :]
     return A_transformed
+
+
+def apply_xyztpx(xyztpx, points):
+    return apply_affine(translation_rotation(*xyztpx), points)
