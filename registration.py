@@ -51,10 +51,11 @@ def register(A, B, g, rho, tol=1e-4):
     f = build_f(A, B, g, rho)
     x0 = np.array([0, 0, 0, 0, 0, 0])
     options = {
-        'fatol': tol,
+        'xtol': tol,
+        'ftol': 1e-20,  # only care about x
         'maxiter': 4000,
     }
-    result = scipy.optimize.minimize(f, x0, method='Nelder-Mead', options=options)
+    result = scipy.optimize.minimize(f, x0, method='Powell', options=options)
     _handle_optimization_result(result)
     return result.x
 

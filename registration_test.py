@@ -1,9 +1,11 @@
+from math import pi
+
 import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
 from registration import build_f, register
-from affine import apply_affine, translation_rotation
+from affine import apply_xyztpx
 
 
 @pytest.fixture
@@ -47,27 +49,34 @@ class TestSimpleF:
         assert simple_f([-0.5, 0, 0, 0, 0, 0]) == -0.5
 
 
-def test_basic_registration():
-    A = []
-    for x in range(-5, 5):
-        for y in range(-5, 5):
-            for z in range(-5, 5):
-                A.append((x, y, z))
+class TestRegistrationPerfectMatch:
+    def assert_5x5x5_match(self, xyztpx):
+        A = []
+        Delta = 20
+        for x in range(-2*Delta, 2*Delta + 1, Delta):
+            for y in range(-2*Delta, 2*Delta + 1, Delta):
+                for z in range(-2*Delta, 2*Delta + 1, Delta):
+                    A.append((x, y, z))
 
-    A = np.array(A, dtype=float).T
-    m, mm = A.shape
-    assert m == 3
+        A = np.array(A, dtype=float).T
+        m, mm = A.shape
+        assert m == 3
 
-    x = 0.2
-    y = 0.1
-    z = -0.4
+        B = apply_xyztpx(xyztpx, A)
 
-    B = apply_affine(translation_rotation(x, y, z, 0, 0, 0), A)
+        g = lambda bmag: 1 - bmag/100.0 if bmag <= 100 else 0.0
+        rho = lambda bmag: 10.0
 
-    g = lambda bmag: 1.0 if bmag <= 10 else 0.0
-    rho = lambda bmag: 5.0
+        tolerance = 1e-5
+        xyztpx_actual = register(A, B, g, rho, tolerance)
 
-    tolerance = 1e-5
-    resulting_params = register(A, B, g, rho, tolerance)
+        assert_allclose(xyztpx_actual, xyztpx, atol=tolerance*10)
 
-    assert_allclose(resulting_params, [x, y, z, 0, 0, 0], atol=tolerance*2)
+    def test_small_translation(self):
+        self.assert_5x5x5_match([0.4, -0.3, 0.3, 0, 0, 0])
+
+    def test_big_translation(self):
+        self.assert_5x5x5_match([4.4, -6.3, 5.3, 0, 0, 0])
+
+    def test_rotation(self):
+        self.assert_5x5x5_match([0, 0, 0, pi/180*2, -pi/180*5, pi/180*3])
