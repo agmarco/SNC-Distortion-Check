@@ -4,9 +4,9 @@ SHELL := /bin/bash
 
 IN_ENV := . activate cirs &&
 
-test_data := $(patsubst data/dicom/%,tmp/%-unregistered-points.mat,$(wildcard data/dicom/*))
+test_data := $(patsubst data/dicom/%,tmp/%-points.mat,$(wildcard data/dicom/*))
 
-.PRECIOUS: tmp/%-voxels.mat tmp/%-unregistered-points.mat tmp/%-points.mat
+.PRECIOUS: tmp/%-voxels.mat tmp/%-unregistered-points.mat tmp/%-points.mat tmp/%-registration.mat
 
 all: $(test_data)
 
@@ -21,8 +21,11 @@ tmp/%-voxels.mat: data/dicom/% .CONDABUILD
 tmp/%-unregistered-points.mat: tmp/%-voxels.mat .CONDABUILD
 	$(IN_ENV) ./detect_features $< $@
 
-tmp/%-points.mat: tmp/%-unregistered-points.mat .CONDABUILD
-	$(IN_ENV) ./register $< $@
+tmp/%-registration.mat: tmp/%-unregistered-points.mat .CONDABUILD
+	$(IN_ENV) ./register ./data/points/603A_CAD.mat $< $@
+
+tmp/%-points.mat: tmp/%-registration.mat tmp/%-unregistered-points.mat .CONDABUILD
+	$(IN_ENV) ./applyaffine $< $(word 2,$^) $@
 
 
 .PHONY: clean cleanall freezedeps

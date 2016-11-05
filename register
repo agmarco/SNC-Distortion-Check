@@ -4,11 +4,12 @@ import sys
 import scipy.io
 
 from registration import register
+import affine
 
 
 if __name__ == '__main__':
     if len(sys.argv) != 4:
-        print('Usage: register AMAT BMAT FILE')
+        print('Usage: register A B TRANSFORM')
         sys.exit(1)
 
     A_xyz_mat_filename = sys.argv[1]
@@ -17,14 +18,15 @@ if __name__ == '__main__':
     B_xyz_mat_filename = sys.argv[2]
     B = scipy.io.loadmat(B_xyz_mat_filename)['points']
 
-    x, y, z, theta, phi, xi = register(A, B)
+    # TODO: determine rho and g based on our knowledge of the phantom
+    g = lambda bmag: 1.0
+    rho = lambda bmag: 10.0
+
+    xyztpx = register(A, B, rho, g, 1e-6)
+
+    a_to_b_registration_matrix = affine.translation_rotation(*xyztpx)
 
     output_mat_filename = sys.argv[3]
     scipy.io.savemat(output_mat_filename, {
-        'x': x,
-        'y': y,
-        'z': z,
-        'theta': theta,
-        'phi': phi,
-        'xi': xi,
+        'registration_matrix': a_to_b_registration_matrix,
     })

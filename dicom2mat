@@ -4,7 +4,7 @@ import sys
 import dicom
 import scipy.io
 
-from process import combine_dicom_slices
+from dicom_import import combine_slices
 
 
 if __name__ == '__main__':
@@ -15,7 +15,10 @@ if __name__ == '__main__':
     input_dicom_filenames = sys.argv[1:-1]
     dicom_datasets = [dicom.read_file(f) for f in input_dicom_filenames]
 
-    voxels = combine_dicom_slices(dicom_datasets)
+    voxels, irc_to_patient_xyz_transform = combine_slices(dicom_datasets)
 
     output_mat_filename = sys.argv[-1]
-    scipy.io.savemat(output_mat_filename, {'voxels': voxels})
+    scipy.io.savemat(output_mat_filename, {
+        'voxels': voxels,
+        'irc_to_patient_xyz_transform': irc_to_patient_xyz_transform,
+    })
