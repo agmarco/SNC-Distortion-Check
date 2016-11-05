@@ -17,6 +17,21 @@ def simple_f():
     return build_f(A, B, g, rho)
 
 
+@pytest.fixture
+def grid5x5x5():
+    A = []
+    Delta = 20
+    for x in range(-2*Delta, 2*Delta + 1, Delta):
+        for y in range(-2*Delta, 2*Delta + 1, Delta):
+            for z in range(-2*Delta, 2*Delta + 1, Delta):
+                A.append((x, y, z))
+
+    A = np.array(A, dtype=float).T
+    m, mm = A.shape
+    assert m == 3
+    return A
+
+
 class TestSimpleF:
     def test_overlapping_points_no_shift(self, simple_f):
         '''
@@ -51,20 +66,10 @@ class TestSimpleF:
 
 class TestRegistrationPerfectMatch:
     def assert_5x5x5_match(self, xyztpx):
-        A = []
-        Delta = 20
-        for x in range(-2*Delta, 2*Delta + 1, Delta):
-            for y in range(-2*Delta, 2*Delta + 1, Delta):
-                for z in range(-2*Delta, 2*Delta + 1, Delta):
-                    A.append((x, y, z))
-
-        A = np.array(A, dtype=float).T
-        m, mm = A.shape
-        assert m == 3
-
+        A = grid5x5x5()
         B = apply_xyztpx(xyztpx, A)
 
-        g = lambda bmag: 1 - bmag/100.0 if bmag <= 100 else 0.0
+        g = lambda bmag: 1.0
         rho = lambda bmag: 10.0
 
         tolerance = 1e-5

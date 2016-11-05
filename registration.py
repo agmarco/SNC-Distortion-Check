@@ -45,9 +45,6 @@ def build_f(A, B, g, rho):
 
 
 def register(A, B, g, rho, tol=1e-4):
-    '''
-    Our "best known" optimization strategy.
-    '''
     f = build_f(A, B, g, rho)
     x0 = np.array([0, 0, 0, 0, 0, 0])
     options = {
