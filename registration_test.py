@@ -1,4 +1,5 @@
 from math import pi
+import unittest
 
 import pytest
 import numpy as np
@@ -6,15 +7,6 @@ from numpy.testing import assert_allclose
 
 from registration import build_f, register
 from affine import apply_xyztpx
-
-
-@pytest.fixture
-def simple_f():
-    B = np.array([[0, 0, 1]], dtype=float).T
-    A = np.array([[0, 0, 1], [0, 0, 2]], dtype=float).T
-    g = lambda bmag: 1.0 if bmag <= 10 else 0.0
-    rho = lambda bmag: 1.0
-    return build_f(A, B, g, rho)
 
 
 @pytest.fixture
@@ -32,36 +24,56 @@ def grid5x5x5():
     return A
 
 
-class TestSimpleF:
-    def test_overlapping_points_no_shift(self, simple_f):
+class TestSimpleObjectiveFunction(unittest.TestCase):
+    def setUp(self):
+        B = np.array([[0, 0, 0], [0, 0, 1]], dtype=float).T
+        A = np.array([[0, 0, 0]], dtype=float).T
+        self.g = lambda bmag: 1.0 - bmag/100.0
+        self.rho = lambda bmag: 2.0
+        self.f = build_f(A, B, self.g, self.rho)
+
+    def test_overlapping_points_no_shift(self):
         '''
         The first point in a overlaps with b.
         '''
-        assert simple_f([0, 0, 0, 0, 0, 0]) == -1.0
+        assert self.f([0, 0, 0, 0, 0, 0]) == -self.g(0.0)
 
-    def test_overlapping_points_with_shift(self, simple_f):
+    def test_overlapping_points_with_shift(self):
         '''
-        With a shift of [0, 0, -1] the second point will overlap.
+        With a shift of [0, 0, 1] the second point will overlap.
         '''
-        assert simple_f([0, 0, -1, 0, 0, 0]) == -1.0
+        assert self.f([0, 0, 1, 0, 0, 0]) == -self.g(1.0)
 
-    def test_grabs_closest_point_at_rho(self, simple_f):
+    def test_grabs_closest_point_at_rho(self):
         '''
-        A shift in the +z direction will move the second point further away,
+        A shift in the -z direction will move the second point further away,
         and the first point right on the edge of rho.
         '''
-        assert simple_f([0, 0, 1, 0, 0, 0]) == 0
+        assert self.f([0, 0, -2, 0, 0, 0]) == 0
 
-    def test_grabs_closest_point_at_half_rho(self, simple_f):
+    def test_grabs_closest_point_at_half_rho(self):
         '''
         Moving the first point by 0.5 in any direction should result in a
         value that is "halfway out" of the cone.
         '''
-        assert simple_f([0, 0, -0.5, 0, 0, 0]) == -0.5
-        assert simple_f([0, 0,  0.5, 0, 0, 0]) == -0.5
-        assert simple_f([0, 0.5, 0, 0, 0, 0]) == -0.5
-        assert simple_f([ 0.5, 0, 0, 0, 0, 0]) == -0.5
-        assert simple_f([-0.5, 0, 0, 0, 0, 0]) == -0.5
+        expected_value = self.g(0)*(0.5/self.rho(0) - 1)
+        assert self.f([0, 0, -0.5, 0, 0, 0]) == expected_value
+        assert self.f([0, 0.5, 0, 0, 0, 0]) == expected_value
+        assert self.f([0, -0.5, 0, 0, 0, 0]) == expected_value
+        assert self.f([0.5, 0, 0, 0, 0, 0]) == expected_value
+        assert self.f([-0.5, 0, 0, 0, 0, 0]) == expected_value
+
+    def test_rejects_multiple_points(self):
+        '''
+        This test ensures that each point in a is only matched with a single
+        other point in B, and that the objective function properly determines
+        which point should be matched even at the boundary conditions.
+
+        If two points are equidistant, it should match the one with the higher g
+        value, which in this case is g(0)
+        '''
+        assert self.f([0, 0, 0.5, 0, 0, 0]) == self.g(0)*(0.5/self.rho(0) - 1.0)
+        assert_allclose(self.f([0, 0, 0.5001, 0, 0, 0]), self.g(1.0)*((1 - 0.5001)/self.rho(1.0) - 1.0))
 
 
 class TestRegistrationPerfectMatch:
