@@ -1,0 +1,26 @@
+#!/usr/bin/env python
+import sys
+import re
+
+import dicom
+
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print('Usage: bdcm DICOMFILE [TAGNAMES...]')
+        sys.exit(1)
+    dicom_filename, *tag_names = sys.argv[1:]
+
+    dicom_dataset = dicom.read_file(dicom_filename)
+
+    if not tag_names:
+        for name, value in dicom_dataset.items():
+            print(name)
+            print(value)
+    else:
+        for name in tag_names:
+            if getattr(dicom_dataset, name, None):
+                print(name)
+                print(getattr(dicom_dataset, name))
+            else:
+                print('Tag "{}" does not exist'.format(name))
