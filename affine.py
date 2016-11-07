@@ -30,6 +30,15 @@ def R_z(xi):
     ], dtype='f')
 
 
+def S(x, y, z):
+    return np.array([
+        [x, 0, 0, 0],
+        [0, y, 0, 0],
+        [0, 0, z, 0],
+        [0, 0, 0, 1]
+    ], dtype='f')
+
+
 def T(x, y, z):
     return np.array([
         [1, 0, 0, x],
