@@ -48,6 +48,11 @@ def build_f(A, B, g, rho):
     g_consideration_order = B_g_values[indices_sorted]
     rho_consideration_order = B_rho_values[indices_sorted]
 
+    _, num_B_considered = B_consideration_order.shape
+    if num_B_considered == 0:
+        print("Warning: no non-zero values in `B`!")
+        return lambda xyztpx: 0
+
     def f(xyztpx):
         affine_matrix = affine.translation_rotation(*xyztpx)
         A1_S = affine_matrix @ A1
