@@ -14,12 +14,13 @@ def scatter3(label_to_points):
 
     for label, points in label_to_points.items():
         color = next(colors)
-        ax.scatter(points[0, :], points[1, :], points[2, :], color=color, label=label)
+        ax.scatter(points[0, :], points[1, :], points[2, :], color=color, label=label, s=1)
 
     ax.set_xlabel('x [mm]')
     ax.set_ylabel('y [mm]')
     ax.set_zlabel('z [mm]')
     plt.legend()
+    return fig
 
 
 def slices(data, x, y, z, cmap='Greys_r'):
