@@ -46,7 +46,7 @@ def merge_slice_pixel_arrays(slice_datasets):
 
     sorted_slice_datasets = _sort_by_slice_spacing(slice_datasets)
     for k, dataset in enumerate(sorted_slice_datasets):
-        voxels[:, :, k] = dataset.pixel_array.astype(float)
+        voxels[:, :, k] = dataset.pixel_array.astype(float).T
 
     return voxels
 
