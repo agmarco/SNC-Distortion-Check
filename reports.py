@@ -71,8 +71,8 @@ def generate_report(A, B, pdfPath):
     max_sphere_radius = np.min(np.abs([x_min, y_min, z_min, x_max, y_max, z_max]))
     radius2MaxMeanError = OrderedDict()
     for r in np.arange(SPHERE_STEP_mm, max_sphere_radius, SPHERE_STEP_mm):
-        numPoints = np.round(surface_area(r)/SPHERE_POINTS_PER_AREA)
-        equidistant_sphere_points = generate_equidistant_sphere(numPoints) * r
+        num_points = int(round(surface_area(r)/SPHERE_POINTS_PER_AREA))
+        equidistant_sphere_points = generate_equidistant_sphere(num_points) * r
         values = interpolator(equidistant_sphere_points)
         max_value, mean_value = np.max(values), np.mean(values)
         radius2MaxMeanError[r] = (max_value, mean_value,)
