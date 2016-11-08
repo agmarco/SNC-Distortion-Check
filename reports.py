@@ -16,17 +16,19 @@ SPHERE_STEP_mm = 1
 SPHERE_POINTS_PER_AREA = 1
 
 
-def compute_matches(A, B):
+def compute_matches(A, B, min_mm=5):
     '''
     returns a list of tuples with matching points
     '''
     A_matched = []
     B_matched = []
+    min_mm_squared = min_mm * min_mm
     for b in B.T:
         b_a_distances_squared = np.sum((A - b.reshape((3, 1)))**2, axis=0)
         min_index = np.argmin(b_a_distances_squared)
-        A_matched.append(A[:, min_index])
-        B_matched.append(b)
+        if b_a_distances_squared[min_index] < min_mm_squared:
+            A_matched.append(A[:, min_index])
+            B_matched.append(b)
     return np.array(A_matched), np.array(B_matched)
 
 
