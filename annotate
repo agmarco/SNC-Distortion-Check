@@ -4,8 +4,10 @@ import sys
 import dicom
 import scipy.io
 import matplotlib.pylab as plt
+import numpy as np
 
 from dicom_import import combine_slices
+from affine import apply_affine
 
 
 if __name__ == '__main__':
@@ -16,16 +18,27 @@ if __name__ == '__main__':
     input_dicom_filenames = sys.argv[1:-1]
     dicom_datasets = [dicom.read_file(f) for f in input_dicom_filenames]
 
-    voxels, irc_to_patient_xyz_transform = combine_slices(dicom_datasets)
+    voxels, ijk_to_patient_xyz_transform = combine_slices(dicom_datasets)
 
     output_mat_filename = sys.argv[-1]
     try:
-        points = list(scipy.io.loadmat(output_mat_filename)['points'])
+        points_xyz = scipy.io.loadmat(output_mat_filename)['points']
+        print('{} existing points found in {}'.format(points_xyz.shape[1], output_mat_filename))
     except:
-        points = []
+        points_xyz = np.zeros((3, 0))
+        print('No existing points found in {}'.format(output_mat_filename))
+
+    patient_xyz_to_ijk_transform = np.linalg.inv(ijk_to_patient_xyz_transform)
+    points_ijk = apply_affine(patient_xyz_to_ijk_transform, points_xyz)
+    points_ijk_list = list(points_ijk.T)
 
     fig = plt.figure()
-    plt.title('Mouse button 1 records a grid intersection\nMouse button 2 to saves and exits\nMouse wheel scrolls slices')
+    plt.title('\n'.join([
+        'Mouse button 1 records a grid intersection',
+        'Mouse button 2 to saves and exits',
+        'Mouse wheel scrolls slices',
+    ]))
+
     ax = fig.add_subplot(111)
     current_slice = 0
 
@@ -35,23 +48,25 @@ if __name__ == '__main__':
         ax.collections = []
 
         ax.imshow(voxels[:, :, current_slice], cmap='Greys_r')
-        ax.imshow(voxels[:, :, current_slice], cmap='Greys_r')
 
-        x_points = [p[0] for p in points if p[2] == current_slice]
-        y_points = [p[1] for p in points if p[2] == current_slice]
+        x_points = [p[0] for p in points_ijk_list if np.isclose(p[2], current_slice)]
+        y_points = [p[1] for p in points_ijk_list if np.isclose(p[2], current_slice)]
         ax.scatter(x_points, y_points)
 
         fig.canvas.draw()
 
     def onclick(event):
         if event.button == 1 and event.xdata is not None and event.ydata is not None:
-            points.append((event.xdata, event.ydata, current_slice))
+            points_ijk_list.append((event.xdata, event.ydata, current_slice))
             print(event.xdata, event.ydata, current_slice)
             draw()
         elif event.button == 2:
+            points_ijk = np.array(points_ijk_list).T if points_ijk_list else np.zeros((3, 0))
+            points_xyz = apply_affine(ijk_to_patient_xyz_transform, points_ijk)
             scipy.io.savemat(output_mat_filename, {
-                'points': points,
+                'points': points_xyz,
             })
+            print('Wrote {} points to {}'.format(points_xyz.shape[1], output_mat_filename))
             sys.exit(0)
 
     def onscroll(event):
