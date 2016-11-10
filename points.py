@@ -36,7 +36,8 @@ def _within_distance_adjacency_matrix(points, distance):
 def _extract_subgraphs(adjacency_matrix):
     '''
     Given a adjacency matrix (binary and square), return a set of sets of the
-    indices of the points.
+    indices of the points that can be reached by hopping from node to node in
+    the adjacency matrix (i.e. the subgraph).
     '''
     # flatten the adjacency matrix so that "neighbors of neighbors" are
     # themselves considered "neighbors"; accomplish this by multiplying the
