@@ -48,7 +48,7 @@ class TestAlgorithmRunnerTestSuite:
         suite = BasicSuite(store, git_info, golden_store=store)
         assert suite.run_all_cases() == False
 
-        cases = store.data[suite.name()]
+        cases = store.data[suite.id()]
         assert len(cases.keys()) == 2
 
         for case_id, results in cases.items():

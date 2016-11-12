@@ -46,7 +46,7 @@ class Suite:
         raise NotImplementedError()
 
     @classmethod
-    def name(cls):
+    def id(cls):
         return getattr(cls, 'alias', cls.__name__)
 
     def run_all_cases(self):
@@ -57,7 +57,7 @@ class Suite:
         return all_pass
 
     def run_case(self, case_id, case_input):
-        print('Running {}.{}'.format(self.name(), case_id))
+        print('Running {}.{}'.format(self.id(), case_id))
         if self.collect_only:
             return True
 
@@ -74,18 +74,18 @@ class Suite:
         if self.save_store is None:
             raise ValueError('Unable to save the test result because no store is present')
         else:
-            self.save_store.persist(result)
+            self.save_store.insert(result)
 
         return stamp['accepted']
 
     def validate_result(self, run_result):
         if type(run_result) != tuple and len(run_result) == 2:
-            raise ValueError('Test Suite {} run must return a tuple'.format(self.name()))
+            raise ValueError('Test Suite {} run must return a tuple'.format(self.id()))
 
     def build_result(self, case_id, condensed_output, context):
         run_datetime = datetime.datetime.utcnow()
         result = {
-            'suite_id': self.name(),
+            'suite_id': self.id(),
             'case_id': case_id,
             'commit': self.git_info['commit'],
             'ran_by': self.git_info['user'],
@@ -110,8 +110,8 @@ class Suite:
         if self.golden_store is None:
             raise ValueError('No golden store is available to compare against')
 
-        suite_id = self.name()
-        golden_result = self.golden_store.last_manually_verified(suite_id, result['case_id'])
+        suite_id = self.id()
+        golden_result = self.golden_store.select_golden(suite_id, result['case_id'])
 
         if golden_result is not None:
             verified_against = golden_result['id']
@@ -135,8 +135,8 @@ class Suite:
         if self.save_store is None:
             raise ValueError('No store is available to manually verify in')
 
-        suite_id = self.name()
-        result = self.save_store.query(suite_id, case_id, result_id)
+        suite_id = self.id()
+        result = self.save_store.select(suite_id, case_id, result_id)
 
         stamp = { 'accepted': accepted,
             'verified_against': None,
@@ -147,7 +147,7 @@ class Suite:
 
         result['stamps'].append(stamp)
 
-        self.save_store.persist(result)
+        self.save_store.insert(result)
 
         if self.golden_store is not self.save_store:
-            self.golden_store.persist(result)
+            self.golden_store.insert(result)
