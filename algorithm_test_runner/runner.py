@@ -6,11 +6,11 @@ from algorithm_test_runner.util import print_error, repository_root, find_here_o
 from algorithm_test_runner.result_store import ResultStore
 
 
-def suite_name_to_class_map(directory):
+def suite_id_to_class_map(directory):
     suite_classes = collect_suite_classes(directory)
     mapping = {}
     for suite in suite_classes:
-        name = suite.get_name()
+        name = suite.name()
         if name in mapping:
             print_error('Duplicate suite name "{}"'.format(name))
         else:

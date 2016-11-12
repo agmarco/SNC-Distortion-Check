@@ -25,3 +25,10 @@ def repository_root(start_directory):
         raise ValueError('Not in a git repository')
     else:
         return os.path.dirname(git_directory)
+
+
+def is_manually_verified(result):
+    for stamp in result['stamps']:
+        if stamp['accepted'] and stamp['verified_against'] is None:
+            return True
+    return False
