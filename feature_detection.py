@@ -15,7 +15,7 @@ def farray(data):
 def convolution_feature_detection(data, nrx, nry, nrz, threshold_frac):
     inverted_data = invert(data)
     kernel = grid_intersection_kernel(nrx, nry, nrz)
-    intersections = signal.fftconvolve(data, kernel, mode='same')
+    intersections = signal.fftconvolve(inverted_data, kernel, mode='same')
     intersections_thresholded = intersections > np.max(intersections)*threshold_frac
     labels, number_of_labels = ndimage.label(intersections_thresholded)
     grid_intersections = ndimage.center_of_mass(data, labels, range(1, number_of_labels + 1))
