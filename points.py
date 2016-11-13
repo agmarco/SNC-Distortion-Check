@@ -100,17 +100,18 @@ def categorize(A, B, rho):
 
     kdtree = KDTree(B.T)
 
-    distances, indices = kdtree.query(A.T)
+    a_b_distances, closest_b_indices = kdtree.query(A.T)
 
-    if len(set(indices)) != len(indices):
-        raise NotImplementedError("Don't support duplicate matches")
+    if len(set(closest_b_indices)) != len(closest_b_indices):
+        raise NotImplementedError("Multiple points in A match same point in B")
 
     FN_A_indices = np.ones(num_a, dtype=bool)
     TP_A_indices = np.zeros(num_a, dtype=bool)
     TP_B_indices = np.zeros(num_b, dtype=bool)
     FP_B_indices = np.ones(num_b, dtype=bool)
 
-    for a_b_distance, b_indice, a_indice in zip(distances, indices, range(num_a)):
+    a_indices = range(num_a)
+    for a_indice, b_indice, a_b_distance in zip(a_indices, closest_b_indices, a_b_distances):
         b = B[:, b_indice]
         b_mag = np.linalg.norm(b)
         if a_b_distance < rho(b_mag):
