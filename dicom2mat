@@ -20,5 +20,5 @@ if __name__ == '__main__':
     output_mat_filename = sys.argv[-1]
     scipy.io.savemat(output_mat_filename, {
         'voxels': voxels,
-        'irc_to_patient_xyz_transform': irc_to_patient_xyz_transform,
+        'ijk_to_patient_xyz_transform': irc_to_patient_xyz_transform,
     })

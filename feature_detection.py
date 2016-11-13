@@ -1,6 +1,8 @@
 import numpy as np
 from scipy import signal, ndimage
 
+import affine
+
 
 def invert(data):
     return 2*np.mean(data) - data
@@ -41,3 +43,17 @@ def grid_intersection_kernel(nrx, nry, nrz):
     kernel[X**2 + Z**2 < 1] = 1
     kernel[Y**2 + Z**2 < 1] = 1
     return kernel - np.mean(kernel[:])
+
+
+def detect_features(voxels, ijk_to_patient_xyz_transform):
+    # TODO: derive these values from the DICOM file + the orientation of the
+    # data.  Currently, this assumes that the voxel's line up with the primary
+    # axes, and thus we can create a kernel that is oriented with the ijk-axes
+    # and it will work; this would fail, e.g. if the pixel spacing along one
+    # dimension was drastically different, and the axes are swapped
+    nr_row, nr_column, nr_slice, threshold_frac = 3, 3, 3, 0.6
+
+    points_in_ijk = convolution_feature_detection(voxels, nr_row, nr_column, nr_slice, threshold_frac)
+    points_in_patient_xyz = affine.apply_affine(ijk_to_patient_xyz_transform, points_in_ijk)
+
+    return points_in_patient_xyz
