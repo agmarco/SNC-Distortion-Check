@@ -9,9 +9,9 @@ from feature_detection import detect_features
 from dicom_import import combine_slices
 
 
-class TestFeatureDetection(Suite):
+class FeatureDetectionSuite(Suite):
     alias = 'feature-detection'
-    
+
     def collect(self):
         return {
             'mri-001-axial': {
