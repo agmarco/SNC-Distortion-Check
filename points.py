@@ -1,6 +1,7 @@
 import math
 
 import numpy as np
+from scipy.spatial import KDTree
 
 
 def segment(points, distance):
@@ -73,8 +74,8 @@ def categorize(A, B, rho):
     3. TP_B (3 x M)
     4. FP_B (3 x N)
 
-    where B is (3 x N+M) and A is (3 x M+O).  Each column of TP_B is a point
-    that matches the corresponding column in TP_A.
+    where A is (3 x M+O) and B is (3 x N+M).  Each column of TP_A is a point
+    that matches the corresponding column in TP_B.
 
     Two points, a and b, are matching if
 
@@ -92,5 +93,39 @@ def categorize(A, B, rho):
     in A (both of which can ONLY match this one point), then the matching will
     be arbitrary.
     '''
-    pass
+    _, num_b = B.shape
+    assert _ == 3
+    _, num_a = A.shape
+    assert _ == 3
+
+    kdtree = KDTree(B.T)
+
+    distances, indices = kdtree.query(A.T)
+
+    if len(set(indices)) != len(indices):
+        raise NotImplementedError("Don't support duplicate matches")
+
+    FN_A_indices = np.ones(num_a, dtype=bool)
+    TP_A_indices = np.zeros(num_a, dtype=bool)
+    TP_B_indices = np.zeros(num_b, dtype=bool)
+    FP_B_indices = np.ones(num_b, dtype=bool)
+
+    for a_b_distance, b_indice, a_indice in zip(distances, indices, range(num_a)):
+        b = B[:, b_indice]
+        b_mag = np.linalg.norm(b)
+        if a_b_distance < rho(b_mag):
+            FN_A_indices[a_indice] = False
+            TP_A_indices[a_indice] = True
+            TP_B_indices[b_indice] = True
+            FP_B_indices[b_indice] = False
+
+    FN_A = A[:, FN_A_indices]
+    TP_A = A[:, TP_A_indices]
+    TP_B = B[:, TP_B_indices]
+    FP_B = B[:, FP_B_indices]
+
+    assert FN_A.shape[1] + TP_A.shape[1] == num_a
+    assert FP_B.shape[1] + TP_B.shape[1] == num_b
+
+    return FN_A, TP_A, TP_B, FP_B
 

@@ -62,6 +62,7 @@ class TestCategorize:
         A = np.hstack((TP_A, FN_A))
 
         fn_a, tp_a, tp_b, fp_b = categorize(A, B, rho)
+        print(fn_a, tp_a, tp_b, fp_b)
 
         # depends on implementation preserving column order
         assert np.alltrue(fn_a == FN_A)
@@ -75,7 +76,7 @@ class TestCategorize:
             [[0, 0, 0], [0, 0, 1]],
             [[0, 0, 0], [0, 0, 1]],
             [],
-            lambda bmag: bmag < 0.5
+            lambda bmag: 0.5
         )
 
     def test_points_beyond_rho(self):
@@ -84,7 +85,7 @@ class TestCategorize:
             [],
             [],
             [[0, 0, 1]],
-            lambda bmag: bmag < 0.5
+            lambda bmag: 0.5
         )
 
     def test_points_in_B_matched_correctly(self):
@@ -93,14 +94,32 @@ class TestCategorize:
             [[0, 0, 0]],
             [[0, 0, 0.1]],
             [[0, 0, 0.2]],
-            lambda bmag: bmag < 0.5
+            lambda bmag: 0.5
         )
 
+    @pytest.mark.xfail(reason='Not implemented')
     def test_points_in_A_matched_correctly(self):
         self.assert_categorized(
             [[0, 0, 1]],
             [[0, 0, 0]],
             [[0, 0, 0.4]],
             [],
-            lambda bmag: bmag < 1
+            lambda bmag: 1
         )
+
+    @pytest.mark.xfail(reason='Not implemented')
+    def test_rejects_closest_point_for_global_max(self):
+        '''
+        The first point in A is closer to the second point in B, however it
+        should still match with the first point in B because the second point
+        in A can not match with the first point in B, hence matching with a
+        point further away allows for a global maximum.
+        '''
+        self.assert_categorized(
+            [],
+            [[0, 0, 0], [0, 0, 1]],
+            [[0, 0.9, 0], [0, 0, 0.4]],
+            [],
+            lambda bmag: 1
+        )
+
