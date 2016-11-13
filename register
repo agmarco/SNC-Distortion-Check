@@ -20,7 +20,7 @@ if __name__ == '__main__':
 
     # TODO: determine rho and g based on our knowledge of the phantom
     g = lambda bmag: 1.0
-    rho = lambda bmag: 10.0
+    rho = lambda bmag: 15.0
 
     xyztpx = register(A, B, rho, g, 1e-6)
 

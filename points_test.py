@@ -51,15 +51,15 @@ class TestSegment:
 
 @pytest.mark.david
 class TestCategorize:
-    def assert_categorized(FN_A, TP_A, TP_B, FP_B, rho):
+    def assert_categorized(self, FN_A, TP_A, TP_B, FP_B, rho):
         # keep test cases clean by casting and handling empty arrays
-        FN_A = np.array(FN_A) if FN_A else np.zeros((3, 0))
-        TP_A = np.array(TP_A) if TP_A else np.zeros((3, 0))
-        TP_B = np.array(TP_B) if TP_B else np.zeros((3, 0))
-        FP_B = np.array(FP_B) if FP_B else np.zeros((3, 0))
+        FN_A = np.array(FN_A).T if FN_A else np.zeros((3, 0))
+        TP_A = np.array(TP_A).T if TP_A else np.zeros((3, 0))
+        TP_B = np.array(TP_B).T if TP_B else np.zeros((3, 0))
+        FP_B = np.array(FP_B).T if FP_B else np.zeros((3, 0))
 
-        B = np.hstack(FP_B, TP_B)
-        A = np.hstack(TP_A, FN_A)
+        B = np.hstack((FP_B, TP_B))
+        A = np.hstack((TP_A, FN_A))
 
         fn_a, tp_a, tp_b, fp_b = categorize(A, B, rho)
 

@@ -4,8 +4,8 @@ import numpy as np
 import scipy.io
 import dicom
 
-from algorithm_test_runner.test_suite import Suite
-from featured_detection import detect_features
+from algorithm_test_runner.suite import Suite
+from feature_detection import detect_features
 from dicom_import import combine_slices
 
 
