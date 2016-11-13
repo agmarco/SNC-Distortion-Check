@@ -23,13 +23,13 @@ class MockStore:
     def __init__(self):
         self.data = defaultdict(lambda: defaultdict(lambda: OrderedDict()))
 
-    def persist(self, result):
+    def insert(self, result):
         suite_id = result['suite_id']
         case_id = result['case_id']
         result_id = result['id']
         self.data[suite_id][case_id][result_id] = result
 
-    def last_manually_verified(self, suite_id, case_id):
+    def select_golden(self, suite_id, case_id):
         results = self.data.get(suite_id, {}).get(case_id, {})
         manually_verified_results = list(filter(is_manually_verified, results.values()))
         if len(manually_verified_results) > 0:
@@ -37,7 +37,7 @@ class MockStore:
         else:
             return None
 
-    def query(self, suite_id, case_id, result_id):
+    def select(self, suite_id, case_id, result_id):
         return self.data.get(suite_id, {}).get(case_id, {}).get(result_id, None)
 
 
