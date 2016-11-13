@@ -49,7 +49,6 @@ class TestSegment:
         ]).T, 1) == {fs(0, 1, 2, 3), fs(4)}
 
 
-@pytest.mark.david
 class TestCategorize:
     def assert_categorized(self, FN_A, TP_A, TP_B, FP_B, rho):
         # keep test cases clean by casting and handling empty arrays
