@@ -49,15 +49,17 @@ if __name__ == '__main__':
 
         ax.imshow(voxels[:, :, current_slice], origin='upper', cmap='Greys_r')
 
-        x_points = [p[0] for p in points_ijk_list if np.isclose(p[2], current_slice)]
-        y_points = [p[1] for p in points_ijk_list if np.isclose(p[2], current_slice)]
+        x_points = [p[1] for p in points_ijk_list if np.isclose(p[2], current_slice)]
+        y_points = [p[0] for p in points_ijk_list if np.isclose(p[2], current_slice)]
         ax.scatter(x_points, y_points)
 
         fig.canvas.draw()
 
     def onclick(event):
         if event.button == 1 and event.xdata is not None and event.ydata is not None:
-            points_ijk_list.append((event.xdata, event.ydata, current_slice))
+            # NOTE: the x-axis corresponds to the column number, and the y-axis
+            # to the row-number
+            points_ijk_list.append((event.ydata, event.xdata, current_slice))
             print(event.xdata, event.ydata, current_slice)
             draw()
         elif event.button == 2:
