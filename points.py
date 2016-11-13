@@ -54,3 +54,43 @@ def _extract_subgraphs(adjacency_matrix):
 
 def _minpow2(value):
     return math.ceil(math.log2(value))
+
+
+def categorize(A, B, rho):
+    '''
+    Given an array of locations of detected features, B, and an array of known
+    feature locations that HAVE BEEN REGISTERED into B's coordinate system,
+    A, separate the points into three groups:
+
+    - false negatives (points in A that should have a matching point in B, but don't)
+    - matching points (points in A that have matching points in B)
+    - false positives (points in B that have no matching point in A)
+
+    These results are returned as four arrays
+
+    1. FN_A (3 x O)
+    2. TP_A (3 x M)
+    3. TP_B (3 x M)
+    4. FP_B (3 x N)
+
+    where B is (3 x N+M) and A is (3 x M+O).  Each column of TP_B is a point
+    that matches the corresponding column in TP_A.
+
+    Two points, a and b, are matching if
+
+    - they are within rho(|b|) distance from one another
+    - neither point has already been matched
+    - matching them minimizes the total sum of distances of all matched points.
+
+    The last condition means that, in general, each point in A will be matched
+    to the closest point in B.  The only exception to this is if there is a
+    point, b in B, that could match multiples points in A.  In this case, b
+    will be matched with whichever point in A minimizes the total sum of
+    distances.
+
+    In the case that there is a point in B that is equidistant from two points
+    in A (both of which can ONLY match this one point), then the matching will
+    be arbitrary.
+    '''
+    pass
+
