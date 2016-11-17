@@ -1,4 +1,5 @@
 import os
+from collections import OrderedDict
 
 import numpy as np
 import scipy.io
@@ -22,7 +23,7 @@ class FeatureDetectionSuite(Suite):
         }
 
     def run(self, case_input):
-        metrics = {}
+        metrics = OrderedDict()
         context = {}
 
         image_dir = os.path.abspath(case_input['images'])
@@ -51,10 +52,24 @@ class FeatureDetectionSuite(Suite):
         return metrics, context
 
     def verify(self, old_metrics, new_metrics):
-        percent_change = abs(old - new)/old*100.0
+        comments = []
+
         max_allowed_percent_change = 2.0
-        passed = percent_change < max_allowed_percent_change
-        if passed:
-            return True, 'Passed with percent change {}'.format(percent_change)
-        else:
-            return False, 'Falied with percent change {}'.format(percent_change)
+
+        passing = True
+        for metric_name, new_value in new_metrics.items():
+            try:
+                old_value = old_metrics[metric_name]
+            except KeyError:
+                comments.append('Missing key in old metric: "{}"'.format(metric_name))
+                passing = False
+            percent_change = abs(old_value - new_value)/old_value*100.0
+            if percent_change < max_allowed_percent_change:
+                msg = 'Metric "{}" valid: {} -> {}'
+                comments.append(msg.format(metric_name, old_value, new_value))
+            else:
+                passing = False
+                msg = 'Metric "{}" invalid: {} -> {} ({:.2f}% change)'
+                comments.append(msg.format(metric_name, old_value, new_value, percent_change))
+
+        return passing, '\n' + '\n'.join(comments)
