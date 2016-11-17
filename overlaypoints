@@ -12,7 +12,7 @@ from affine import apply_affine
 
 if __name__ == '__main__':
     if len(sys.argv) <= 3:
-        print('Usage: overlaypoints DICOMFILES... MATFILE')
+        print('Usage: overlaypoints DICOMFILES... POINTFILE')
         sys.exit(1)
 
     input_dicom_filenames = sys.argv[1:-1]
