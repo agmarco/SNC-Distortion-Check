@@ -9,6 +9,7 @@ from hdatt.suite import Suite
 from feature_detection import detect_features
 from dicom_import import combine_slices
 from points import categorize
+from overlaypoints import overlay_points
 
 
 class FeatureDetectionSuite(Suite):
@@ -22,19 +23,24 @@ class FeatureDetectionSuite(Suite):
             }
         }
 
+    def _load_images(self, images):
+        image_dir = os.path.abspath(images)
+        input_dicom_filenames = [os.path.join(image_dir, p) for p in os.listdir(image_dir)]
+        dicom_datasets = [dicom.read_file(f) for f in input_dicom_filenames]
+        return combine_slices(dicom_datasets)
+
+
     def run(self, case_input):
         metrics = OrderedDict()
         context = {}
 
-        image_dir = os.path.abspath(case_input['images'])
-        input_dicom_filenames = [os.path.join(image_dir, p) for p in os.listdir(image_dir)]
-        dicom_datasets = [dicom.read_file(f) for f in input_dicom_filenames]
-        voxels, ijk_to_patient_xyz_transform = combine_slices(dicom_datasets)
-        points = detect_features(voxels, ijk_to_patient_xyz_transform)
+        voxels, ijk_to_xyz_transform = self._load_images(case_input['images'])
+        points = detect_features(voxels, ijk_to_xyz_transform)
 
         golden_points = scipy.io.loadmat(case_input['golden'])['points']
         FN_A, TP_A, TP_B, FP_B = categorize(golden_points, points, lambda bmag: 7.5)
 
+        context['case_input'] = case_input
         context['FN_A'] = FN_A
         context['TP_A'] = TP_A
         context['TP_B'] = TP_B
@@ -73,3 +79,33 @@ class FeatureDetectionSuite(Suite):
                 comments.append(msg.format(metric_name, old_value, new_value, percent_change))
 
         return passing, '\n' + '\n'.join(comments)
+
+    def show(self, result):
+        context = result['context']
+        descriptors = [
+            {'points_xyz': context['FN_A'], 'scatter': {'color': 'y', 'label': 'FN_A', 'marker': 'o'}},
+            {'points_xyz': context['TP_A'], 'scatter': {'color': 'g', 'label': 'TP_A', 'marker': 'o'}},
+            {'points_xyz': context['TP_B'], 'scatter': {'color': 'g', 'label': 'TP_B', 'marker': 'x'}},
+            {'points_xyz': context['FP_B'], 'scatter': {'color': 'r', 'label': 'FP_B', 'marker': 'x'}},
+        ]
+
+        voxels, ijk_to_xyz_transform = self._load_images(context['case_input']['images'])
+        overlay_points(voxels, ijk_to_xyz_transform, descriptors)
+
+    def diff(self, golden_result, result):
+        assert golden_result['case_input']['images'] == result['case_input']['images']
+
+        # TODO: finish this
+        # case_input = result['case_input']
+
+        # context = result['context']
+        # golden_context = golden_result['context']
+        # descriptors = [
+            # {'points_xyz': context['FN_A'], 'scatter': {'color': 'y', 'label': 'FN_A', 'marker': 'o'}},
+            # {'points_xyz': context['TP_A'], 'scatter': {'color': 'g', 'label': 'TP_A', 'marker': 'o'}},
+            # {'points_xyz': context['TP_B'], 'scatter': {'color': 'g', 'label': 'TP_B', 'marker': 'x'}},
+            # {'points_xyz': context['FP_B'], 'scatter': {'color': 'r', 'label': 'FP_B', 'marker': 'x'}},
+        # ]
+
+        # voxels, ijk_to_xyz_transform = self._load_images(case_input)
+        # overlay_points(voxels, ijk_to_xyz_transform, descriptors)

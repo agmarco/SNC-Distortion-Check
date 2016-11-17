@@ -8,6 +8,7 @@ import numpy as np
 
 from dicom_import import combine_slices
 from affine import apply_affine
+from overlaypoints import overlay_points
 
 
 if __name__ == '__main__':
@@ -18,51 +19,10 @@ if __name__ == '__main__':
     input_dicom_filenames = sys.argv[1:-1]
     dicom_datasets = [dicom.read_file(f) for f in input_dicom_filenames]
 
-    voxels, ijk_to_patient_xyz_transform = combine_slices(dicom_datasets)
+    voxels, ijk_to_xyz_transform = combine_slices(dicom_datasets)
 
-    output_mat_filename = sys.argv[-1]
-    points_xyz = scipy.io.loadmat(output_mat_filename)['points']
-    patient_xyz_to_ijk_transform = np.linalg.inv(ijk_to_patient_xyz_transform)
-    points_ijk = apply_affine(patient_xyz_to_ijk_transform, points_xyz)
-    points_ijk_list = list(points_ijk.T)
+    points_filename = sys.argv[-1]
+    points_xyz = scipy.io.loadmat(points_filename)['points']
 
-    fig = plt.figure()
-
-    ax = fig.add_subplot(111)
-    current_slice = 0
-
-    # this was qualitatively set to make the visualization look nice, and was
-    # not set based on the grid intersection size in the phantom
-    point_radius_in_z_pixels = 9.0
-
-    def in_slice(point):
-        point_z = point[2]
-        return abs(point_z - current_slice) < point_radius_in_z_pixels
-
-    def draw():
-        # clear existing stuff
-        ax.images = []
-        ax.collections = []
-
-        ax.imshow(voxels[:, :, current_slice], origin='upper', cmap='Greys_r')
-
-        x_points = [p[1] for p in points_ijk_list if in_slice(p)]
-        y_points = [p[0] for p in points_ijk_list if in_slice(p)]
-        r_points = [abs(p[2] - current_slice) for p in points_ijk_list if in_slice(p)]
-        ax.scatter(x_points, y_points, s=r_points, c='r', edgecolors='r', alpha=0.5)
-
-        fig.canvas.draw()
-
-    def onscroll(event):
-        global current_slice
-        if event.step < 0:
-            current_slice = max(current_slice - 1, 0)
-        elif event.step > 0:
-            current_slice = min(current_slice + 1, voxels.shape[2] - 1)
-
-        draw()
-
-    fig.canvas.mpl_connect('scroll_event', onscroll)
-    draw()
-
-    plt.show()
+    descriptors = [{'points_xyz': points_xyz, 'scatter': {'color': 'r'}}]
+    overlay_points(voxels, ijk_to_xyz_transform, descriptors)
