@@ -13,6 +13,7 @@ from matplotlib.pyplot import savefig
 from dicom_import import combine_slices
 from affine import apply_affine
 from points import categorize
+from testing.calculate_metrics import calc_metrics
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -50,10 +51,10 @@ if __name__ == '__main__':
         ax.set_title(args.input_voxels)
 
 
-
     if args.detected_points:
         detected_points_ijk = load_points_ijk(args.detected_points)
         FN_A, TP_A, TP_B, FP_B = categorize(known_points_ijk, detected_points_ijk, lambda x: 5)
+        average_error, random_error_average, TPF, FPF, FNF = calc_metrics(FN_A, TP_A, TP_B, FP_B)
         label2points_ijk = OrderedDict([
             ('golden',  list(TP_A.T)),
             ('detected',  list(TP_B.T)),
@@ -63,7 +64,7 @@ if __name__ == '__main__':
         FPF = len(FP_B.T) / len(known_points_ijk.T)
         FNF = len(FN_A.T) / len(known_points_ijk.T)
         TPF = len(TP_A.T) / len(known_points_ijk.T)
-        fig.suptitle('TPF: {:.1f}%, FPF: {:.1f}%, FNF: {:.1f}%'.format(TPF*100, FNF*100, FPF*100))
+        fig.suptitle('Mean Error: {:.2f}, Random Error: {:.2f}, TPF: {:.1f}%, FPF: {:.1f}%, FNF: {:.1f}%'.format(average_error, random_error_average, TPF*100, FNF*100, FPF*100))
     else:
         label2points_ijk = {'golden':  list(known_points_ijk.T)}
 
