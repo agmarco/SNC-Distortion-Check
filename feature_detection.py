@@ -51,7 +51,7 @@ def detect_features(voxels, ijk_to_patient_xyz_transform):
     # axes, and thus we can create a kernel that is oriented with the ijk-axes
     # and it will work; this would fail, e.g. if the pixel spacing along one
     # dimension was drastically different, and the axes are swapped
-    nr_row, nr_column, nr_slice, threshold_frac = 3, 3, 3, 0.6
+    nr_row, nr_column, nr_slice, threshold_frac = 2, 2, 2, 0.55
 
     points_in_ijk = convolution_feature_detection(voxels, nr_row, nr_column, nr_slice, threshold_frac)
     points_in_patient_xyz = affine.apply_affine(ijk_to_patient_xyz_transform, points_in_ijk)
