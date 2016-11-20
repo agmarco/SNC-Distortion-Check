@@ -102,27 +102,27 @@ def categorize(A, B, rho):
 
     a_b_distances, closest_b_indices = kdtree.query(A.T)
 
-    if len(set(closest_b_indices)) != len(closest_b_indices):
-        raise NotImplementedError("Multiple points in A match same point in B")
-
     FN_A_indices = np.ones(num_a, dtype=bool)
-    TP_A_indices = np.zeros(num_a, dtype=bool)
-    TP_B_indices = np.zeros(num_b, dtype=bool)
     FP_B_indices = np.ones(num_b, dtype=bool)
-
+    matching_a_indices_list = []
+    matching_a_indices_set = set()
+    matching_b_indices_list = []
+    matching_b_indices_set = set()
     a_indices = range(num_a)
     for a_indice, b_indice, a_b_distance in zip(a_indices, closest_b_indices, a_b_distances):
         b = B[:, b_indice]
         b_mag = np.linalg.norm(b)
-        if a_b_distance < rho(b_mag):
+        if a_b_distance < rho(b_mag) and a_indice not in matching_a_indices_set and b_indice not in matching_b_indices_set:
             FN_A_indices[a_indice] = False
-            TP_A_indices[a_indice] = True
-            TP_B_indices[b_indice] = True
+            matching_a_indices_list.append(a_indice)
+            matching_a_indices_set.add(a_indice)
+            matching_b_indices_list.append(b_indice)
+            matching_b_indices_set.add(b_indice)
             FP_B_indices[b_indice] = False
 
     FN_A = A[:, FN_A_indices]
-    TP_A = A[:, TP_A_indices]
-    TP_B = B[:, TP_B_indices]
+    TP_A = A[:, matching_a_indices_list]
+    TP_B = B[:, matching_b_indices_list]
     FP_B = B[:, FP_B_indices]
 
     assert FN_A.shape[1] + TP_A.shape[1] == num_a
