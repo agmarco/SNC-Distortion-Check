@@ -70,4 +70,4 @@ dependencies:
   - py==1.4.31
   - pydicom==0.9.9
   - pytest==3.0.3
-
+  - dill==0.2.5
