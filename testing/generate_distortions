@@ -1,0 +1,2 @@
+#!/bin/bash
+seq 0 0.01 0.2 | xargs  -I '{}' -n1 -P4 bash -c "python -m testing.distort_voxel tmp/mri-001-axial-voxel-distorted-{}.mat $distorted_voxels --distort_factor {}"

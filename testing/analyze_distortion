@@ -1,0 +1,11 @@
+#!/bin/bash
+distorted_voxels="tmp/mri-001-axial-voxel-distorted-$1.mat"
+distorted_points="tmp/mri-001-axial-points-distorted-$1.mat"
+undistorted_points="tmp/mri-001-axial-points-undistorted-$1.mat"
+echo $distorted_voxels $distorted_points $undistorted_points
+echo DETECTING POINTS
+./detect_features $distorted_voxels $distorted_points
+echo UNDISTORTING POINTS FOR COMPARISON
+python -m testing.undistort_points $distorted_voxels $distorted_points $undistorted_points
+echo $1
+python -m testing.calculate_metrics data/points/mri-001-axial-golden.mat $undistorted_points

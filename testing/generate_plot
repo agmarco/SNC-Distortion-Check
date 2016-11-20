@@ -1,0 +1,2 @@
+#!/bin/bash
+./overlaypoints tmp/mri-001-axial-voxels.mat data/points/mri-001-axial-golden.mat tmp/mri-001-axial-points-undistorted-$1.mat --save tmp/distortion-plot-$1.png --distorted_voxels tmp/mri-001-axial-voxel-distorted-$1.mat --distorted_points tmp/mri-001-axial-points-distorted-$1.mat
