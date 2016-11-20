@@ -1,6 +1,7 @@
 import math
 
 import numpy as np
+from orderedset import OrderedSet
 from scipy.spatial import KDTree
 
 
@@ -102,7 +103,8 @@ def categorize(A, B, rho):
 
     a_b_distances, closest_b_indices = kdtree.query(A.T)
 
-    seen_b_indices = set()
+    seen_b_indices = OrderedSet()
+    seen_a_indices = OrderedSet()
 
     TP_A_indices = np.zeros(num_a, dtype=bool)
     TP_B_indices = np.zeros(num_b, dtype=bool)
@@ -119,10 +121,11 @@ def categorize(A, B, rho):
                 raise NotImplementedError("Multiple points in A match same point in B")
             else:
                 seen_b_indices.add(b_indice)
+                seen_a_indices.add(a_indice)
 
     FN_A = A[:, ~TP_A_indices]
-    TP_A = A[:, TP_A_indices]
-    TP_B = B[:, TP_B_indices]
+    TP_A = A[:, seen_a_indices]
+    TP_B = B[:, seen_b_indices]
     FP_B = B[:, ~TP_B_indices]
 
     assert FN_A.shape[1] + TP_A.shape[1] == num_a
