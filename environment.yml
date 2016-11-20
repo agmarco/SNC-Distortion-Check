@@ -71,3 +71,5 @@ dependencies:
   - pydicom==0.9.9
   - pytest==3.0.3
   - dill==0.2.5
+  - orderedset==2.0
+
