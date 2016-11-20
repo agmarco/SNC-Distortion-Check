@@ -1,2 +1,2 @@
 #!/bin/bash
-seq 0 0.01 0.2 | xargs  -I '{}' -n1 -P4 bash -c "./testing/generate_plot {}"
+seq -w 0 0.01 0.2 | xargs  -I '{}' -n1 -P4 bash -c "./testing/generate_plot {}"
