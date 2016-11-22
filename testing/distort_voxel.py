@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import argparse
 import base64
 
@@ -37,7 +38,7 @@ if __name__ == '__main__':
     parser.add_argument('--distort_factor', type=float, default=0.08, help='The magnitude of the distortion. Typically between 0 to 0.14')
     parser.add_argument('--reduction_factor', type=int, help='How much to decimate the input voxels by, useful for previewing the distortion before processing it.')
     args = parser.parse_args()
-
+    print('Generating distortions for {}'.format(args.distorted_voxels))
     input_data = scipy.io.loadmat(args.undistorted_voxels)
     voxels = input_data['voxels']
     ijk_to_patient_xyz_transform = input_data['ijk_to_patient_xyz_transform']
