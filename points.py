@@ -132,3 +132,25 @@ def categorize(A, B, rho):
     assert FP_B.shape[1] + TP_B.shape[1] == num_b
 
     return FN_A, TP_A, TP_B, FP_B
+
+
+def metrics(FN_A, TP_A, TP_B, FP_B):
+    '''
+    Our standard metrics for comparing sets of points.
+    '''
+    num_points_a = len(FN_A.T) + len(TP_A.T)
+    error_vec = (TP_A - TP_B).T
+    average_error_vec = np.average(error_vec, axis=0)
+    average_error = np.linalg.norm(average_error_vec)
+
+    error_vec_norms = np.linalg.norm(error_vec, axis=1)
+    random_error_vec = error_vec - average_error_vec
+    random_error_norms = np.linalg.norm(random_error_vec, axis=1)
+    random_error_average = np.average(random_error_norms)
+
+    FNF = len(FN_A.T)/num_points_a
+    TPF = len(TP_A.T)/num_points_a
+
+    total_error = TPF*random_error_average + FNF*np.percentile(random_error_norms, 90)
+
+    return total_error, average_error, random_error_average, TPF, FNF

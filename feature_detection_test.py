@@ -29,7 +29,6 @@ class FeatureDetectionSuite(Suite):
         dicom_datasets = [dicom.read_file(f) for f in input_dicom_filenames]
         return combine_slices(dicom_datasets)
 
-
     def run(self, case_input):
         metrics = OrderedDict()
         context = {}
@@ -46,14 +45,12 @@ class FeatureDetectionSuite(Suite):
         context['TP_B'] = TP_B
         context['FP_B'] = FP_B
 
-        metrics['percent_false_negative'] = FN_A.shape[1]/(FN_A.shape[1] + TP_A.shape[1])*100
-        metrics['percent_false_positive'] = FP_B.shape[1]/(FP_B.shape[1] + TP_B.shape[1])*100
-
-        mean_matched_displacement = np.average(TP_A - TP_B, axis=1)
-        metrics['mean_matched_distance'] = np.linalg.norm(mean_matched_displacement)
-
-        random_errors = TP_A - TP_B - mean_matched_displacement.reshape(3, 1)
-        metrics['mean_matched_random_distance'] = np.average(np.linalg.norm(random_errors))
+        total_error, average_error, random_error_average, TPF, FNF = points.metrics(FN_A, TP_A, TP_B, FP_B)
+        metrics['total_error'] = total_error
+        metrics['average_error'] = average_error
+        metrics['random_error_average'] = random_error_average
+        metrics['true_positive_fraction'] = true_positive_fraction
+        metrics['false_negative_fraction'] = false_negative_fraction
 
         return metrics, context
 

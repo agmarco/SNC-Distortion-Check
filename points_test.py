@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from points import segment, categorize
+from points import segment, categorize, metrics
 
 
 def fs(*args):
@@ -122,3 +122,59 @@ class TestCategorize:
             lambda bmag: 1
         )
 
+
+class TestMetrics:
+    def test_two_perfectly_matched_points(self):
+        A = np.array([
+            [0, 0, 0],
+        ]).T
+
+        B = np.array([
+            [0, 0, 0],
+        ]).T
+
+        rho = lambda bmag: 1
+        total_error, average_error, random_error_average, TPF, FNF = metrics(*categorize(A, B, rho))
+
+        assert average_error == 0.0
+        assert random_error_average == 0.0
+        assert TPF == 1.0
+        assert FNF == 0.0
+
+    def test_two_matched_points(self):
+        A = np.array([
+            [0, 0, 0],
+        ]).T
+
+        B = np.array([
+            [0, 0, 0.1],
+        ]).T
+
+        rho = lambda bmag: 1
+        total_error, average_error, random_error_average, TPF, FNF = metrics(*categorize(A, B, rho))
+
+        assert average_error == 0.1
+        assert random_error_average == 0.0
+        assert TPF == 1.0
+        assert FNF == 0.0
+
+    def test_four_matched_one_false_negative(self):
+        A = np.array([
+            [0, 0, 0],
+            [1, 0, 0],
+            [0, 0, 2],
+        ]).T
+
+        B = np.array([
+            [0, 0, 0.1],
+            [1, 0, -0.1],
+        ]).T
+
+        rho = lambda bmag: 1
+        total_error, average_error, random_error_average, TPF, FNF = metrics(*categorize(A, B, rho))
+
+        assert total_error == 0.1*(2.0/3.0) + 0.1*(1.0/3.0)
+        assert average_error == 0.0
+        assert random_error_average == 0.1
+        assert TPF == 2/3
+        assert FNF == 1/3
