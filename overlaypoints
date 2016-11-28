@@ -18,7 +18,6 @@ if __name__ == '__main__':
     voxels = input_data['voxels']
     ijk_to_xyz = input_data['ijk_to_patient_xyz_transform']
 
-
     colors = itertools.cycle(["c", "g", "r", "y", "k"])
     descriptors = []
     for path, color in zip(args.points, colors):
