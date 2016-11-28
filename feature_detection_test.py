@@ -10,7 +10,7 @@ from hdatt.suite import Suite
 from feature_detection import detect_features
 from dicom_import import combine_slices
 from points import categorize
-from slicer import PointsSlicer
+from slicer import PointsSlicer, render_points, render_slices
 
 
 class FeatureDetectionSuite(Suite):
@@ -88,7 +88,12 @@ class FeatureDetectionSuite(Suite):
         ]
 
         voxels, ijk_to_xyz = self._load_images(context['case_input']['images'])
-        PointsSlicer(voxels, ijk_to_xyz, descriptors).draw()
+
+        slicer = PointsSlicer(voxels, ijk_to_xyz, descriptors)
+        slicer.add_renderer(render_slices)
+        slicer.add_renderer(render_points)
+        slicer.draw()
+
         plt.show()
 
     def diff(self, golden_result, result):

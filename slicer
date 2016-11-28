@@ -3,7 +3,7 @@ import argparse
 
 import scipy.io
 import matplotlib.pylab as plt
-from slicer import Slicer
+from slicer import Slicer, render_slices
 
 
 if __name__ == '__main__':
@@ -12,5 +12,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     voxels = scipy.io.loadmat(args.voxels)['voxels']
-    Slicer(voxels).draw()
+    slicer = Slicer(voxels)
+    slicer.add_renderer(render_slices)
+    slicer.draw()
     plt.show()

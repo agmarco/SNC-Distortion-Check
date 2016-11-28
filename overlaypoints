@@ -6,7 +6,8 @@ import scipy.io
 import matplotlib.pylab as plt
 import numpy as np
 
-from slicer import PointsSlicer
+from slicer import PointsSlicer, render_slices, render_points
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -27,5 +28,8 @@ if __name__ == '__main__':
             'scatter_kwargs': {'color': color, 'label': path},
         })
 
-    PointsSlicer(voxels, ijk_to_xyz, descriptors).draw()
+    slicer = PointsSlicer(voxels, ijk_to_xyz, descriptors)
+    slicer.add_renderer(render_slices)
+    slicer.add_renderer(render_points)
+    slicer.draw()
     plt.show()
