@@ -1,5 +1,3 @@
-include data.mk
-
 SHELL := /bin/bash
 .SUFFIXES:
 .DEFAULT:
