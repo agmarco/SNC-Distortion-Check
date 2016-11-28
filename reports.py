@@ -38,7 +38,8 @@ def surface_area(r):
 
 def generate_equidistant_sphere(n=256):
     '''
-    Evenly samples a unit sphere with n points. Based on the fibonacci lattice  http://blog.marmakoide.org/?p=1.
+    Evenly samples a unit sphere with n points. Based on the fibonacci lattice
+    http://blog.marmakoide.org/?p=1.
     '''
     golden_angle = np.pi * (3 - np.sqrt(5))
     theta = golden_angle * np.arange(n)
