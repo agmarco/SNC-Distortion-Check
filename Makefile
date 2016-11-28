@@ -14,7 +14,7 @@ all: $(test_data)
 
 .CONDABUILD: environment.yml
 	conda env create --force --file $<
-	nbstripout --install --attributes .gitattributes
+	$(IN_ENV) nbstripout --install --attributes .gitattributes
 	git rev-parse HEAD > $@
 
 tmp/%-voxels.mat: data/dicom/% .CONDABUILD
