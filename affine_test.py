@@ -3,7 +3,7 @@ from math import pi
 from numpy.testing import assert_allclose
 import numpy as np
 
-from affine import translation_rotation as S, apply_xyztpx
+from affine import translation_rotation as S, apply_xyztpx, pixel_spacing
 
 
 class TestAffineMatrix:
@@ -42,3 +42,26 @@ class TestApplyXYZTPX:
         points = np.array([[0, 0, 0], [1, 1, 1]], dtype=float).T
         expected_transformed = np.array([[1, -2, 3], [2, -1, 4]], dtype=float).T
         assert_allclose(apply_xyztpx([1, -2, 3, 0, 0, 0], points), expected_transformed)
+
+
+class TestPixelSpacing:
+    def test_simple(self):
+        di, dj, dk = 1.0, 1.2, 5.0
+        ijk_to_xyz = np.array([
+            [di, 0, 0, 0],
+            [0, dj, 0, 0],
+            [0, 0, dk, 0],
+            [0, 0, 0, 1],
+        ]).T
+        assert_allclose(pixel_spacing(ijk_to_xyz), np.array((di, dj, dk)))
+
+    def test_with_translation(self):
+        di, dj, dk = 1.0, 1.2, 5.0
+        ijk_to_xyz = np.array([
+            [di, 0, 0, 0],
+            [0, dj, 0, 0],
+            [0, 0, dk, 0],
+            [0, 0, 0, 1],
+        ]).T
+        ijk_to_xyz = ijk_to_xyz @ S(23, 45, 566, 0, 0, 0)
+        assert_allclose(pixel_spacing(ijk_to_xyz), np.array((di, dj, dk)))

@@ -65,3 +65,16 @@ def apply_affine(affine_matrix, A):
 
 def apply_xyztpx(xyztpx, points):
     return apply_affine(translation_rotation(*xyztpx), points)
+
+
+def pixel_spacing(ijk_to_xyz):
+    test_ijk_points = np.array([
+        [0, 0, 0],
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+    ], dtype=float).T
+    test_xyz_points = apply_affine(ijk_to_xyz, test_ijk_points)
+    dvec = test_xyz_points[:, 1:] - test_xyz_points[:, 0].reshape(3, 1)
+    return np.abs(np.linalg.norm(dvec, axis=0))
+
