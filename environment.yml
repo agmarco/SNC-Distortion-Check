@@ -62,6 +62,7 @@ dependencies:
 - zlib=1.2.8=3
 - pip:
   - ipython-genutils==0.1.0
+  - gitpython==2.1.0
   - jupyter-client==4.4.0
   - jupyter-console==5.0.0
   - jupyter-core==4.2.0
