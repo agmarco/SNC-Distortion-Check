@@ -61,12 +61,10 @@ class Slicer:
         self.cursor = np.minimum(maximums, np.maximum(minimums, self.cursor))
 
     def clear_axes(self):
-        self.i_ax.images = []
-        self.i_ax.collections = []
-        self.j_ax.images = []
-        self.j_ax.collections = []
-        self.k_ax.images = []
-        self.k_ax.collections = []
+        for ax in [self.i_ax, self.j_ax, self.k_ax]:
+            ax.images = []
+            ax.collections = []
+            ax.lines = []
 
     def draw(self):
         self.clear_axes()
@@ -107,14 +105,14 @@ class PointsSlicer(Slicer):
 
 def render_points(slicer):
     for descriptor in slicer.points_descriptors:
-        scatter_in_slice(slicer, slicer.i_ax, descriptor)
-        scatter_in_slice(slicer, slicer.j_ax, descriptor)
-        scatter_in_slice(slicer, slicer.k_ax, descriptor)
+        _scatter_in_slice(slicer, slicer.i_ax, descriptor)
+        _scatter_in_slice(slicer, slicer.j_ax, descriptor)
+        _scatter_in_slice(slicer, slicer.k_ax, descriptor)
 
 
-def scatter_in_slice(slicer, ax, descriptor):
+def _scatter_in_slice(slicer, ax, descriptor):
     x_dimension, y_dimension, slice_dimension = slicer.axes_dimensions(ax)
-    points = points_in_slice(slicer, slice_dimension, descriptor)
+    points = _points_in_slice(slicer, slice_dimension, descriptor)
     x = points[x_dimension, :]
     y = points[y_dimension, :]
 
@@ -124,7 +122,7 @@ def scatter_in_slice(slicer, ax, descriptor):
     ax.scatter(x, y, s=r, edgecolors='face', **descriptor['scatter_kwargs'])
 
 
-def points_in_slice(slicer, slice_dimension, descriptor):
+def _points_in_slice(slicer, slice_dimension, descriptor):
     points = descriptor['points_ijk']
     slice_location = slicer.cursor[slice_dimension]
     point_radius_mm = descriptor.get('point_radius_mm', 4)
@@ -132,3 +130,29 @@ def points_in_slice(slicer, slice_dimension, descriptor):
     distance_to_slice = np.abs(points[slice_dimension, :] - slice_location)
     indices_in_slice = distance_to_slice < point_radius_pixels
     return points[:, indices_in_slice]
+
+
+def render_cursor(slicer):
+    _render_cursor_location(slicer, slicer.i_ax)
+    _render_cursor_location(slicer, slicer.j_ax)
+    _render_cursor_location(slicer, slicer.k_ax)
+
+
+def _render_cursor_location(slicer, ax):
+    cursor = slicer.cursor
+    x_dimension, y_dimension, slice_dimension = slicer.axes_dimensions(ax)
+    dimension_to_color_map = {
+        0: 'red',
+        1: 'green',
+        2: 'blue',
+    }
+    ax.axvline(cursor[x_dimension], color=dimension_to_color_map[x_dimension])
+    ax.axhline(cursor[y_dimension], color=dimension_to_color_map[y_dimension])
+    set_spine_color(ax, dimension_to_color_map[slice_dimension])
+
+
+def set_spine_color(ax, color):
+    ax.spines['bottom'].set_color(color)
+    ax.spines['top'].set_color(color)
+    ax.spines['right'].set_color(color)
+    ax.spines['left'].set_color(color)
