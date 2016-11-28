@@ -111,25 +111,20 @@ def render_points(slicer):
 
 
 def _scatter_in_slice(slicer, ax, descriptor):
-    x_dimension, y_dimension, slice_dimension = slicer.axes_dimensions(ax)
-    points = _points_in_slice(slicer, slice_dimension, descriptor)
-    x = points[x_dimension, :]
-    y = points[y_dimension, :]
-
-    slice_location = slicer.cursor[slice_dimension]
-    r = 4.0*np.abs(points[slice_dimension, :] - slice_location)
-
-    ax.scatter(x, y, s=r, edgecolors='face', **descriptor['scatter_kwargs'])
-
-
-def _points_in_slice(slicer, slice_dimension, descriptor):
     points = descriptor['points_ijk']
+    x_dimension, y_dimension, slice_dimension = slicer.axes_dimensions(ax)
     slice_location = slicer.cursor[slice_dimension]
-    point_radius_mm = descriptor.get('point_radius_mm', 4)
+
+    point_radius_mm = descriptor.get('point_radius_mm', 8)
     point_radius_pixels = point_radius_mm/slicer.pixel_spacing[slice_dimension]
     distance_to_slice = np.abs(points[slice_dimension, :] - slice_location)
     indices_in_slice = distance_to_slice < point_radius_pixels
-    return points[:, indices_in_slice]
+
+    x = points[x_dimension, indices_in_slice]
+    y = points[y_dimension, indices_in_slice]
+    r = point_radius_pixels - distance_to_slice[indices_in_slice]
+
+    ax.scatter(x, y, s=r, edgecolors='face', **descriptor.get('scatter_kwargs', {}))
 
 
 def render_cursor(slicer):
