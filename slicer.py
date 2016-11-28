@@ -14,7 +14,6 @@ class Slicer:
         self.j_ax = self.f.add_subplot(223)
         self.k_ax = self.f.add_subplot(221)
         self.f.canvas.mpl_connect('scroll_event', lambda e: self.onscroll(e))
-        self.draw()
 
     def onscroll(self, event):
         if event.inaxes == self.i_ax:

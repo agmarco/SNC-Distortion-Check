@@ -1,18 +1,16 @@
 #!/usr/bin/env python
-import sys
+import argparse
 
 import scipy.io
 import matplotlib.pylab as plt
-import slicer
+from slicer import Slicer
 
 
 if __name__ == '__main__':
-    if len(sys.argv) <= 1:
-        print('Usage: slice_viewer VOXELS_MATFILE')
-        sys.exit(1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('voxels')
+    args = parser.parse_args()
 
-    input_data = scipy.io.loadmat(sys.argv[1])
-    voxels = input_data['voxels']
-
-    slicer.Slicer(voxels)
+    voxels = scipy.io.loadmat(args.voxels)['voxels']
+    Slicer(voxels).draw()
     plt.show()
