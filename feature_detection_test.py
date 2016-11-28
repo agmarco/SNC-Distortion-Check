@@ -10,7 +10,7 @@ from hdatt.suite import Suite
 from feature_detection import detect_features
 from dicom_import import combine_slices
 from points import categorize
-from overlaypoints import PointsSlicer
+from slicer import PointsSlicer
 
 
 class FeatureDetectionSuite(Suite):

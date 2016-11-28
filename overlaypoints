@@ -1,128 +1,32 @@
 #!/usr/bin/env python
 import argparse
-import sys
-from collections import OrderedDict
-
-import dicom
 import itertools
+
 import scipy.io
 import matplotlib.pylab as plt
 import numpy as np
-from matplotlib.pyplot import savefig
 
-from dicom_import import combine_slices
-from affine import apply_affine
-from points import categorize
-from testing.calculate_metrics import calc_metrics
+from slicer import PointsSlicer
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('input_voxels')
-    parser.add_argument('known_points')
-    parser.add_argument('detected_points', nargs='?', default=None)
-    parser.add_argument('--distorted_voxels')
-    parser.add_argument('--distorted_points')
-    parser.add_argument('--save')
+    parser.add_argument('voxels')
+    parser.add_argument('points', nargs='+', default=None)
     args = parser.parse_args()
 
-    input_data = scipy.io.loadmat(args.input_voxels)
+    input_data = scipy.io.loadmat(args.voxels)
     voxels = input_data['voxels']
-    ijk_to_patient_xyz_transform = input_data['ijk_to_patient_xyz_transform']
+    ijk_to_xyz = input_data['ijk_to_patient_xyz_transform']
 
 
-    def load_points_ijk(mat_path):
-        points_xyz = scipy.io.loadmat(mat_path)['points']
-        patient_xyz_to_ijk_transform = np.linalg.inv(ijk_to_patient_xyz_transform)
-        points_ijk = apply_affine(patient_xyz_to_ijk_transform, points_xyz)
-        return points_ijk
+    colors = itertools.cycle(["c", "g", "r", "y", "k"])
+    descriptors = []
+    for path, color in zip(args.points, colors):
+        points_xyz = scipy.io.loadmat(path)['points']
+        descriptors.append({
+            'points_xyz': points_xyz,
+            'scatter_kwargs': {'color': color, 'label': path},
+        })
 
-    known_points_ijk = load_points_ijk(args.known_points)
-
-    fig = plt.figure(figsize=(15,8))
-
-    if args.distorted_voxels:
-        ax2 = fig.add_subplot(122)
-        ax = fig.add_subplot(121)
-        distorted_voxels = scipy.io.loadmat(args.distorted_voxels)['voxels']
-        ax.set_title(args.input_voxels)
-        ax2.set_title(args.distorted_voxels)
-    else:
-        ax = fig.add_subplot(111)
-        ax.set_title(args.input_voxels)
-
-
-    if args.detected_points:
-        detected_points_ijk = load_points_ijk(args.detected_points)
-        FN_A, TP_A, TP_B, FP_B = categorize(known_points_ijk, detected_points_ijk, lambda x: 5)
-        average_error, random_error_average, TPF, FPF, FNF = calc_metrics(FN_A, TP_A, TP_B, FP_B)
-        label2points_ijk = OrderedDict([
-            ('golden',  list(TP_A.T)),
-            ('detected',  list(TP_B.T)),
-            ('false negatives',  list(FN_A.T)),
-            ('false positives',  list(FP_B.T))
-        ])
-        FPF = len(FP_B.T) / len(known_points_ijk.T)
-        FNF = len(FN_A.T) / len(known_points_ijk.T)
-        TPF = len(TP_A.T) / len(known_points_ijk.T)
-        fig.suptitle('Mean Error: {:.2f}, Random Error: {:.2f}, TPF: {:.1f}%, FPF: {:.1f}%, FNF: {:.1f}%'.format(average_error, random_error_average, TPF*100, FNF*100, FPF*100))
-    else:
-        label2points_ijk = {'golden':  list(known_points_ijk.T)}
-
-    if args.distorted_points:
-        detected_points_ijk = load_points_ijk(args.distorted_points)
-        distorted_label2points_ijk = OrderedDict([
-            ('detected',  list(detected_points_ijk.T)),
-        ])
-    else:
-        distorted_label2points_ijk = {}
-
-    current_slice = int(voxels.shape[2]/2)
-
-    # this was qualitatively set to make the visualization look nice, and was
-    # not set based on the grid intersection size in the phantom
-    point_radius_in_z_pixels = 20
-    slices_to_show = 2
-    def in_slice(point):
-        point_z = point[2]
-        return abs(point_z - current_slice) < point_radius_in_z_pixels
-
-    def draw(ax, voxels, label2points_ijk):
-        colors = itertools.cycle(["c", "g", "r", 'y'])
-
-        # clear existing stuff
-        ax.images = []
-        ax.collections = []
-
-        ax.imshow(voxels[:, :, current_slice], origin='upper', cmap='Greys_r')
-
-        for label, points_list in label2points_ijk.items():
-            color = next(colors)
-            x_points = [p[1] for p in points_list if in_slice(p)]
-            y_points = [p[0] for p in points_list if in_slice(p)]
-            r_points = [max((slices_to_show - abs(p[2] - current_slice)/slices_to_show), 0) * point_radius_in_z_pixels for p in points_list if in_slice(p)]
-            ax.scatter(x_points, y_points, s=r_points, c=color, edgecolors=color, label=label)
-
-        plt.legend()
-        fig.canvas.draw()
-
-    def draw_all():
-        if args.distorted_voxels:
-            draw(ax2, distorted_voxels, distorted_label2points_ijk)
-        draw(ax, voxels, label2points_ijk)
-
-    def onscroll(event):
-        global current_slice
-        if event.step < 0:
-            current_slice = max(current_slice - 1, 0)
-        elif event.step > 0:
-            current_slice = min(current_slice + 1, voxels.shape[2] - 1)
-
-        draw_all()
-
-    fig.canvas.mpl_connect('scroll_event', onscroll)
-    draw_all()
-
-    if args.save:
-        savefig(args.save)
-    else:
-        plt.show()
+    PointsSlicer(voxels, ijk_to_xyz, descriptors).draw()
+    plt.show()
