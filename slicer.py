@@ -26,7 +26,7 @@ class Slicer:
 
     def axes_dimensions(self, axes):
         if axes == self.i_ax:
-            return 1, 2, 0
+            return 2, 1, 0
         elif axes == self.j_ax:
             return 2, 0, 1
         elif axes == self.k_ax:
