@@ -17,23 +17,41 @@ class Slicer:
         self.i_ax = self.f.add_subplot(224)
         self.j_ax = self.f.add_subplot(223)
         self.k_ax = self.f.add_subplot(221)
-        self.f.canvas.mpl_connect('scroll_event', lambda e: self.onscroll(e))
+        self.f.canvas.mpl_connect('scroll_event', lambda e: self.on_scroll(e))
+        self.f.canvas.mpl_connect('button_press_event', lambda e: self.on_button_press(e))
         self._renderers = []
 
     def add_renderer(self, renderer):
         self._renderers.append(renderer)
 
-    def onscroll(self, event):
-        if event.inaxes == self.i_ax:
-            scroll_dimension = 0
-        elif event.inaxes == self.j_ax:
-            scroll_dimension = 1
-        elif event.inaxes == self.k_ax:
-            scroll_dimension = 2
+    def axes_dimensions(self, axes):
+        if axes == self.i_ax:
+            return 1, 2, 0
+        elif axes == self.j_ax:
+            return 2, 0, 1
+        elif axes == self.k_ax:
+            return 1, 0, 2
         else:
-            return  # scroll occurred off-axis
+            raise ValueError()
 
-        self.cursor[scroll_dimension] += event.step
+    def on_scroll(self, event):
+        try:
+            _, _, slice_dimension = self.axes_dimensions(event.inaxes)
+        except ValueError:
+            return  # scroll occured off-axis
+
+        self.cursor[slice_dimension] += event.step
+        self.ensure_cursor_in_bounds()
+        self.draw()
+
+    def on_button_press(self, event):
+        try:
+            x_dimension, y_dimension, _ = self.axes_dimensions(event.inaxes)
+        except ValueError:
+            return  # scroll occured off-axis
+
+        self.cursor[x_dimension] = int(event.xdata)
+        self.cursor[y_dimension] = int(event.ydata)
         self.ensure_cursor_in_bounds()
         self.draw()
 
@@ -89,21 +107,13 @@ class PointsSlicer(Slicer):
 
 def render_points(slicer):
     for descriptor in slicer.points_descriptors:
-        scatter_in_slice(slicer, 0, descriptor)
-        scatter_in_slice(slicer, 1, descriptor)
-        scatter_in_slice(slicer, 2, descriptor)
+        scatter_in_slice(slicer, slicer.i_ax, descriptor)
+        scatter_in_slice(slicer, slicer.j_ax, descriptor)
+        scatter_in_slice(slicer, slicer.k_ax, descriptor)
 
 
-def scatter_in_slice(slicer, slice_dimension, descriptor):
-    if slice_dimension == 0:
-        x_dimension, y_dimension, ax = 2, 1, slicer.i_ax
-    elif slice_dimension == 1:
-        x_dimension, y_dimension, ax = 2, 0, slicer.j_ax
-    elif slice_dimension == 2:
-        x_dimension, y_dimension, ax = 1, 0, slicer.k_ax
-    else:
-        raise ValueError()
-
+def scatter_in_slice(slicer, ax, descriptor):
+    x_dimension, y_dimension, slice_dimension = slicer.axes_dimensions(ax)
     points = points_in_slice(slicer, slice_dimension, descriptor)
     x = points[x_dimension, :]
     y = points[y_dimension, :]
