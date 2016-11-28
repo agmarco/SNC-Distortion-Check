@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from points import segment, categorize, metrics
+from points import segment, categorize, metrics, closest
 
 
 def fs(*args):
@@ -178,3 +178,24 @@ class TestMetrics:
         assert random_error_average == 0.1
         assert TPF == 2/3
         assert FNF == 1/3
+
+
+class TestClosest:
+    def assert_ind_distance(self, point, expected_ind, expected_distance):
+        A = np.array([
+            [0, 0, 0],
+            [0, 0, 5],
+        ], dtype=float).T
+
+        ind, _, distance = closest(A, np.array(point, dtype=float))
+        assert ind == expected_ind
+        assert distance == expected_distance
+
+    def test_overlapped(self):
+        self.assert_ind_distance([0, 0, 0], 0, 0)
+
+    def test_appart(self):
+        self.assert_ind_distance([0, 0, 2], 0, 2)
+
+    def test_seccond_point(self):
+        self.assert_ind_distance([0, 1, 5], 1, 1)

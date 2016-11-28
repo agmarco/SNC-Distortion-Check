@@ -58,6 +58,13 @@ def _minpow2(value):
     return math.ceil(math.log2(value))
 
 
+def closest(A, point):
+    distances_squared = np.sum((A - point.reshape((3, 1)))**2, axis=0)
+    closest_indice = np.argmin(distances_squared) 
+    distance = math.sqrt(distances_squared[closest_indice])
+    return closest_indice, A[:, closest_indice], distance
+
+
 def categorize(A, B, rho):
     '''
     Given an array of locations of detected features, B, and an array of known

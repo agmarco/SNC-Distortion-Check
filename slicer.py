@@ -14,9 +14,9 @@ class Slicer:
         self.vmin = np.min(voxels)
         self.vmax = np.max(voxels)
         self.cursor = np.array([0, 0, 0], dtype=int)
-        self.i_ax = self.f.add_subplot(224)
-        self.j_ax = self.f.add_subplot(223)
-        self.k_ax = self.f.add_subplot(221)
+        self.i_ax = self.f.add_subplot(131)
+        self.j_ax = self.f.add_subplot(132)
+        self.k_ax = self.f.add_subplot(133)
         self.f.canvas.mpl_connect('scroll_event', lambda e: self.on_scroll(e))
         self.f.canvas.mpl_connect('button_press_event', lambda e: self.on_button_press(e))
         self._renderers = []
@@ -115,16 +115,16 @@ def _scatter_in_slice(slicer, ax, descriptor):
     x_dimension, y_dimension, slice_dimension = slicer.axes_dimensions(ax)
     slice_location = slicer.cursor[slice_dimension]
 
-    point_radius_mm = descriptor.get('point_radius_mm', 8)
+    point_radius_mm = descriptor.get('point_radius_mm', 5)
     point_radius_pixels = point_radius_mm/slicer.pixel_spacing[slice_dimension]
     distance_to_slice = np.abs(points[slice_dimension, :] - slice_location)
     indices_in_slice = distance_to_slice < point_radius_pixels
 
     x = points[x_dimension, indices_in_slice]
     y = points[y_dimension, indices_in_slice]
-    r = point_radius_pixels - distance_to_slice[indices_in_slice]
+    r = 6.0*(point_radius_pixels - distance_to_slice[indices_in_slice])
 
-    ax.scatter(x, y, s=r, edgecolors='face', **descriptor.get('scatter_kwargs', {}))
+    ax.scatter(x, y, s=r, edgecolors='face', alpha=0.6, **descriptor.get('scatter_kwargs', {}))
 
 
 def render_cursor(slicer):

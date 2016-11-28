@@ -1,87 +1,113 @@
 #!/usr/bin/env python
+import argparse
 import sys
 
-import dicom
 import scipy.io
+import matplotlib
+matplotlib.use('QT4Agg')
 import matplotlib.pylab as plt
 import numpy as np
+from scipy.spatial import KDTree
 
-from dicom_import import combine_slices
+from slicer import PointsSlicer, render_slices, render_cursor, render_points
 from affine import apply_affine
+from points import closest
+
+
+
+
+class AnnotateSlicer(PointsSlicer):
+    def __init__(self, voxels, ijk_to_xyz, points_xyz):
+        points_descriptors = [{'points_xyz': points_xyz, 'scatter_kwargs': {'color': 'g'}}]
+        super().__init__(voxels, ijk_to_xyz, points_descriptors)
+        self.selected_indice = None
+        self.f.canvas.mpl_connect('key_press_event', lambda e: self.on_key_press(e))
+
+    def on_button_press(self, event):
+        if event.button == 3:  # right click
+            points = self.points_descriptors[0]['points_ijk']
+
+            x_dimension, y_dimension, slice_dimension = slicer.axes_dimensions(event.inaxes)
+            new_point = np.empty((3, 1), dtype=float)
+            new_point[x_dimension] = event.xdata
+            new_point[y_dimension] = event.ydata
+            new_point[slice_dimension] = slicer.cursor[slice_dimension]
+
+            closest_indice, _, distance = closest(points, new_point)
+            if distance < 10:
+                self.selected_indice = closest_indice
+                self.cursor = points[:, self.selected_indice].astype(int)
+                self.draw()
+            else:
+                self.points_descriptors[0]['points_ijk'] = np.append(points, new_point, axis=1)
+                self.draw()
+        else:
+            super().on_button_press(event)
+
+    def on_key_press(self, event):
+        if self.selected_indice is None:
+            return
+
+        nudge_size = 0.15
+        nudge_lookup = {
+            'left': [0, nudge_size, 0],
+            'right': [0, -nudge_size, 0],
+            'up': [-nudge_size, 0, 0],
+            'down': [nudge_size, 0, 0],
+            'shift+up': [0, 0, nudge_size],
+            'shift+down': [0, 0, -nudge_size],
+        }
+
+        points = self.points_descriptors[0]['points_ijk']
+        num_points = points.shape[1]
+
+        if event.key == 'esc':
+            self.selected_indice = None
+            return
+        elif event.key == 'shift+tab':
+            self.selected_indice = max(0, self.selected_indice - 1)
+        elif event.key == 'tab':
+            self.selected_indice = min(num_points - 1, self.selected_indice + 1)
+        elif event.key in nudge_lookup:
+            nudge_list = nudge_lookup[event.key]
+            nudge = np.array(nudge_list, dtype=float)
+            points[:, self.selected_indice] += nudge
+        else:
+            return
+
+        self.cursor = points[:, self.selected_indice].astype(int)
+        self.ensure_cursor_in_bounds()
+        self.draw()
 
 
 if __name__ == '__main__':
-    if len(sys.argv) <= 3:
-        print('Usage: annotate DICOMFILES... MATFILE')
-        sys.exit(1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('voxels')
+    parser.add_argument('points', help='if points file exists, append, else create new file')
+    args = parser.parse_args()
 
-    input_dicom_filenames = sys.argv[1:-1]
-    dicom_datasets = [dicom.read_file(f) for f in input_dicom_filenames]
+    input_data = scipy.io.loadmat(args.voxels)
+    voxels = input_data['voxels']
+    ijk_to_xyz = input_data['ijk_to_patient_xyz_transform']
 
-    voxels, ijk_to_patient_xyz_transform = combine_slices(dicom_datasets)
-
-    output_mat_filename = sys.argv[-1]
     try:
-        points_xyz = scipy.io.loadmat(output_mat_filename)['points']
-        print('{} existing points found in {}'.format(points_xyz.shape[1], output_mat_filename))
+        points_xyz = scipy.io.loadmat(args.points)['points']
+        assert points_xyz.shape[1] > 0
+        print('{} existing points found in {}'.format(points_xyz.shape[1], args.points))
     except:
         points_xyz = np.zeros((3, 0))
-        print('No existing points found in {}'.format(output_mat_filename))
+        print('No existing points found in {}'.format(args.points))
 
-    patient_xyz_to_ijk_transform = np.linalg.inv(ijk_to_patient_xyz_transform)
-    points_ijk = apply_affine(patient_xyz_to_ijk_transform, points_xyz)
-    points_ijk_list = list(points_ijk.T)
-
-    fig = plt.figure()
-    plt.title('\n'.join([
-        'Mouse button 1 records a grid intersection',
-        'Mouse button 2 to saves and exits',
-        'Mouse wheel scrolls slices',
-    ]))
-
-    ax = fig.add_subplot(111)
-    current_slice = 0
-
-    def draw():
-        # clear existing stuff
-        ax.images = []
-        ax.collections = []
-
-        ax.imshow(voxels[:, :, current_slice], origin='upper', cmap='Greys_r')
-
-        x_points = [p[1] for p in points_ijk_list if np.isclose(p[2], current_slice)]
-        y_points = [p[0] for p in points_ijk_list if np.isclose(p[2], current_slice)]
-        ax.scatter(x_points, y_points)
-
-        fig.canvas.draw()
-
-    def onclick(event):
-        if event.button == 1 and event.xdata is not None and event.ydata is not None:
-            # NOTE: the x-axis corresponds to the column number, and the y-axis
-            # to the row-number
-            points_ijk_list.append((event.ydata, event.xdata, current_slice))
-            print(event.xdata, event.ydata, current_slice)
-            draw()
-        elif event.button == 2:
-            points_ijk = np.array(points_ijk_list).T if points_ijk_list else np.zeros((3, 0))
-            points_xyz = apply_affine(ijk_to_patient_xyz_transform, points_ijk)
-            scipy.io.savemat(output_mat_filename, {
-                'points': points_xyz,
-            })
-            print('Wrote {} points to {}'.format(points_xyz.shape[1], output_mat_filename))
-            sys.exit(0)
-
-    def onscroll(event):
-        global current_slice
-        if event.step < 0:
-            current_slice = max(current_slice - 1, 0)
-        elif event.step > 0:
-            current_slice = min(current_slice + 1, voxels.shape[2] - 1)
-
-        draw()
-
-    fig.canvas.mpl_connect('button_press_event', onclick)
-    fig.canvas.mpl_connect('scroll_event', onscroll)
-    draw()
-
+    slicer = AnnotateSlicer(voxels, ijk_to_xyz, points_xyz)
+    slicer.add_renderer(render_slices)
+    slicer.add_renderer(render_points)
+    slicer.add_renderer(render_cursor)
+    slicer.draw()
     plt.show()
+
+    points_ijk = slicer.points_descriptors[0]['points_ijk']
+    points_xyz = apply_affine(ijk_to_xyz, points_ijk)
+    scipy.io.savemat(args.points, {
+        'points': points_xyz,
+    })
+    print('Wrote {} points to {}'.format(points_xyz.shape[1], args.points))
