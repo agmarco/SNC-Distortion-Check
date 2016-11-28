@@ -4,12 +4,13 @@ from collections import OrderedDict
 import numpy as np
 import scipy.io
 import dicom
+import matplotlib.pyplot as plt
 
 from hdatt.suite import Suite
 from feature_detection import detect_features
 from dicom_import import combine_slices
 from points import categorize
-from overlaypoints import overlay_points
+from overlaypoints import PointsSlicer
 
 
 class FeatureDetectionSuite(Suite):
@@ -80,14 +81,15 @@ class FeatureDetectionSuite(Suite):
     def show(self, result):
         context = result['context']
         descriptors = [
-            {'points_xyz': context['FN_A'], 'scatter': {'color': 'y', 'label': 'FN_A', 'marker': 'o'}},
-            {'points_xyz': context['TP_A'], 'scatter': {'color': 'g', 'label': 'TP_A', 'marker': 'o'}},
-            {'points_xyz': context['TP_B'], 'scatter': {'color': 'g', 'label': 'TP_B', 'marker': 'x'}},
-            {'points_xyz': context['FP_B'], 'scatter': {'color': 'r', 'label': 'FP_B', 'marker': 'x'}},
+            {'points_xyz': context['FN_A'], 'scatter_kwargs': {'color': 'y', 'label': 'FN_A', 'marker': 'o'}},
+            {'points_xyz': context['TP_A'], 'scatter_kwargs': {'color': 'g', 'label': 'TP_A', 'marker': 'o'}},
+            {'points_xyz': context['TP_B'], 'scatter_kwargs': {'color': 'g', 'label': 'TP_B', 'marker': 'x'}},
+            {'points_xyz': context['FP_B'], 'scatter_kwargs': {'color': 'r', 'label': 'FP_B', 'marker': 'x'}},
         ]
 
-        voxels, ijk_to_xyz_transform = self._load_images(context['case_input']['images'])
-        overlay_points(voxels, ijk_to_xyz_transform, descriptors)
+        voxels, ijk_to_xyz = self._load_images(context['case_input']['images'])
+        PointsSlicer(voxels, ijk_to_xyz, descriptors).draw()
+        plt.show()
 
     def diff(self, golden_result, result):
         assert golden_result['case_input']['images'] == result['case_input']['images']
