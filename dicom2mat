@@ -1,24 +1,20 @@
 #!/usr/bin/env python
-import sys
+import argparse
 
-import dicom
 import scipy.io
 
-from dicom_import import combine_slices
+from dicom_import import combined_series_from_zip
 
 
 if __name__ == '__main__':
-    if len(sys.argv) <= 3:
-        print('Usage: dicom2mat DICOMFILES... MATFILE')
-        sys.exit(1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('zip', help='Zip archive containing DICOM files from a series')
+    parser.add_argument('voxels', help='Output path to write voxels mat-file')
+    args = parser.parse_args()
 
-    input_dicom_filenames = sys.argv[1:-1]
-    dicom_datasets = [dicom.read_file(f) for f in input_dicom_filenames]
+    voxels, irc_to_patient_xyz_transform = combined_series_from_zip(args.zip)
 
-    voxels, irc_to_patient_xyz_transform = combine_slices(dicom_datasets)
-
-    output_mat_filename = sys.argv[-1]
-    scipy.io.savemat(output_mat_filename, {
+    scipy.io.savemat(args.voxels, {
         'voxels': voxels,
         'ijk_to_patient_xyz_transform': irc_to_patient_xyz_transform,
     })

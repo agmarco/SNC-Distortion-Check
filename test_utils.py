@@ -43,9 +43,13 @@ class DataGenerator:
 
 
 class Source(DataGenerator):
-    def __init__(self, data_prefix):
+    def __init__(self, zip_filename):
+        if not zip_filename.endswith('.zip'):
+            raise ValueError()
+
+        data_prefix = zip_filename[:-len('.zip')]
         self.data_prefix = data_prefix
-        dicom_data_dir = os.path.join(data_directory, 'dicom', data_prefix)
+        dicom_data_zip = os.path.join(data_directory, 'dicom', zip_filename)
         self.annotaed_points_path = os.path.join(data_directory, 'points', data_prefix+'-golden.mat')
 
         self.output_data_prefix = os.path.join(output_directory, data_prefix)
@@ -53,7 +57,7 @@ class Source(DataGenerator):
         output_points_path = self.output_data_prefix + '_points.mat'
 
         cmds = []
-        cmds.append(['./dicom2mat', dicom_data_dir+'/*', output_voxels_path])
+        cmds.append(['./dicom2mat', dicom_data_zip, output_voxels_path])
         if os.path.exists(self.annotaed_points_path):
             cmds.append(['cp', self.annotaed_points_path, output_points_path])
         self.make_rule = MakeRule(targets=[output_voxels_path], dependencies=[], cmds=cmds)
