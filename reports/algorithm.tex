@@ -1,0 +1,45 @@
+\title{An Algorithm for Measuring Geometric Distortion in MR and CT Phantom Images}
+\author{
+J. David Giese\\
+Innolitics, LLC\\
+\and
+Yujan Shrestha, M.D.\\
+Innolitics, LLC\\
+}
+\date{\today}
+
+\documentclass[12pt]{article}
+
+
+\begin{document}
+\maketitle
+
+\section*{Introduction}
+MR scanners geometrically distort the objects they image.  The geometric distortion exists because the scanner's field is non-uniform, due to inescapable inhomogeneities in the static and gradient magnets as well as magnetic susceptibility differences in the sample.
+
+Our algorithm calculates the geometric distortion introduced by an MR scanner from an image of a phantom with known internal structure.  We calculate the displacement of structural features in the phantom from their known locations---the magnitude and direction of the displacement is a direct measure of the geometric distortion.
+
+The first section of this report is a semi-formal discussion of the problem.  It includes several assumptions we make about the phantom images.  The second section presents an overview of our algorithm.  The third section outlines a system for testing our algorithm, and includes preliminary results.  The final section discusses the limitations of the algorithm and directions for future improvements.
+
+We note that our algorithm should work equally well on CT images, however, we focus exclusively on MR images in this report.
+
+\section*{Problem}
+Calculating the geometric distortion from the phantom images is essentially a non-rigid registration problem. Unlike many registration problems which are performed on two images, this problem involves an image and a set of known feature locations.  We only need to detect features in the one image because we know the feature locations in the actual phantom.
+
+The result of this non-rigid registration is a transformation mapping the space in the MR scanner to locations in the actual phantom.  This transformation will contain a rigid component (e.g. translations and rotations) as well as a non-rigid component.  The rigid component of the transformation is due to mis-alignment of the phantom within the scanner, and is uninteresting.  The non-rigid component of the translation is a measurement of the geometric distortion.
+
+Non-rigid registration is an open research area with many difficult probl
+
+Fortunately it is a tractable problem because we can make a number of assumptions about the images we are registering.
+
+\section*{Solution}
+  We know the features locations because we can assume there is no distortion near the isocenter and we know the relative position of the features within the phantom.
+
+\section*{Results}
+
+\section*{Discussion}
+
+\bibliographystyle{abbrv}
+\bibliography{main}
+
+\end{document}
