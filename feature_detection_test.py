@@ -1,59 +1,34 @@
-import os
 from collections import OrderedDict
 
-import numpy as np
 import scipy.io
-import dicom
 import matplotlib.pyplot as plt
+import glob
 
 from hdatt.suite import Suite
 from feature_detection import detect_features
-from dicom_import import combine_slices
-from points import categorize
-from slicer import PointsSlicer, render_points, render_slices
+from test_utils import populate_base_context, get_test_data_generators, show_base_result, load_voxels
 
 
 class FeatureDetectionSuite(Suite):
     id = 'feature-detection'
 
     def collect(self):
-        return {
-            'mri-001-axial': {
-                'images': './data/dicom/mri-001-axial',
-                'golden': './data/points/mri-001-axial-golden.mat',
+        data_generators = get_test_data_generators()
+        cases = {
+            '.'.join(data_generator.description): {
+                'voxels': data_generator.output_data_prefix+'_voxels.mat',
+                'points': data_generator.output_data_prefix+'_points.mat',
             }
+            for data_generator in data_generators
         }
-
-    def _load_images(self, images):
-        image_dir = os.path.abspath(images)
-        input_dicom_filenames = [os.path.join(image_dir, p) for p in os.listdir(image_dir)]
-        dicom_datasets = [dicom.read_file(f) for f in input_dicom_filenames]
-        return combine_slices(dicom_datasets)
+        return cases
 
     def run(self, case_input):
-        metrics = OrderedDict()
-        context = {}
-
-        voxels, ijk_to_xyz_transform = self._load_images(case_input['images'])
+        voxels, ijk_to_xyz_transform = load_voxels(case_input['voxels'])
         points = detect_features(voxels, ijk_to_xyz_transform)
 
-        golden_points = scipy.io.loadmat(case_input['golden'])['points']
-        FN_A, TP_A, TP_B, FP_B = categorize(golden_points, points, lambda bmag: 7.5)
-
-        context['case_input'] = case_input
-        context['FN_A'] = FN_A
-        context['TP_A'] = TP_A
-        context['TP_B'] = TP_B
-        context['FP_B'] = FP_B
-
-        total_error, average_error, random_error_average, TPF, FNF = points.metrics(FN_A, TP_A, TP_B, FP_B)
-        metrics['total_error'] = total_error
-        metrics['average_error'] = average_error
-        metrics['random_error_average'] = random_error_average
-        metrics['true_positive_fraction'] = true_positive_fraction
-        metrics['false_negative_fraction'] = false_negative_fraction
-
-        return metrics, context
+        golden_points = scipy.io.loadmat(case_input['points'])['points']
+        return populate_base_context(case_input, golden_points, points)
 
     def verify(self, old_metrics, new_metrics):
         comments = []
@@ -79,22 +54,7 @@ class FeatureDetectionSuite(Suite):
         return passing, '\n' + '\n'.join(comments)
 
     def show(self, result):
-        context = result['context']
-        descriptors = [
-            {'points_xyz': context['FN_A'], 'scatter_kwargs': {'color': 'y', 'label': 'FN_A', 'marker': 'o'}},
-            {'points_xyz': context['TP_A'], 'scatter_kwargs': {'color': 'g', 'label': 'TP_A', 'marker': 'o'}},
-            {'points_xyz': context['TP_B'], 'scatter_kwargs': {'color': 'g', 'label': 'TP_B', 'marker': 'x'}},
-            {'points_xyz': context['FP_B'], 'scatter_kwargs': {'color': 'r', 'label': 'FP_B', 'marker': 'x'}},
-        ]
-
-        voxels, ijk_to_xyz = self._load_images(context['case_input']['images'])
-
-        slicer = PointsSlicer(voxels, ijk_to_xyz, descriptors)
-        slicer.add_renderer(render_slices)
-        slicer.add_renderer(render_points)
-        slicer.draw()
-
-        plt.show()
+        show_base_result(result)
 
     def diff(self, golden_result, result):
         assert golden_result['case_input']['images'] == result['case_input']['images']
