@@ -3,6 +3,10 @@ import math
 import numpy as np
 
 
+class DicomImportException(Exception):
+    pass
+
+
 def combine_slices(slice_datasets):
     '''
     Given a list of pydicom datasets for an image series, stitch them together into a
@@ -27,7 +31,7 @@ def combine_slices(slice_datasets):
       must be the same (0020,0032)
     '''
     if len(slice_datasets) == 0:
-        raise ValueError("Must provide at least one dataset")
+        raise DicomImportException("Must provide at least one dataset")
 
     validate_slices_form_uniform_grid(slice_datasets)
 
@@ -107,13 +111,13 @@ def _validate_image_orientation(image_orientation):
     row_cosine, column_cosine, slice_cosine = _extract_cosines(image_orientation)
 
     if not _almost_zero(np.dot(row_cosine, column_cosine)):
-        raise ValueError("Non-orthogonal direction cosines: {}, {}".format(row_cosine, column_cosine))
+        raise DicomImportException("Non-orthogonal direction cosines: {}, {}".format(row_cosine, column_cosine))
 
     if not _almost_one(np.linalg.norm(row_cosine)):
-        raise ValueError("The row direction cosine's magnitude is not 1: {}".format(row_cosine))
+        raise DicomImportException("The row direction cosine's magnitude is not 1: {}".format(row_cosine))
 
     if not _almost_one(np.linalg.norm(column_cosine)):
-        raise ValueError("The column direction cosine's magnitude is not 1: {}".format(column_cosine))
+        raise DicomImportException("The column direction cosine's magnitude is not 1: {}".format(column_cosine))
 
 
 def _almost_zero(value):
@@ -137,7 +141,7 @@ def _slice_attribute_equal(slice_datasets, property_name):
         value = getattr(dataset, property_name)
         if value != initial_value:
             msg = 'All slices must have the same value for "{}": {} != {}'
-            raise ValueError(msg.format(property_name, value, initial_value))
+            raise DicomImportException(msg.format(property_name, value, initial_value))
 
 
 def _slice_positions(slice_datasets):
@@ -150,7 +154,7 @@ def _check_for_missing_slices(slice_positions):
     slice_positions_diffs = np.diff(sorted(slice_positions))
     if not np.allclose(slice_positions_diffs, slice_positions_diffs[0]):
         msg = "It seems there are missing slices, or the spacing is non-uniform. Slice spacings: {}"
-        raise ValueError(msg.format(slice_positions_diffs))
+        raise DicomImportException(msg.format(slice_positions_diffs))
 
 
 def _slice_spacing(slice_datasets):

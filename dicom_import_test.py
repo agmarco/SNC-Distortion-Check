@@ -4,7 +4,12 @@ import math
 import pytest
 import numpy
 
-from dicom_import import combine_slices, validate_slices_form_uniform_grid, merge_slice_pixel_arrays
+from dicom_import import (
+    combine_slices,
+    validate_slices_form_uniform_grid,
+    merge_slice_pixel_arrays,
+    DicomImportException
+)
 
 
 # direction cosines
@@ -96,7 +101,7 @@ class TestValidateSlicesFormUniformGrid:
         All slices must be present.  Slice position is determined using the
         ImagePositionPatient (0020,0032) tag.
         '''
-        with pytest.raises(ValueError):
+        with pytest.raises(DicomImportException):
             validate_slices_form_uniform_grid([axial_slices[0], axial_slices[2], axial_slices[3]])
 
     def test_slices_from_different_series(self, axial_slices):
@@ -105,7 +110,7 @@ class TestValidateSlicesFormUniformGrid:
         be rejected.
         '''
         axial_slices[2].SeriesInstanceUID += 'Ooops'
-        with pytest.raises(ValueError):
+        with pytest.raises(DicomImportException):
             validate_slices_form_uniform_grid(axial_slices)
 
     @pytest.mark.xfail(reason='Not sure how to detect this in DICOM')
@@ -115,7 +120,7 @@ class TestValidateSlicesFormUniformGrid:
         know any way to determine the number of slices are in a DICOM series, this
         seems impossible.
         '''
-        with pytest.raises(ValueError):
+        with pytest.raises(DicomImportException):
             validate_slices_form_uniform_grid([axial_slices[0], axial_slices[1], axial_slices[2]])
 
 
