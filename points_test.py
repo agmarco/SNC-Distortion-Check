@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from points import segment, categorize, metrics, closest
+from points_utils import segment, categorize, metrics, closest
 
 
 def fs(*args):
