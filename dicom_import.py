@@ -169,11 +169,11 @@ def _validate_image_orientation(image_orientation):
 
 
 def _almost_zero(value):
-    return math.isclose(value, 0.0, rel_tol=1e-7)
+    return math.isclose(value, 0.0, abs_tol=1e-4)
 
 
 def _almost_one(value):
-    return math.isclose(value, 1.0, rel_tol=1e-7)
+    return math.isclose(value, 1.0, abs_tol=1e-4)
 
 
 def _extract_cosines(image_orientation):
@@ -202,7 +202,9 @@ def _check_for_missing_slices(slice_positions):
     slice_positions_diffs = np.diff(sorted(slice_positions))
     if not np.allclose(slice_positions_diffs, slice_positions_diffs[0]):
         msg = "It seems there are missing slices, or the spacing is non-uniform. Slice spacings: {}"
-        raise DicomImportException(msg.format(slice_positions_diffs))
+        # TODO: figure out the best way to handle non-even slice spacing
+        #raise DicomImportException(msg.format(slice_positions_diffs))
+        logger.warn(msg.format(slice_positions_diffs))
 
 
 def _slice_spacing(slice_datasets):
