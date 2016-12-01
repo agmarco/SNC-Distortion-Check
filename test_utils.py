@@ -20,13 +20,14 @@ class MakeRule:
         self.cmds = cmds
 
     def __str__(self):
-        if len(self.targets) > 1:
-            target = os.path.commonprefix(self.targets) + '%.mat'
-        else:
-            target = self.targets[0]
-        rule = target + ': ' + ' '.join(self.dependencies)
+        rule = ' '.join(self.targets) + ': ' + ' '.join(self.dependencies)
         recipes = ['\t' + ' '.join(cmd) for cmd in self.cmds]
-        return '\n'.join([rule] + recipes)
+        # Made does not handle rules with multiple targets well in multiprocess mode. Workaround from https://www.gnu.org/savannah-checkouts/gnu/automake/manual/html_node/Multiple-Outputs.html
+        if len(self.targets) > 1:
+            make_hack = self.targets[0] + ': ' + self.targets[1]
+        else:
+            make_hack = ''
+        return '\n'.join([rule] + recipes + [make_hack])
 
 
 class DataGenerator:
@@ -60,7 +61,7 @@ class Source(DataGenerator):
         cmds.append(['./dicom2mat', dicom_data_zip, output_voxels_path])
         if os.path.exists(self.annotaed_points_path):
             cmds.append(['cp', self.annotaed_points_path, output_points_path])
-        self.make_rule = MakeRule(targets=[output_voxels_path], dependencies=[], cmds=cmds)
+        self.make_rule = MakeRule(targets=[output_voxels_path, output_points_path], dependencies=[], cmds=cmds)
 
     def _description(self):
         return 'Loaded from {}'.format(self.data_prefix)
@@ -157,7 +158,7 @@ def get_test_data_generators():
             continue
 
         decimation_factors = ('2', '3', '4')
-        rotation_factors = ('2.5', '5', '15')
+        rotation_factors = ('2.5', '5')
         distortion_factors = ('1.6e-4', '3.2e-4', '4.8e-4')
 
         for decimation_factor in decimation_factors:
