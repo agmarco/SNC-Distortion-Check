@@ -4,11 +4,13 @@ SHELL := /bin/bash
 
 IN_ENV := . activate cirs &&
 
-test_data := $(patsubst data/dicom/%.zip,tmp/%-report.pdf,$(wildcard data/dicom/*))
+reports := $(patsubst data/dicom/%.zip,tmp/%-report.pdf,$(wildcard data/dicom/*))
 
 .PRECIOUS: tmp/%-voxels.mat tmp/%-unregistered-points.mat tmp/%-points.mat tmp/%-registration.mat
 
-all: $(test_data)
+all: reports
+
+unregistered-points: $(patsubst data/dicom/%.zip,tmp/%-unregistered-points.mat,$(wildcard data/dicom/*))
 
 .CONDABUILD: environment.yml
 	conda env create --force --file $<
