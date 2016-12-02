@@ -6,6 +6,8 @@ import tempfile
 import dicom
 import numpy as np
 
+from utils import invert
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -16,12 +18,31 @@ class DicomImportException(Exception):
 
 
 def combined_series_from_zip(zip_filename):
+    logger.info('Extracting voxel data from "{}"'.format(zip_filename))
     datasets = _dicom_datasets_from_zip(zip_filename)
     # TODO: ensure all datasets are from same series
 
     # TODO: also return a combined view of the DICOM data that is necessary for
     # the nema report
-    return combine_slices(datasets)
+    voxels, ijk_to_xyz = combine_slices(datasets)
+
+    # TODO: move this step somewhere else, once we have a better scheme for
+    # keeping up w DICOM data; also note the feature detection performs an
+    # inversion too
+    modality = datasets[0].Modality
+    if modality == 'CT':
+        voxels = invert(voxels)
+    elif modality == 'SC':
+        # TODO: figure out a better way to do this, perhaps using the SOP class...
+        # also see if we even should support "secondary capture" images...
+        logger.warn('Assuming "SC" modality is a CT')
+        voxels = invert(voxels)
+    elif modality == 'MR':
+        pass
+    else:
+        raise DicomImportException('Invalid Modality "{}"'.format(modality))
+
+    return voxels, ijk_to_xyz
 
 
 def _dicom_datasets_from_zip(zip_filename):
@@ -50,8 +71,8 @@ def _dicom_datasets_from_zip(zip_filename):
                 dataset = dicom.read_file(temp_file)
                 datasets.append(dataset)
             except dicom.errors.InvalidDicomError as e:
-                msg = 'Skipping invalid DICOM file "{}" in zip archive "{}": {}'
-                print(msg.format(entry, zip_filename, e))
+                msg = 'Skipping invalid DICOM file "{}": {}'
+                log.info(msg.format(entry, zip_filename, e))
     return datasets
 
 
@@ -131,6 +152,7 @@ def validate_slices_form_uniform_grid(slice_datasets):
     DICOM specification, however it seems pertinent to check anyway.
     '''
     invariant_properties = [
+        'Modality',
         'SOPClassUID',
         'SeriesInstanceUID',
         'Rows',
@@ -201,7 +223,7 @@ def _slice_positions(slice_datasets):
 def _check_for_missing_slices(slice_positions):
     slice_positions_diffs = np.diff(sorted(slice_positions))
     if not np.allclose(slice_positions_diffs, slice_positions_diffs[0]):
-        msg = "It seems there are missing slices, or the spacing is non-uniform. Slice spacings: {}"
+        msg = "It seems there are missing slices, or the spacing is non-uniform. Slice spacings:\n{}"
         # TODO: figure out the best way to handle non-even slice spacing
         #raise DicomImportException(msg.format(slice_positions_diffs))
         logger.warn(msg.format(slice_positions_diffs))
