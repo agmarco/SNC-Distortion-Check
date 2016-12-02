@@ -36,7 +36,7 @@ class AnnotateSlicer(PointsSlicer):
             new_point[slice_dimension] = slicer.cursor[slice_dimension]
 
             closest_indice, _, distance = closest(points, new_point)
-            if distance < 10:
+            if distance < 5:
                 log.info("Selecting point {}".format(closest_indice))
                 self.selected_indice = closest_indice
                 self.cursor = points[:, self.selected_indice].astype(int)
