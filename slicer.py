@@ -7,6 +7,14 @@ import numpy as np
 import affine
 
 
+def show_slices(voxels):
+    slicer = Slicer(voxels)
+    slicer.add_renderer(render_slices)
+    slicer.add_renderer(render_cursor)
+    slicer.draw()
+    plt.show()
+
+
 class Slicer:
     def __init__(self, voxels):
         self.f = plt.figure()
