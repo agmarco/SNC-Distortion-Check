@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import argparse
 import sys
+import logging
 
 import scipy.io
 import matplotlib
@@ -14,6 +15,7 @@ from affine import apply_affine
 from points_utils import closest
 
 
+log = logging.getLogger(__name__)
 
 
 class AnnotateSlicer(PointsSlicer):
@@ -35,6 +37,7 @@ class AnnotateSlicer(PointsSlicer):
 
             closest_indice, _, distance = closest(points, new_point)
             if distance < 10:
+                log.info("Selecting point {}".format(closest_indice))
                 self.selected_indice = closest_indice
                 self.cursor = points[:, self.selected_indice].astype(int)
                 self.draw()
@@ -45,8 +48,14 @@ class AnnotateSlicer(PointsSlicer):
             super().on_button_press(event)
 
     def on_key_press(self, event):
+        points = self.points_descriptors[0]['points_ijk']
+        num_points = points.shape[1]
+
         if self.selected_indice is None:
-            return
+            if event.key == 'tab' and num_points > 0:
+                self.selected_indice = 1
+            else:
+                return
 
         nudge_size = 0.15
         nudge_lookup = {
@@ -58,25 +67,33 @@ class AnnotateSlicer(PointsSlicer):
             'shift+down': [0, 0, -nudge_size],
         }
 
-        points = self.points_descriptors[0]['points_ijk']
-        num_points = points.shape[1]
-
         if event.key == 'esc':
             self.selected_indice = None
-            return
+        elif event.key == 'd':
+            points_without_selected = points[:, np.arange(num_points) != self.selected_indice]
+            self.points_descriptors[0]['points_ijk'] = points_without_selected
+            num_points = num_points - 1
+            if num_points == 0:
+                self.selected_indice = None
+            else:
+                self.selected_indice = self.selected_indice % num_points
         elif event.key == 'shift+tab':
-            self.selected_indice = max(0, self.selected_indice - 1)
+            # TODO: shift+tab does not appear to be recognized
+            self.selected_indice = (self.selected_indice - 1) % num_points
         elif event.key == 'tab':
-            self.selected_indice = min(num_points - 1, self.selected_indice + 1)
+            self.selected_indice = (self.selected_indice + 1) % num_points
         elif event.key in nudge_lookup:
             nudge_list = nudge_lookup[event.key]
             nudge = np.array(nudge_list, dtype=float)
             points[:, self.selected_indice] += nudge
         else:
+            log.debug(event.key)
             return
 
-        self.cursor = points[:, self.selected_indice].astype(int)
-        self.ensure_cursor_in_bounds()
+        if self.selected_indice is not None:
+            self.cursor = points[:, self.selected_indice].astype(int)
+            self.ensure_cursor_in_bounds()
+
         self.draw()
 
 
@@ -93,10 +110,10 @@ if __name__ == '__main__':
     try:
         points_xyz = scipy.io.loadmat(args.points)['points']
         assert points_xyz.shape[1] > 0
-        print('{} existing points found in {}'.format(points_xyz.shape[1], args.points))
+        log.info('{} existing points found in {}'.format(points_xyz.shape[1], args.points))
     except:
         points_xyz = np.zeros((3, 0))
-        print('No existing points found in {}'.format(args.points))
+        log.info('No existing points found in {}'.format(args.points))
 
     slicer = AnnotateSlicer(voxels, ijk_to_xyz, points_xyz)
     slicer.add_renderer(render_slices)
@@ -110,4 +127,4 @@ if __name__ == '__main__':
     scipy.io.savemat(args.points, {
         'points': points_xyz,
     })
-    print('Wrote {} points to {}'.format(points_xyz.shape[1], args.points))
+    log.info('Wrote {} points to {}'.format(points_xyz.shape[1], args.points))
