@@ -40,6 +40,7 @@ def generate_mock_slice(pixel_array, slice_position, row_cosine, column_cosine):
     dataset.PixelSpacing = [1.0, 1.0]
     dataset.Rows = na
     dataset.Columns = nb
+    dataset.Modality = 'MR'
 
     # assume that the images are centered on the remaining unused axis
     a_component = [-na/2.0*c for c in row_cosine]
