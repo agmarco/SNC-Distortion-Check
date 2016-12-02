@@ -1,2 +1,2 @@
-feature_detection_test.FeatureDetectionSuite
-registration_test.RegistrationTestSuite
+feature_detection_hdats.FeatureDetectionSuite
+registration_hdats.RegistrationTestSuite
