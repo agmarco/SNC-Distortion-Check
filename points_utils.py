@@ -59,6 +59,10 @@ def _minpow2(value):
 
 
 def closest(A, point):
+    dims, num_points = A.shape
+    assert dims == 3
+    assert num_points >= 1
+
     distances_squared = np.sum((A - point.reshape((3, 1)))**2, axis=0)
     closest_indice = np.argmin(distances_squared) 
     distance = math.sqrt(distances_squared[closest_indice])

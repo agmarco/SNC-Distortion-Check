@@ -2,25 +2,23 @@ import numpy as np
 from scipy import signal, ndimage
 
 import affine
-
-
-def invert(data):
-    return 2*np.mean(data) - data
-
-
-def farray(data):
-    return np.array(data, dtype=float)
+from utils import invert
 
 
 def convolution_feature_detection(data, nrx, nry, nrz, threshold_frac):
     inverted_data = invert(data)
     kernel = grid_intersection_kernel(nrx, nry, nrz)
     intersections = signal.fftconvolve(inverted_data, kernel, mode='same')
-    intersections_thresholded = intersections > np.max(intersections)*threshold_frac
+
+    threshold = np.max(intersections)*threshold_frac
+    assert threshold > 0
+
+    intersections_thresholded = intersections > threshold
+
     labels, number_of_labels = ndimage.label(intersections_thresholded)
-    grid_intersections = ndimage.center_of_mass(data, labels, range(1, number_of_labels + 1))
+    grid_intersections = ndimage.center_of_mass(intersections, labels, range(1, number_of_labels + 1))
     x, y, z = zip(*grid_intersections)
-    return farray([x, y, z])
+    return np.array([x, y, z], dtype=float)
 
 
 def grid_intersection_kernel(nrx, nry, nrz):
