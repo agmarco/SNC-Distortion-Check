@@ -87,6 +87,7 @@ def render_slices(slicer):
         'cmap': 'Greys_r',
         'vmin': slicer.vmin,
         'vmax': slicer.vmax,
+        'interpolation': 'nearest',
     }
 
     i, j, k = slicer.cursor
