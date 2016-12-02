@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 from scipy import signal, ndimage
 
@@ -5,12 +7,19 @@ import affine
 from utils import invert
 
 
-def convolution_feature_detection(data, nrx, nry, nrz, threshold_frac):
+def convolution_feature_detection(data, kernel, threshold_frac):
+    '''
+    Subtracting out the mean ensures that the kernel rejects the 0-frequency
+    (i.e. its mean is 0), hence the values outside of the grid will be
+    negative.  In this way, matching features in the image will stand out
+    against a background that is approximately 0.
+    '''
+    # TODO: detect whether we need to invert here
     inverted_data = invert(data)
-    kernel = grid_intersection_kernel(nrx, nry, nrz)
-    intersections = signal.fftconvolve(inverted_data, kernel, mode='same')
+    zero_mean_kernel = kernel - np.mean(kernel)
+    intersections = signal.fftconvolve(inverted_data, zero_mean_kernel, mode='same')
 
-    threshold = np.max(intersections)*threshold_frac
+    threshold = np.percentile(intersections, 98)*threshold_frac
     assert threshold > 0
 
     intersections_thresholded = intersections > threshold
@@ -21,37 +30,32 @@ def convolution_feature_detection(data, nrx, nry, nrz, threshold_frac):
     return np.array([x, y, z], dtype=float)
 
 
-def grid_intersection_kernel(nrx, nry, nrz):
+def cylindrical_grid_kernel(pixel_spacing, radius):
     '''
-    Generate a convolution kernel that can be used to detect "grid intersections".
+    Generate a convolution kernel that can be used to detect "cylindrical grid
+    intersections".
     
-    Grid intersections are modeled as the intersections between three cylinders.
-    
-    The radius of the cylinders along each dimension, nrx, nry, and nrz, are 
-    specified in pixels.
-    
-    The kernel rejects the 0-frequency (i.e. its mean is 0), hence the values 
-    outside of the grid will be negative.  In this way, matching features in the
-    image will stand out against a background that is approximately 0.
+    The radius of the cylinders is assumed to be the same along each dimension.
     '''
-    kernel_shape = tuple(round(2*4*n) for n in (nrx, nry, nrz))
+
+    kernel_shape = tuple(math.ceil(2*4*radius/s) for s in pixel_spacing)
     kernel = np.zeros(kernel_shape)
     X, Y, Z = np.meshgrid(*(np.linspace(-4, 4, n) for n in kernel_shape), indexing='ij')
     kernel[X**2 + Y**2 < 1] = 1
     kernel[X**2 + Z**2 < 1] = 1
     kernel[Y**2 + Z**2 < 1] = 1
-    return kernel - np.mean(kernel[:])
+    return kernel
 
 
-def detect_features(voxels, ijk_to_patient_xyz_transform):
-    # TODO: derive these values from the DICOM file + the orientation of the
-    # data.  Currently, this assumes that the voxel's line up with the primary
-    # axes, and thus we can create a kernel that is oriented with the ijk-axes
-    # and it will work; this would fail, e.g. if the pixel spacing along one
-    # dimension was drastically different, and the axes are swapped
-    nr_row, nr_column, nr_slice, threshold_frac = 2, 2, 2, 0.55
+def detect_features(voxels, ijk_to_xyz):
+    # TODO: derive the kernel from the phantom model
+    pixel_spacing = affine.pixel_spacing(ijk_to_xyz)
+    radius = 3.0  # the two supported phantoms currently have a 3 mm radius
+    kernel = cylindrical_grid_kernel(pixel_spacing, radius)
 
-    points_in_ijk = convolution_feature_detection(voxels, nr_row, nr_column, nr_slice, threshold_frac)
-    points_in_patient_xyz = affine.apply_affine(ijk_to_patient_xyz_transform, points_in_ijk)
+    threshold_frac = 0.8
 
-    return points_in_patient_xyz
+    points_ijk = convolution_feature_detection(voxels, kernel, threshold_frac)
+    points_xyz = affine.apply_affine(ijk_to_xyz, points_ijk)
+
+    return points_xyz
