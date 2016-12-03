@@ -15,13 +15,13 @@ Innolitics, LLC\\
 \maketitle
 
 \section*{Introduction}
-MR scanners geometrically distort the objects they image.  The geometric distortion exists because the scanner's field is non-uniform, due to inescapable inhomogeneities in the static and gradient magnets as well as magnetic susceptibility differences in the sample.
+MR scanners can geometrically distort the objects they image.  For many applications small distortions are not clinically irrelevant---for others even small distortions are relevant and worth measuring and correcting.  A discussion of the causes of geometric distortion in MRIs and the applications in which they matter is beyond the scope of this report, however, there are good articles that cover these topics\cite{baldwin2007}.
 
-Our algorithm calculates the geometric distortion introduced by an MR scanner from an image of a phantom with known internal structure.  We calculate the displacement of structural features in the phantom from their known locations---the magnitude and direction of the displacement is a direct measure of the geometric distortion.
+This report presents the first steps we have taken towards building a robust algorithm to detect geometric distortion introduced by MR scanners using images of grid phantoms.  Our algorithm calculates the geometric distortion by measuring the displacement of structural features in the phantom from their known locations.
 
-The first section of this report is a semi-formal discussion of the problem.  It includes several assumptions we make about the phantom images.  The second section presents an overview of our algorithm.  The third section outlines a system for testing our algorithm, and includes preliminary results.  The final section discusses the limitations of the algorithm and directions for future improvements.
+The first section of this report presents a formalized representation of the problem our algorithm is solving.  It includes several assumptions we make about the phantom images.  The second section presents an overview of our algorithm.  The third section outlines a system for testing our algorithm, and includes preliminary results.  The final section discusses the limitations of the algorithm and directions for future improvements.
 
-We note that our algorithm should work equally well on CT images, however, we focus exclusively on MR images in this report.
+We note that our algorithm should work equally well on CT images, however, we focus on MR images in this report.
 
 \section*{Problem}
 Calculating the geometric distortion from the phantom images is essentially a non-rigid registration problem. Unlike many registration problems which are performed on two images, this problem involves an image and a set of known feature locations.  We only need to detect features in the one image because we know the feature locations in the actual phantom.
@@ -40,6 +40,6 @@ Fortunately it is a tractable problem because we can make a number of assumption
 \section*{Discussion}
 
 \bibliographystyle{abbrv}
-\bibliography{main}
+\bibliography{./algorithm.bib}
 
 \end{document}
