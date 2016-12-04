@@ -10,6 +10,8 @@ Innolitics, LLC\\
 
 \documentclass[12pt]{article}
 
+\usepackage{amsmath, amssymb, amsbsy}
+\usepackage{cite, graphicx}
 
 \begin{document}
 \maketitle
@@ -24,11 +26,26 @@ The first section of this report presents a formalized representation of the pro
 \section*{Problem}
 Calculating a scanner's geometric distortion from grid phantom images is a non-rigid registration problem \cite{hill2001}.  We are registering an image of the phantom containing geometric distortion with an image of the phantom that does not contain geometric distortion.
 
-The registration produces a transformation which maps locations in the MR scanner to locations in the grid phantom.  This transformation will contain a rigid component (i.e. translation and rotation) and a non-rigid component.  The rigid component is assumed to originate from misalignment of the phantom within the scanner.  The non-rigid component is a measurement of the geometric distortion.
+The registration produces a transformation which maps locations in the first image to locations in the second.  This transformation will contain a rigid component (i.e. translation and rotation) and a non-rigid component.  The rigid component is assumed to originate from misalignment of the phantom within the scanner.  The non-rigid component is a measurement of the geometric distortion.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{problem-overview.pdf}
+    \caption{Problem overview goes here.}
+    \label{fig:problem-overview}
+\end{figure}
 
 The distortionless image can be a CT of the phantom---where we assume that the CT does not introduce its own geometric distortion---or, if we are willing to neglect phantom manufacturing errors, it can be derived from knowledge of the phantom's design.
 
 Non-rigid registration is an open research area with many unsolved problems.  Fortunately, we can make several assumptions about the images we are registering which make the problem tractable.
+
+First, we assume that the scanner introduces minimal geometric distortion near its isocenter \cite{baldwin2007}.  This assumption is especially valid if the scanner's distortion correction is enabled.
+
+Second, we assume that the phantom has detectable features that are oriented consistently and have a nearly identical form.  For example, a phantom that contains a Cartesian grid of cylindrical rods would satisfy this assumption---the grid intersections would be a detectable feature that is oriented consistently throughout the image and has nearly identical shape.
+
+Third, we assume that the images are sufficiently resolved so as to allow us to detect the phantom grid features.  In the case of a phantom with cylindrical grid intersections, this means that the pixel spacing along all three dimensions is larger than the grid rods.
+
+Finally, we assume that the images are crudely registered.  In particular, we assume that the magnitude of the translation component of the registration is less than the phantom grid spacing.  We also assume that the rotation component is less than a few degrees.  This assumption could be removed in the future.
 
 \section*{Solution}
   We know the features locations because we can assume there is no distortion near the isocenter and we know the relative position of the features within the phantom.
