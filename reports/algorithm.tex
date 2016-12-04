@@ -12,6 +12,7 @@ Innolitics, LLC\\
 
 \usepackage{amsmath, amssymb, amsbsy}
 \usepackage{cite, graphicx}
+\usepackage[font={footnotesize}]{caption}
 
 \begin{document}
 \maketitle
@@ -19,36 +20,44 @@ Innolitics, LLC\\
 \section*{Introduction}
 MR scanners can geometrically distort the objects they image.  For many applications small distortions are not clinically relevant---for others they are relevant and worth measuring and correcting.  A detailed discussion of the causes of geometric distortion in MRIs and the applications in which they matter is beyond the scope of this report, however, there are good articles that cover these topics \cite{baldwin2007,torfeh2015,wang2005,mribook}.  
 
-This report presents the steps we have taken towards developing a robust algorithm to measure geometric distortion introduced by MR scanners using images of grid phantoms.  Our algorithm calculates the geometric distortion from these phantom images using the displacement of structural features in the images from their known locations in the object (i.e. the grid phantom).
+This report presents the steps we have taken towards developing a robust algorithm to measure geometric distortion introduced by MR scanners using images of grid phantoms.  Our algorithms calculate the geometric distortion from these phantom images using the displacement of fiducials from their known locations.
 
-The first section of this report presents a formalized representation of the problem our algorithm is solving.  It includes several assumptions we make about the phantom images.  The second section presents an overview of our algorithm.  The third section outlines a system for testing our algorithm, and includes preliminary results.  The final section discusses the limitations of the algorithm and directions for future improvements.
+The first section of this report presents a representation of the problem our algorithm is solving.  It includes several assumptions we make about the phantom images.  The second section presents an overview of the algorithms we have been investigating.  The third section outlines a system for testing these algorithms, and includes preliminary results.  The final section discusses the limitations of the algorithms and directions for future improvements.
 
 \section*{Problem}
-Calculating a scanner's geometric distortion from grid phantom images is a non-rigid registration problem \cite{hill2001}.  We are registering an image of the phantom containing geometric distortion with an image of the phantom that does not contain geometric distortion.
+Calculating a scanner's geometric distortion from a grid phantom image is a fiducial-based non-rigid registration problem \cite{hill2001}.  We are registering an image of the phantom containing geometric distortion with an image of the phantom that does not contain geometric distortion.
 
 The registration produces a transformation which maps locations in the first image to locations in the second.  This transformation will contain a rigid component (i.e. translation and rotation) and a non-rigid component.  The rigid component is assumed to originate from misalignment of the phantom within the scanner.  The non-rigid component is a measurement of the geometric distortion.
+
+The distortionless image can be a CT of the phantom---where we assume that the CT does not introduce its own geometric distortion---or, if we are willing to neglect phantom manufacturing errors, it can be derived from knowledge of the phantom's design.
+
+Figure \ref{fig:problem-overview} demonstrates the process.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=\linewidth]{problem-overview.pdf}
-    \caption{Problem overview goes here.}
+    \caption{The geometric distortion is measured using a non-rigid registration. \textbf{(a)} An image of a ``phantom'' without any distortion.  In practice this could be a CT or an image derived from a CAD model of the phantom.  \textbf{(b)} A distorted image of the phantom---for example, an MRI of the phantom.  \textbf{(c)} The images (a) and (b) overlaid without any registration.  \textbf{(d)} A rigid registration is applied to (b) and then overlaid on (a).  The rigid registration cancels out any alignment errors that were introduced when the phantom was positioned in the scanner. \textbf{(e)} A detail of (d) highlighting the displacement between fiducials in the undistorted image (squares) and the fiducials in the distorted image (circles).  The remaining distortion between the two images would be corrected by a full non-rigid registration. \textbf{(f)} The geometric distortion can be interpolated from the non-rigid component of the registration.}
     \label{fig:problem-overview}
 \end{figure}
-
-The distortionless image can be a CT of the phantom---where we assume that the CT does not introduce its own geometric distortion---or, if we are willing to neglect phantom manufacturing errors, it can be derived from knowledge of the phantom's design.
 
 Non-rigid registration is an open research area with many unsolved problems.  Fortunately, we can make several assumptions about the images we are registering which make the problem tractable.
 
 First, we assume that the scanner introduces minimal geometric distortion near its isocenter \cite{baldwin2007}.  This assumption is especially valid if the scanner's distortion correction is enabled.
 
-Second, we assume that the phantom has detectable features that are oriented consistently and have a nearly identical form.  For example, a phantom that contains a Cartesian grid of cylindrical rods would satisfy this assumption---the grid intersections would be a detectable feature that is oriented consistently throughout the image and has nearly identical shape.
+Second, we assume that the phantom has detectable fiducials that are oriented consistently and have a nearly identical form.  For example, a phantom that contains a Cartesian grid of intersecting cylindrical rods would satisfy this assumption.
 
-Third, we assume that the images are sufficiently resolved so as to allow us to detect the phantom grid features.  In the case of a phantom with cylindrical grid intersections, this means that the pixel spacing along all three dimensions is larger than the grid rods.
+Third, we assume that the images are sufficiently resolved so as to allow us to detect the phantom grid fiducials.  In the case of a phantom with cylindrical grid intersections, this means that the pixel spacing along all three dimensions is larger than the intersecting rods.
 
-Finally, we assume that the images are crudely registered.  In particular, we assume that the magnitude of the translation component of the registration is less than the phantom grid spacing.  We also assume that the rotation component is less than a few degrees.  This assumption could be removed in the future.
+Fourth, we assume that we know the locations of the fiducials in the non-distorted image.  (In the context of Figure \ref{fig:problem-overview} (e), this would mean we know the locations of the squares.)  This assumption is satisfied for now because we can derive the undistorted fiducial locations from our knowledge of the phantom's design.  In the future, we could satisfy this assumption by detecting the CT fiducials against the theoretical points, and then detecting the MR fiducials against the CT's.
+
+Finally, we assume that the images are crudely registered.  In particular, we assume that the magnitude of the translation component of the registration is less than the phantom grid spacing.  We also assume that the rotation component is less than a few degrees.  Our algorithm could be improved so as to not require this assumption.
 
 \section*{Solution}
-  We know the features locations because we can assume there is no distortion near the isocenter and we know the relative position of the features within the phantom.
+Our algorithm is similar to previously published algorithms \cite{stanescu2010,baldwin2007}.
+
+It is a fiducial-based non-rigid registration algorithm.  The grid intersections are used as fiducials.  Currently our algorithm assumes that we know the feature locations in the distortionless image.  Features are detected in the distorted image by convolving it with a 3D kernel shaped like the phantom grid intersections---the intersections will .  The convolved image tends to have peaks at the feature locations.  We threshold this  image and find the center of mass of regions of pixels centered at each peak.
+
+After detecting 
 
 \section*{Results}
 
