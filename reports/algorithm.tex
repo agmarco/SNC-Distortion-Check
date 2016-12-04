@@ -15,22 +15,20 @@ Innolitics, LLC\\
 \maketitle
 
 \section*{Introduction}
-MR scanners can geometrically distort the objects they image.  For many applications small distortions are not clinically irrelevant---for others even small distortions are relevant and worth measuring and correcting.  A discussion of the causes of geometric distortion in MRIs and the applications in which they matter is beyond the scope of this report, however, there are good articles that cover these topics\cite{baldwin2007}.
+MR scanners can geometrically distort the objects they image.  For many applications small distortions are not clinically relevant---for others they are relevant and worth measuring and correcting.  A detailed discussion of the causes of geometric distortion in MRIs and the applications in which they matter is beyond the scope of this report, however, there are good articles that cover these topics \cite{baldwin2007,torfeh2015,wang2005,mribook}.  
 
-This report presents the first steps we have taken towards building a robust algorithm to detect geometric distortion introduced by MR scanners using images of grid phantoms.  Our algorithm calculates the geometric distortion by measuring the displacement of structural features in the phantom from their known locations.
+This report presents the steps we have taken towards developing a robust algorithm to measure geometric distortion introduced by MR scanners using images of grid phantoms.  Our algorithm calculates the geometric distortion from these phantom images using the displacement of structural features in the images from their known locations in the object (i.e. the grid phantom).
 
 The first section of this report presents a formalized representation of the problem our algorithm is solving.  It includes several assumptions we make about the phantom images.  The second section presents an overview of our algorithm.  The third section outlines a system for testing our algorithm, and includes preliminary results.  The final section discusses the limitations of the algorithm and directions for future improvements.
 
-We note that our algorithm should work equally well on CT images, however, we focus on MR images in this report.
-
 \section*{Problem}
-Calculating the geometric distortion from the phantom images is essentially a non-rigid registration problem. Unlike many registration problems which are performed on two images, this problem involves an image and a set of known feature locations.  We only need to detect features in the one image because we know the feature locations in the actual phantom.
+Calculating a scanner's geometric distortion from grid phantom images is a non-rigid registration problem \cite{hill2001}.  We are registering an image of the phantom containing geometric distortion with an image of the phantom that does not contain geometric distortion.
 
-The result of this non-rigid registration is a transformation mapping the space in the MR scanner to locations in the actual phantom.  This transformation will contain a rigid component (e.g. translations and rotations) as well as a non-rigid component.  The rigid component of the transformation is due to mis-alignment of the phantom within the scanner, and is uninteresting.  The non-rigid component of the translation is a measurement of the geometric distortion.
+The registration produces a transformation which maps locations in the MR scanner to locations in the grid phantom.  This transformation will contain a rigid component (i.e. translation and rotation) and a non-rigid component.  The rigid component is assumed to originate from misalignment of the phantom within the scanner.  The non-rigid component is a measurement of the geometric distortion.
 
-Non-rigid registration is an open research area with many difficult probl
+The distortionless image can be a CT of the phantom---where we assume that the CT does not introduce its own geometric distortion---or, if we are willing to neglect phantom manufacturing errors, it can be derived from knowledge of the phantom's design.
 
-Fortunately it is a tractable problem because we can make a number of assumptions about the images we are registering.
+Non-rigid registration is an open research area with many unsolved problems.  Fortunately, we can make several assumptions about the images we are registering which make the problem tractable.
 
 \section*{Solution}
   We know the features locations because we can assume there is no distortion near the isocenter and we know the relative position of the features within the phantom.
@@ -39,7 +37,7 @@ Fortunately it is a tractable problem because we can make a number of assumption
 
 \section*{Discussion}
 
-\bibliographystyle{abbrv}
+\bibliographystyle{ieeetr}
 \bibliography{./algorithm.bib}
 
 \end{document}
