@@ -6,6 +6,8 @@ import scipy.io
 from registration import register
 import affine
 
+import logging
+log = logging.getLogger(__name__)
 
 if __name__ == '__main__':
     if len(sys.argv) != 4:
@@ -28,5 +30,7 @@ if __name__ == '__main__':
 
     output_mat_filename = sys.argv[3]
     scipy.io.savemat(output_mat_filename, {
+        'xyz_tpx': xyztpx,
         'registration_matrix': a_to_b_registration_matrix,
+        'points': affine.apply_affine(a_to_b_registration_matrix, A)
     })
