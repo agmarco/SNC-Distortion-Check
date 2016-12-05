@@ -200,7 +200,12 @@ def load_voxels(voxels_path):
     return input_data['voxels'], input_data['ijk_to_patient_xyz_transform']
 
 
-def show_base_result(result):
+def load_points(points_path):
+    input_data = scipy.io.loadmat(points_path)
+    return input_data['points']
+
+
+def show_base_result(result, voxels_key='voxels'):
     context = result['context']
     descriptors = [
         {'points_xyz': context['FN_A'], 'scatter_kwargs': {'color': 'y', 'label': 'FN_A', 'marker': 'o'}},
@@ -208,7 +213,7 @@ def show_base_result(result):
         {'points_xyz': context['TP_B'], 'scatter_kwargs': {'color': 'g', 'label': 'TP_B', 'marker': 'x'}},
         {'points_xyz': context['FP_B'], 'scatter_kwargs': {'color': 'r', 'label': 'FP_B', 'marker': 'x'}},
     ]
-    voxels, ijk_to_xyz = load_voxels(context['case_input']['voxels'])
+    voxels, ijk_to_xyz = load_voxels(context['case_input'][voxels_key])
 
     slicer = PointsSlicer(voxels, ijk_to_xyz, descriptors)
     slicer.add_renderer(render_slices)
