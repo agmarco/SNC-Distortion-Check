@@ -77,12 +77,17 @@ def build_f(A, B, g, rho):
 
 def register(A, B, g, rho, tol=1e-4):
     f = build_f(A, B, g, rho)
-    x0 = np.array([0, 0, 0, 0, 0, 0])
     options = {
         'xtol': tol,
         'ftol': 1e-20,  # only care about x
         'maxiter': 4000,
     }
+    logger.info('Intial best guess.')
+    x0 = scipy.optimize.brute(
+            f,
+            ranges=[slice(-5,2,5), (-5,2,5), (-5,2,5), (-0.08, 0.08, 0.04), (-0.08, 0.08, 0.04), (-0.08, 0.08, 0.04)],
+    )
+    logger.info('Best guess complete')
     result = scipy.optimize.minimize(f, x0, method='Powell', options=options)
     _handle_optimization_result(result)
     return result.x
