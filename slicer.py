@@ -135,6 +135,8 @@ def _scatter_in_slice(slicer, ax, descriptor):
 
     ax.scatter(x, y, s=r, edgecolors='face', alpha=0.6, **descriptor.get('scatter_kwargs', {}))
 
+def render_legend(slicer):
+    slicer.k_ax.legend()
 
 def render_cursor(slicer):
     _render_cursor_location(slicer, slicer.i_ax)
