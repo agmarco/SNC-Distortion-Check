@@ -44,7 +44,7 @@ class FeatureDetector:
         self.kernel = self.build_kernel()
         self.preprocessed_image = self.preprocess()
         self.zero_mean_kernel = self.kernel - np.mean(self.kernel)
-        self.feature_image = signal.fftconvolve(self.image, self.zero_mean_kernel, mode='same')
+        self.feature_image = signal.fftconvolve(self.preprocessed_image, self.zero_mean_kernel, mode='same')
         self.label_image, self.num_labels = self.label()
         self.points_ijk = self.points()
         self.points_xyz = affine.apply_affine(self.ijk_to_xyz, self.points_ijk)

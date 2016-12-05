@@ -30,6 +30,9 @@ class FeatureDetectionSuite(Suite):
 
         golden_points = scipy.io.loadmat(case_input['points'])['points']
         metrics, context = populate_base_context(case_input, golden_points, points)
+        context['label_image'] = feature_detector.label_image
+        context['preprocessed_image'] = feature_detector.preprocessed_image
+        context['kernel'] = feature_detector.kernel
 
         return metrics, context
 
