@@ -71,15 +71,14 @@ def affine_transform_func(x, y, z, theta, phi, xi):
     return distort_func, undistort_func
 
 
-def to_center(voxels):
-    i_c, j_c, k_c = np.array(voxels.shape) * 0.5
-    to_center = translation_rotation(-i_c, -j_c, -k_c, 0, 0, 0)
-    from_center = np.linalg.inv(to_center)
+def to_xyz(voxels, ijk_to_patient_xyz_transform):
+    to_xyz = ijk_to_patient_xyz_transform
+    from_ijk = np.linalg.inv(ijk_to_patient_xyz_transform)
     def distort_func(ijk_out_coord):
-        return affine_point(to_center, ijk_out_coord)
+        return affine_point(to_xyz, ijk_out_coord)
 
     def undistort_func(ijk_in_coord):
-        return affine_point(from_center, ijk_in_coord)
+        return affine_point(from_ijk, ijk_in_coord)
 
     return distort_func, undistort_func
 
@@ -111,9 +110,11 @@ if __name__ == '__main__':
     if args.reduction_factor:
         voxels = voxels[::args.reduction_factor, ::args.reduction_factor, ::args.reduction_factor]
 
-    to_center_func, from_center_func = to_center(voxels)
-    undistorters = [from_center_func]
-    distorters = [to_center_func]
+    to_xyz_func, from_xyz_func = to_xyz(voxels, ijk_to_patient_xyz_transform)
+    undistorters = [from_xyz_func]
+    distorters = [to_xyz_func]
+    if args.xyz_tpx and args.distort_factor:
+        raise Exception("Provide either rotation or distortion, not both because order is ambiguous (and important.)")
     if args.xyz_tpx:
         x, y, z, theta, pi, xhi = args.xyz_tpx
         theta, pi, xhi = np.deg2rad(theta), np.deg2rad(pi), np.deg2rad(xhi)
@@ -125,14 +126,13 @@ if __name__ == '__main__':
         distorters.append(distort_func)
         undistorters.append(undistort_func)
 
-    undistorters.append(to_center_func)
+    undistorters.append(to_xyz_func)
     undistorters.reverse()
-    distorters.append(from_center_func)
+    distorters.append(from_xyz_func)
 
     distort_func = chain_transformers(distorters)
     undistort_func = chain_transformers(undistorters)
 
-    # assert undistort_func(distort_func((0,0,0))) == (0,0,0)
     print('distorting points for {}'.format(args.distorted_points))
     undistorted_points_xyz = scipy.io.loadmat(args.undistorted_points)['points']
     undistorted_points_ijk = apply_affine(np.linalg.inv(ijk_to_patient_xyz_transform), undistorted_points_xyz)
