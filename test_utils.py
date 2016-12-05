@@ -31,10 +31,13 @@ class MakeRule:
 
 
 class DataGenerator:
+    def __init__(self):
+        self.input_test_data = None
+
     @property
     def description(self):
         descriptions = []
-        if hasattr(self, 'input_test_data'):
+        if self.input_test_data:
             descriptions.extend(self.input_test_data.description)
         descriptions.append(self._description())
         return descriptions
@@ -42,9 +45,16 @@ class DataGenerator:
     def _description(self):
         raise NotImplemented
 
+    @property
+    def source(self):
+        if type(self) == Source:
+            return self
+        else:
+            return self.input_test_data.source
 
 class Source(DataGenerator):
     def __init__(self, zip_filename):
+        super().__init__()
         if not zip_filename.endswith('.zip'):
             raise ValueError()
 
@@ -69,6 +79,7 @@ class Source(DataGenerator):
 
 class Decimation(DataGenerator):
     def __init__(self, input_test_data, decimation_factor):
+        super().__init__()
         self.decimation_factor = decimation_factor
 
         self.input_test_data = input_test_data
@@ -96,6 +107,7 @@ class Decimation(DataGenerator):
 
 class Distortion(DataGenerator):
     def __init__(self, input_test_data, distortion_factor):
+        super().__init__()
         self.distortion_factor = distortion_factor
 
         self.input_test_data = input_test_data
@@ -117,6 +129,7 @@ class Distortion(DataGenerator):
 
 class Rotation(DataGenerator):
     def __init__(self, input_test_data, rotation_deg):
+        super().__init__()
         self.rotation_deg = rotation_deg
 
         self.input_test_data = input_test_data
