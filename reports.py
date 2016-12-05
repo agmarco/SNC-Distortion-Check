@@ -23,12 +23,12 @@ def compute_matches(A, B, min_mm=5):
     A_matched = []
     B_matched = []
     min_mm_squared = min_mm * min_mm
-    for b in B.T:
-        b_a_distances_squared = np.sum((A - b.reshape((3, 1)))**2, axis=0)
-        min_index = np.argmin(b_a_distances_squared)
-        if b_a_distances_squared[min_index] < min_mm_squared:
-            A_matched.append(A[:, min_index])
-            B_matched.append(b)
+    for a in A.T:
+        a_b_distances_squared = np.sum((B - a.reshape((3, 1)))**2, axis=0)
+        min_index = np.argmin(a_b_distances_squared)
+        if a_b_distances_squared[min_index] < min_mm_squared:
+            A_matched.append(a)
+            B_matched.append(B[:, min_index])
     return np.array(A_matched), np.array(B_matched)
 
 
