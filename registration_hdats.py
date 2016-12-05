@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import numpy as np
 import scipy
 import scipy.io
@@ -5,7 +7,7 @@ import scipy.io
 from hdatt.suite import Suite
 from registration import register
 from test_utils import get_test_data_generators, Rotation, show_base_result, populate_base_context
-
+import affine
 
 
 class RegistrationTestSuite(Suite):
@@ -19,13 +21,14 @@ class RegistrationTestSuite(Suite):
                 'rotation_deg': data_generator.rotation_deg,
                 'voxels': data_generator.output_data_prefix+'_voxels.mat',
                 'points': data_generator.output_data_prefix+'_points.mat',
+                'source_points': data_generator.source.output_data_prefix+'_points.mat'
             }
             for data_generator in rotation_generators
         }
         return cases
 
     def run(self, case_input):
-        golden_points = scipy.io.loadmat(case_input['points'])['undistorted_points']
+        golden_points = scipy.io.loadmat(case_input['source_points'])['points']
         rotated_points = scipy.io.loadmat(case_input['points'])['points']
         rotation_deg = float(case_input['rotation_deg'])
         rotation_rad = np.deg2rad(rotation_deg)
@@ -39,8 +42,9 @@ class RegistrationTestSuite(Suite):
         a_to_b_registration_matrix = affine.translation_rotation(*measured_xyz_tpx)
         registered_points = affine.apply_affine(a_to_b_registration_matrix, golden_points)
         diff_xyz_tpx = np.abs(measured_xyz_tpx - expected_xyz_tpx)
-        metrics, context = populate_base_context(case_input, rotated_points, registered_points)
-        metrics['diff_xyz_tpx'] = diff_xyz_tpx
+        _, context = populate_base_context(case_input, rotated_points, registered_points)
+        metrics = OrderedDict()
+        metrics['d_x'], metrics['d_y'], metrics['d_z'], metrics['d_theta'], metrics['d_pi'], metrics['d_xi'] = diff_xyz_tpx
         return metrics, context
 
     def verify(self, old_metrics, new_metrics):
