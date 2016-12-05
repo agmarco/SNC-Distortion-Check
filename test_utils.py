@@ -162,30 +162,32 @@ class RadialFade(DataGenerator):
 
 
 def get_test_data_generators():
-    datas = []
+    data_generators = []
     for data_prefix in data_prefixes:
         source_data = Source(data_prefix)
-        datas.append(source_data)
+        data_generators.append(source_data)
         if not os.path.exists(source_data.annotaed_points_path):
             print('Annotated points not present for {}, skipping...'.format(data_prefix))
             continue
 
         decimation_factors = ('2', '3', '4')
         rotation_factors = ('2.5', '5')
-        distortion_factors = ('1.6e-4', '3.2e-4', '4.8e-4')
+        distortion_factors = ('0.8e-4', '2.4e-4')
 
         for decimation_factor in decimation_factors:
-            datas.append(Decimation(source_data, decimation_factor))
+            data_generators.append(Decimation(source_data, decimation_factor))
 
         for distortion_factor in distortion_factors:
-            datas.append(Distortion(source_data, distortion_factor))
+            distortion = Distortion(source_data, distortion_factor)
+            data_generators.append(distortion)
+            for rotation_factor in rotation_factors:
+                data_generators.append(Rotation(distortion, rotation_factor))
 
         for rotation_factor in rotation_factors:
             rotation = Rotation(source_data, rotation_factor)
-            datas.append(rotation)
-            for distortion_factor in distortion_factors:
-                datas.append(Distortion(rotation, distortion_factor))
-    return datas
+            data_generators.append(rotation)
+
+    return data_generators
 
 
 def populate_base_context(case_input, golden_points, points):
