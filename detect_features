@@ -3,7 +3,7 @@ import sys
 
 import scipy.io
 
-from feature_detection import detect_features
+from feature_detection import FeatureDetector
 
 
 if __name__ == '__main__':
@@ -15,7 +15,7 @@ if __name__ == '__main__':
     voxels = input_data['voxels']
     ijk_to_patient_xyz_transform = input_data['ijk_to_patient_xyz_transform']
 
-    points_in_patient_xyz = detect_features(voxels, ijk_to_patient_xyz_transform)
+    points_in_patient_xyz = FeatureDetector(voxels, ijk_to_patient_xyz_transform).run()
 
     output_mat_filename = sys.argv[2]
     scipy.io.savemat(output_mat_filename, {'points': points_in_patient_xyz})

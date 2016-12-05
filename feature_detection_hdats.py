@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import glob
 
 from hdatt.suite import Suite
-from feature_detection import detect_features
+from feature_detection import FeatureDetector
 from test_utils import populate_base_context, get_test_data_generators, show_base_result, load_voxels
 
 
@@ -25,10 +25,13 @@ class FeatureDetectionSuite(Suite):
 
     def run(self, case_input):
         voxels, ijk_to_xyz_transform = load_voxels(case_input['voxels'])
-        points = detect_features(voxels, ijk_to_xyz_transform)
+        feature_detector = FeatureDetector(voxels, ijk_to_xyz_transform)
+        points = feature_detector.run()
 
         golden_points = scipy.io.loadmat(case_input['points'])['points']
-        return populate_base_context(case_input, golden_points, points)
+        metrics, context = populate_base_context(case_input, golden_points, points)
+
+        return metrics, context
 
     def verify(self, old_metrics, new_metrics):
         comments = []

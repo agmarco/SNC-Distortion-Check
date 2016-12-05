@@ -7,7 +7,7 @@ from scipy.interpolate.interpnd import LinearNDInterpolator
 
 import affine
 from affine import translation_rotation
-from feature_detection import detect_features
+from feature_detection import FeatureDetector
 from hdatt.suite import Suite
 from registration import register
 from reports import compute_matches
@@ -40,7 +40,7 @@ class EndToEndTestSuite(Suite):
         rotated_golden_points = affine.apply_affine(rotation_mat, golden_points)
         rotated_distorted_golden_points = scipy.io.loadmat(case_input['distorted_and_rotated_points'])['points']
 
-        detected_points = detect_features(voxels, ijk_to_xyz_transform)
+        detected_points = FeatureDetector(voxels, ijk_to_xyz_transform).run()
 
         # TODO: determine rho and g based on our knowledge of the phantom
         g = lambda bmag: 1.0
