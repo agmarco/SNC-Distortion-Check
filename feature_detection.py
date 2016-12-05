@@ -4,7 +4,7 @@ import numpy as np
 from scipy import signal, ndimage
 
 import affine
-from utils import invert
+from utils import invert, unsharp_mask
 
 
 def convolution_feature_detection(data, kernel, threshold_frac):
@@ -14,14 +14,14 @@ def convolution_feature_detection(data, kernel, threshold_frac):
     negative.  In this way, matching features in the image will stand out
     against a background that is approximately 0.
     '''
-    # TODO: detect whether we need to invert here
-    inverted_data = invert(data)
     zero_mean_kernel = kernel - np.mean(kernel)
-    intersections = signal.fftconvolve(inverted_data, zero_mean_kernel, mode='same')
+    intersections = signal.fftconvolve(data, zero_mean_kernel, mode='same')
 
     threshold = np.percentile(intersections, 98)*threshold_frac
     assert threshold > 0
 
+    intersections[intersections < threshold] = - 100
+    import slicer; slicer.show_slices(intersections)
     intersections_thresholded = intersections > threshold
 
     labels, number_of_labels = ndimage.label(intersections_thresholded)
@@ -34,7 +34,7 @@ def cylindrical_grid_kernel(pixel_spacing, radius):
     '''
     Generate a convolution kernel that can be used to detect "cylindrical grid
     intersections".
-    
+
     The radius of the cylinders is assumed to be the same along each dimension.
     '''
 
@@ -53,9 +53,13 @@ def detect_features(voxels, ijk_to_xyz):
     radius = 3.0  # the two supported phantoms currently have a 3 mm radius
     kernel = cylindrical_grid_kernel(pixel_spacing, radius)
 
-    threshold_frac = 0.8
+    threshold_frac = 0.5
 
-    points_ijk = convolution_feature_detection(voxels, kernel, threshold_frac)
+    # TODO: detect whether we need to invert here
+    inverted_voxels = invert(voxels)
+    blurred_voxels = unsharp_mask(inverted_voxels, 10*radius/pixel_spacing, 1.0)
+
+    points_ijk = convolution_feature_detection(blurred_voxels, kernel, threshold_frac)
     points_xyz = affine.apply_affine(ijk_to_xyz, points_ijk)
 
     return points_xyz
