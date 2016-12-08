@@ -33,12 +33,12 @@ class FeatureDetector:
 
         # TODO: derive the kernel from the phantom model
         # the two supported phantoms currently have a 3 mm radius
-        self.grid_radius = 3.0
+        self.grid_radius = 1.7
 
         self.pixel_spacing = affine.pixel_spacing(self.ijk_to_xyz)
 
         self.threshold_max_percentile = 98
-        self.threshold_frac = 0.5
+        self.threshold_frac = 0.90
 
     def run(self):
         self.kernel = self.build_kernel()
