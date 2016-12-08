@@ -142,7 +142,6 @@ def ijk_to_patient_xyz_transform_matrix(slice_datasets):
     return transform
 
 
-
 def validate_slices_form_uniform_grid(slice_datasets):
     '''
     Perform various data checks to ensure that the list of slices form a
