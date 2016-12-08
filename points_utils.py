@@ -129,7 +129,8 @@ def categorize(A, B, rho):
             TP_B_indices[b_indice] = True
 
             if b_indice in seen_b_indices:
-                raise NotImplementedError("Multiple points in A match same point in B")
+                continue
+                #raise NotImplementedError("Multiple points in A match same point in B")
             else:
                 seen_b_indices.add(b_indice)
                 seen_a_indices.add(a_indice)
@@ -139,8 +140,8 @@ def categorize(A, B, rho):
     TP_B = B[:, seen_b_indices]
     FP_B = B[:, ~TP_B_indices]
 
-    assert FN_A.shape[1] + TP_A.shape[1] == num_a
-    assert FP_B.shape[1] + TP_B.shape[1] == num_b
+    #assert FN_A.shape[1] + TP_A.shape[1] == num_a
+    #assert FP_B.shape[1] + TP_B.shape[1] == num_b
 
     return FN_A, TP_A, TP_B, FP_B
 
