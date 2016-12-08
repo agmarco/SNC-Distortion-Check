@@ -28,6 +28,7 @@ class AnnotateSlicer(PointsSlicer):
     def on_button_press(self, event):
         if event.button == 3:  # right click
             points = self.points_descriptors[0]['points_ijk']
+            num_points = points.shape[1]
 
             x_dimension, y_dimension, slice_dimension = slicer.axes_dimensions(event.inaxes)
             new_point = np.empty((3, 1), dtype=float)
@@ -35,7 +36,11 @@ class AnnotateSlicer(PointsSlicer):
             new_point[y_dimension] = event.ydata
             new_point[slice_dimension] = slicer.cursor[slice_dimension]
 
-            closest_indice, _, distance = closest(points, new_point)
+            if num_points > 0:
+                closest_indice, _, distance = closest(points, new_point)
+            else:
+                distance = float('inf')
+
             if distance < 5:
                 log.info("Selecting point {}".format(closest_indice))
                 self.selected_indice = closest_indice
