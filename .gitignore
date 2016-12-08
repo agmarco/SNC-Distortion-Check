@@ -4,3 +4,4 @@ __pycache__
 .CONDABUILD
 .idea/
 .hdattarchive
+data.mk
