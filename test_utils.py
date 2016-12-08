@@ -64,8 +64,8 @@ class Source(DataGenerator):
         self.annotaed_points_path = os.path.join(data_directory, 'points', data_prefix+'-golden.mat')
 
         self.output_data_prefix = os.path.join(output_directory, data_prefix)
-        output_voxels_path = self.output_data_prefix + '_voxels.mat'
-        output_points_path = self.output_data_prefix + '_points.mat'
+        output_voxels_path = self.output_data_prefix + '-voxels.mat'
+        output_points_path = self.output_data_prefix + '-points.mat'
 
         cmds = []
         cmds.append(['./dicom2mat', dicom_data_zip, output_voxels_path])
@@ -84,12 +84,12 @@ class Decimation(DataGenerator):
 
         self.input_test_data = input_test_data
         input_data_prefix = input_test_data.output_data_prefix
-        source_voxels_path = input_data_prefix + '_voxels.mat'
-        source_points_path = input_data_prefix + '_points.mat'
+        source_voxels_path = input_data_prefix + '-voxels.mat'
+        source_points_path = input_data_prefix + '-points.mat'
 
         self.output_data_prefix = '{}_decimated_{}'.format(input_data_prefix, decimation_factor)
-        output_voxels_path = self.output_data_prefix + '_voxels.mat'
-        output_points_path = self.output_data_prefix + '_points.mat'
+        output_voxels_path = self.output_data_prefix + '-voxels.mat'
+        output_points_path = self.output_data_prefix + '-points.mat'
 
         cmds = [
             ['python', '-m', 'testing.decimate_slices', source_voxels_path, output_voxels_path, decimation_factor],
@@ -112,12 +112,12 @@ class Distortion(DataGenerator):
 
         self.input_test_data = input_test_data
         input_data_prefix = input_test_data.output_data_prefix
-        source_voxels_path = input_data_prefix + '_voxels.mat'
-        source_points_path = input_data_prefix + '_points.mat'
+        source_voxels_path = input_data_prefix + '-voxels.mat'
+        source_points_path = input_data_prefix + '-points.mat'
 
         self.output_data_prefix = '{}_distorted_{}'.format(input_data_prefix, distortion_factor)
-        output_voxels_path = self.output_data_prefix + '_voxels.mat'
-        output_points_path = self.output_data_prefix + '_points.mat'
+        output_voxels_path = self.output_data_prefix + '-voxels.mat'
+        output_points_path = self.output_data_prefix + '-points.mat'
         cmd = ['python', '-m', 'testing.distort_voxel', source_voxels_path, output_voxels_path, source_points_path, output_points_path,
                '--distort_factor', distortion_factor]
 
@@ -134,12 +134,12 @@ class Rotation(DataGenerator):
 
         self.input_test_data = input_test_data
         input_data_prefix = input_test_data.output_data_prefix
-        source_voxels_path = input_data_prefix + '_voxels.mat'
-        source_points_path = input_data_prefix + '_points.mat'
+        source_voxels_path = input_data_prefix + '-voxels.mat'
+        source_points_path = input_data_prefix + '-points.mat'
 
         self.output_data_prefix = '{}_rotated_{}'.format(input_data_prefix, rotation_deg)
-        output_voxels_path = self.output_data_prefix + '_voxels.mat'
-        output_points_path = self.output_data_prefix + '_points.mat'
+        output_voxels_path = self.output_data_prefix + '-voxels.mat'
+        output_points_path = self.output_data_prefix + '-points.mat'
         cmd = ['python', '-m', 'testing.distort_voxel', source_voxels_path, output_voxels_path, source_points_path, output_points_path,
                '--xyz_tpx', '0', '0', '0', rotation_deg, rotation_deg, rotation_deg]
 

@@ -16,8 +16,8 @@ class FeatureDetectionSuite(Suite):
         data_generators = get_test_data_generators()
         cases = {
             '.'.join(data_generator.description): {
-                'voxels': data_generator.output_data_prefix+'_voxels.mat',
-                'points': data_generator.output_data_prefix+'_points.mat',
+                'voxels': data_generator.output_data_prefix+'-voxels.mat',
+                'points': data_generator.output_data_prefix+'-points.mat',
             }
             for data_generator in data_generators
         }
