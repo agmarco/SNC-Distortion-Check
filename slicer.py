@@ -21,7 +21,7 @@ class Slicer:
         self.voxels = voxels
         self.vmin = np.min(voxels)
         self.vmax = np.max(voxels)
-        self.cursor = np.array([0, 0, 0], dtype=int)
+        self.cursor = np.array([d/2 for d in self.voxels.shape], dtype=int)
         self.i_ax = self.f.add_subplot(131)
         self.j_ax = self.f.add_subplot(132)
         self.k_ax = self.f.add_subplot(133)
@@ -90,10 +90,34 @@ def render_slices(slicer):
         'interpolation': 'nearest',
     }
 
+    _imshow(slicer, slicer.voxels, imshow_kwargs)
+
+
+def build_render_overlay(overlay, color):
+    vmin = np.min(overlay)
+    vmax = np.max(overlay)
+    transparent = [0, 0, 0, 0]
+    opaque_color = list(color) + [1]
+    colormap = matplotlib.colors.ListedColormap([transparent, opaque_color])
+
+    imshow_kwargs = {
+        'origin': 'upper',
+        'cmap': colormap,
+        'vmin': vmin,
+        'vmax': vmax,
+        'interpolation': 'nearest',
+        'alpha': 0.4,
+    }
+
+    return lambda slicer: _imshow(slicer, overlay, imshow_kwargs)
+
+
+def _imshow(slicer, voxels, imshow_kwargs):
     i, j, k = slicer.cursor
-    slicer.i_ax.imshow(slicer.voxels[i, :, :], **imshow_kwargs)
-    slicer.j_ax.imshow(slicer.voxels[:, j, :], **imshow_kwargs)
-    slicer.k_ax.imshow(slicer.voxels[:, :, k], **imshow_kwargs)
+    slicer.i_ax.imshow(voxels[i, :, :], **imshow_kwargs)
+    slicer.j_ax.imshow(voxels[:, j, :], **imshow_kwargs)
+    slicer.k_ax.imshow(voxels[:, :, k], **imshow_kwargs)
+
 
 
 class PointsSlicer(Slicer):
@@ -135,8 +159,10 @@ def _scatter_in_slice(slicer, ax, descriptor):
 
     ax.scatter(x, y, s=r, edgecolors='face', alpha=0.6, **descriptor.get('scatter_kwargs', {}))
 
+
 def render_legend(slicer):
     slicer.k_ax.legend()
+
 
 def render_cursor(slicer):
     _render_cursor_location(slicer, slicer.i_ax)

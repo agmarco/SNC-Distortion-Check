@@ -3,10 +3,12 @@ from collections import OrderedDict
 import scipy.io
 import matplotlib.pyplot as plt
 import glob
+import numpy as np
 
 from hdatt.suite import Suite
 from feature_detection import FeatureDetector
-from test_utils import populate_base_context, get_test_data_generators, show_base_result, load_voxels
+from test_utils import populate_base_context, get_test_data_generators, load_voxels
+import slicer
 
 
 class FeatureDetectionSuite(Suite):
@@ -32,6 +34,7 @@ class FeatureDetectionSuite(Suite):
         metrics, context = populate_base_context(case_input, golden_points, points)
         context['label_image'] = feature_detector.label_image
         context['preprocessed_image'] = feature_detector.preprocessed_image
+        context['feature_image'] = feature_detector.feature_image
         context['kernel'] = feature_detector.kernel
 
         return metrics, context
@@ -60,22 +63,25 @@ class FeatureDetectionSuite(Suite):
         return passing, '\n' + '\n'.join(comments)
 
     def show(self, result):
-        show_base_result(result)
+        context = result['context']
+        descriptors = [
+            {'points_xyz': context['FN_A'], 'scatter_kwargs': {'color': 'y', 'label': 'FN_A', 'marker': 'o'}},
+            {'points_xyz': context['TP_A'], 'scatter_kwargs': {'color': 'g', 'label': 'TP_A', 'marker': 'o'}},
+            {'points_xyz': context['TP_B'], 'scatter_kwargs': {'color': 'g', 'label': 'TP_B', 'marker': 'x'}},
+            {'points_xyz': context['FP_B'], 'scatter_kwargs': {'color': 'r', 'label': 'FP_B', 'marker': 'x'}},
+        ]
+        raw_voxels, ijk_to_xyz = load_voxels(context['case_input']['voxels'])
 
-    def diff(self, golden_result, result):
-        assert golden_result['case_input']['images'] == result['case_input']['images']
+        kernel_big = np.zeros_like(raw_voxels)
+        kernel_small = context['kernel']
+        kernel_shape = kernel_small.shape
+        kernel_big[:kernel_shape[0], :kernel_shape[1], :kernel_shape[2]] = kernel_small*np.max(context['feature_image'])
 
-        # TODO: finish this
-        # case_input = result['case_input']
-
-        # context = result['context']
-        # golden_context = golden_result['context']
-        # descriptors = [
-            # {'points_xyz': context['FN_A'], 'scatter': {'color': 'y', 'label': 'FN_A', 'marker': 'o'}},
-            # {'points_xyz': context['TP_A'], 'scatter': {'color': 'g', 'label': 'TP_A', 'marker': 'o'}},
-            # {'points_xyz': context['TP_B'], 'scatter': {'color': 'g', 'label': 'TP_B', 'marker': 'x'}},
-            # {'points_xyz': context['FP_B'], 'scatter': {'color': 'r', 'label': 'FP_B', 'marker': 'x'}},
-        # ]
-
-        # voxels, ijk_to_xyz_transform = self._load_images(case_input)
-        # overlay_points(voxels, ijk_to_xyz_transform, descriptors)
+        s = slicer.PointsSlicer(context['feature_image'], ijk_to_xyz, descriptors)
+        s.add_renderer(slicer.render_slices)
+        s.add_renderer(slicer.render_points)
+        s.add_renderer(slicer.build_render_overlay(context['label_image'] > 0, [0, 1, 0]))
+        s.add_renderer(slicer.build_render_overlay(kernel_big, [1, 0, 0]))
+        s.add_renderer(slicer.render_cursor)
+        s.draw()
+        plt.show()
