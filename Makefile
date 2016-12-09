@@ -10,6 +10,8 @@ reports := $(patsubst data/dicom/%.zip,tmp/%-report.pdf,$(wildcard data/dicom/*)
 
 all: reports
 
+voxels: $(patsubst data/dicom/%.zip,tmp/%-voxels.mat,$(wildcard data/dicom/*))
+
 unregistered-points: $(patsubst data/dicom/%.zip,tmp/%-unregistered-points.mat,$(wildcard data/dicom/*))
 
 .CONDABUILD: environment.yml
