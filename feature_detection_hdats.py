@@ -75,7 +75,15 @@ class FeatureDetectionSuite(Suite):
         kernel_big = np.zeros_like(raw_voxels)
         kernel_small = context['kernel']
         kernel_shape = kernel_small.shape
-        kernel_big[:kernel_shape[0], :kernel_shape[1], :kernel_shape[2]] = kernel_small*np.max(context['feature_image'])
+
+        slices = []
+        for n_image, n_kernel in zip(raw_voxels.shape, kernel_small.shape):
+            assert n_image > n_kernel, 'Image should be bigger than the kernel'
+            start = round(n_image/2 - n_kernel/2)
+            stop = start + n_kernel
+            slices.append(slice(start, stop))
+
+        kernel_big[slices] = kernel_small*np.max(context['feature_image'])
 
         s = slicer.PointsSlicer(context['feature_image'], ijk_to_xyz, descriptors)
         s.add_renderer(slicer.render_slices)
