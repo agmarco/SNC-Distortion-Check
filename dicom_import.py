@@ -177,24 +177,31 @@ def _validate_image_orientation(image_orientation):
     - The direction cosines are perpendicular
     - The direction cosines are oriented along the patient coordinate system's axes
     '''
+    # TODO: deduplicate this
     row_cosine, column_cosine, slice_cosine = _extract_cosines(image_orientation)
 
-    if not _almost_zero(np.dot(row_cosine, column_cosine)):
+    if not _almost_zero(np.dot(row_cosine, column_cosine), 1e-4):
         raise DicomImportException("Non-orthogonal direction cosines: {}, {}".format(row_cosine, column_cosine))
+    elif not _almost_zero(np.dot(row_cosine, column_cosine), 1e-8):
+        logger.warn("Direction cosines aren't quite orthogonal: {}, {}".format(row_cosine, column_cosine))
 
-    if not _almost_one(np.linalg.norm(row_cosine)):
+    if not _almost_one(np.linalg.norm(row_cosine), 1e-4):
         raise DicomImportException("The row direction cosine's magnitude is not 1: {}".format(row_cosine))
+    elif not _almost_one(np.linalg.norm(row_cosine), 1e-8):
+        logger.warn("The row direction cosine's magnitude is not quite 1: {}".format(row_cosine))
 
-    if not _almost_one(np.linalg.norm(column_cosine)):
+    if not _almost_one(np.linalg.norm(column_cosine), 1e-4):
         raise DicomImportException("The column direction cosine's magnitude is not 1: {}".format(column_cosine))
+    elif not _almost_one(np.linalg.norm(column_cosine), 1e-8):
+        logger.warn("The column direction cosine's magnitude is not quite 1: {}".format(column_cosine))
 
 
-def _almost_zero(value):
-    return math.isclose(value, 0.0, abs_tol=1e-4)
+def _almost_zero(value, abs_tol):
+    return math.isclose(value, 0.0, abs_tol=abs_tol)
 
 
-def _almost_one(value):
-    return math.isclose(value, 1.0, abs_tol=1e-4)
+def _almost_one(value, abs_tol):
+    return math.isclose(value, 1.0, abs_tol=abs_tol)
 
 
 def _extract_cosines(image_orientation):
