@@ -47,10 +47,10 @@ class TestCylinderGridKernel:
         these formula are correct.
         '''
         pixel_spacing = (1.0, 1.0, 1.0)
-        radius = 20.0
+        radius = 3.0
         kernel = cylindrical_grid_kernel(pixel_spacing, radius)
 
-        length = radius*8
+        length = radius*4*2
 
         cylinder_volume = math.pi*radius**2*length
         two_intersection_volume = 16.0/3.0*radius**3

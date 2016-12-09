@@ -4,7 +4,7 @@ import numpy as np
 from scipy import signal, ndimage
 
 import affine
-from utils import invert, unsharp_mask
+from utils import invert, unsharp_mask, decimate
 
 
 def cylindrical_grid_kernel(pixel_spacing, radius):
@@ -14,13 +14,14 @@ def cylindrical_grid_kernel(pixel_spacing, radius):
 
     The radius of the cylinders is assumed to be the same along each dimension.
     '''
-
-    kernel_shape = tuple(math.ceil(2*4*radius/s) for s in pixel_spacing)
-    kernel = np.zeros(kernel_shape)
-    X, Y, Z = np.meshgrid(*(np.linspace(-4, 4, n) for n in kernel_shape), indexing='ij')
-    kernel[X**2 + Y**2 < 1] = 1
-    kernel[X**2 + Z**2 < 1] = 1
-    kernel[Y**2 + Z**2 < 1] = 1
+    upsample_factor = 3
+    shape = tuple(upsample_factor*math.ceil(2*4*radius/s) for s in pixel_spacing)
+    upsampled_kernel = np.zeros(shape)
+    X, Y, Z = np.meshgrid(*(np.linspace(-4, 4, n) for n in shape), indexing='ij')
+    upsampled_kernel[X**2 + Y**2 < 1] = 1
+    upsampled_kernel[X**2 + Z**2 < 1] = 1
+    upsampled_kernel[Y**2 + Z**2 < 1] = 1
+    kernel = decimate(upsampled_kernel, upsample_factor)
     return kernel
 
 
@@ -54,7 +55,8 @@ class FeatureDetector:
         return cylindrical_grid_kernel(self.pixel_spacing, self.grid_radius)
 
     def preprocess(self):
-        return unsharp_mask(self.image, 10*self.grid_radius/self.pixel_spacing, 1.0)
+        return self.image
+        #return unsharp_mask(self.image, 10*self.grid_radius/self.pixel_spacing, 1.0)
 
     def label(self):
         self.threshold = np.percentile(self.feature_image, self.threshold_max_percentile)*self.threshold_frac
