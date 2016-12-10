@@ -1,4 +1,5 @@
 import os
+import logging
 from collections import OrderedDict
 
 import scipy.io
@@ -6,6 +7,10 @@ import matplotlib.pyplot as plt
 
 import points_utils
 from slicer import PointsSlicer, render_slices, render_points, render_cursor
+
+
+logger = logging.getLogger(__name__)
+
 
 data_directory = 'data'
 output_directory = 'tmp'
@@ -22,7 +27,9 @@ class MakeRule:
     def __str__(self):
         rule = ' '.join(self.targets) + ': ' + ' '.join(self.dependencies)
         recipes = ['\t' + ' '.join(cmd) for cmd in self.cmds]
-        # Made does not handle rules with multiple targets well in multiprocess mode. Workaround from https://www.gnu.org/savannah-checkouts/gnu/automake/manual/html_node/Multiple-Outputs.html
+        # Make does not handle rules with multiple targets well in multiprocess
+        # mode. Workaround from
+        # https://www.gnu.org/savannah-checkouts/gnu/automake/manual/html_node/Multiple-Outputs.html
         if len(self.targets) > 1:
             make_hack = self.targets[0] + ': ' + self.targets[1]
         else:
@@ -61,7 +68,7 @@ class Source(DataGenerator):
         data_prefix = zip_filename[:-len('.zip')]
         self.data_prefix = data_prefix
         dicom_data_zip = os.path.join(data_directory, 'dicom', zip_filename)
-        self.annotaed_points_path = os.path.join(data_directory, 'points', data_prefix+'-golden.mat')
+        self.annotaed_points_path = os.path.join(data_directory, 'points', data_prefix + '-golden.mat')
 
         self.output_data_prefix = os.path.join(output_directory, data_prefix)
         output_voxels_path = self.output_data_prefix + '-voxels.mat'
@@ -167,7 +174,7 @@ def get_test_data_generators():
         source_data = Source(data_prefix)
         data_generators.append(source_data)
         if not os.path.exists(source_data.annotaed_points_path):
-            print('Annotated points not present for {}, skipping...'.format(data_prefix))
+            logger.debug('Annotated points not present for {}, skipping...'.format(data_prefix))
             continue
 
         decimation_factors = ('2', '3', '4')
