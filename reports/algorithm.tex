@@ -158,11 +158,19 @@ We note that some error is introduced because the hand annotation is manual (err
 
 Once we have annotated a source image, we can generate many test cases from it by applying various combinations of distortions, rigid transforms, noise, and filters to the original image.  Figure \ref{fig:test-case} demonstrates an example test case with extreme distortion.
 
-The final output of the full test is the mean target registration error (TRE), which is the mean value of the magnitude of the difference of the actual geometric distortion and the calculated geometric distortion \cite[page R37]{hill2001}.  The mean TRE quantifies the disparity between the actual geometric distortion that we artificially introduced, and the geometric distortion calculated from our algorithm.
+The final output of the full test is the mean target registration error (TRE), which is the mean value of the magnitude of the difference of the actual geometric distortion and the calculated geometric distortion \cite[page R37]{hill2001}.
 
-For example, a mean TRE of 0.2 mm means that on average, our algorithm miscalculated the geometric distortion by 0.2 mm.  Thus an end user interpreting the results returned from our algorithm may believe that the distortion is that much better or worse than it actually is.
+If $\textbf{D}$ is the distortion calculated by our algorithm, and $\textbf{D}_a$ is the actual distortion, and $V$ is the volume over which we have a meaningful value, we have
 
-It is important to note that the mean TRE is useful because it is a single number quantifying the performance of our algorithm.  Like any metric, however, it can be misinterpreted.  For example, our geometric distortion field may be wildly incorrect in a small portion of the volume.  If the remainder of the volume is reasonably accurate, the mean TRE may indicate that the algorithm is sufficiently precise.  There are other metrics that could help detect results such as this--for example, the maximum magnitude of the difference between the actual and calculated distortion fields.  Ultimately, we believe the only sure means to avoid unusual cases slipping by is to visualize the full three-dimensional fields.
+$$
+\textrm{TRE}_\textrm{mean} = \frac{1}{V}\int_V \| \textbf{D}(\textbf{r}) - \textbf{D}_a(\textbf{r}) \| d\textbf{r}.
+$$
+
+$\textrm{TRE}_\textrm{mean}$ quantifies the disparity between the actual geometric distortion that we artificially introduced, and the geometric distortion calculated from our algorithm.
+
+For example, a $\textrm{TRE}_\textrm{mean}$ of 0.2 mm means that on average, our algorithm miscalculated the geometric distortion by 0.2 mm.  Thus an end user interpreting the results returned from our algorithm may believe that the distortion is that much better or worse than it actually is.
+
+It is important to note that $\textrm{TRE}_\textrm{mean}$ is useful because it is a single number quantifying the performance of our algorithm.  Like any metric, however, it can be misinterpreted.  For example, our geometric distortion field may be wildly incorrect in a small portion of the volume.  If the remainder of the volume is reasonably accurate, the $\textrm{TRE}_\textrm{mean}$ may indicate that the algorithm is sufficiently precise.  There are other metrics that could help detect results such as this--for example, the maximum magnitude of the difference between the actual and calculated distortion fields.  Ultimately, we believe the only sure means to avoid unusual cases slipping by is to visualize the full three-dimensional fields.
 
 \begin{figure}
     \centering
@@ -187,7 +195,11 @@ It is important to note that the mean TRE is useful because it is a single numbe
 
 Our feature detection test quantifies how well our feature detection stage performs.  It is useful to have a separate test for feature detection because its performance is critical to the performance of the entire algorithm.  Furthermore, although the full system test will demonstrate the existence of errors in the feature detection, the final result will not provide much insight as to why it failed or how to correct the problem.
 
-The feature detection test is very similar to the full system test.  It begins by applying a known distortion to an existing image that has been annotated.  The distorted image is fed into the feature detection algorithm which returns a set of fiducials.  We then want to know if the feature detection detected all of the fiducials it was supposed to, how many superfluous fiducials it detected, and how accurately it located the fiducials.  In particular, we calculate the true positive fraction (k
+The feature detection test is very similar to the full system test.  It begins by applying a known distortion to an existing image that has been annotated.  The distorted image is fed into the feature detection algorithm which returns $B$.  Next, we apply the distortion to the set of annotated points, which we refer to as $B_a$.  If the feature detection is perfect $B = B_a$.
+
+We then want to know how well the points in $B$ match if the feature detection detected all of the fiducials it was supposed to, how many superfluous fiducials it detected, and how accurately it located the fiducials.
+
+TODO: discuss how these metrics could be misleading + add a figure demonstrating our visualization strategy.
 
 \begin{figure}
     \centering
@@ -196,19 +208,40 @@ The feature detection test is very similar to the full system test.  It begins b
     \label{fig:testing-feature-detection}
 \end{figure}
 
-\subsection{Visualization Strategies}
-
 \section{Current Algorithm}
 
 Our current algorithm combines our own ideas with those found in the literature (e.g. \cite{stanescu2010,baldwin2007}).  
 
 \subsection{Feature Detection}
 
-Features are detected in the distorted image by convolving it with a 3D kernel shaped like the grid-phantom intersections.  The convolved image tends to have peaks at the feature locations.  We threshold the convolved image and find the center of mass of regions of pixels centered at each peak.
+First, we apply an unsharp mask to the image to remove background intensity gradients.  Next we convolve the preprocessed image with a 3D kernel shaped like the grid-phantom intersections.  The convolved image tends to have peaks at the feature locations.  Then we threshold the convolved image, resulting in a binary image.  We perform some binary operations that help isolate sets of pixels centered on the grid features.  Finally, we find the center of mass of regions of pixels centered at each region in the processed binary image.  This set of points is $B$.
 
 \subsection{Rigid Registration}
 
-At this point, we have a set of automatically calculated fiducials.  Next we need to apply a rigid registration (e.g. Figure \ref{fig:problem-overview}c) so that we can extract the geometric distortion from each pair of matching fiducials.  Performing this rigid registration precisely is complicated by a number of factors.
+Next we need to find the ``best'' registration matrix $\textrm{S}$ that registers $A$ and $B$. In order to formulate the problem so that we can provide a function to a mathematical optimizer, we need to mathematically define what it means to be the ``best''.
+
+\begin{enumerate}
+\item It will minimize the distance between matching points in $A_\mathrm{S}$ and $B$.  Note we are minimizing the distance, instead of the distance-squared, because we know that there will be a certain amount of displacement between the matched points.  If we minimized the "distance-squared" between matching points, this would likely give too much importance to points with significant geometric distortion.
+\item It will maximize the number of matching points.  If we did not have this condition we could either not match any points or we could match a set of grid points that are shifted over by one or more $\Delta$s.
+\item It will weight the distance between matching points near the isocenter more than points further away from the isocenter--the relative weighting can be characterized by a monotonically decreasing function $g$.
+\item It will ignore any "false positives", where a false positive is defined as a point in $\mathbf{b} \in B$ such that is $|\mathbf{b}_\textrm{min} − \mathbf{a}_\textrm{S}| < \rho(|\mathbf{b}_\textrm{min}|)$ where $\mathbf{b}_\textrm{min}$ is the nearest unmatched point to $\mathbf{a}_\textrm{S}$, and $\mathbf{a}_\textrm{S}$ is the point $\mathbf{a}$ transformed by the current matrix $\textrm{S}$.  Note that if $\rho < \Delta/2$, it would be impossible for a given point in $A$ to match to two different points in $B$.  However, if $\rho >= \Delta/2$, it is possible for a point in $A$ to be the closest point to two points in $B$.  In other words, it has the potential to be matched to two different points in $B$.  When this occurs, we match it to the closest point in $B$, and match the other point in $B$ to the next closest potentially matching point in $A$, if one exists, and leave it unmatched otherwise.
+\end{enumerate}
+
+We can find $\mathrm{S}$ by minimizing the objective function:
+
+$$
+f(x, y, z, \theta, \phi, \xi) =
+\sum_{\mathbf{a} \in A} g(\left|\mathbf{b}_\textrm{min}\right|)
+\;
+(\left|\mathbf{b}_\textrm{min} - \mathbf{a}_\textrm{S}\right|/\rho(|\mathbf{b}_\textrm{min}|) - 1)
+\;
+u(\rho(|\mathbf{b}_\textrm{min}|) - \left|\mathbf{b}_\textrm{min} - \mathbf{a}_\textrm{S}\right|)
+$$
+
+where $u$ is the Heaviside function.  Note that we have not explicitly defined $g$ or $\rho$.  More research will need to be done to determine what the best form for both of these functions will be.  Ideally, their form will be rooted in our knowledge of MRI physics.
+
+\subsection{Distortion Interpolation}
+
 
 \section{Discussion}
 
