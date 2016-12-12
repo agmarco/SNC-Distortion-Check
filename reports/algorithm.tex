@@ -1,5 +1,11 @@
-\title{Developing a Robust Algorithm to\\Measure Geometric Distortion in MRIs}
-\author{J. David Giese\\Innolitics, LLC\and Yujan Shrestha, M.D.\\Innolitics, LLC}
+\title{Developing a Robust Algorithm to Measure\\Geometric Distortion in Imaging Systems}
+\author{
+J. David Giese\\Innolitics, LLC
+\and
+Yujan Shrestha, M.D.\\Innolitics, LLC
+\and
+Mircea Lazea\\CIRS, Inc.
+}
 \date{\today}
 
 \documentclass[12pt]{article}
@@ -122,7 +128,7 @@ $$
 It is useful to categorize the points in $A$ and $B$.
 
 \begin{enumerate}
-    \item We call the points in $B$ that correspond to points in $A$ as \textit{matching points}.
+    \item We call the points in $B$ that correspond to points in $A$ as \textit{matching points} or \textit{true positives}.
     \item We call the points in $B$ that do not correspond to points in $A$ as \textit{false positives}.
     \item We call the points in $A$ that do not have a corresponding point in $B$ as \textit{false negatives}.
 \end{enumerate}
@@ -131,46 +137,42 @@ The rigid registration stage of our algorithm must calculate $\textrm{S}$ given 
 
 \section{Validation Framework}
 
-We have developed a feature detection and rigid registration algorithm that can detect geometric distortion in MRIs.  Making this algorithm work on a particular image was straightforward.  Making it work well with images of different phantoms taken with many different scan parameters is likely to be more difficult.
+We have developed a feature detection and rigid registration algorithm that can detect geometric distortion in MRIs.  Making this algorithm work on a particular image was straightforward.  Making it work well with a variety of images is likely to be more difficult.
 
-It is deceptively easy to overfit free parameters in an image processing algorithm such that it returns good results for a particular image.  Unfortunately, adjustments that improve an algorithm's performance on a particular image often degrade its performance on others.  In order to escape an endless cycle of heuristically driven parader tweaking, we built a validation framework that allows us to quickly validate an algorithms against many images.  As we collect more datasets from early customers and beta-testers, we can use this framework to further refine our algorithm until it works well on a large variety of phantoms and MRIs.
+It is deceptively easy to optimize an image processing algorithm to a particular image by playing with the algorithm's free parameters. Unfortunately, adjustments that improve an algorithm's performance on a particular image often degrade its performance on others.  In order to escape an endless cycle of heuristically driven parameter tweaking, we built a validation framework that allows us to efficiently improve an algorithm's performance on many images.  As we collect more datasets from early customers and beta-testers, we can use this framework to further refine our algorithm until it works well on a large variety of phantoms and MRIs.
 
-Our validation framework includes two tests and several related tools.  The first and more important test validates the performance of the whole system.  The second test validates the performance of the feature detection stage in isolation.
+Our validation framework includes two tests and several related tools.  The first test validates the performance of the whole system.  The second test validates the performance of the feature detection stage in isolation.
 
-The full system test is more important because it quantifies the error in the geometric distortion, which is what end-users care about.  Testing the feature detection independently will be helpful for us as developers, however, the metrics may be misleading.  For example, false positives returned from the feature detection algorithm may not affect the final distortion vector field if they can be identified and discarded later on in the system.
+The full system test is more important because it quantifies the error in the geometric distortion, which is what end-users care about.  Testing the feature detection independently will be helpful for developers, however, the metrics may be misleading.  For example, false positives returned from the feature detection algorithm may not affect the final distortion vector field if they can be identified and discarded later on in the system.
 
 \subsection{Full System Test}
 
-The final output of our algorithm is a measurement of the geometric distortion vector field introduced by the scanner.  Because we do not know the actual distortion field of a real MRI, we can not directly verify our algorithm.  To work around this limitation, while still using actual MRIs, we apply additional distortion to an MRI.  We call the underlying MRI the ``source image''.  The source image may or may not already have its own distortion, but as you will see, any existing distortion is accounted for and effectively ignored in our testing.
+The output of our algorithm is a measurement of the geometric distortion vector field introduced by the scanner.  Because we do not know the actual distortion field of a real MRI, we can not directly verify our algorithm.  To work around this limitation we apply additional distortion to an existing MRI---which we call the ``source image''.  Any pre-existing distortion in the source image is ignored.
 
-Before we can run our tests, we first manually annotate each fiducial in the source image.  Next we apply a known geometric distortion to the source image, producing a distorted image.  We may also add noise, amplitude fluctuations, rotations, or translations to the distorted image in order to further strain our algorithm.  We can then run our algorithm on the distorted image, using the fiducials captured from the source image, and compare the resulting output.  Our testing process is illustrated in Figure \ref{fig:testing-setup}.
+Before we can run the test, we must annotate the fiducial locations in the source image.  Then we apply additional geometric distortion to the source image.  We may also add noise, amplitude fluctuations, rotations, or translations to the distorted image to validate our algorithm against challenging inputs.  Finally, we run our algorithm on the distorted image, using the annotated fiducials, and compare the resulting output against the original distortion field we applied.  The full system test is illustrated in Figure \ref{fig:testing-setup}.
 
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth]{testing-setup.pdf}
-    \caption{Our full algorithm test.  We apply a known distortion to an existing source image and feed the distorted image to our full algorithm.  We then compare the output to the known distortion field.  The smaller the mean target registration error, the better the more accurately our algorithm was able to measure the underlying distortion.}
+    \caption{Our full system test.  We apply a known distortion to an existing source image and feed the distorted image to our full algorithm.  We then compare the output to the known distortion field.  The smaller the mean target registration error, the better the more accurately our algorithm was able to measure the underlying distortion.}
     \label{fig:testing-setup}
 \end{figure}
 
-Annotating a source image is time consuming.  We tried using existing tools, such as 3DSlicer, however we found them to be too slow and inflexible for our needs.  Thus, we built a simple GUI tool that haw allowed us to quickly annotate images.  We can annotate even a large phantom MRI with thousands of points in about an hour, using our tool.  This is possible because we built various keyboard shortcuts into the GUI that allows us to annotate about one point per second with sufficient accuracy.
+Annotating a source image is time consuming.  We tried existing tools, such as 3DSlicer, however they were too slow and inflexible.  Instead, we built a tool that allows us to quickly annotate images.  For example, we can annotate a large phantom MRI with thousands of points in about an hour.  This speed is possible because our annotation tools has custom keyboard shortcuts that make it very efficient to use.
 
-We note that some error is introduced because the hand annotation is manual (errors are especially large along the slice-axis).  Furthermore grid-phantom features touching the outer edge of the phantom volume can be difficult to annotate because it is unclear if the feature detection algorithm should be expected to identify them.
+The manually annotated fiducial locations have some error (errors are especially large along the slice-axis).  Also grid-phantom features touching the outer edge of the phantom volume can be difficult to annotate because it is unclear whether the feature detection algorithm should be expected to identify them.
 
-Once we have annotated a source image, we can generate many test cases from it by applying various combinations of distortions, rigid transforms, noise, and filters to the original image.  Figure \ref{fig:test-case} demonstrates an example test case with extreme distortion.
+Once we have annotated a source image, we can generate many test cases from it by applying various combinations of distortions, rigid transformations, noise, and filters.  Figure \ref{fig:test-case} demonstrates a slice from an example test case with extreme distortion.
 
-The final output of the full test is the mean target registration error (TRE), which is the mean value of the magnitude of the difference of the actual geometric distortion and the calculated geometric distortion \cite[page R37]{hill2001}.
-
-If $\textbf{D}$ is the distortion calculated by our algorithm, and $\textbf{D}_a$ is the actual distortion, and $V$ is the volume over which we have a meaningful value, we have
+The final output of the test is the mean target registration error (TRE), which is the mean value of the magnitude of the difference of the actual geometric distortion and the calculated geometric distortion \cite[page R37]{hill2001}.  If $\textbf{D}$ is the distortion calculated by our algorithm, and $\textbf{D}_a$ is the actual distortion, and $V$ is the volume over which we have a meaningful value, we have
 
 $$
 \textrm{TRE}_\textrm{mean} = \frac{1}{V}\int_V \| \textbf{D}(\textbf{r}) - \textbf{D}_a(\textbf{r}) \| d\textbf{r}.
 $$
 
-$\textrm{TRE}_\textrm{mean}$ quantifies the disparity between the actual geometric distortion that we artificially introduced, and the geometric distortion calculated from our algorithm.
+$\textrm{TRE}_\textrm{mean}$ quantifies the disparity between the actual geometric distortion that we artificially introduced, and the geometric distortion returned from our algorithm.  For example, a $\textrm{TRE}_\textrm{mean}$ of 0.2 mm means that on average, our algorithm miscalculated the geometric distortion by 0.2 mm.  Thus an end user interpreting the results returned from our algorithm may believe that the distortion is 0.2 mm better or worse than it actually is.
 
-For example, a $\textrm{TRE}_\textrm{mean}$ of 0.2 mm means that on average, our algorithm miscalculated the geometric distortion by 0.2 mm.  Thus an end user interpreting the results returned from our algorithm may believe that the distortion is that much better or worse than it actually is.
-
-It is important to note that $\textrm{TRE}_\textrm{mean}$ is useful because it is a single number quantifying the performance of our algorithm.  Like any metric, however, it can be misinterpreted.  For example, our geometric distortion field may be wildly incorrect in a small portion of the volume.  If the remainder of the volume is reasonably accurate, the $\textrm{TRE}_\textrm{mean}$ may indicate that the algorithm is sufficiently precise.  There are other metrics that could help detect results such as this--for example, the maximum magnitude of the difference between the actual and calculated distortion fields.  Ultimately, we believe the only sure means to avoid unusual cases slipping by is to visualize the full three-dimensional fields.
+$\textrm{TRE}_\textrm{mean}$ is useful metric to quantify the performance of our algorithm, but it can be misinterpreted.  For example, our geometric distortion field may be wildly incorrect in a small portion of the volume.  If the remainder of the volume is reasonably accurate, the $\textrm{TRE}_\textrm{mean}$ may indicate that the algorithm is sufficiently precise on average that we do not notice the wildly inaccurate volume.  Additional metrics could help detect results such as this--for example, the maximum magnitude of the difference between the actual and calculated distortion fields.  Ultimately, we believe the only sure means to catch unusual cases is to visualize the full three-dimensional fields.
 
 \begin{figure}
     \centering
@@ -187,19 +189,30 @@ It is important to note that $\textrm{TRE}_\textrm{mean}$ is useful because it i
         \caption{Distorted Image}
         \label{fig:test-case_2}
     \end{subfigure}
-    \caption{Example test case with extreme distortion.  In order to validate our algorithms, we apply a known distortion to existing MRI source images.  Fiducials are manually identified on the source image, and are overlaid as light blue circles on the source image, (a).  The size of the circles indicates their position along the slice-axis (i.e. in or out of the page).  The circles overlaid on the distorted image, (b), are the points detected by one of our algorithms for this source image.}
+    \caption{Example test case with extreme distortion.  In order to validate our algorithm, we apply a known distortion to existing MRI source images. \textbf{(a)} Fiducials are manually annotated on the source image, and are overlaid as light blue circles.  The size of the circles indicates their position along the slice-axis (in or out of the page).  \textbf{(b)} The detected fiducials overload on the distorted image.}
     \label{fig:test-case}
 \end{figure}
 
 \subsection{Feature Detection Testing}
 
-Our feature detection test quantifies how well our feature detection stage performs.  It is useful to have a separate test for feature detection because its performance is critical to the performance of the entire algorithm.  Furthermore, although the full system test will demonstrate the existence of errors in the feature detection, the final result will not provide much insight as to why it failed or how to correct the problem.
+Our feature detection test quantifies how well our feature detection stage performs.  It is useful to have a separate test for feature detection because its performance is critical to the performance of the entire algorithm, and although the full system test will demonstrate the existence of errors in the feature detection, the final result will not provide much insight as to why it failed or how to correct the problem.
 
-The feature detection test is very similar to the full system test.  It begins by applying a known distortion to an existing image that has been annotated.  The distorted image is fed into the feature detection algorithm which returns $B$.  Next, we apply the distortion to the set of annotated points, which we refer to as $B_a$.  If the feature detection is perfect $B = B_a$.
+The feature detection test is very similar to the full system test.  It begins by applying a known distortion to an existing image that has been annotated.  The distorted image is fed into the feature detection algorithm which returns $B$.  Next, we apply the distortion to the set of annotated points, which we refer to as $A$.  Note that its meaning of $A$ in the context of this test is unusual because if the feature detection is perfect, $B = A$, however usually there is a discrepancy between the two that is being measured.
 
-We then want to know how well the points in $B$ match if the feature detection detected all of the fiducials it was supposed to, how many superfluous fiducials it detected, and how accurately it located the fiducials.
+We quantify the performance of the algorithm using a number of metrics as follows:
 
-TODO: discuss how these metrics could be misleading + add a figure demonstrating our visualization strategy.
+$$
+\begin{align*}
+    \textrm{TPF} &= \frac{N_\textrm{TP}}{N_A} \\
+    \textrm{FPF} &= \frac{N_\textrm{FP}}{N_B} \\
+    \textrm{FNF} &= \frac{N_A - N_\textrm{TP}}{N_A} \\
+    E_\textrm{mean} &= \frac{1}{N_\textrm{TP}} \sum_i \| \textbf{a}_i - \textbf{b}_i \|\\
+\end{align*} \\
+$$
+
+The TPF, or True Positive Fraction, is the fraction of fiducials that were successfully identified.  The FPF is the fraction of detected fiducials that were false positives.  The FNF is the fraction of points that were missed.  Note that FNF + TPF = 1.  The $E_\textrm{mean}$ is the mean displacement between matched points.
+
+As is the case with the $\textrm{TRE}_\textrm{mean}$ and the full system test, these metrics can be misleading.  For example, the TPF may be close to 1 but the $E_\textrm{mean}$ may be too large, or the FPF may be high but all of the false positives are irrelevant because they lie on the periphery of the image and will be ignored in subsequent stages.  Thus, we believe visualizing the results is the only foolproof way to validate test results.  Figure \ref{fig:feature-detection-run} demonstrates the results of running our feature detection algorithm against a CT and MRI test dataset.
 
 \begin{figure}
     \centering
@@ -208,9 +221,28 @@ TODO: discuss how these metrics could be misleading + add a figure demonstrating
     \label{fig:testing-feature-detection}
 \end{figure}
 
+\begin{figure}
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{case-001-feature-detection.png}
+        \caption{CT 604 Result}
+        \label{fig:testing-feature-detection_1}
+    \end{subfigure}%
+    ~
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{case-010-feature-detection.png}
+        \caption{MRI 603A Result}
+        \label{fig:testing-feature-detection_2}
+    \end{subfigure}
+    \caption{Results of running our feature detection test against an MR and CT source image.  The convolved image is placed in the background.  Green circles are true positives.  Red crosses are false positive.  Yellow circles are false negatives.  The light green overlay is the labeled binary mask used to detect features from the convolved image.  Our validation framework makes it very easy to quickly iterate on the algorithm and visualize how well it performed on various test cases.}
+    \label{fig:feature-detection-run}
+\end{figure}
+
 \section{Current Algorithm}
 
-Our current algorithm combines our own ideas with those found in the literature (e.g. \cite{stanescu2010,baldwin2007}).  
+Our algorithm combines our ideas with those found in the literature \cite{stanescu2010,baldwin2007}.  It is divided into a feature detection stage and a rigid registration stage.
 
 \subsection{Feature Detection}
 
@@ -239,6 +271,11 @@ u(\rho(|\mathbf{b}_\textrm{min}|) - \left|\mathbf{b}_\textrm{min} - \mathbf{a}_\
 $$
 
 where $u$ is the Heaviside function.  Note that we have not explicitly defined $g$ or $\rho$.  More research will need to be done to determine what the best form for both of these functions will be.  Ideally, their form will be rooted in our knowledge of MRI physics.
+
+TODO: Discuss importance of L1 norm + add reference to other paper + youtube video
+
+TODO: 
+
 
 \subsection{Distortion Interpolation}
 
