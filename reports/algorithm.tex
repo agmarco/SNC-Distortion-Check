@@ -19,72 +19,65 @@ Mircea Lazea\\CIRS, Inc.
 \section{Introduction}
 MR scanners can introduce geometric distortion into their images.  For many clinical needs these distortions are not relevant---for others they are relevant and worth measuring and correcting.  A detailed discussion of the causes of geometric distortion in MRIs and the applications in which they matter is beyond the scope of this report \cite{baldwin2007,torfeh2015,wang2005,mribook}.  
 
-Geometric distortion in MR scanners is typically measured using images of specially constructed grid-phantom.  These grid-phantoms have identifiable features placed on grid.  By comparing the location of these features in the image to their known location in the phantom, one can measure the geometric distortion introduced by the scanner into the image.
+Geometric distortion in MR scanners is typically measured using images of specially constructed grid-phantom.  These grid-phantoms have identifiable features placed on a grid.  By comparing the location of these features in the image to their known location in the phantom, one can measure the geometric distortion introduced by the scanner into the image.
 
 This report presents our approach to developing a robust algorithm to measure geometric distortion from grid-phantom images.  We emphasize the validation framework we are using to develop the algorithm over the particular algorithm itself; the framework will enable us to quickly improve the algorithm as we collect more images, even if the underlying algorithm changes substantially.
 
-The first section discusses the problem our algorithm is solving and introduces our terminology and assumptions.  The second section presents the framework we are using to validate and improve our algorithm.  The third section presents an overview of our current algorithm, and includes preliminary results.  The final section discusses the limitations of our current algorithm and directions for future improvements.
+The first section discusses the problem our algorithm is solving and introduces our terminology and assumptions.  The second section presents the framework we are using to validate and improve our algorithm.  The third section presents an overview of our current algorithm.  The final section presents preliminary results, discusses the limitations of our current algorithm, and suggests directions for future improvement.
 
 \section{Problem}
-Extracting geometric distortion from a grid-phantom image is a fiducial-based non-rigid registration problem \cite{hill2001}.  We are registering the distorted image with the undistorted image.
+Measuring the geometric distortion from a grid-phantom image is a fiducial-based non-rigid registration problem \cite{hill2001}.  We are registering the distorted MRI of a grid phantom with an undistorted image of the same phantom.
 
-The undistorted image can be a CT of the phantom---where we assume that the CT does not introduce its own geometric distortion---or, if we are willing to neglect phantom manufacturing errors, it can be derived from knowledge of the phantom's construction.
+The undistorted image can be a CT---where we assume the CT does not introduce geometric distortion---or, if neglect phantom manufacturing errors, it can be derived from knowledge of the phantom's construction.
 
-Given that it is a fiducial-based non-rigid registration, there are two stages to the algorithm.  The first stage is detecting the locations of the fiducials.  The second stage is registering the fiducials together.
-
-The registration produces a transformation which maps locations in the distorted image to locations in the undistorted image.  This transformation will contain a rigid component (i.e. translation and rotation) and a non-rigid component.  The rigid component is assumed to originate from misalignment of the phantom within the scanner.  The non-rigid component is a measurement of the geometric distortion.
-
-In our algorithms the rigid registration is performed separately from the non-rigid registration.  In fact we never explicitly perform the non-rigid registration because once we have the rigidly registered fiducials, we can extract the geometric distortion.  Never-the-less, we believe it is helpful to conceptualize the problem as a non-rigid registration problem because it makes it easier to see connections to the large amount of research done in the field of registration.
-
-Figure \ref{fig:problem-overview} demonstrates the registration process with an example image.
+The registration produces a transformation which maps locations in the distorted image to locations in the undistorted image.  This transformation will contain a rigid component (just translation and rotation) and a non-rigid component.  The rigid component is assumed to originate from misalignment of the phantom within the scanner.  The non-rigid component is a measurement of the geometric distortion.  In our algorithms the rigid registration is performed separately from the non-rigid registration.  In fact we never explicitly perform the non-rigid registration because once we have the rigidly registered fiducials, we can extract the geometric distortion.  Figure \ref{fig:problem-overview} demonstrates the registration process with an example image.
 
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth]{problem-overview.pdf}
-    \caption{The geometric distortion is the non-rigid component of the registration between the distorted and undistorted images of a grid-phantom. \textbf{(a)} The undistorted image---this could be a CT or an image derived from a CAD model of the phantom.  \textbf{(b)} The distorted image of a phantom---usually an MRI of the phantom.  \textbf{(c)} The images (a) and (b) overlaid without any registration.  \textbf{(d)} A rigid registration is applied to (b) and then overlaid on (a).  The rigid registration cancels out any alignment errors that were introduced when the phantom was positioned in the scanner. \textbf{(e)} A detail of (d) highlighting the displacement between fiducials in the undistorted image (squares) and the fiducials in the distorted image (circles).  The remaining distortion between the two images would be corrected by a full non-rigid registration. \textbf{(f)} The geometric distortion can be interpolated from the non-rigid component of the registration.}
+    \caption{The geometric distortion is the non-rigid component of the registration between the distorted and undistorted images of a grid-phantom. \textbf{(a)} The undistorted image---this could be a CT or an image derived from a CAD model of the phantom.  \textbf{(b)} The distorted image of a phantom---usually an MRI of the phantom.  \textbf{(c)} The images (a) and (b) overlaid without any registration.  \textbf{(d)} A rigid registration is applied to (b) which is then overlaid onto (a).  The rigid registration negates any alignment errors introduced while positioning the phantom in the scanner. \textbf{(e)} A detail of (d) highlighting the displacement between fiducials in the undistorted image (squares) and the fiducials in the distorted image (circles).  The remaining distortion between the two images would be corrected by a full non-rigid registration. \textbf{(f)} The geometric distortion can be interpolated from the non-rigid component of the registration.}
     \label{fig:problem-overview}
 \end{figure}
 
-\subsection{Assumptions}
-
-Generic non-rigid registration is an open research area with many unsolved problems.  Fortunately we can make several assumptions which make our problem tractable.  We list these assumptions here:
-
-\begin{enumerate}
-\item We assume that the phantom has consistently oriented and formed features that can act as fiducials.  A phantom that contains a Cartesian grid of intersecting cylindrical rods---our typical use case---satisfies this assumption.
-
-\item We assume that we know the fiducial locations in the undistorted image.  (In the context of Figure \ref{fig:problem-overview}e, this would mean we know the square locations without having to extract them from Figure \ref{fig:problem-overview}a.)  This assumption is satisfied because we can derive the undistorted fiducial locations from the phantom's construction.  If we wanted to use a CT, we could first detect its features using the theoretical locations, and in turn use the CT fiducial locations against the MRI.
-
-\item We assume the images are sufficiently resolved such that the grid-phantom fiducials are detectable.  In the case of a phantom with cylindrical grid intersections, this means that the pixel spacing along all three dimensions is larger than the intersecting rods.
-
-\item We assume that the scanner introduces minimal geometric distortion near its isocenter.  This assumption may be more or less valid for certain scan parameters.  For example, automatic shimming will increase the homogeneity of the static magnet near the isocenter, but this setting can be turned off \cite{baldwin2007}.
-
-\item Finally, we assume that the images are crudely registered.  In particular, we assume that the magnitude of the translation component of the registration is less than the grid-phantom spacing.  We also assume that the rotation component is less than a few degrees.  Our algorithm could be improved so as to not require this assumption.
-\end{enumerate}
-
-Figure \ref{fig:generic-algorithm} is a block diagram of the generic algorithm, taking into account our assumption that we know the fiducial locations in the undistorted image.
+There are three stages to a generic algorithm solving this registration problem.  The first stage locates fiducials in the distorted and undistorted images.  The second stage rigidly-registers the sets of fiducials together while simultaneously matching corresponding fiducials.  The third stage calculates the geometric distortion (a simple subtraction) from the matched fiducials and interpolates them onto a grid.  Hence the final output of the algorithm is the discretely sampled geometric distortion within the scanner.  The vector field can be visualized and characterized in a variety of ways, e.g. according to the NEMA MS 12 standard \cite{nema2010}.  Figure \ref{fig:generic-algorithm} is a block diagram of the generic algorithm.
 
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth]{generic-algorithm.pdf}
-    \caption{A generic representation of the problem we are solving. We assume that we know the fiducial locations in the undistorted image.  Our algorithm must first detect the fiducials from the distorted image.  Then we apply a rigid registration to remove alignment errors (see Figure \ref{fig:problem-overview}d). The rigidly-registered distorted fiducials can be compared with the undistorted fiducials to interpolate the geometric distortion vector field.  Note that red squares represent images, orange squares point sets, and blue squares are vector fields.}
+    \caption{A generic representation of the problem we are solving.  Our algorithm must first detect the fiducials from the distorted image and the undistorted image (if we don't know their location up front). Then we apply a rigid registration to remove alignment errors (see Figure \ref{fig:problem-overview}d). The rigidly-registered distorted fiducials can be compared with the undistorted fiducials to interpolate the geometric distortion vector field.  Note that red squares represent images, orange squares point sets, and blue squares are vector fields.}
     \label{fig:generic-algorithm}
 \end{figure}
 
+
+\subsection{Assumptions}
+
+Generic non-rigid registration is an open research area with many unsolved problems.  Fortunately we can make several assumptions which make our problem tractable.
+
+\begin{enumerate}
+\item We assume the phantom has consistently oriented and formed features that can be identified using a convolution kernel.  A phantom that contains a Cartesian grid of intersecting cylindrical rods---our typical use case---satisfies this assumption.
+
+\item We assume we know the fiducial locations in the undistorted image.  In Figure \ref{fig:problem-overview}e, this would mean we know the square locations without having to extract them from Figure \ref{fig:problem-overview}a.  In Figure \ref{fig:generic-algorithm}, this means we would not need to detect features in the undistorted image.  This assumption is satisfied because we can derive the undistorted fiducial locations from the phantom's construction.  If we want to use a CT, we could first detect its features using the theoretical locations, and in turn use the CT fiducial locations against the MRI.
+
+\item We assume the images are sufficiently resolved such that the grid-phantom fiducials are detectable.  In the case of a phantom with cylindrical grid intersections, this means that the pixel spacing along all three dimensions is smaller than the intersecting rods.
+
+\item We assume the scanner introduces minimal geometric distortion near its isocenter.  This assumption may be more or less valid for certain scan parameters.  For example, automatic shimming will increase the homogeneity of the static magnet near the isocenter, but this setting can be turned off \cite{baldwin2007}.
+
+\item Finally, we assume the images are crudely registered.  In particular, we assume the magnitude of the translation component of the registration is less than the grid-phantom spacing.  We also assume the rotation component is less than a few degrees.  Our algorithm could be improved so as to not require this assumption.
+\end{enumerate}
+
 \subsection{Terminology}
 
-We assume that know the locations of the undistorted fiducials.  We denote this set of points as $A$, where $\forall \mathbf{a} \in A, \mathbf{a} \in \mathbb{R}^3$.  The position of the origin may, in general, be arbitrarily defined.
+We denote the set of fiducial locations in the undistorted image as $A$ and the set of fiducial locations in the distorted image as $B$.  The isocenter of the scanner defines the origin of $B$'s coordinate system.  The location of the origin in $A$ is generally different due to positioning errors, and the axes of $A$ and $B$'s coordinate systems are generally not oriented with one another.
 
-The feature-detection stage of the algorithm returns a set of points from the distorted image.  We denote this set of points as $B$, where $\forall \mathbf{b} \in B, \mathbf{b} \in \mathbb{R}^3$.  The isocenter of the scanner defines the origin of $B$'s coordinate system. 
 
-The location of the origin in $A$ and $B$ is likely different.  Also, the axes are likely oriented in slightly different directions.  We apply a rigid registration so that $A$ and $B$ can be compared (i.e. we need to go from \ref{fig:problem-overview}c to \ref{fig:problem-overview}d).
-
-More formally, we are looking to determine the six free variables, $x$, $y$, $z$, $\theta$, $\phi$, and $\xi$ which define the affine transformation matrix that can rigidly register $A$ and $B$.  We define this matrix as
+The second stage of our generic algorithm applies a rigid registration so that $A$ and $B$ can be compared directly.  Rigidly registering $A$ and $B$ involves determining the six free variables---$x$, $y$, $z$, $\theta$, $\phi$, and $\xi$---which define the affine transformation matrix S.  We define this matrix as
 
 $$
 \mathrm{S} = \mathrm{R}_x(\theta) \cdot \mathrm{R}_y(\phi) \cdot \mathrm{R}_z(\xi) \cdot \mathrm{T}(x, y, z)
 $$
 
 where
+
 $$
 \begin{align*}
     \mathrm{R}_x(\theta) =&
@@ -119,60 +112,76 @@ $$
 \end{align*}
 $$
 
-We refer to the set of points in $B$ that have been rigidly registered as $B_\textrm{S}$.  This set of points is the output of the rigid registration stage of the algorithm (see Figure \ref{fig:generic-algorithm}).  We have
+We refer to the set of points in $A$ that have been rigidly registered to $B$ as $A_\textrm{S}$.  We have
 
 $$
-B_\textrm{S} = \left\{ \mathbf{b}_\textrm{S} \;\; \Big| \;\; \begin{bmatrix} \mathbf{b}_\textrm{S} \\ 1 \end{bmatrix} = \mathrm{S} \cdot \begin{bmatrix} \mathbf{b} \\ 1 \end{bmatrix} , \;\; \mathbf{b} \in B \right\}.
+A_\textrm{S} = \left\{ \mathbf{a}_\textrm{S} \;\; \Big| \;\; \begin{bmatrix} \mathbf{a}_\textrm{S} \\ 1 \end{bmatrix} = \mathrm{S} \cdot \begin{bmatrix} \mathbf{a} \\ 1 \end{bmatrix} , \;\; \mathbf{a} \in A \right\}.
 $$
 
 It is useful to categorize the points in $A$ and $B$.
 
 \begin{enumerate}
-    \item We call the points in $B$ that correspond to points in $A$ as \textit{matching points} or \textit{true positives}.
-    \item We call the points in $B$ that do not correspond to points in $A$ as \textit{false positives}.
-    \item We call the points in $A$ that do not have a corresponding point in $B$ as \textit{false negatives}.
+    \item Points in $B$ that correspond to points in $A$ are referred to as \textit{matching points} or \textit{true positives}.
+    \item Points in $B$ that do not correspond to points in $A$ as \textit{false positives}.
+    \item Points in $A$ that do not have a corresponding point in $B$ as \textit{false negatives}.
 \end{enumerate}
 
-The rigid registration stage of our algorithm must calculate $\textrm{S}$ given $A$ and $B$.
+The problem of deciding how to match points is a particular instance of the ``correspondence problem'' that exists within many non-rigid registration problems \cite{hill2001}.  We consider two points, $\textbf{a} \in A$ and $\textbf{b} \in B$, to be matching if
+
+\begin{enumerate}
+    \item they are within a certain distance, $\rho(|\textbf{b}|)$, from one another
+    \item neither point has already been matched
+    \item matching them minimizes the total sum of distances of all matched points.
+\end{enumerate}
+
+The threshold distance, $\rho(|\textbf{B}|)$ is a monotonically increasing function of the distance of a point to the isocenter of the scanner.  It is loosely derived from our physical knowledge of the scanner.  For example, if $\rho(|\textbf{b}|) = 1 + 0.05 \times |\textbf{b}|$, then two points at the isocenter must be within 1mm to be considered matching and at 30cm from the isocenter they must be within 16mm.
+
+The form of $\rho$ is important.  A low threshold may prevent exceptionally distorted points from matching, resulting in false negatives.  A high threshold may allow false positives to match.  
+
+Typically each point in $A$ will be matched to the closest point in $B$, however, if there is a point in $B$ that could match multiples points in $A$ it will be matched with whichever point in $A$ minimizes the total sum of distances.  In the case that there is a point in $B$ that is equidistant from two points in $A$ (both of which can only match this particular point), then the matching choice will be arbitrary.
+
+We define $M_\textrm{S}$ to be the set of tuples of matched and rigidly registered points.
+
+$$
+M_\textrm{S} = \{ (\mathbf{a}_\textrm{S}, \mathbf{b}) \; | \; \textrm{each pair of matching points} \}.
+$$
 
 \section{Validation Framework}
 
-We have developed a feature detection and rigid registration algorithm that can detect geometric distortion in MRIs.  Making this algorithm work on a particular image was straightforward.  Making it work well with a variety of images is likely to be more difficult.
+Often it is deceptively easy to optimize an image processing algorithm so that it performs well on a particular image. Unfortunately, making it work well on a variety of images is more difficult because adjustments that improve an its performance on one image often degrade its performance on another.  In order to escape a cycle of heuristic parameter tweaking on specific images, we built a validation framework that allows us to efficiently improve our algorithm's performance on many images.  As we collect more datasets from early customers and beta-testers, we hope to use this framework to further refine our algorithm until it works well with many phantoms and MRIs.
 
-It is deceptively easy to optimize an image processing algorithm to a particular image by playing with the algorithm's free parameters. Unfortunately, adjustments that improve an algorithm's performance on a particular image often degrade its performance on others.  In order to escape an endless cycle of heuristically driven parameter tweaking, we built a validation framework that allows us to efficiently improve an algorithm's performance on many images.  As we collect more datasets from early customers and beta-testers, we can use this framework to further refine our algorithm until it works well on a large variety of phantoms and MRIs.
+Our validation framework includes two ``tests'' and several visualization tools.  The first test validates the performance of all three stages of our algorithm.  The second test validates the performance of the feature detection stage in isolation.
 
-Our validation framework includes two tests and several related tools.  The first test validates the performance of the whole system.  The second test validates the performance of the feature detection stage in isolation.
+The full algorithm test is more important because it quantifies the error in the geometric distortion, which is what end-users care about.  Testing the feature detection independently will be helpful for developers, however, the metrics may be misleading.  For example, false positives returned from the feature detection algorithm may not affect the final distortion vector field if they can be identified and discarded later on in the system.
 
-The full system test is more important because it quantifies the error in the geometric distortion, which is what end-users care about.  Testing the feature detection independently will be helpful for developers, however, the metrics may be misleading.  For example, false positives returned from the feature detection algorithm may not affect the final distortion vector field if they can be identified and discarded later on in the system.
+\subsection{Full Algorithm Test}
 
-\subsection{Full System Test}
+The output of our algorithm is the geometric distortion vector field introduced by an MR scanner into an image.  Because we do not know the actual distortion field of a real MRI, we can not directly verify our algorithm.  To work around this, we apply an artificial distortion to an existing MRI---which we call the ``source image''.  In order to negate any existing geometric distortion we annotate the fiducial locations in the source image.  Then we use these annotated points as the ``undistorted points'', $A$, in the algorithm.
 
-The output of our algorithm is a measurement of the geometric distortion vector field introduced by the scanner.  Because we do not know the actual distortion field of a real MRI, we can not directly verify our algorithm.  To work around this limitation we apply additional distortion to an existing MRI---which we call the ``source image''.  Any pre-existing distortion in the source image is ignored.
-
-Before we can run the test, we must annotate the fiducial locations in the source image.  Then we apply additional geometric distortion to the source image.  We may also add noise, amplitude fluctuations, rotations, or translations to the distorted image to validate our algorithm against challenging inputs.  Finally, we run our algorithm on the distorted image, using the annotated fiducials, and compare the resulting output against the original distortion field we applied.  The full system test is illustrated in Figure \ref{fig:testing-setup}.
+Then we apply additional geometric distortion to the source image.  We may also add noise, amplitude fluctuations, rotations, or translations to the distorted image to validate our algorithm against challenging inputs.  Finally, we run our algorithm on the distorted image, using the annotated fiducials, and compare the resulting output against the original distortion field we applied.  The full algorithm test is illustrated in Figure \ref{fig:testing-setup}.
 
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth]{testing-setup.pdf}
-    \caption{Our full system test.  We apply a known distortion to an existing source image and feed the distorted image to our full algorithm.  We then compare the output to the known distortion field.  The smaller the mean target registration error, the better the more accurately our algorithm was able to measure the underlying distortion.}
+    \caption{Our full algorithm test.  We apply a known distortion to an existing source image and feed the distorted image to our full algorithm.  We then compare the output to the known distortion field.  The smaller the mean target registration error, the better the more accurately our algorithm was able to measure the underlying distortion.}
     \label{fig:testing-setup}
 \end{figure}
 
 Annotating a source image is time consuming.  We tried existing tools, such as 3DSlicer, however they were too slow and inflexible.  Instead, we built a tool that allows us to quickly annotate images.  For example, we can annotate a large phantom MRI with thousands of points in about an hour.  This speed is possible because our annotation tools has custom keyboard shortcuts that make it very efficient to use.
 
-The manually annotated fiducial locations have some error (errors are especially large along the slice-axis).  Also grid-phantom features touching the outer edge of the phantom volume can be difficult to annotate because it is unclear whether the feature detection algorithm should be expected to identify them.
+The manually annotated fiducial locations have some error (errors are especially large along the slice-axis).  Grid-phantom features touching the outer edge of the phantom volume can be difficult to annotate because it is unclear whether the feature detection algorithm should be expected to identify them.
 
 Once we have annotated a source image, we can generate many test cases from it by applying various combinations of distortions, rigid transformations, noise, and filters.  Figure \ref{fig:test-case} demonstrates a slice from an example test case with extreme distortion.
 
-The final output of the test is the mean target registration error (TRE), which is the mean value of the magnitude of the difference of the actual geometric distortion and the calculated geometric distortion \cite[page R37]{hill2001}.  If $\textbf{D}$ is the distortion calculated by our algorithm, and $\textbf{D}_a$ is the actual distortion, and $V$ is the volume over which we have a meaningful value, we have
+The final result of the test is the mean target registration error (TRE), which quantifies the disparity between the actual geometric distortion that we artificially introduced and the geometric distortion calculated by our algorithm \cite[page R37]{hill2001}.  If $\textbf{D}$ is the distortion calculated by our algorithm, and $\textbf{D}_a$ is the actual distortion, and $V$ is the volume over which we have a meaningful value, we have
 
 $$
 \textrm{TRE}_\textrm{mean} = \frac{1}{V}\int_V \| \textbf{D}(\textbf{r}) - \textbf{D}_a(\textbf{r}) \| d\textbf{r}.
 $$
 
-$\textrm{TRE}_\textrm{mean}$ quantifies the disparity between the actual geometric distortion that we artificially introduced, and the geometric distortion returned from our algorithm.  For example, a $\textrm{TRE}_\textrm{mean}$ of 0.2 mm means that on average, our algorithm miscalculated the geometric distortion by 0.2 mm.  Thus an end user interpreting the results returned from our algorithm may believe that the distortion is 0.2 mm better or worse than it actually is.
+A $\textrm{TRE}_\textrm{mean}$ of 0.2mm means that on average, our algorithm miscalculated the geometric distortion by 0.2mm.  Thus an end user interpreting the results returned from our algorithm may believe that the distortion is 0.2mm better or worse than it actually is.
 
-$\textrm{TRE}_\textrm{mean}$ is useful metric to quantify the performance of our algorithm, but it can be misinterpreted.  For example, our geometric distortion field may be wildly incorrect in a small portion of the volume.  If the remainder of the volume is reasonably accurate, the $\textrm{TRE}_\textrm{mean}$ may indicate that the algorithm is sufficiently precise on average that we do not notice the wildly inaccurate volume.  Additional metrics could help detect results such as this--for example, the maximum magnitude of the difference between the actual and calculated distortion fields.  Ultimately, we believe the only sure means to catch unusual cases is to visualize the full three-dimensional fields.
+$\textrm{TRE}_\textrm{mean}$ is useful metric to quantify the performance of our algorithm, but it can be misinterpreted.  For example, our geometric distortion field may be wildly incorrect in a small portion of the volume.  If the remainder of the volume is reasonably accurate, the $\textrm{TRE}_\textrm{mean}$ may indicate that the algorithm is sufficiently precise on average that we do not notice the wildly inaccurate volume.  Additional metrics could help detect results such as this---for example, the maximum magnitude of the difference between the actual and calculated distortion fields.  But the best way to catch unusual cases is to visualize the three-dimensional fields.
 
 \begin{figure}
     \centering
@@ -195,9 +204,9 @@ $\textrm{TRE}_\textrm{mean}$ is useful metric to quantify the performance of our
 
 \subsection{Feature Detection Testing}
 
-Our feature detection test quantifies how well our feature detection stage performs.  It is useful to have a separate test for feature detection because its performance is critical to the performance of the entire algorithm, and although the full system test will demonstrate the existence of errors in the feature detection, the final result will not provide much insight as to why it failed or how to correct the problem.
+It is useful to have a separate test for feature detection because it is the most sensitive stage of the algorithm.  Furthermore,failures in the full algorithm test due to the feature detection stage likely won't provide enough insight correct the problem.
 
-The feature detection test is very similar to the full system test.  It begins by applying a known distortion to an existing image that has been annotated.  The distorted image is fed into the feature detection algorithm which returns $B$.  Next, we apply the distortion to the set of annotated points, which we refer to as $A$.  Note that its meaning of $A$ in the context of this test is unusual because if the feature detection is perfect, $B = A$, however usually there is a discrepancy between the two that is being measured.
+The feature detection test begins by applying an artificial distortion to an existing image that has been annotated.  The distorted image is fed into the feature detection algorithm which returns $B$.  Next, we apply the distortion to the set of annotated points, which we call $A$.  The meaning of $A$ in the context of this test is unusual.  Typically there is an expected discrepancy between $B$ and $A$ (this is what we are measuring), however in this context, if the feature detection is perfect $B = A$.  It is useful to retain the same notation and matching algorithm, however, so we use $A$ instead of introducing new notation.
 
 We quantify the performance of the algorithm using a number of metrics as follows:
 
@@ -206,13 +215,13 @@ $$
     \textrm{TPF} &= \frac{N_\textrm{TP}}{N_A} \\
     \textrm{FPF} &= \frac{N_\textrm{FP}}{N_B} \\
     \textrm{FNF} &= \frac{N_A - N_\textrm{TP}}{N_A} \\
-    E_\textrm{mean} &= \frac{1}{N_\textrm{TP}} \sum_i \| \textbf{a}_i - \textbf{b}_i \|\\
+    E_\textrm{mean} &= \frac{1}{N_\textrm{TP}} \sum_{(\textbf{a}, \textbf{b}) \in M} \| \textbf{a} - \textbf{b} \|\\
 \end{align*} \\
 $$
 
 The TPF, or True Positive Fraction, is the fraction of fiducials that were successfully identified.  The FPF is the fraction of detected fiducials that were false positives.  The FNF is the fraction of points that were missed.  Note that FNF + TPF = 1.  The $E_\textrm{mean}$ is the mean displacement between matched points.
 
-As is the case with the $\textrm{TRE}_\textrm{mean}$ and the full system test, these metrics can be misleading.  For example, the TPF may be close to 1 but the $E_\textrm{mean}$ may be too large, or the FPF may be high but all of the false positives are irrelevant because they lie on the periphery of the image and will be ignored in subsequent stages.  Thus, we believe visualizing the results is the only foolproof way to validate test results.  Figure \ref{fig:feature-detection-run} demonstrates the results of running our feature detection algorithm against a CT and MRI test dataset.
+As is the case with the $\textrm{TRE}_\textrm{mean}$ and the full algorithm test, these metrics can be misleading.  For example, the TPF may be close to 1 but the $E_\textrm{mean}$ may be too large, or the FPF may be high but all of the false positives are irrelevant because they lie on the periphery of the image and will be ignored in subsequent stages.  Thus, we believe visualizing the results is the only foolproof way to validate test results.  Figure \ref{fig:feature-detection-run} demonstrates the results of running our feature detection algorithm against a CT and MRI test dataset.
 
 \begin{figure}
     \centering
@@ -242,7 +251,7 @@ As is the case with the $\textrm{TRE}_\textrm{mean}$ and the full system test, t
 
 \section{Current Algorithm}
 
-Our algorithm combines our ideas with those found in the literature \cite{stanescu2010,baldwin2007}.  It is divided into a feature detection stage and a rigid registration stage.
+Our algorithm combines our ideas with those found in the literature \cite{stanescu2010,baldwin2007}.  It is divided into the three general stages we outlined in Figure \ref{fig:generic-algorithm}---feature detection, rigid registration, and distortion interpolation.
 
 \subsection{Feature Detection}
 
@@ -250,37 +259,47 @@ First, we apply an unsharp mask to the image to remove background intensity grad
 
 \subsection{Rigid Registration}
 
-Next we need to find the ``best'' registration matrix $\textrm{S}$ that registers $A$ and $B$. In order to formulate the problem so that we can provide a function to a mathematical optimizer, we need to mathematically define what it means to be the ``best''.
+Next we need to find the ``best'' rigid registration matrix, $\textrm{S}$.  We mathematically define what it means to be the ``best'' by formulating a function, $f(S)$, whose minimum value selects the best metrics $S$.
+
+The function $f$ should fulfill the following properties:
 
 \begin{enumerate}
-\item It will minimize the distance between matching points in $A_\mathrm{S}$ and $B$.  Note we are minimizing the distance, instead of the distance-squared, because we know that there will be a certain amount of displacement between the matched points.  If we minimized the "distance-squared" between matching points, this would likely give too much importance to points with significant geometric distortion.
-\item It will maximize the number of matching points.  If we did not have this condition we could either not match any points or we could match a set of grid points that are shifted over by one or more $\Delta$s.
-\item It will weight the distance between matching points near the isocenter more than points further away from the isocenter--the relative weighting can be characterized by a monotonically decreasing function $g$.
-\item It will ignore any "false positives", where a false positive is defined as a point in $\mathbf{b} \in B$ such that is $|\mathbf{b}_\textrm{min} − \mathbf{a}_\textrm{S}| < \rho(|\mathbf{b}_\textrm{min}|)$ where $\mathbf{b}_\textrm{min}$ is the nearest unmatched point to $\mathbf{a}_\textrm{S}$, and $\mathbf{a}_\textrm{S}$ is the point $\mathbf{a}$ transformed by the current matrix $\textrm{S}$.  Note that if $\rho < \Delta/2$, it would be impossible for a given point in $A$ to match to two different points in $B$.  However, if $\rho >= \Delta/2$, it is possible for a point in $A$ to be the closest point to two points in $B$.  In other words, it has the potential to be matched to two different points in $B$.  When this occurs, we match it to the closest point in $B$, and match the other point in $B$ to the next closest potentially matching point in $A$, if one exists, and leave it unmatched otherwise.
+\item It should minimize the distance between matching points in $A_\mathrm{S}$ and $B$.
+\item It should maximize the number of matching points.  If we did not have this condition we could either not match any points or we could match a set of grid points that are shifted over by one or more $\Delta$s.
+\item It should weight the distance between matching points near the isocenter more than points further away from the isocenter---the relative weighting can be characterized by a monotonically decreasing function $g(|\mathbf{b}|)$.
+\item It should ignore any false positives.
 \end{enumerate}
 
 We can find $\mathrm{S}$ by minimizing the objective function:
 
 $$
-f(x, y, z, \theta, \phi, \xi) =
-\sum_{\mathbf{a} \in A} g(\left|\mathbf{b}_\textrm{min}\right|)
+f(S) =
+\sum_{(\textbf{a}, \textbf{b}) \in M} g(\left|\mathbf{b}\right|)
 \;
-(\left|\mathbf{b}_\textrm{min} - \mathbf{a}_\textrm{S}\right|/\rho(|\mathbf{b}_\textrm{min}|) - 1)
+(\left|\mathbf{b} - \mathbf{a}_\textrm{S}\right|/\rho(|\mathbf{b}|) - 1)
 \;
-u(\rho(|\mathbf{b}_\textrm{min}|) - \left|\mathbf{b}_\textrm{min} - \mathbf{a}_\textrm{S}\right|)
+u(\rho(|\mathbf{b}|) - \left|\mathbf{b} - \mathbf{a}_\textrm{S}\right|)
 $$
 
-where $u$ is the Heaviside function.  Note that we have not explicitly defined $g$ or $\rho$.  More research will need to be done to determine what the best form for both of these functions will be.  Ideally, their form will be rooted in our knowledge of MRI physics.
+where $u$ is the Heaviside function.
 
-TODO: Discuss importance of L1 norm + add reference to other paper + youtube video
+Many distortion detection algorithms presented in the literature have not used the full set of points, $M$, and instead use a subset of the points located near the scanner's isocenter.  We believe that the main reason previous algorithms have limited the rigid registration to a subset of $M$, is because they are inappropriately minimizing over the distance squared \cite{wang2005}.  We believe it is beneficial to optimize over all of $M$ because it will help average out fiducial localization errors and any geometric distortion that may be present even near the isocenter \cite{baldwin2007}.
 
-TODO: 
+We believe that it is inappropriate to use the distance-squared.  Doing so gives too much weight to distorted points and false-positive matches.  It will also give too little weight to points near the isocenter of the scanner that have very low distortion.  Many previous algorithms have circumvented these shortcomings by using a subset of $M$.  Instead of limiting $M$, we optimize over the distance and use a weighting function $g$ to decrease the weight of peripheral points.
 
+We note that using the L-$p$ norms with $p \in (0, 1]$ has been used in other registration applications with great success \cite{bouaziz2013}.  
 
 \subsection{Distortion Interpolation}
 
+The final stage of our algorithm is distortion interpolation.  The distortion interpolation stage takes the sets of rigidly-registered, matched points, $M_\textrm{S}$, and interpolates the geometric distortion vector field onto a grid of points.
 
-\section{Discussion}
+The points are interpolated onto a grid by triangulating $M_\textrm{S}$ and performing linear barycentric interpolation on each triangle.
+
+Points in the grid that are too far from any point in $B$ are marked as having ``unknown distortion'' by setting the value to the NaN at that location.
+
+\section{Results and Discussion}
+
+We have preliminary results, but not enough to present at this time.  We will be adding a results and discussion section soon.
 
 \bibliographystyle{ieeetr}
 \bibliography{./algorithm.bib}
