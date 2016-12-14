@@ -179,7 +179,7 @@ $$
 
 A $\textrm{TRE}_\textrm{mean}$ of 0.2mm means that on average, our algorithm miscalculated the geometric distortion by 0.2mm.  Thus an end user interpreting the results returned from our algorithm may believe that the distortion is 0.2mm better or worse than it actually is.
 
-$\textrm{TRE}_\textrm{mean}$ is useful metric to quantify the performance of our algorithm, but it can be misinterpreted.  For example, our geometric distortion field may be wildly incorrect in a small portion of the volume.  If the remainder of the volume is reasonably accurate, the $\textrm{TRE}_\textrm{mean}$ may indicate that the algorithm is sufficiently precise on average that we do not notice the wildly inaccurate volume.  Additional metrics could help detect results such as this---for example, the maximum magnitude of the difference between the actual and calculated distortion fields.  But the best way to catch unusual cases is to visualize the three-dimensional fields.
+$\textrm{TRE}_\textrm{mean}$ is a useful metric to quantify the performance of our algorithm, but it can be misinterpreted.  For example, our geometric distortion field may be wildly incorrect in a small portion of the volume.  If the remainder of the volume is reasonably accurate, the $\textrm{TRE}_\textrm{mean}$ may indicate that the algorithm is sufficiently precise on average that we do not notice the wildly inaccurate volume.  Additional metrics could help detect results such as this---for example, the maximum magnitude of the difference between the actual and calculated distortion fields.  But the best way to catch unusual cases is to visualize the three-dimensional fields.
 
 \begin{figure}
     \centering
