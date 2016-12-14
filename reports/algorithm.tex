@@ -138,10 +138,13 @@ The form of $\rho$ is important.  A low threshold may prevent exceptionally dist
 
 Typically, each point in $A$ will be matched to the closest point in $B$. However, if there is a point in $B$ that could match multiples points in $A$, it will be matched with whichever point in $A$ minimizes the total sum of distances.  If there is a point in $B$ that is equidistant from two points in $A$ (both of which can only match this particular point), then the matching choice will be arbitrary.
 
-We define $M_\textrm{S}$ to be the set of tuples of matched and rigidly registered points.
+We define $M$ to be the set of tuples of matched points, and $M_\textrm{S}$ as the set of tuples of matched and rigidly registered points
 
 $$
-M_\textrm{S} = \{ (\mathbf{a}_\textrm{S}, \mathbf{b}) \; | \; \textrm{each pair of matching points} \}.
+\begin{align*}
+M =& \; \{ (\mathbf{a}, \mathbf{b}) \; | \; \mathbf{a} \; \textrm{matches} \; \mathbf{b} \} \\
+M_\textrm{S} =& \; \{ (\mathbf{a}_\textrm{S}, \mathbf{b}) \; | \; \mathbf{a} \; \textrm{matches} \; \mathbf{b} \}.
+\end{align*}
 $$
 
 \section{Validation Framework}
@@ -272,7 +275,7 @@ We can find $\mathrm{S}$ by minimizing the objective function:
 
 $$
 f(S) =
-\sum_{(\textbf{a}, \textbf{b}) \in M} g(\left|\mathbf{b}\right|)
+\sum_{(\textbf{a}_\textrm{S}, \textbf{b}) \in M_\textrm{S}} g(\left|\mathbf{b}\right|)
 \;
 (\left|\mathbf{b} - \mathbf{a}_\textrm{S}\right|/\rho(|\mathbf{b}|) - 1)
 \;
