@@ -77,4 +77,3 @@ def pixel_spacing(ijk_to_xyz):
     test_xyz_points = apply_affine(ijk_to_xyz, test_ijk_points)
     dvec = test_xyz_points[:, 1:] - test_xyz_points[:, 0].reshape(3, 1)
     return np.abs(np.linalg.norm(dvec, axis=0))
-
