@@ -9,26 +9,42 @@ from hdatt.suite import Suite
 from feature_detection import FeatureDetector
 from test_utils import populate_base_context, get_test_data_generators, load_voxels
 import slicer
+import affine
 
 
 class FeatureDetectionSuite(Suite):
     id = 'feature-detection'
 
     def collect(self):
-        data_generators = get_test_data_generators()
+        # data_generators = get_test_data_generators()
+        # cases = {
+            # '.'.join(data_generator.description): {
+                # 'voxels': data_generator.output_data_prefix+'-voxels.mat',
+                # 'points': data_generator.output_data_prefix+'-points.mat',
+            # }
+            # for data_generator in data_generators
+        # }
+
         cases = {
-            '.'.join(data_generator.description): {
-                'voxels': data_generator.output_data_prefix+'-voxels.mat',
-                'points': data_generator.output_data_prefix+'-points.mat',
-            }
-            for data_generator in data_generators
+            '001': {
+                'voxels': 'tmp/001_ct_603A_E3148_ST1.25-voxels.mat',
+                'points': 'data/points/001_ct_603A_E3148_ST1.25-golden.mat',
+            },
+            '006': {
+                'voxels': 'tmp/006_mri_603A_UVA_Axial_2ME2SRS5-voxels.mat',
+                'points': 'data/points/006_mri_603A_UVA_Axial_2ME2SRS5-golden.mat',
+            },
+            '010': {
+                'voxels': 'tmp/010_mri_604_LFV-Phantom_E2632-1-voxels.mat',
+                'points': 'data/points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
+            },
         }
         return cases
 
     def run(self, case_input):
         voxels, ijk_to_xyz_transform = load_voxels(case_input['voxels'])
+
         feature_detector = FeatureDetector(voxels, ijk_to_xyz_transform)
-        points = feature_detector.run()
 
         golden_points = scipy.io.loadmat(case_input['points'])['points']
         metrics, context = populate_base_context(case_input, golden_points, points)
