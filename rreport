@@ -1,7 +1,0 @@
-#!/bin/bash
-transform="$(mktemp).mat"
-registered="$(mktemp).mat"
-./register $1 $2 $transform
-./applyaffine $transform $2 $registered
-./report $1 $registered $3
-rm $registered $transform
