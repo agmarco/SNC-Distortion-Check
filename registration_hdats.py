@@ -10,7 +10,7 @@ from test_utils import get_test_data_generators, Rotation, show_base_result, pop
 import affine
 
 
-class RegistrationTestSuite(Suite):
+class RegistrationSuite(Suite):
     id = 'registration'
 
     def collect(self):

@@ -1,3 +1,3 @@
 feature_detection_hdats.FeatureDetectionSuite
-registration_hdats.RegistrationTestSuite
-end_to_end_hdats.EndToEndTestSuite
+registration_hdats.RegistrationSuite
+full_algorithm_hdats.FullAlgorithmSuite

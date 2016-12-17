@@ -14,8 +14,8 @@ from reports import compute_matches
 from test_utils import get_test_data_generators, Rotation, show_base_result, populate_base_context, Distortion, \
     load_voxels, load_points
 
-class EndToEndTestSuite(Suite):
-    id = 'EndToEnd'
+class FullAlgorithmSuite(Suite):
+    id = 'full-algorithm'
 
     def collect(self):
         data_generators = get_test_data_generators()
