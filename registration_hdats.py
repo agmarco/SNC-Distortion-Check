@@ -6,7 +6,7 @@ import scipy.io
 
 from hdatt.suite import Suite
 from registration import register
-from test_utils import get_test_data_generators, Rotation, show_base_result, populate_base_context
+from test_utils import get_test_data_generators, Rotation, show_base_result
 import affine
 
 
@@ -42,9 +42,19 @@ class RegistrationSuite(Suite):
         a_to_b_registration_matrix = affine.translation_rotation(*measured_xyz_tpx)
         registered_points = affine.apply_affine(a_to_b_registration_matrix, golden_points)
         diff_xyz_tpx = np.abs(measured_xyz_tpx - expected_xyz_tpx)
-        _, context = populate_base_context(case_input, rotated_points, registered_points)
+
+        context = OrderedDict()
+        context['case_input'] = case_input
+
+        FN_A, TP_A, TP_B, FP_B = points_utils.categorize(rotated_points, registered_points, rho)
+        context['FN_A'] = FN_A
+        context['TP_A'] = TP_A
+        context['TP_B'] = TP_B
+        context['FP_B'] = FP_B
+
         metrics = OrderedDict()
         metrics['d_x'], metrics['d_y'], metrics['d_z'], metrics['d_theta'], metrics['d_pi'], metrics['d_xi'] = diff_xyz_tpx
+
         return metrics, context
 
     def verify(self, old_metrics, new_metrics):

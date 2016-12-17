@@ -9,10 +9,10 @@ import affine
 from affine import translation_rotation
 from feature_detection import FeatureDetector
 from hdatt.suite import Suite
+import points_utils
 from registration import register
 from reports import compute_matches
-from test_utils import get_test_data_generators, Rotation, show_base_result, populate_base_context, Distortion, \
-    load_voxels, load_points
+from test_utils import get_test_data_generators, Rotation, show_base_result, Distortion, load_voxels, load_points
 
 class FullAlgorithmSuite(Suite):
     id = 'full-algorithm'
@@ -59,10 +59,19 @@ class FullAlgorithmSuite(Suite):
         num_nans = np.sum(np.isnan(deviation_magnitude_from_golden))
         deviation_magnitude_from_golden[nan_index] = deviation_magnitude_from_golden_99
 
-        _, context = populate_base_context(case_input, rotated_golden_points, registered_golden_points)
+        context = OrderedDict()
+
+        FN_A, TP_A, TP_B, FP_B = points_utils.categorize(rotated_golden_points, registered_golden_points, rho)
+        context['case_input'] = case_input
+        context['FN_A'] = FN_A
+        context['TP_A'] = TP_A
+        context['TP_B'] = TP_B
+        context['FP_B'] = FP_B
+
         metrics = OrderedDict()
-        metrics['mean_normalized_error'] = np.mean(deviation_magnitude_from_golden)
+        metrics['mean_target_registration_error'] = np.mean(deviation_magnitude_from_golden)
         metrics['nan_fraction'] = num_nans/len(deviation_magnitude_from_golden)
+
         return metrics, context
 
     def verify(self, old_metrics, new_metrics):

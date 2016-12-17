@@ -197,26 +197,6 @@ def get_test_data_generators():
     return data_generators
 
 
-def populate_base_context(case_input, golden_points, points):
-    metrics = OrderedDict()
-    context = {}
-
-    FN_A, TP_A, TP_B, FP_B = points_utils.categorize(golden_points, points, lambda bmag: 7.5)
-    context['case_input'] = case_input
-    context['FN_A'] = FN_A
-    context['TP_A'] = TP_A
-    context['TP_B'] = TP_B
-    context['FP_B'] = FP_B
-    total_error, average_error, random_error_average, true_positive_fraction, false_negative_fraction = points_utils.metrics(
-        FN_A, TP_A, TP_B, FP_B)
-    metrics['total_error'] = total_error
-    metrics['average_error'] = average_error
-    metrics['random_error_average'] = random_error_average
-    metrics['true_positive_fraction'] = true_positive_fraction
-    metrics['false_negative_fraction'] = false_negative_fraction
-    return metrics, context
-
-
 def load_voxels(voxels_path):
     input_data = scipy.io.loadmat(voxels_path)
     return input_data['voxels'], input_data['ijk_to_patient_xyz_transform']
