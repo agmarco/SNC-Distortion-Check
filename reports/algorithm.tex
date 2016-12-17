@@ -207,22 +207,24 @@ $\textrm{TRE}_\textrm{mean}$ is a useful metric to quantify the performance of o
 
 It is useful to have a separate test for feature detection because it is the most sensitive stage of the algorithm.  Furthermore, failures in the full algorithm test due to the feature detection stage likely won't provide enough insight to correct the problem.
 
-The feature detection test begins by applying an artificial distortion to an existing image that has been annotated.  The distorted image is fed into the feature detection algorithm, which returns $B$.  Next, we apply the distortion to the set of annotated points, which we call $A$.  The meaning of $A$ in the context of this test is unusual.  Typically there is an expected discrepancy between $B$ and $A$ (this is what we are measuring), however in this context, if the feature detection is perfect, $B = A$.  It is useful to retain the same notation and matching algorithm, however, so we use $A$ instead of introducing new notation.
+The feature detection test begins by applying an artificial distortion to an existing image that has been annotated.  The distorted image is fed into the feature detection algorithm, which returns $B$.  Next, we apply the distortion to the set of annotated points, which we call $A$.  The meaning of $A$ in the context of this test is unusual.  It is useful to retain the same notation and matching algorithm, however, so we use $A$ instead of introducing new notation.
+
+Typically there is an expected discrepancy between $B$ and $A$ (this is what we are measuring).  In the context of the feature detection test, if the feature detection is perfect then $B = A$.  Thus, it does not make sense to use our typical `rho`, and instead we use $\rho(|\mathbf{b}|) = 2$---hence points are categorized as false positives if they are further than 2mm apart.  
 
 We quantify the performance of the algorithm using the following metrics: 
 
 $$
 \begin{align*}
     \textrm{TPF} &= \frac{N_\textrm{TP}}{N_A} \\
+    \textrm{FNF} &= \frac{N_\textrm{FN}}{N_A} \\
     \textrm{FPF} &= \frac{N_\textrm{FP}}{N_B} \\
-    \textrm{FNF} &= \frac{N_A - N_\textrm{TP}}{N_A} \\
-    E_\textrm{mean} &= \frac{1}{N_\textrm{TP}} \sum_{(\textbf{a}, \textbf{b}) \in M} \| \textbf{a} - \textbf{b} \|\\
+    \textrm{FLE}_\textrm{mean} &= \frac{1}{N_\textrm{TP}} \sum_{(\textbf{a}, \textbf{b}) \in M} \| \textbf{a} - \textbf{b} \|\\
 \end{align*} \\
 $$
 
-The TPF, or True Positive Fraction, is the fraction of fiducials that were successfully identified.  The FPF is the fraction of detected fiducials that were false positives.  The FNF is the fraction of points that were missed.  Note that FNF + TPF = 1.  The $E_\textrm{mean}$ is the mean displacement between matched points.
+The TPF, or True Positive Fraction, is the fraction of known fiducials that were successfully identified.  The FPF is the fraction of detected fiducials that were false positives.  The FNF is the fraction of known fiducials that were not identified.  Note that FNF + TPF = 1.  The $\textrm{FLE}_\textrm{mean}$ is the mean displacement between matched points, also known as the ``fiducial localization error'' \cite{hill2001}.
 
-As is the case with the $\textrm{TRE}_\textrm{mean}$ and the full algorithm test, these metrics can be misleading.  For example, the TPF may be close to 1 but the $E_\textrm{mean}$ may be too large, or the FPF may be high but all of the false positives are irrelevant because they lie on the periphery of the image and will be ignored in subsequent stages.  Accordingly, we believe visualizing the results is the only foolproof way to validate test results.  Figure \ref{fig:feature-detection-run} demonstrates the results of running our feature detection algorithm against a CT and MRI test dataset.
+As is the case with the $\textrm{TRE}_\textrm{mean}$ and the full algorithm test, these metrics can be misleading.  For example, the TPF may be close to 1 but the $\textrm{FLE}_\textrm{mean}$ may be too large, or the FPF may be high but all of the false positives are irrelevant because they lie on the periphery of the image and will be ignored in subsequent stages.  Accordingly, we believe visualizing the results is the only foolproof way to validate test results.  Figure \ref{fig:feature-detection-run} demonstrates the results of running our feature detection algorithm against a CT and MRI test dataset.
 
 \begin{figure}
     \centering

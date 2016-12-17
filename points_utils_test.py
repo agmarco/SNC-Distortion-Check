@@ -134,12 +134,12 @@ class TestMetrics:
         ]).T
 
         rho = lambda bmag: 1
-        total_error, average_error, random_error_average, TPF, FNF = metrics(*categorize(A, B, rho))
+        FLE_mean, TPF, FNF, FPF = metrics(*categorize(A, B, rho))
 
-        assert average_error == 0.0
-        assert random_error_average == 0.0
+        assert FLE_mean == 0.0
         assert TPF == 1.0
         assert FNF == 0.0
+        assert FPF == 0.0
 
     def test_two_matched_points(self):
         A = np.array([
@@ -151,12 +151,12 @@ class TestMetrics:
         ]).T
 
         rho = lambda bmag: 1
-        total_error, average_error, random_error_average, TPF, FNF = metrics(*categorize(A, B, rho))
+        FLE_mean, TPF, FNF, FPF = metrics(*categorize(A, B, rho))
 
-        assert average_error == 0.1
-        assert random_error_average == 0.0
+        assert FLE_mean == 0.1
         assert TPF == 1.0
         assert FNF == 0.0
+        assert FPF == 0.0
 
     def test_four_matched_one_false_negative(self):
         A = np.array([
@@ -171,13 +171,12 @@ class TestMetrics:
         ]).T
 
         rho = lambda bmag: 1
-        total_error, average_error, random_error_average, TPF, FNF = metrics(*categorize(A, B, rho))
+        FLE_mean, TPF, FNF, FPF = metrics(*categorize(A, B, rho))
 
-        assert total_error == 0.1*(2.0/3.0) + 0.1*(1.0/3.0)
-        assert average_error == 0.0
-        assert random_error_average == 0.1
+        assert FLE_mean == 0.1
         assert TPF == 2/3
         assert FNF == 1/3
+        assert FPF == 0.0
 
 
 class TestClosest:

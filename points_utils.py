@@ -151,18 +151,13 @@ def metrics(FN_A, TP_A, TP_B, FP_B):
     Our standard metrics for comparing sets of points.
     '''
     num_points_a = len(FN_A.T) + len(TP_A.T)
-    error_vec = (TP_A - TP_B).T
-    average_error_vec = np.average(error_vec, axis=0)
-    average_error = np.linalg.norm(average_error_vec)
-
-    error_vec_norms = np.linalg.norm(error_vec, axis=1)
-    random_error_vec = error_vec - average_error_vec
-    random_error_norms = np.linalg.norm(random_error_vec, axis=1)
-    random_error_average = np.average(random_error_norms)
+    num_points_b = len(FP_B.T) + len(TP_B.T)
+    error_vectors = (TP_A - TP_B).T
+    FLEs = np.linalg.norm(error_vectors, axis=1)
+    FLE_mean = np.mean(FLEs)
 
     FNF = len(FN_A.T)/num_points_a
     TPF = len(TP_A.T)/num_points_a
+    FPF = len(FP_B.T)/num_points_b
 
-    total_error = TPF*random_error_average + FNF*np.percentile(random_error_norms, 90)
-
-    return total_error, average_error, random_error_average, TPF, FNF
+    return FLE_mean, TPF, FNF, FPF

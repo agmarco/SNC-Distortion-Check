@@ -7,9 +7,10 @@ import numpy as np
 
 from hdatt.suite import Suite
 from feature_detection import FeatureDetector
-from test_utils import populate_base_context, get_test_data_generators, load_voxels
+from test_utils import get_test_data_generators, load_voxels
 import slicer
 import affine
+import points_utils
 
 
 class FeatureDetectionSuite(Suite):
@@ -42,41 +43,37 @@ class FeatureDetectionSuite(Suite):
         return cases
 
     def run(self, case_input):
-        voxels, ijk_to_xyz_transform = load_voxels(case_input['voxels'])
-
-        feature_detector = FeatureDetector(voxels, ijk_to_xyz_transform)
-
-        points = feature_detector.run()
-        golden_points = scipy.io.loadmat(case_input['points'])['points']
-
         metrics = OrderedDict()
         context = OrderedDict()
 
-        FN_A, TP_A, TP_B, FP_B = points_utils.categorize(golden_points, points, lambda bmag: 1)
         context['case_input'] = case_input
-        context['FN_A'] = FN_A
-        context['TP_A'] = TP_A
-        context['TP_B'] = TP_B
-        context['FP_B'] = FP_B
+
+        voxels, ijk_to_xyz_transform = load_voxels(case_input['voxels'])
+
+        feature_detector = FeatureDetector(voxels, ijk_to_xyz_transform)
+        points = feature_detector.run()
+
         context['label_image'] = feature_detector.label_image
         context['preprocessed_image'] = feature_detector.preprocessed_image
         context['feature_image'] = feature_detector.feature_image
         context['kernel'] = feature_detector.kernel
 
-        total_error, average_error, random_error_average, TPF, FNF, FPF = points_utils.metrics(FN_A, TP_A, TP_B, FP_B)
-        metrics['total_error'] = total_error
-        metrics['average_error'] = average_error
-        metrics['random_error_average'] = random_error_average
-        metrics['true_positive_fraction'] = true_positive_fraction
-        metrics['false_negative_fraction'] = false_negative_fraction
-        metrics['false_positive_fraction'] = false_negative_fraction
+        golden_points = scipy.io.loadmat(case_input['points'])['points']
 
-        print("FNF {:06.5f}, TPF {:06.5f}, RAE {:06.3f}".format(
-            metrics['false_negative_fraction'],
-            metrics['false_positive_fraction'],
-            metrics['true_positive_fraction'],
-            metrics['random_error_average'],
-        ))
+        FN_A, TP_A, TP_B, FP_B = points_utils.categorize(golden_points, points, lambda bmag: 2)
+
+        context['FN_A'] = FN_A
+        context['TP_A'] = TP_A
+        context['TP_B'] = TP_B
+        context['FP_B'] = FP_B
+
+        FLE_mean, TPF, FNF, FPF = points_utils.metrics(FN_A, TP_A, TP_B, FP_B)
+        metrics['FLE_mean'] = FLE_mean
+        metrics['TPF'] = TPF
+        metrics['FNF'] = FNF
+        metrics['FPF'] = FPF
+
+        print(", ".join("{}={:06.4f}".format(k, v) for k, v in metrics.items()))
 
         return metrics, context
 
