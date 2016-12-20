@@ -9,7 +9,6 @@ import affine
 
 def show_slices(voxels):
     slicer = Slicer(voxels)
-    slicer.add_renderer(render_slices)
     slicer.add_renderer(render_cursor)
     slicer.draw()
     plt.show()
@@ -30,10 +29,22 @@ class Slicer:
         self.f.canvas.mpl_connect('key_press_event', lambda e: self.on_key_press(e))
         self._renderers = []
         self._renderers_hidden = []
+        self.add_renderer(self._render_voxels)
 
     def add_renderer(self, renderer, hidden=False):
         self._renderers.append(renderer)
         self._renderers_hidden.append(hidden)
+
+    @staticmethod
+    def _render_voxels(slicer):
+        imshow_kwargs = {
+            'origin': 'upper',
+            'cmap': 'Greys_r',
+            'vmin': slicer.vmin,
+            'vmax': slicer.vmax,
+            'interpolation': 'nearest',
+        }
+        _imshow(slicer, slicer.voxels, imshow_kwargs)
 
     def axes_dimensions(self, axes):
         if axes == self.i_ax:
@@ -95,35 +106,39 @@ class Slicer:
         plt.draw()
 
 
-def render_slices(slicer):
-    imshow_kwargs = {
-        'origin': 'upper',
-        'cmap': 'Greys_r',
-        'vmin': slicer.vmin,
-        'vmax': slicer.vmax,
-        'interpolation': 'nearest',
-    }
-
-    _imshow(slicer, slicer.voxels, imshow_kwargs)
-
-
-def build_render_overlay(overlay, color):
+def render_overlay(overlay, **additional_imshow_kwargs):
     vmin = np.min(overlay)
     vmax = np.max(overlay)
+
+    base_kwargs = {
+        'vmin': vmin,
+        'vmax': vmax,
+        'origin': 'upper',
+        'interpolation': 'nearest',
+        'cmap': 'Greys_r',
+    }
+
+    imshow_kwargs = {**base_kwargs, **additional_imshow_kwargs}
+
+    def renderer(slicer):
+        assert slicer.voxels.shape == overlay.shape
+        _imshow(slicer, overlay, imshow_kwargs)
+
+    return renderer
+
+
+def render_translucent_overlay(overlay, color, **additional_imshow_kwargs):
     transparent = [0, 0, 0, 0]
     opaque_color = list(color) + [1]
     colormap = matplotlib.colors.ListedColormap([transparent, opaque_color])
 
-    imshow_kwargs = {
-        'origin': 'upper',
+    color_imshow_kwargs = {
         'cmap': colormap,
-        'vmin': vmin,
-        'vmax': vmax,
-        'interpolation': 'nearest',
         'alpha': 0.4,
     }
 
-    return lambda slicer: _imshow(slicer, overlay, imshow_kwargs)
+    imshow_kwargs = {**color_imshow_kwargs, **additional_imshow_kwargs}
+    return render_overlay(overlay, **imshow_kwargs)
 
 
 def _imshow(slicer, voxels, imshow_kwargs):

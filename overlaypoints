@@ -6,7 +6,7 @@ import scipy.io
 import matplotlib.pylab as plt
 import numpy as np
 
-from slicer import PointsSlicer, render_slices, render_points, render_cursor
+from slicer import PointsSlicer, render_points, render_cursor
 
 
 if __name__ == '__main__':
@@ -29,7 +29,6 @@ if __name__ == '__main__':
         })
 
     slicer = PointsSlicer(voxels, ijk_to_xyz, descriptors)
-    slicer.add_renderer(render_slices)
     slicer.add_renderer(render_points)
     slicer.add_renderer(render_cursor)
     slicer.draw()

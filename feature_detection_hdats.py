@@ -123,11 +123,11 @@ class FeatureDetectionSuite(Suite):
 
         kernel_big[slices] = kernel_small*np.max(context['feature_image'])
 
-        s = slicer.PointsSlicer(context['feature_image'], ijk_to_xyz, descriptors)
-        s.add_renderer(slicer.render_slices)
+        s = slicer.PointsSlicer(raw_voxels, ijk_to_xyz, descriptors)
+        s.add_renderer(slicer.render_overlay(context['feature_image']), hidden=True)
         s.add_renderer(slicer.render_points)
-        s.add_renderer(slicer.build_render_overlay(context['label_image'] > 0, [0, 1, 0]))
-        s.add_renderer(slicer.build_render_overlay(kernel_big, [1, 0, 0]))
+        s.add_renderer(slicer.render_translucent_overlay(context['label_image'] > 0, [0, 1, 0]))
+        s.add_renderer(slicer.render_translucent_overlay(kernel_big, [1, 0, 0]))
         s.add_renderer(slicer.render_cursor)
         s.draw()
         plt.show()

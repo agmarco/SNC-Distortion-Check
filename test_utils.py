@@ -6,7 +6,7 @@ import scipy.io
 import matplotlib.pyplot as plt
 
 import points_utils
-from slicer import PointsSlicer, render_slices, render_points, render_cursor
+from slicer import PointsSlicer, render_points, render_cursor
 
 
 logger = logging.getLogger(__name__)
@@ -218,7 +218,6 @@ def show_base_result(result, voxels_key='voxels'):
     voxels, ijk_to_xyz = load_voxels(context['case_input'][voxels_key])
 
     slicer = PointsSlicer(voxels, ijk_to_xyz, descriptors)
-    slicer.add_renderer(render_slices)
     slicer.add_renderer(render_points)
     slicer.add_renderer(render_cursor)
     slicer.draw()

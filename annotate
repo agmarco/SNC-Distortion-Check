@@ -9,7 +9,7 @@ import matplotlib.pylab as plt
 import numpy as np
 from scipy.spatial import KDTree
 
-from slicer import PointsSlicer, render_slices, render_cursor, render_points
+from slicer import PointsSlicer, render_cursor, render_points
 from affine import apply_affine
 from points_utils import closest
 
@@ -120,7 +120,6 @@ if __name__ == '__main__':
         log.info('No existing points found in {}'.format(args.points))
 
     slicer = AnnotateSlicer(voxels, ijk_to_xyz, points_xyz)
-    slicer.add_renderer(render_slices)
     slicer.add_renderer(render_points)
     slicer.add_renderer(render_cursor)
     slicer.draw()
