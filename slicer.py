@@ -1,7 +1,7 @@
 import copy
 
-import matplotlib.pyplot as plt
 import matplotlib
+import matplotlib.pyplot as plt
 import numpy as np
 
 import affine
@@ -27,10 +27,13 @@ class Slicer:
         self.k_ax = self.f.add_subplot(133)
         self.f.canvas.mpl_connect('scroll_event', lambda e: self.on_scroll(e))
         self.f.canvas.mpl_connect('button_press_event', lambda e: self.on_button_press(e))
+        self.f.canvas.mpl_connect('key_press_event', lambda e: self.on_key_press(e))
         self._renderers = []
+        self._renderers_hidden = []
 
-    def add_renderer(self, renderer):
+    def add_renderer(self, renderer, hidden=False):
         self._renderers.append(renderer)
+        self._renderers_hidden.append(hidden)
 
     def axes_dimensions(self, axes):
         if axes == self.i_ax:
@@ -63,6 +66,16 @@ class Slicer:
         self.ensure_cursor_in_bounds()
         self.draw()
 
+    def on_key_press(self, event):
+        print(event.key)
+        number_keys = [str(i) for i in range(10)]
+        if event.key in number_keys:
+            index = int(event.key)
+            if index < len(self._renderers_hidden):
+                print(index)
+                self._renderers_hidden[index] = not self._renderers_hidden[index]
+                self.draw()
+
     def ensure_cursor_in_bounds(self):
         maximums = np.array(self.voxels.shape, dtype=int) - 1
         minimums = np.array([0, 0, 0], dtype=int)
@@ -76,8 +89,9 @@ class Slicer:
 
     def draw(self):
         self.clear_axes()
-        for renderer in self._renderers:
-            renderer(self)
+        for renderer, hidden in zip(self._renderers, self._renderers_hidden):
+            if not hidden:
+                renderer(self)
         plt.draw()
 
 

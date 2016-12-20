@@ -5,7 +5,6 @@ import logging
 
 import scipy.io
 import matplotlib
-matplotlib.use('QT4Agg')
 import matplotlib.pylab as plt
 import numpy as np
 from scipy.spatial import KDTree
@@ -93,8 +92,7 @@ class AnnotateSlicer(PointsSlicer):
             nudge = np.array(nudge_list, dtype=float)
             points[:, self.selected_indice] += nudge
         else:
-            log.debug(event.key)
-            return
+            return super().on_key_press(event)
 
         if self.selected_indice is not None:
             self.cursor = points[:, self.selected_indice].astype(int)
