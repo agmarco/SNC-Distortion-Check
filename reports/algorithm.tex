@@ -70,13 +70,12 @@ We denote the set of fiducial locations in the undistorted image as $A$ and the 
 
 The second stage of our generic algorithm applies a rigid registration so that $A$ and $B$ can be compared directly.  Rigidly registering $A$ and $B$ involves determining the six free variables---$x$, $y$, $z$, $\theta$, $\phi$, and $\xi$---which define the affine transformation matrix S.  We define this matrix as
 
-$$
-\mathrm{S} = \mathrm{R}_x(\theta) \cdot \mathrm{R}_y(\phi) \cdot \mathrm{R}_z(\xi) \cdot \mathrm{T}(x, y, z)
-$$
+\begin{equation*}
+    \mathrm{S} = \mathrm{R}_x(\theta) \cdot \mathrm{R}_y(\phi) \cdot \mathrm{R}_z(\xi) \cdot \mathrm{T}(x, y, z)
+\end{equation*}
 
 where
 
-$$
 \begin{align*}
     \mathrm{R}_x(\theta) =&
     \begin{bmatrix}
@@ -84,7 +83,7 @@ $$
         0 & \cos(\theta) & -\sin(\theta) & 0\\
         0 & \sin(\theta) & \cos(\theta) & 0\\
         0 & 0 & 0 & 1\\
-    \end{bmatrix},&\quad\quad
+    \end{bmatrix},&
     \mathrm{R}_y(\phi) =&
     \begin{bmatrix}
         \cos(\phi) & 0 & \sin(\phi) & 0\\
@@ -99,7 +98,7 @@ $$
         -\sin(\phi) & \cos(\phi) & 0 & 0\\
         0 & 0 & 1 & 0\\
         0 & 0 & 0 & 1\\
-    \end{bmatrix},&\quad\quad
+    \end{bmatrix},&
     \mathrm{T}(x, y, z) =&
     \begin{bmatrix}
         1 & 0 & 0 & x\\
@@ -108,13 +107,12 @@ $$
         0 & 0 & 0 & 1\\
     \end{bmatrix}.
 \end{align*}
-$$
 
 We refer to the set of points in $A$ that have been rigidly registered to $B$ as $A_\textrm{S}$.  We have
 
-$$
-A_\textrm{S} = \left\{ \mathbf{a}_\textrm{S} \;\; \Big| \;\; \begin{bmatrix} \mathbf{a}_\textrm{S} \\ 1 \end{bmatrix} = \mathrm{S} \cdot \begin{bmatrix} \mathbf{a} \\ 1 \end{bmatrix} , \;\; \mathbf{a} \in A \right\}.
-$$
+\begin{equation*}
+    A_\textrm{S} = \left\{ \mathbf{a}_\textrm{S} \;\; \Big| \;\; \begin{bmatrix} \mathbf{a}_\textrm{S} \\ 1 \end{bmatrix} = \mathrm{S} \cdot \begin{bmatrix} \mathbf{a} \\ 1 \end{bmatrix} , \;\; \mathbf{a} \in A \right\}.
+\end{equation*}
 
 It is useful to categorize the points in $A$ and $B$.
 
@@ -140,12 +138,10 @@ Typically, each point in $A$ will be matched to the closest point in $B$. Howeve
 
 We define $M$ to be the set of tuples of matched points, and $M_\textrm{S}$ as the set of tuples of matched and rigidly registered points
 
-$$
 \begin{align*}
 M =& \; \{ (\mathbf{a}, \mathbf{b}) \; | \; \mathbf{a} \; \textrm{matches} \; \mathbf{b} \} \\
 M_\textrm{S} =& \; \{ (\mathbf{a}_\textrm{S}, \mathbf{b}) \; | \; \mathbf{a} \; \textrm{matches} \; \mathbf{b} \}.
 \end{align*}
-$$
 
 \section{Validation Framework}
 
@@ -176,9 +172,9 @@ Once we have annotated a source image, we can generate many test cases from it b
 
 The final result of the test is the mean target registration error (TRE), which quantifies the disparity between the actual geometric distortion that we artificially introduced and the geometric distortion calculated by our algorithm \cite[page R37]{hill2001}.  If $\textbf{D}$ is the distortion calculated by our algorithm, and $\textbf{D}_a$ is the actual distortion, and $V$ is the volume over which we have a meaningful value, we have
 
-$$
+\begin{equation*}
 \textrm{TRE}_\textrm{mean} = \frac{1}{V}\int_V \| \textbf{D}(\textbf{r}) - \textbf{D}_a(\textbf{r}) \| d\textbf{r}.
-$$
+\end{equation*}
 
 A $\textrm{TRE}_\textrm{mean}$ of 0.2mm means that on average, our algorithm miscalculated the geometric distortion by 0.2mm.  Thus an end user interpreting the results returned from our algorithm may believe that the distortion is 0.2mm better or worse than it actually is.
 
@@ -213,14 +209,12 @@ Typically there is an expected discrepancy between $B$ and $A$ (this is what we 
 
 We quantify the performance of the algorithm using the following metrics: 
 
-$$
 \begin{align*}
     \textrm{TPF} &= \frac{N_\textrm{TP}}{N_A} \\
     \textrm{FNF} &= \frac{N_\textrm{FN}}{N_A} \\
     \textrm{FPF} &= \frac{N_\textrm{FP}}{N_B} \\
     \textrm{FLE}_\textrm{mean} &= \frac{1}{N_\textrm{TP}} \sum_{(\textbf{a}, \textbf{b}) \in M} \| \textbf{a} - \textbf{b} \|\\
-\end{align*} \\
-$$
+\end{align*}
 
 The TPF, or True Positive Fraction, is the fraction of known fiducials that were successfully identified.  The FPF is the fraction of detected fiducials that were false positives.  The FNF is the fraction of known fiducials that were not identified.  Note that FNF + TPF = 1.  The $\textrm{FLE}_\textrm{mean}$ is the mean displacement between matched points, also known as the ``fiducial localization error'' \cite{hill2001}.
 
@@ -275,14 +269,14 @@ The function $f$ should have the following properties:
 
 We can find $\mathrm{S}$ by minimizing the objective function:
 
-$$
+\begin{equation*}
 f(S) =
 \sum_{(\textbf{a}_\textrm{S}, \textbf{b}) \in M_\textrm{S}} g(\left|\mathbf{b}\right|)
 \;
 (\left|\mathbf{b} - \mathbf{a}_\textrm{S}\right|/\rho(|\mathbf{b}|) - 1)
 \;
 u(\rho(|\mathbf{b}|) - \left|\mathbf{b} - \mathbf{a}_\textrm{S}\right|)
-$$
+\end{equation*}
 
 where $u$ is the Heaviside function.
 
