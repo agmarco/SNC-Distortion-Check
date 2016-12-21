@@ -139,8 +139,8 @@ Typically, each point in $A$ will be matched to the closest point in $B$. Howeve
 We define $M$ to be the set of tuples of matched points, and $M_\textrm{S}$ as the set of tuples of matched and rigidly registered points
 
 \begin{align*}
-M =& \; \{ (\mathbf{a}, \mathbf{b}) \; | \; \mathbf{a} \; \textrm{matches} \; \mathbf{b} \} \\
-M_\textrm{S} =& \; \{ (\mathbf{a}_\textrm{S}, \mathbf{b}) \; | \; \mathbf{a} \; \textrm{matches} \; \mathbf{b} \}.
+    M =& \; \{ (\mathbf{a}, \mathbf{b}) \; | \; \mathbf{a} \in A, \; \mathbf{a} \; \textrm{matches} \; \mathbf{b} \} \\
+    M_\textrm{S} =& \; \{ (\mathbf{a}_\textrm{S}, \mathbf{b}) \; | \mathbf{a}_\textrm{S} \in A_\textrm{S}, \; \mathbf{a}_\textrm{S} \; \textrm{matches} \; \mathbf{b} \}.
 \end{align*}
 
 \section{Validation Framework}
