@@ -5,3 +5,4 @@ __pycache__
 .idea/
 .hdattarchive
 data.mk
+.DS_Store
