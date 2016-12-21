@@ -76,26 +76,33 @@ def build_f(A, B, g, rho):
 
 
 def register(A, B, g, rho, tol=1e-4):
+    logger.info('Beginning Registration')
     f = build_f(A, B, g, rho)
+    logger.info('Built f')
+
+    brute_force_ranges = [
+        slice(-4, 4, 2),
+        slice(-4, 4, 2),
+        slice(-4, 4, 2),
+        slice(-0.08, 0.08, 0.04),
+        slice(-0.08, 0.08, 0.04),
+        slice(-0.08, 0.08, 0.04),
+    ]
+    x0 = scipy.optimize.brute(f, brute_force_ranges)
+    logger.info('Brute force stage complete')
+
     options = {
         'xtol': tol,
-        'ftol': 1e-20,  # only care about x
+        'ftol': 1e-20,
         'maxiter': 4000,
     }
-    logger.info('Intial best guess.')
-    x0 = scipy.optimize.brute(
-            f,
-            ranges=[slice(-5,2,5), (-5,2,5), (-5,2,5), (-0.08, 0.08, 0.04), (-0.08, 0.08, 0.04), (-0.08, 0.08, 0.04)],
-    )
-    logger.info('Best guess complete')
+
     result = scipy.optimize.minimize(f, x0, method='Powell', options=options)
-    _handle_optimization_result(result)
-    return result.x
 
-
-def _handle_optimization_result(result):
     logger.info('Optimization completed in {} iterations'.format(result.nit))
     logger.info('Objective function evaluated {} times'.format(result.nfev))
     logger.info('Cause of termination: {}'.format(result.message))
     if not result.success:
         raise ValueError('Optimization did not succeed')
+
+    return result.x
