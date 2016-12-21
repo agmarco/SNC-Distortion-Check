@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+#
+# Script to convert a matlab file containing voxels and an affine matrix into a
+# *.nii file
+import argparse
+
+import scipy.io
+import nibabel as nib
+import numpy as np
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('voxels', help='Input path to read voxels mat-file')
+    parser.add_argument('nii', help='Output path to write nii-file')
+    args = parser.parse_args()
+
+    data = scipy.io.loadmat(args.voxels)
+
+    nii_data = nib.Nifti1Image(data['voxels'], data['ijk_to_patient_xyz_transform'])
+    nib.save(nii_data, args.nii)

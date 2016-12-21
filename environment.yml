@@ -82,13 +82,12 @@ dependencies:
   - nb-conda==2.0.0
   - nb-conda-kernels==2.0.0
   - nbstripout==0.2.8
+  - nibabel==2.1.0
   - orderedset==2.0
   - prompt-toolkit==1.0.3
   - py==1.4.31
   - pydicom==0.9.9
   - pytest==3.0.3
-  - dill==0.2.5
-  - orderedset==2.0
-  - tabulate==0.7.7
   - smmap2==2.0.1
+  - tabulate==0.7.7
 
