@@ -31,6 +31,9 @@ class Slicer:
         self._renderers_hidden = []
         self.add_renderer(self._render_voxels)
 
+        # move slicer to foreground
+        self.f.canvas.manager.window.raise_()
+
     def add_renderer(self, renderer, hidden=False):
         self._renderers.append(renderer)
         self._renderers_hidden.append(hidden)
