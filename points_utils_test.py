@@ -20,7 +20,6 @@ class TestCategorize:
         A = np.hstack((TP_A, FN_A))
 
         fn_a, tp_a, tp_b, fp_b = categorize(A, B, rho)
-        print(fn_a, tp_a, tp_b, fp_b)
 
         # depends on implementation preserving column order
         assert np.alltrue(fn_a == FN_A)
