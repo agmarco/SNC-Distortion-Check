@@ -7,22 +7,68 @@ import affine
 from utils import invert, unsharp_mask, decimate
 
 
-def cylindrical_grid_kernel(pixel_spacing, radius):
+def cylindrical_grid_kernel(pixel_spacing, radius, spacing, upsample=3):
     '''
     Generate a convolution kernel that can be used to detect "cylindrical grid
-    intersections".
-
-    The radius of the cylinders is assumed to be the same along each dimension.
+    intersections".  This is a set of cylinders that are lined up on a three
+    dimensional grid.  The grid spacing is the distance in mm between the
+    cylinders (assumed to be the same along each dimension).  The grid radius
+    is the radius of the grid spacing (also assumed to be the same along each
+    axis).
     '''
-    upsample_factor = 3
-    shape = tuple(upsample_factor*math.ceil(2*4*radius/s) for s in pixel_spacing)
-    upsampled_kernel = np.zeros(shape)
-    X, Y, Z = np.meshgrid(*(np.linspace(-4, 4, n) for n in shape), indexing='ij')
-    upsampled_kernel[X**2 + Y**2 < 1] = 1
-    upsampled_kernel[X**2 + Z**2 < 1] = 1
-    upsampled_kernel[Y**2 + Z**2 < 1] = 1
-    kernel = decimate(upsampled_kernel, upsample_factor)
+    assert spacing > 2*radius
+    assert type(upsample) == int
+    assert upsample >= 1
+    assert upsample % 2 == 1
+
+    corner_shape = tuple(1 + math.ceil((1.5*spacing - 0.5*p)/p) for p in pixel_spacing)
+    upsampled_corner_shape = tuple(upsample*n - int((upsample - 1)/2) for n in corner_shape)
+
+    slices = [np.linspace(0, (n - 1)*p/upsample, n) for p, n in zip(pixel_spacing, upsampled_corner_shape)]
+
+    X, Y, Z = np.meshgrid(*slices, indexing='ij')
+
+    upsampled_kernel_corner = np.zeros(upsampled_corner_shape)
+
+    upsampled_kernel_corner[Y**2 + Z**2 < radius] = 1
+    upsampled_kernel_corner[Y**2 + (Z - spacing)**2 < radius] = 1
+    upsampled_kernel_corner[(Y - spacing)**2 + Z**2 < radius] = 1
+    upsampled_kernel_corner[(Y - spacing)**2 + (Z - spacing)**2 < radius] = 1
+
+    upsampled_kernel_corner[X**2 + Z**2 < radius] = 1
+    upsampled_kernel_corner[X**2 + (Z - spacing)**2 < radius] = 1
+    upsampled_kernel_corner[(X - spacing)**2 + Z**2 < radius] = 1
+    upsampled_kernel_corner[(X - spacing)**2 + (Z - spacing)**2 < radius] = 1
+
+    upsampled_kernel_corner[Y**2 + X**2 < radius] = 1
+    upsampled_kernel_corner[Y**2 + (X - spacing)**2 < radius] = 1
+    upsampled_kernel_corner[(Y - spacing)**2 + X**2 < radius] = 1
+    upsampled_kernel_corner[(Y - spacing)**2 + (X - spacing)**2 < radius] = 1
+
+    upsampled_kernel = _fill_corners(upsampled_kernel_corner)
+    kernel = decimate(upsampled_kernel, upsample)
+
     return kernel
+
+
+def _fill_corners(corner):
+    '''
+    Given 1 corner of a symmetrical 3D kernel, reflect and copy the corner into
+    the other 7 corners.  Assumes the first corner is oriented in the +++
+    quadrant.
+    '''
+    full_shape = tuple(1 + 2*(n - 1) for n in corner.shape)
+    full = np.empty(full_shape, dtype=corner.dtype)
+    ni, nj, nk = corner.shape
+    full[ni-1:, nj-1:, nk-1:] = corner                    # +++
+    full[ni:, nj:, :nk] = corner[1:, 1:, -1::-1]          # ++-
+    full[ni:, :nj, nk:] = corner[1:, -1::-1, 1:]          # +-+
+    full[:ni, nj:, nk:] = corner[-1::-1, 1:, 1:]          # -++
+    full[:ni, :nj, nk:] = corner[-1::-1, -1::-1, 1:]      # --+
+    full[:ni, nj:, :nk] = corner[-1::-1, 1:, -1::-1]      # -+-
+    full[ni:, :nj, :nk] = corner[1:, -1::-1, -1::-1]      # +--
+    full[:ni, :nj, :nk] = corner[-1::-1, -1::-1, -1::-1]  # ---
+    return full
 
 
 class FeatureDetector:
@@ -34,7 +80,8 @@ class FeatureDetector:
 
         # TODO: derive the kernel from the phantom model
         # the two supported phantoms currently have a 3 mm radius
-        self.grid_radius = 1.7
+        self.grid_radius = 1.5
+        self.grid_spacing = 15.0
 
         self.pixel_spacing = affine.pixel_spacing(self.ijk_to_xyz)
 
@@ -52,7 +99,7 @@ class FeatureDetector:
         return self.points_xyz
 
     def build_kernel(self):
-        return cylindrical_grid_kernel(self.pixel_spacing, self.grid_radius)
+        return cylindrical_grid_kernel(self.pixel_spacing, self.grid_radius, self.grid_spacing)
 
     def preprocess(self):
         return self.image
