@@ -17,7 +17,7 @@ class TestCylinderGridKernel:
         pixel_spacing = (1.0, 2.0, 4.0)
         grid_radius = 4.0
         grid_spacing = 12.0
-        expected_shape = tuple(1 + 2*math.ceil((1.5*grid_spacing - 0.5*p)/p) for p in pixel_spacing)
+        expected_shape = tuple(1 + 2*math.ceil((0.5*grid_spacing - 0.5*p)/p) for p in pixel_spacing)
         kernel = cylindrical_grid_kernel(pixel_spacing, grid_radius, grid_spacing, upsample=1)
         assert kernel.shape == expected_shape
 
@@ -28,32 +28,20 @@ class TestCylinderGridKernel:
         kernel = cylindrical_grid_kernel(pixel_spacing, grid_radius, grid_spacing, upsample=1)
 
         intersection_slice = np.array([
-            [0, 1, 0, 1, 0, 1, 0],
-            [1, 1, 1, 1, 1, 1, 1],
-            [0, 1, 0, 1, 0, 1, 0],
-            [1, 1, 1, 1, 1, 1, 1],
-            [0, 1, 0, 1, 0, 1, 0],
-            [1, 1, 1, 1, 1, 1, 1],
-            [0, 1, 0, 1, 0, 1, 0],
+            [0, 1, 0],
+            [1, 1, 1],
+            [0, 1, 0],
         ])
 
         off_slice = np.array([
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 1, 0, 1, 0],
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 1, 0, 1, 0],
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 1, 0, 1, 0],
-            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0],
+            [0, 1, 0],
+            [0, 0, 0],
         ])
 
         assert_allclose(kernel[0, :, :], off_slice)
         assert_allclose(kernel[1, :, :], intersection_slice)
         assert_allclose(kernel[2, :, :], off_slice)
-        assert_allclose(kernel[3, :, :], intersection_slice)
-        assert_allclose(kernel[4, :, :], off_slice)
-        assert_allclose(kernel[5, :, :], intersection_slice)
-        assert_allclose(kernel[6, :, :], off_slice)
 
     def test_upsampling(self):
         '''
@@ -67,13 +55,9 @@ class TestCylinderGridKernel:
 
         g = 15.0/27.0
         off_slice = np.array([
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, g, 0, g, 0, g, 0],
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, g, 0, g, 0, g, 0],
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, g, 0, g, 0, g, 0],
-            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0],
+            [0, g, 0],
+            [0, 0, 0],
         ])
         print(kernel[0, :, :])
         assert_allclose(kernel[0, :, :], off_slice)

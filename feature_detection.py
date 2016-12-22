@@ -21,7 +21,7 @@ def cylindrical_grid_kernel(pixel_spacing, radius, spacing, upsample=3):
     assert upsample >= 1
     assert upsample % 2 == 1
 
-    corner_shape = tuple(1 + math.ceil((1.5*spacing - 0.5*p)/p) for p in pixel_spacing)
+    corner_shape = tuple(1 + math.ceil((0.5*spacing - 0.5*p)/p) for p in pixel_spacing)
     upsampled_corner_shape = tuple(upsample*n - int((upsample - 1)/2) for n in corner_shape)
 
     slices = [np.linspace(0, (n - 1)*p/upsample, n) for p, n in zip(pixel_spacing, upsampled_corner_shape)]
@@ -31,19 +31,8 @@ def cylindrical_grid_kernel(pixel_spacing, radius, spacing, upsample=3):
     upsampled_kernel_corner = np.zeros(upsampled_corner_shape)
 
     upsampled_kernel_corner[Y**2 + Z**2 < radius] = 1
-    upsampled_kernel_corner[Y**2 + (Z - spacing)**2 < radius] = 1
-    upsampled_kernel_corner[(Y - spacing)**2 + Z**2 < radius] = 1
-    upsampled_kernel_corner[(Y - spacing)**2 + (Z - spacing)**2 < radius] = 1
-
     upsampled_kernel_corner[X**2 + Z**2 < radius] = 1
-    upsampled_kernel_corner[X**2 + (Z - spacing)**2 < radius] = 1
-    upsampled_kernel_corner[(X - spacing)**2 + Z**2 < radius] = 1
-    upsampled_kernel_corner[(X - spacing)**2 + (Z - spacing)**2 < radius] = 1
-
     upsampled_kernel_corner[Y**2 + X**2 < radius] = 1
-    upsampled_kernel_corner[Y**2 + (X - spacing)**2 < radius] = 1
-    upsampled_kernel_corner[(Y - spacing)**2 + X**2 < radius] = 1
-    upsampled_kernel_corner[(Y - spacing)**2 + (X - spacing)**2 < radius] = 1
 
     upsampled_kernel = _fill_corners(upsampled_kernel_corner)
     kernel = decimate(upsampled_kernel, upsample)
@@ -80,7 +69,7 @@ class FeatureDetector:
 
         # TODO: derive the kernel from the phantom model
         # the two supported phantoms currently have a 3 mm radius
-        self.grid_radius = 1.5
+        self.grid_radius = 1.7
         self.grid_spacing = 15.0
 
         self.pixel_spacing = affine.pixel_spacing(self.ijk_to_xyz)
