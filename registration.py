@@ -60,6 +60,7 @@ def build_f(A, B, g, rho):
 
         summation = 0.0
         for a_s in A_S.T:
+            # TODO: make this use the KDTree for speed
             b_to_a_s_distances_squared = np.sum((B_consideration_order - a_s.reshape((3, 1)))**2, axis=0)
             closest_b_indice = np.argmin(b_to_a_s_distances_squared) 
             b_min_to_a_s = sqrt(b_to_a_s_distances_squared[closest_b_indice])
@@ -75,8 +76,8 @@ def build_f(A, B, g, rho):
     return f
 
 
-def register(A, B, g, rho, tol=1e-4):
-    logger.info('Beginning Registration')
+def rigidly_register(A, B, g, rho, tol=1e-4):
+    logger.info('Beginning rigid registration')
     f = build_f(A, B, g, rho)
     logger.info('Built f')
 

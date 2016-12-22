@@ -10,9 +10,10 @@ from affine import translation_rotation
 from feature_detection import FeatureDetector
 from hdatt.suite import Suite
 import points_utils
-from registration import register
+from registration import rigidly_register
 from reports import compute_matches
 from test_utils import get_test_data_generators, Rotation, show_base_result, Distortion, load_voxels, load_points
+
 
 class FullAlgorithmSuite(Suite):
     id = 'full-algorithm'
@@ -45,7 +46,7 @@ class FullAlgorithmSuite(Suite):
         # TODO: determine rho and g based on our knowledge of the phantom
         g = lambda bmag: 1.0
         rho = lambda bmag: 15.0
-        measured_xyz_tpx = np.array(register(golden_points, rotated_distorted_golden_points, rho, g, 1e-6))
+        measured_xyz_tpx = np.array(rigidly_register(golden_points, rotated_distorted_golden_points, rho, g, 1e-6))
         a_to_b_registration_matrix = affine.translation_rotation(*measured_xyz_tpx)
         registered_golden_points = affine.apply_affine(a_to_b_registration_matrix, golden_points)
         TP_A, TP_B = compute_matches(registered_golden_points, detected_points, min_mm=10)

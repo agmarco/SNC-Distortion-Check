@@ -6,7 +6,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from registration import build_f, register
+from registration import build_f, rigidly_register
 from affine import apply_xyztpx
 
 
@@ -86,7 +86,7 @@ class TestRegistrationPerfectMatch:
         rho = lambda bmag: 10.0
 
         tolerance = 1e-5
-        xyztpx_actual = register(A, B, g, rho, tolerance)
+        xyztpx_actual = rigidly_register(A, B, g, rho, tolerance)
 
         assert_allclose(xyztpx_actual, xyztpx, atol=tolerance*10)
 
