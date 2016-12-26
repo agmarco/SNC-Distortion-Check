@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import sys
+import argparse
 
 import scipy.io
 
@@ -7,15 +7,14 @@ from reports import generate_report
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 4:
-        print('Usage: report A B REPORT')
-        sys.exit(1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('m_s', help='Input path to read rigidly registered pairs of points (M_s)')
+    parser.add_argument('report', help='Output path to write NEMA report')
+    args = parser.parse_args()
 
-    A_xyz_mat_filename = sys.argv[1]
-    A = scipy.io.loadmat(A_xyz_mat_filename)['points']
+    m_s_data = scipy.io.loadmat(args.m_s)
 
-    B_xyz_mat_filename = sys.argv[2]
-    B = scipy.io.loadmat(B_xyz_mat_filename)['points']
+    TP_A_S = m_s_data['TP_A_S']
+    TP_B = m_s_data['TP_B']
 
-    output_pdf_filename = sys.argv[3]
-    generate_report(A, B, output_pdf_filename)
+    generate_report(TP_A_S, TP_B, args.report)

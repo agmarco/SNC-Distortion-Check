@@ -16,22 +16,6 @@ SPHERE_STEP_mm = 1
 SPHERE_POINTS_PER_AREA = 1
 
 
-def compute_matches(A, B, min_mm=5):
-    '''
-    returns a list of tuples with matching points
-    '''
-    A_matched = []
-    B_matched = []
-    min_mm_squared = min_mm * min_mm
-    for a in A.T:
-        a_b_distances_squared = np.sum((B - a.reshape((3, 1)))**2, axis=0)
-        min_index = np.argmin(a_b_distances_squared)
-        if a_b_distances_squared[min_index] < min_mm_squared:
-            A_matched.append(a)
-            B_matched.append(B[:, min_index])
-    return np.array(A_matched), np.array(B_matched)
-
-
 def surface_area(r):
     return 4*np.pi*r*r
 
@@ -53,19 +37,25 @@ def generate_equidistant_sphere(n=256):
     return points
 
 
-def generate_report(A, B, pdfPath):
+def generate_report(TP_A_S, TP_B, pdf_path):
     '''
-    Assumes A and B are registered (therefore on the same frame of reference and csys)
+    Given the set of matched and registered points, generate a NEMA report.
+
+    Assumes that each column of TP_A_S is matched with the cooresponding column
+    of TP_B.
     '''
-    A, B = compute_matches(A,B)
-    error_vecs = A - B
+    assert TP_A_S.shape == TP_B.shape
+
+    error_vecs = TP_A_S - TP_B
     error_mags = np.linalg.norm(error_vecs, axis=1)
-    x_max, y_max, z_max = np.max(np.concatenate([A,B]), axis=0)
-    x_min, y_min, z_min = np.min(np.concatenate([A,B]), axis=0)
+
+    all_points = np.concatenate([TP_A_S, TP_B], axis=1)
+    x_max, y_max, z_max = np.max(all_points, axis=1)
+    x_min, y_min, z_min = np.min(all_points, axis=1)
 
     # interpolate onto plane at the isocenter to generate contour
     grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm), np.arange(y_min, y_max, GRID_DENSITY_mm), [0])
-    gridded = griddata(A, error_mags, (grid_x, grid_y, grid_z), method='linear')
+    gridded = griddata(TP_B, error_mags, (grid_x, grid_y, grid_z), method='linear')
 
     # interpolate onto spheres of increasing size to calculate average and max error table
     interpolator = LinearNDInterpolator(A, error_mags)
@@ -103,7 +93,7 @@ def generate_report(A, B, pdfPath):
     plt.table(cellText=rows, colLabels=['Distance from Isocenter [mm]','Maximum Error [mm]', 'Average Error [mm]'], loc='center')
     plt.axis('off')
 
-    with PdfPages(pdfPath) as pdf:
+    with PdfPages(pdf_path) as pdf:
         pdf.savefig(contour_fig)
         pdf.savefig(scatter_fig)
         pdf.savefig(table_fig)

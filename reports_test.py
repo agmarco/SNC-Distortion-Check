@@ -1,5 +1,7 @@
 import numpy as np
+
 from reports import generate_equidistant_sphere
+
 
 def test_evenly_sampled_sphere_equidistant():
     '''

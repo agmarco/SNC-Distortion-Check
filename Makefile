@@ -4,20 +4,21 @@ SHELL := /bin/bash
 
 IN_ENV := . activate cirs &&
 
-reports := $(patsubst data/dicom/%.zip,tmp/%-report.pdf,$(wildcard data/dicom/*))
 
-.PRECIOUS: tmp/%-voxels.mat tmp/%-unregistered-points.mat tmp/%-points.mat tmp/%-registration.mat
+.PRECIOUS: tmp/%-voxels.mat tmp/%-unregistered-points.mat tmp/%-matched-points.mat tmp/%-registration.matk
 
-all: reports
+all: $(patsubst data/dicom/%.zip,tmp/%-report.pdf,$(wildcard data/dicom/*))
 
 voxels: $(patsubst data/dicom/%.zip,tmp/%-voxels.mat,$(wildcard data/dicom/*))
 
 unregistered-points: $(patsubst data/dicom/%.zip,tmp/%-unregistered-points.mat,$(wildcard data/dicom/*))
 
+
 .CONDABUILD: environment.yml
 	conda env create --force --file $<
 	$(IN_ENV) nbstripout --install --attributes .gitattributes
 	git rev-parse HEAD > $@
+
 
 tmp/%-voxels.mat: data/dicom/%.zip .CONDABUILD
 	./dicom2mat $< $@
@@ -25,14 +26,15 @@ tmp/%-voxels.mat: data/dicom/%.zip .CONDABUILD
 tmp/%-unregistered-points.mat: tmp/%-voxels.mat .CONDABUILD
 	./detect_features $< $@
 
-tmp/%-registration.mat: tmp/%-unregistered-points.mat .CONDABUILD
+tmp/%-matched-points.mat: tmp/%-unregistered-points.mat .CONDABUILD
 	./register ./data/points/603A_CAD.mat $< $@
 
-tmp/%-points.mat: tmp/%-registration.mat tmp/%-unregistered-points.mat .CONDABUILD
-	./applyaffine $< $(word 2,$^) $@
+tmp/%-report.pdf: tmp/%-matched-points.mat .CONDABUILD
+	./report $< $@
 
-tmp/%-report.pdf: tmp/%-points.mat .CONDABUILD
-	./report ./data/points/603A_CAD.mat $< $@
+
+tmp/%-distortion.mat: tmp/%-voxels.mat tmp/%-matched-points.mat .CONDABUILD
+	./interpolate $< $(word 2,$^) $@
 
 
 .PHONY: clean cleanall freezedeps
