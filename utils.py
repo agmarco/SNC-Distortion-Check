@@ -45,3 +45,18 @@ def decimate(image, factor):
                 ])
 
     return decimated
+
+
+def split_file_variable_arg(arg, default_variable):
+    '''
+    Some commandline tools have arguments that specify a file and a variable
+    from that file to read.  This utility splits the arguments into their
+    component parts.
+    '''
+    parts = arg.split(':')
+    if len(parts) == 1:
+        return parts[0], default_variable
+    elif len(parts) == 2:
+        return parts[0], parts[1]
+    else:
+        raise ValueError("Invalid 'file:variable' argument.")

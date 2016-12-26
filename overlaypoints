@@ -7,6 +7,7 @@ import matplotlib.pylab as plt
 import numpy as np
 
 from slicer import PointsSlicer, render_points, render_cursor
+from utils import split_file_variable_arg
 
 
 if __name__ == '__main__':
@@ -21,8 +22,16 @@ if __name__ == '__main__':
 
     colors = itertools.cycle(["c", "g", "r", "y", "k"])
     descriptors = []
-    for path, color in zip(args.points, colors):
-        points_xyz = scipy.io.loadmat(path)['points']
+    for points_specifier, color in zip(args.points, colors):
+        path, variable = split_file_variable_arg(points_specifier, 'points')
+        data = scipy.io.loadmat(path)
+        try:
+            points_xyz = data[variable]
+        except KeyError as e:
+            variables = "\n- ".join(data)
+            print("Invalid variable. Variables present:\n- {}".format(variables))
+            raise e
+
         descriptors.append({
             'points_xyz': points_xyz,
             'scatter_kwargs': {'color': color, 'label': path},

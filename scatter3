@@ -1,19 +1,23 @@
 #!/usr/bin/env python
-import sys
+import argparse
 
 import scipy.io
 import matplotlib.pyplot as plt
 
 from visualization import scatter3
+from utils import split_file_variable_arg
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print('Usage: scatter3 MATFILE [MATFILES...]')
-        sys.exit(1)
-    input_files = sys.argv[1:]
+    parser = argparse.ArgumentParser()
+    parser.add_argument('points', nargs='+', default=None)
+    args = parser.parse_args()
 
-    label_to_points = {f: scipy.io.loadmat(f)['points'] for f in input_files}
+    label_to_points = {}
+    for arg in args.points:
+        path, variable = split_file_variable_arg(arg, 'points')
+        label_to_points[arg] = scipy.io.loadmat(path)[variable]
+
     scatter3(label_to_points)
 
     plt.show()
