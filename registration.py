@@ -6,9 +6,11 @@ import scipy.optimize
 from scipy.spatial import KDTree
 
 import affine
+import points_utils
 
 
 logger = logging.getLogger(__name__)
+import sys; logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 
 def build_f(A, B, g, rho):
@@ -117,3 +119,18 @@ def rigidly_register(A, B, g, rho, tol=1e-4):
         raise ValueError('Optimization did not succeed')
 
     return result.x
+
+
+def rigidly_register_and_categorize(A, B):
+    # TODO: determine rho and g based on our knowledge of the phantom
+    # for now, we assume that the distortion is always within 5 mm
+    g = lambda bmag: 1.0
+    rho = lambda bmag: 5.0
+
+    xyztpx = rigidly_register(A, B, rho, g, 1e-6)
+
+    a_to_b_registration_matrix = affine.translation_rotation(*xyztpx)
+    A_S = affine.apply_affine(a_to_b_registration_matrix, A)
+
+    FN_A_S, TP_A_S, TP_B, FP_B = points_utils.categorize(A_S, B, rho)
+    return xyztpx, FN_A_S, TP_A_S, TP_B, FP_B

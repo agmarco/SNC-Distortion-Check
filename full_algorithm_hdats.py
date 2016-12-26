@@ -10,8 +10,7 @@ from affine import translation_rotation
 from feature_detection import FeatureDetector
 from hdatt.suite import Suite
 import points_utils
-from registration import rigidly_register
-from reports import compute_matches
+from registration import rigidly_register_and_categorize
 from test_utils import get_test_data_generators, Rotation, show_base_result, Distortion, load_voxels, load_points
 
 
@@ -43,14 +42,14 @@ class FullAlgorithmSuite(Suite):
 
         detected_points = FeatureDetector(voxels, ijk_to_xyz_transform).run()
 
-        # TODO: determine rho and g based on our knowledge of the phantom
-        g = lambda bmag: 1.0
-        rho = lambda bmag: 15.0
-        measured_xyz_tpx = np.array(rigidly_register(golden_points, rotated_distorted_golden_points, rho, g, 1e-6))
-        a_to_b_registration_matrix = affine.translation_rotation(*measured_xyz_tpx)
-        registered_golden_points = affine.apply_affine(a_to_b_registration_matrix, golden_points)
-        TP_A, TP_B = compute_matches(registered_golden_points, detected_points, min_mm=10)
-        detected_error_vecs = (TP_A - TP_B)
+
+        xyztpx, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
+            golden_points,
+            rotated_distorted_golden_points
+        )
+        detected_error_vecs = TP_A_S - TP_B
+        # TODO: fix + replace following code w general purpose function in the
+        # util file
 
         interpolator = LinearNDInterpolator(TP_A, detected_error_vecs)
         golden_error_vecs = (rotated_golden_points - rotated_distorted_golden_points).T
