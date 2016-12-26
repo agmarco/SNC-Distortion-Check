@@ -1,0 +1,41 @@
+#!/usr/bin/env python
+import argparse
+
+import scipy.io
+from scipy.interpolate.ndgriddata import griddata
+import numpy as np
+
+import affine
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('voxels', help='Input path to read voxels mat-file')
+    parser.add_argument('m_s', help='Input path to read rigidly registered pairs of points (M_s)')
+    parser.add_argument('distortion', help='Output path to write distortion file')
+    args = parser.parse_args()
+
+    voxel_data = scipy.io.loadmat(args.voxels)
+    m_s_data = scipy.io.loadmat(args.m_s)
+
+    TP_A_S = m_s_data['TP_A_S']
+    TP_B = m_s_data['TP_B']
+    distortion_points = TP_B - TP_A_S
+
+    # TODO: see if this can be split out and combined w anything in reports.py
+    ni, nj, nk = voxel_data['voxels'].shape
+    ijk_to_xyz = voxel_data['ijk_to_patient_xyz_transform']
+    xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
+    TP_B_in_ijk = affine.apply_affine(xyz_to_ijk, TP_B)
+
+    grid = tuple(np.meshgrid(np.arange(0, ni), np.arange(0, nj), np.arange(0, nk), indexing='ij'))
+    distortion_grid = np.empty((ni, nj, nk, 3))
+    distortion_grid[:, :, :, 0] = griddata(TP_B_in_ijk.T, distortion_points[0, :], grid, method='linear')
+    distortion_grid[:, :, :, 1] = griddata(TP_B_in_ijk.T, distortion_points[1, :], grid, method='linear')
+    distortion_grid[:, :, :, 2] = griddata(TP_B_in_ijk.T, distortion_points[2, :], grid, method='linear')
+
+    assert distortion_grid.shape == (ni, nj, nk, 3)
+
+    scipy.io.savemat(args.distortion, {
+        'distortion': distortion_grid,
+    })
