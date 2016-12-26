@@ -11,7 +11,7 @@ from affine import apply_affine
 from visualization import scatter3
 import matplotlib.pyplot as plt
 
-GRID_DENSITY_mm = 0.1
+GRID_DENSITY_mm = 0.5
 SPHERE_STEP_mm = 1
 SPHERE_POINTS_PER_AREA = 1
 
@@ -47,7 +47,7 @@ def generate_report(TP_A_S, TP_B, pdf_path):
     assert TP_A_S.shape == TP_B.shape
 
     error_vecs = TP_A_S - TP_B
-    error_mags = np.linalg.norm(error_vecs, axis=1)
+    error_mags = np.linalg.norm(error_vecs, axis=0)
 
     all_points = np.concatenate([TP_A_S, TP_B], axis=1)
     x_max, y_max, z_max = np.max(all_points, axis=1)
@@ -55,10 +55,10 @@ def generate_report(TP_A_S, TP_B, pdf_path):
 
     # interpolate onto plane at the isocenter to generate contour
     grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm), np.arange(y_min, y_max, GRID_DENSITY_mm), [0])
-    gridded = griddata(TP_B, error_mags, (grid_x, grid_y, grid_z), method='linear')
+    gridded = griddata(TP_B.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
 
     # interpolate onto spheres of increasing size to calculate average and max error table
-    interpolator = LinearNDInterpolator(A, error_mags)
+    interpolator = LinearNDInterpolator(TP_B.T, error_mags.T)
     max_sphere_radius = np.min(np.abs([x_min, y_min, z_min, x_max, y_max, z_max]))
     radius2MaxMeanError = OrderedDict()
     for r in np.arange(SPHERE_STEP_mm, max_sphere_radius, SPHERE_STEP_mm):
@@ -70,9 +70,9 @@ def generate_report(TP_A_S, TP_B, pdf_path):
 
     quiver_fig = plt.figure()
     ax = quiver_fig.add_subplot(111, projection='3d')
-    ax.quiver(*A.T, *error_vecs.T)
+    ax.quiver(*TP_B, *error_vecs)
 
-    points_fig = scatter3({'A': A.T, 'B': B.T})
+    points_fig = scatter3({'A_S': TP_A_S, 'B': TP_B})
 
     contour_fig = plt.figure()
     contour = plt.contour(grid_x.squeeze(), grid_y.squeeze(), gridded.squeeze(), colors='black')
