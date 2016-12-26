@@ -1,0 +1,31 @@
+#!/usr/bin/env python
+import argparse
+import itertools
+
+import scipy.io
+import matplotlib.pylab as plt
+import numpy as np
+
+import slicer
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('voxels')
+    parser.add_argument('distortion')
+    args = parser.parse_args()
+
+    input_data = scipy.io.loadmat(args.voxels)
+    voxels = input_data['voxels']
+
+    distortion = scipy.io.loadmat(args.distortion)['distortion']
+    distortion_magnitude = np.linalg.norm(distortion, axis=3)
+    min_value = np.nanmin(distortion_magnitude)
+    max_value = np.nanmax(distortion_magnitude)
+    nan_value = min_value - 0.1*abs(max_value - min_value)
+    distortion_magnitude[np.isnan(distortion_magnitude)] = nan_value
+
+    s = slicer.Slicer(voxels)
+    s.add_renderer(slicer.render_overlay(distortion_magnitude, cmap='cool', alpha=0.8))
+    s.draw()
+    plt.show()
