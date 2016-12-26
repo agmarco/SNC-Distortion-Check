@@ -67,7 +67,6 @@ Generic non-rigid registration is an open research area with many unsolved probl
 
 We denote the set of fiducial locations in the undistorted image as $A$ and the set of fiducial locations in the distorted image as $B$.  The isocenter of the scanner defines the origin of $B$'s coordinate system.  The location of the origin in $A$ is generally different due to positioning errors, and the axes of $A$ and $B$'s coordinate systems are generally not oriented with one another.
 
-
 The second stage of our generic algorithm applies a rigid registration so that $A$ and $B$ can be compared directly.  Rigidly registering $A$ and $B$ involves determining the six free variables---$x$, $y$, $z$, $\theta$, $\phi$, and $\xi$---which define the affine transformation matrix S.  We define this matrix as
 
 \begin{equation*}
@@ -288,7 +287,18 @@ We note that the L-$p$ norms with $p \in (0, 1]$ have been used in other registr
 
 \subsection{Distortion Interpolation}
 
-The final stage of our algorithm is distortion interpolation.  The distortion interpolation stage takes the sets of rigidly-registered, matched points, $M_\textrm{S}$, and interpolates the geometric distortion vector field onto a grid of points. The points are interpolated onto the grid by triangulating $M_\textrm{S}$ and performing linear barycentric interpolation on each triangle. Points in the grid that are too far from any point in $B$ are marked as having unknown distortion.
+The final stage of our algorithm is distortion interpolation.  This stage interpolates the rigidly-registered, matched points, $M_\textrm{S}$, onto a grid for simpler visualization and analysis.  We interpolate onto the voxel locations of the original MRI.  Points that can not be interpolated will be indicated using using floating point ``NaN'' values.  If the original MRI was an $n \times m \times k$ array, the distortion field will be a $n \times m \times k \times 3$ array.
+
+We defined the distortion at $\mathbf{a}_\textrm{S}$ to be $\mathbf{D}(\mathbf{b}) = \mathbf{a}_\textrm{S} - \mathbf{b}$, where $(\mathbf{a}_\textrm{S}, \mathbf{b}) \in M_\textrm{S}$.  Note that there is an alternate definition that could be used.  In particular, $\mathbf{D}(\mathbf{a}_\textrm{S}) = \mathbf{a}_\textrm{S} - \mathbf{b}$.  The NEMA MS 12 standard's definition is ambiguous on which definition should be used \cite{nema2010}.  One can understand the difference between these definitions informally as follows.  The first definition represents how far the object in the distorted image was moved.  The second definition represents how far the underlying object at a location was moved.  The first definition is image-centric, the second object-centric.  We believe an image-centric definition is more useful because it allows one to overlay the distortion on the MRI and determine how far each pixel has been distorted.  Figure \ref{fig:interpolation} demonstrates the difference between the definitions.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{interpolation.pdf}
+    \caption{The distortion vector field can be interpolated from $M_\textrm{S}$ in two ways---by locating the error vector at $\mathbf{a}_\textrm{S}$ (orange) or at $\mathbf{b}$ (blue).  The choice of definition will determine the volume over which we can interpolate (indicated by the solid translucent overalls) and will slightly alter the interpolated values.}
+    \label{fig:interpolation}
+\end{figure}
+
+The distortion is interpolated onto the grid by triangulating $M_\textrm{S}$ and performing linear barycentric interpolation on each triangle.
 
 \section{Results and Discussion}
 
