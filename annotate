@@ -73,12 +73,12 @@ class AnnotateSlicer(PointsSlicer):
 
         if event.key == 'esc':
             self.selected_indice = None
-        elif event.key == 'd':
+        elif event.key in ['d', 'e']:
             points_without_selected = points[:, np.arange(num_points) != self.selected_indice]
             self.points_descriptors[0]['points_ijk'] = points_without_selected
             points = points_without_selected
             num_points = num_points - 1
-            if num_points == 0:
+            if num_points == 0 or event.key == 'e':
                 self.selected_indice = None
             else:
                 self.selected_indice = self.selected_indice % num_points
