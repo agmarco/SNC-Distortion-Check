@@ -3,6 +3,7 @@ import logging
 import numpy as np
 from math import pi, sqrt
 import scipy.optimize
+from scipy.spatial import KDTree
 
 import affine
 
@@ -47,6 +48,11 @@ def build_f(A, B, g, rho):
     B_consideration_order = B[:, indices_sorted]
     g_consideration_order = B_g_values[indices_sorted]
     rho_consideration_order = B_rho_values[indices_sorted]
+    g_div_rho_consideration_order = g_consideration_order/rho_consideration_order
+
+    max_rho = np.max(rho_consideration_order)
+
+    kdtree = KDTree(B_consideration_order.T)
 
     _, num_B_considered = B_consideration_order.shape
     if num_B_considered == 0:
@@ -58,21 +64,25 @@ def build_f(A, B, g, rho):
         A1_S = affine_matrix @ A1
         A_S = A1_S[:3, :]
 
-        summation = 0.0
-        for a_s in A_S.T:
-            # TODO: make this use the KDTree for speed
-            b_to_a_s_distances_squared = np.sum((B_consideration_order - a_s.reshape((3, 1)))**2, axis=0)
-            closest_b_indice = np.argmin(b_to_a_s_distances_squared) 
-            b_min_to_a_s = sqrt(b_to_a_s_distances_squared[closest_b_indice])
+        a_s_to_b_distances, closest_b_indices = kdtree.query(A_S.T, distance_upper_bound=max_rho)
 
-            rho_b = rho_consideration_order[closest_b_indice]
-            if b_min_to_a_s > rho_b:
-                continue
+        # points above the distance upper bound have an infinite distance, prune them out
+        finite_indices = np.isfinite(a_s_to_b_distances)
+        closest_b_indices = closest_b_indices[finite_indices]
+        a_s_to_b_distances = a_s_to_b_distances[finite_indices]
 
-            g_b = g_consideration_order[closest_b_indice]
+        # prune out points that are below the distance upper bound (rho_max) and rho_b
+        valid_indices = a_s_to_b_distances < rho_consideration_order[closest_b_indices]
 
-            summation += g_b*(b_min_to_a_s/rho_b - 1)
-        return summation
+        closest_b_indices = closest_b_indices[valid_indices]
+        a_s_to_b_distances = a_s_to_b_distances[valid_indices]
+
+        if len(np.unique(closest_b_indices)) < len(closest_b_indices):
+            raise NotImplementedError("Not all points are unique")
+
+        g_div_rho = g_div_rho_consideration_order[closest_b_indices]
+        rho = rho_consideration_order[closest_b_indices]
+        return np.sum(g_div_rho*(a_s_to_b_distances - rho))
     return f
 
 
