@@ -4,12 +4,6 @@ import argparse
 import scipy.io
 
 from registration import rigidly_register_and_categorize
-import affine
-import points_utils
-
-import logging
-log = logging.getLogger(__name__)
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

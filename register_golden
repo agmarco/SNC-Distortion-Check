@@ -1,0 +1,22 @@
+#!/usr/bin/env python
+import argparse
+import subprocess
+
+import scipy.io
+
+import phantoms
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('voxels', help='Input path to read voxels mat-file')
+    parser.add_argument('b', help='Input path to read B points mat-file')
+    parser.add_argument('output', help='Output path to write all data to mat-file')
+    args = parser.parse_args()
+
+    phantom_name = scipy.io.loadmat(args.voxels)['phantom_name'][0]
+    a_file = phantoms.paramaters[phantom_name]['points_file']
+
+    cmd = ['./register', a_file, args.b, args.output]
+    print(' '.join(cmd))
+    subprocess.run(cmd, check=True)

@@ -5,6 +5,7 @@ from scipy import signal, ndimage
 
 import affine
 from utils import invert, unsharp_mask, decimate
+import phantoms
 
 
 def cylindrical_grid_kernel(pixel_spacing, radius, spacing, upsample=3):
@@ -61,21 +62,20 @@ def _fill_corners(corner):
 
 
 class FeatureDetector:
-    def __init__(self, image, ijk_to_xyz):
+    def __init__(self, phantom_name, image, ijk_to_xyz):
         # TODO: detect whether we need to invert here
         self.image = invert(image)
+        self.phantom_name = phantom_name
 
         self.ijk_to_xyz = ijk_to_xyz
 
-        # TODO: derive the kernel from the phantom model
-        # the two supported phantoms currently have a 3 mm radius
-        self.grid_radius = 1.7
-        self.grid_spacing = 15.0
+        self.grid_radius = phantoms.paramaters[phantom_name]['grid_radius']
+        self.grid_spacing = phantoms.paramaters[phantom_name]['grid_spacing']
 
         self.pixel_spacing = affine.pixel_spacing(self.ijk_to_xyz)
 
         self.threshold_max_percentile = 98
-        self.threshold_frac = 0.90
+        self.threshold_frac = 0.88
 
     def run(self):
         self.kernel = self.build_kernel()

@@ -7,7 +7,7 @@ import numpy as np
 
 from hdatt.suite import Suite
 from feature_detection import FeatureDetector
-from test_utils import get_test_data_generators, load_voxels
+from test_utils import get_test_data_generators
 import slicer
 import affine
 import points_utils
@@ -39,6 +39,14 @@ class FeatureDetectionSuite(Suite):
                 'voxels': 'tmp/010_mri_604_LFV-Phantom_E2632-1-voxels.mat',
                 'points': 'data/points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
             },
+            'a': {
+                'voxels': 'tmp/arterial_TOF_3d_motsa_ND-voxels.mat',
+                'points': 'data/points/arterial_TOF_3d_motsa_ND-golden.mat',
+            },
+            '1540': {
+                'voxels': 'tmp/1540_mri_ST075-120kVp-100mA-voxels.mat',
+                'points': 'data/points/1540_golden.mat',
+            },
         }
         return cases
 
@@ -48,11 +56,16 @@ class FeatureDetectionSuite(Suite):
 
         context['case_input'] = case_input
 
-        voxels, ijk_to_xyz_transform = load_voxels(case_input['voxels'])
+        # TODO: split out all IO into wrapper functions
+        voxel_data = scipy.io.loadmat(case_input['voxels'])
+        voxels = voxel_data['voxels']
+        ijk_to_xyz = voxel_data['ijk_to_patient_xyz_transform']
+        phantom_name = voxel_data['phantom_name'][0]
 
-        feature_detector = FeatureDetector(voxels, ijk_to_xyz_transform)
+        feature_detector = FeatureDetector(phantom_name, voxels, ijk_to_xyz)
         points = feature_detector.run()
 
+        context['phantom_name'] = phantom_name
         context['label_image'] = feature_detector.label_image
         context['preprocessed_image'] = feature_detector.preprocessed_image
         context['feature_image'] = feature_detector.feature_image
@@ -108,7 +121,11 @@ class FeatureDetectionSuite(Suite):
             {'points_xyz': context['TP_B'], 'scatter_kwargs': {'color': 'g', 'label': 'TP_B', 'marker': 'x'}},
             {'points_xyz': context['FP_B'], 'scatter_kwargs': {'color': 'r', 'label': 'FP_B', 'marker': 'x'}},
         ]
-        raw_voxels, ijk_to_xyz = load_voxels(context['case_input']['voxels'])
+
+        voxel_data = scipy.io.loadmat(context['case_input']['voxels'])
+        raw_voxels = voxel_data['voxels']
+        ijk_to_xyz = voxel_data['ijk_to_patient_xyz_transform']
+        phantom_name = voxel_data['phantom_name'][0]
 
         kernel_big = np.zeros_like(raw_voxels)
         kernel_small = context['kernel']
