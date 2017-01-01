@@ -2,8 +2,7 @@
 import argparse
 import os
 
-import scipy.io
-
+import file_io
 from dicom_import import combined_series_from_zip
 import phantoms
 
@@ -22,25 +21,20 @@ def phantom_name_from_file_name(file_path):
     if len(file_parts) < 4:
         raise ValueError("Invalid DICOM zip filename format: {}".format(file_name))
 
-    phantom_name = file_parts[2]
-
-    if phantom_name not in phantoms.paramaters:
-        raise ValueError("Invalid phantom name: {}".format(phantom_name))
-    else:
-        return phantom_name
+    return file_parts[2]
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('zip', help='Zip archive containing DICOM files from a series')
-    parser.add_argument('voxels', help='Output path to write voxels mat-file')
+    parser.add_argument('voxels', help='Output path to write voxels-file')
     args = parser.parse_args()
 
     phantom_name = phantom_name_from_file_name(args.zip)
 
     voxels, ijk_to_xyz = combined_series_from_zip(args.zip)
 
-    scipy.io.savemat(args.voxels, {
+    file_io.save_voxels(args.voxels, {
         'voxels': voxels,
         'ijk_to_patient_xyz_transform': ijk_to_xyz,
         'phantom_name': phantom_name,

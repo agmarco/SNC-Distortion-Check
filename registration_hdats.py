@@ -2,8 +2,8 @@ from collections import OrderedDict
 
 import numpy as np
 import scipy
-import scipy.io
 
+import file_io
 from hdatt.suite import Suite
 from registration import rigidly_register
 from test_utils import get_test_data_generators, Rotation, show_base_result
@@ -28,8 +28,8 @@ class RegistrationSuite(Suite):
         return cases
 
     def run(self, case_input):
-        golden_points = scipy.io.loadmat(case_input['source_points'])['points']
-        rotated_points = scipy.io.loadmat(case_input['points'])['points']
+        golden_points = file_io.load_points(case_input['source_points'])['points']
+        rotated_points = file_io.load_points(case_input['points'])['points']
         rotation_deg = float(case_input['rotation_deg'])
         rotation_rad = np.deg2rad(rotation_deg)
         expected_xyz_tpx = np.array((0, 0, 0, rotation_rad, rotation_rad, rotation_rad))

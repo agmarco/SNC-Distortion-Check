@@ -2,16 +2,16 @@ from collections import OrderedDict
 
 import numpy as np
 import scipy
-import scipy.io
 from scipy.interpolate.interpnd import LinearNDInterpolator
 
 import affine
+import file_io
 from affine import translation_rotation
 from feature_detection import FeatureDetector
 from hdatt.suite import Suite
 import points_utils
 from registration import rigidly_register_and_categorize
-from test_utils import get_test_data_generators, Rotation, show_base_result, Distortion, load_voxels, load_points
+from test_utils import get_test_data_generators, Rotation, show_base_result, Distortion
 
 
 class FullAlgorithmSuite(Suite):
@@ -33,15 +33,18 @@ class FullAlgorithmSuite(Suite):
         return cases
 
     def run(self, case_input):
-        voxels, ijk_to_xyz_transform = load_voxels(case_input['distorted_and_rotated_voxels'])
-        golden_points = load_points(case_input['source_points'])
+        voxel_data = file_io.load_voxels(case_input['distorted_and_rotated_voxels'])
+        voxels = voxel_data['voxels']
+        ijk_to_xyz = voxel_data['ijk_to_patient_xyz_transform']
+        phantom_name = voxel_data['phantom_name']
+
+        golden_points = file_io.load_points(case_input['source_points'])['points']
         rotation_rad = np.deg2rad(case_input['rotation_deg'])
         rotation_mat = translation_rotation(0, 0, 0, rotation_rad, rotation_rad, rotation_rad)
         rotated_golden_points = affine.apply_affine(rotation_mat, golden_points)
-        rotated_distorted_golden_points = scipy.io.loadmat(case_input['distorted_and_rotated_points'])['points']
+        rotated_distorted_golden_points = file_io.load_points(case_input['distorted_and_rotated_points'])['points']
 
-        detected_points = FeatureDetector(voxels, ijk_to_xyz_transform).run()
-
+        detected_points = FeatureDetector(voxels, ijk_to_xyz).run()
 
         xyztpx, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
             golden_points,

@@ -5,15 +5,16 @@ import math
 from functools import partial
 
 import numpy as np
-import scipy.io
 from scipy.ndimage.interpolation import geometric_transform
 
+import file_io
 from affine import translation_rotation, apply_affine
 
 
 def affine_point(mat, point):
     i_in_coord, j_in_coord, k_in_coord, _ = mat @ np.array([*point, 1]).T
     return i_in_coord, j_in_coord, k_in_coord
+
 
 def chain_transformers(func_list):
     def chained(ijk_out_coord):
@@ -22,6 +23,7 @@ def chain_transformers(func_list):
             ijk = func(ijk)
         return ijk
     return chained
+
 
 def deform_func(distort_factor=8e-4):
     '''
@@ -104,9 +106,11 @@ if __name__ == '__main__':
     parser.add_argument('--xyz_tpx', type=float, nargs=6, help='space separated x,y,z displacement and theta,phi,xi rotation. Rotations should be in degrees.')
     parser.add_argument('--reduction_factor', type=int, help='How much to decimate the input voxels by, useful for previewing the distortion before processing it.')
     args = parser.parse_args()
-    input_data = scipy.io.loadmat(args.undistorted_voxels)
-    voxels = input_data['voxels']
-    ijk_to_patient_xyz_transform = input_data['ijk_to_patient_xyz_transform']
+    voxel_data = file_io.load_voxels(args.undistorted_voxels)
+    voxels = voxel_data['voxels']
+    ijk_to_patient_xyz_transform = voxel_data['ijk_to_patient_xyz_transform']
+    phantom_name = voxel_data['phantom_name']
+
     if args.reduction_factor:
         voxels = voxels[::args.reduction_factor, ::args.reduction_factor, ::args.reduction_factor]
 
@@ -134,20 +138,21 @@ if __name__ == '__main__':
     undistort_func = chain_transformers(undistorters)
 
     print('distorting points for {}'.format(args.distorted_points))
-    undistorted_points_xyz = scipy.io.loadmat(args.undistorted_points)['points']
+    undistorted_points_xyz = file_io.load_points(args.undistorted_points)['points']
     undistorted_points_ijk = apply_affine(np.linalg.inv(ijk_to_patient_xyz_transform), undistorted_points_xyz)
     distorted_points_ijk = np.array(list(map(distort_func, undistorted_points_ijk.T))).T
     distorted_points_xyz = apply_affine(ijk_to_patient_xyz_transform, distorted_points_ijk)
-    scipy.io.savemat(args.distorted_points, {
+    file_io.save_points(args.distorted_points, {
         'points': distorted_points_xyz,
-        'undistorted_points': undistorted_points_xyz
+        'undistorted_points': undistorted_points_xyz,
     })
     print('Done distorting points')
 
     print('distorting voxels for {}'.format(args.distorted_voxels))
     voxels_distorted = geometric_transform(voxels, progress_indicator(voxels.size, undistort_func))
-    scipy.io.savemat(args.distorted_voxels, {
+    file_io.save_voxels(args.distorted_voxels, {
         'voxels': voxels_distorted,
         'ijk_to_patient_xyz_transform': ijk_to_patient_xyz_transform,
+        'phantom_name': phantom_name,
     })
     print('Done distorting voxels')

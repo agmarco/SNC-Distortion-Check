@@ -1,10 +1,10 @@
 from collections import OrderedDict
 
-import scipy.io
 import matplotlib.pyplot as plt
 import glob
 import numpy as np
 
+import file_io
 from hdatt.suite import Suite
 from feature_detection import FeatureDetector
 from test_utils import get_test_data_generators
@@ -56,11 +56,10 @@ class FeatureDetectionSuite(Suite):
 
         context['case_input'] = case_input
 
-        # TODO: split out all IO into wrapper functions
-        voxel_data = scipy.io.loadmat(case_input['voxels'])
+        voxel_data = file_io.load_voxels(case_input['voxels'])
         voxels = voxel_data['voxels']
         ijk_to_xyz = voxel_data['ijk_to_patient_xyz_transform']
-        phantom_name = voxel_data['phantom_name'][0]
+        phantom_name = voxel_data['phantom_name']
 
         feature_detector = FeatureDetector(phantom_name, voxels, ijk_to_xyz)
         points = feature_detector.run()
@@ -71,7 +70,7 @@ class FeatureDetectionSuite(Suite):
         context['feature_image'] = feature_detector.feature_image
         context['kernel'] = feature_detector.kernel
 
-        golden_points = scipy.io.loadmat(case_input['points'])['points']
+        golden_points = file_io.load_points(case_input['points'])['points']
 
         FN_A, TP_A, TP_B, FP_B = points_utils.categorize(golden_points, points, lambda bmag: 2)
 
@@ -122,10 +121,10 @@ class FeatureDetectionSuite(Suite):
             {'points_xyz': context['FP_B'], 'scatter_kwargs': {'color': 'r', 'label': 'FP_B', 'marker': 'x'}},
         ]
 
-        voxel_data = scipy.io.loadmat(context['case_input']['voxels'])
+        voxel_data = file_io.load_voxels(context['case_input']['voxels'])
         raw_voxels = voxel_data['voxels']
         ijk_to_xyz = voxel_data['ijk_to_patient_xyz_transform']
-        phantom_name = voxel_data['phantom_name'][0]
+        phantom_name = voxel_data['phantom_name']
 
         kernel_big = np.zeros_like(raw_voxels)
         kernel_small = context['kernel']

@@ -21,7 +21,7 @@ unregistered-points: $(patsubst data/dicom/%.zip,tmp/%-unregistered-points.mat,$
 
 
 tmp/%-voxels.mat: data/dicom/%.zip .CONDABUILD
-	./dicom2mat $< $@
+	./dicom2voxels $< $@
 
 tmp/%-unregistered-points.mat: tmp/%-voxels.mat .CONDABUILD
 	./detect_features $< $@

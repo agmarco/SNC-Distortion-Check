@@ -2,7 +2,6 @@ import os
 import logging
 from collections import OrderedDict
 
-import scipy.io
 import matplotlib.pyplot as plt
 
 import points_utils
@@ -195,16 +194,6 @@ def get_test_data_generators():
             data_generators.append(rotation)
 
     return data_generators
-
-
-def load_voxels(voxels_path):
-    input_data = scipy.io.loadmat(voxels_path)
-    return input_data['voxels'], input_data['ijk_to_patient_xyz_transform']
-
-
-def load_points(points_path):
-    input_data = scipy.io.loadmat(points_path)
-    return input_data['points']
 
 
 def show_base_result(result, voxels_key='voxels'):

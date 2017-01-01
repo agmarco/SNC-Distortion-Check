@@ -2,10 +2,10 @@
 import argparse
 import itertools
 
-import scipy.io
 import matplotlib.pylab as plt
 import numpy as np
 
+import file_io
 import slicer
 
 
@@ -15,10 +15,10 @@ if __name__ == '__main__':
     parser.add_argument('distortion')
     args = parser.parse_args()
 
-    input_data = scipy.io.loadmat(args.voxels)
-    voxels = input_data['voxels']
+    voxel_data = file_io.load_voxels(args.voxels)
+    voxels = voxel_data['voxels']
 
-    distortion = scipy.io.loadmat(args.distortion)['distortion']
+    distortion = file_io.load_distortion(args.distortion)['distortion']
     distortion_magnitude = np.linalg.norm(distortion, axis=3)
     min_value = np.nanmin(distortion_magnitude)
     max_value = np.nanmax(distortion_magnitude)

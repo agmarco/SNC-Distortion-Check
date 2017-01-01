@@ -2,7 +2,8 @@
 import argparse
 
 import numpy as np
-import scipy.io
+
+import file_io
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -11,9 +12,11 @@ if __name__ == '__main__':
     parser.add_argument('decimation_factor', type=int)
     args = parser.parse_args()
 
-    input_mat = scipy.io.loadmat(args.input_voxels)
-    ijk_to_patient_xyz_transform = input_mat['ijk_to_patient_xyz_transform']
-    input_voxels = input_mat['voxels']
+    voxels_data = file_io.load_voxels(args.input_voxels)
+    ijk_to_patient_xyz_transform = voxels_data['ijk_to_patient_xyz_transform']
+    input_voxels = voxels_data['voxels']
+    phantom_name = voxels_data['phantom_name']
+
     if args.decimation_factor == 1:
         output_voxels = input_voxels
     else:
@@ -24,7 +27,8 @@ if __name__ == '__main__':
             average_slice = np.average(slices_to_average, axis=2)
             output_voxels[:, :, i:to_index] = np.dstack([average_slice]*(to_index-i))
 
-    scipy.io.savemat(args.output_voxels, {
+    file_io.save_voxels(args.output_voxels, {
         'voxels': output_voxels,
-        'ijk_to_patient_xyz_transform': ijk_to_patient_xyz_transform
+        'ijk_to_patient_xyz_transform': ijk_to_patient_xyz_transform,
+        'phantom_name': phantom_name,
     })

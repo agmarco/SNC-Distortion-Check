@@ -3,12 +3,12 @@ import argparse
 import sys
 import logging
 
-import scipy.io
 import matplotlib
 import matplotlib.pylab as plt
 import numpy as np
 from scipy.spatial import KDTree
 
+import file_io
 from slicer import PointsSlicer, render_cursor, render_points
 from affine import apply_affine
 from points_utils import closest
@@ -107,12 +107,12 @@ if __name__ == '__main__':
     parser.add_argument('points', help='if points file exists, append, else create new file')
     args = parser.parse_args()
 
-    input_data = scipy.io.loadmat(args.voxels)
-    voxels = input_data['voxels']
-    ijk_to_xyz = input_data['ijk_to_patient_xyz_transform']
+    voxel_data = file_io.load_voxels(args.voxels)
+    voxels = voxel_data['voxels']
+    ijk_to_xyz = voxel_data['ijk_to_patient_xyz_transform']
 
     try:
-        points_xyz = scipy.io.loadmat(args.points)['points']
+        points_xyz = file_io.load_points(args.points)['points']
         assert points_xyz.shape[1] > 0
         log.info('{} existing points found in {}'.format(points_xyz.shape[1], args.points))
     except:
@@ -127,7 +127,7 @@ if __name__ == '__main__':
 
     points_ijk = slicer.points_descriptors[0]['points_ijk']
     points_xyz = apply_affine(ijk_to_xyz, points_ijk)
-    scipy.io.savemat(args.points, {
+    file_io.save_points(args.points, {
         'points': points_xyz,
     })
     log.info('Wrote {} points to {}'.format(points_xyz.shape[1], args.points))
