@@ -2,21 +2,19 @@
 #
 # Script to convert a CSV file with three columns (x, y, z) of points
 # into a mat file with x, y, z numpy arrays
-import sys
+import argparse
 
 import scipy.io
 import numpy as np
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print('Usage: csv2mat CSVFILE MATFILE')
-        sys.exit(1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('csvfile', help='Input path to read csv-file')
+    parser.add_argument('matfile', help='Output path to write mat-file')
+    args = parser.parse_args()
 
-    input_xyz_csv_filename = sys.argv[1]
-    points = np.genfromtxt(input_xyz_csv_filename)
-
-    output_xyz_mat_filename = sys.argv[2]
-    scipy.io.savemat(output_xyz_mat_filename, {
+    points = np.genfromtxt(args.csvfile)
+    scipy.io.savemat(args.matfile, {
         'points': points.T,
     })
