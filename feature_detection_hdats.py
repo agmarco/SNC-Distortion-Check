@@ -39,13 +39,13 @@ class FeatureDetectionSuite(Suite):
                 'voxels': 'tmp/010_mri_604_LFV-Phantom_E2632-1-voxels.mat',
                 'points': 'data/points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
             },
-            'a': {
-                'voxels': 'tmp/arterial_TOF_3d_motsa_ND-voxels.mat',
-                'points': 'data/points/arterial_TOF_3d_motsa_ND-golden.mat',
+            '011': {
+                'voxels': 'tmp/011_mri_603A_arterial_TOF_3d_motsa_ND-voxels.mat',
+                'points': 'data/points/011_mri_630A_arterial_TOF_3d_motsa_ND-golden.mat',
             },
-            '1540': {
-                'voxels': 'tmp/1540_mri_ST075-120kVp-100mA-voxels.mat',
-                'points': 'data/points/1540_golden.mat',
+            '012': {
+                'voxels': 'tmp/012_ct_1540_ST075-120kVp-25mA-voxels.mat',
+                'points': 'data/points/012_ct_1540_ST075-120kVp-25mA-golden.mat',
             },
         }
         return cases
