@@ -99,12 +99,19 @@ def metrics(FN_A, TP_A, TP_B, FP_B):
     '''
     num_points_a = len(FN_A.T) + len(TP_A.T)
     num_points_b = len(FP_B.T) + len(TP_B.T)
-    error_vectors = (TP_A - TP_B).T
-    FLEs = np.linalg.norm(error_vectors, axis=1)
-    FLE_mean = np.mean(FLEs)
 
-    FNF = len(FN_A.T)/num_points_a
-    TPF = len(TP_A.T)/num_points_a
-    FPF = len(FP_B.T)/num_points_b
+    assert num_points_a > 0
 
-    return FLE_mean, TPF, FNF, FPF
+    if len(TP_B.T) == 0:
+        return float('NaN'), 0.0, 1.0, float('inf')
+    else:
+
+        error_vectors = (TP_A - TP_B).T
+        FLEs = np.linalg.norm(error_vectors, axis=1)
+        FLE_mean = np.mean(FLEs)
+
+        TPF = len(TP_A.T)/num_points_a
+        FNF = len(FN_A.T)/num_points_a
+        FPF = len(FP_B.T)/num_points_b
+
+        return FLE_mean, TPF, FNF, FPF
