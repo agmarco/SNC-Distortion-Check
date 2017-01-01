@@ -24,7 +24,7 @@ tmp/%-voxels.mat: data/dicom/%.zip .CONDABUILD
 	./dicom2voxels $< $@
 
 tmp/%-unregistered-points.mat: tmp/%-voxels.mat .CONDABUILD
-	./detect_features $< $@
+	./feature_detection $< $@
 
 tmp/%-matched-points.mat: tmp/%-voxels.mat tmp/%-unregistered-points.mat .CONDABUILD
 	./register_golden $< $(word 2,$^) $@
