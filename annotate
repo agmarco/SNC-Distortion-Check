@@ -63,12 +63,12 @@ class AnnotateSlicer(PointsSlicer):
 
         nudge_size = 0.15
         nudge_lookup = {
-            'left': [0, nudge_size, 0],
-            'right': [0, -nudge_size, 0],
-            'up': [-nudge_size, 0, 0],
-            'down': [nudge_size, 0, 0],
-            'shift+up': [0, 0, nudge_size],
-            'shift+down': [0, 0, -nudge_size],
+            '4': [0, nudge_size, 0],
+            '6': [0, -nudge_size, 0],
+            '8': [-nudge_size, 0, 0],
+            '2': [nudge_size, 0, 0],
+            '-': [0, 0, nudge_size],
+            '+': [0, 0, -nudge_size],
         }
 
         if event.key == 'esc':
