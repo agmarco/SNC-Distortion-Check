@@ -4,10 +4,38 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from feature_detection import cylindrical_grid_kernel, _fill_corners
+from kernels import cylindrical_grid_intersection, _fill_corners, sphere
 
 
-class TestCylinderGridKernel:
+class TestSphere:
+    def test_uniform_filling(self):
+        '''
+        A radius of 3.5 will nudge up against the outermost pixel.
+        '''
+        pixel_spacing = (1.0, 1.0, 1.0)
+        radius = 3.5
+        kernel = sphere(pixel_spacing, radius, upsample=7)
+        assert kernel.shape == (7, 7, 7)
+
+        expected_kernel_volume = 4/3*math.pi*radius**3
+        actual_volume = np.sum(kernel)
+        assert math.isclose(actual_volume, expected_kernel_volume, rel_tol=1e-3)
+
+    def test_uniform_under_filling(self):
+        '''
+        A radius of 4.0 will fall 1/2 into the last pixel
+        '''
+        pixel_spacing = (1.0, 1.0, 1.0)
+        radius = 4.0
+        kernel = sphere(pixel_spacing, radius, upsample=7)
+        assert kernel.shape == (9, 9, 9)
+
+        expected_kernel_volume = 4/3*math.pi*radius**3
+        actual_volume = np.sum(kernel)
+        assert math.isclose(actual_volume, expected_kernel_volume, rel_tol=1e-3)
+
+
+class TestCylinderGridIntersection:
     def test_size_non_uniform(self):
         '''
         Check that the kernel size is reasonable.  The kernel shape should
@@ -18,14 +46,14 @@ class TestCylinderGridKernel:
         grid_radius = 4.0
         grid_spacing = 12.0
         expected_shape = tuple(1 + 2*math.ceil((0.5*grid_spacing - 0.5*p)/p) for p in pixel_spacing)
-        kernel = cylindrical_grid_kernel(pixel_spacing, grid_radius, grid_spacing, upsample=1)
+        kernel = cylindrical_grid_intersection(pixel_spacing, grid_radius, grid_spacing, upsample=1)
         assert kernel.shape == expected_shape
 
     def test_no_upsampling(self):
         pixel_spacing = (1.0, 1.0, 1.0)
         grid_radius = 0.5
         grid_spacing = 2.0
-        kernel = cylindrical_grid_kernel(pixel_spacing, grid_radius, grid_spacing, upsample=1)
+        kernel = cylindrical_grid_intersection(pixel_spacing, grid_radius, grid_spacing, upsample=1)
 
         intersection_slice = np.array([
             [0, 1, 0],
@@ -49,9 +77,9 @@ class TestCylinderGridKernel:
         cylinder.
         '''
         pixel_spacing = (1.0, 1.0, 1.0)
-        grid_radius = 1/6 + 0.00001
+        grid_radius = math.sqrt(2)/3 - 0.00001
         grid_spacing = 2.0
-        kernel = cylindrical_grid_kernel(pixel_spacing, grid_radius, grid_spacing, upsample=3)
+        kernel = cylindrical_grid_intersection(pixel_spacing, grid_radius, grid_spacing, upsample=3)
 
         g = 15.0/27.0
         off_slice = np.array([
@@ -61,7 +89,6 @@ class TestCylinderGridKernel:
         ])
         assert_allclose(kernel[0, :, :], off_slice)
 
-    @pytest.mark.xfail
     def test_volume(self):
         '''
         The volume of the intersection of two cylinders is:
@@ -93,7 +120,7 @@ class TestCylinderGridKernel:
         pixel_spacing = (1.0, 1.0, 1.0)
         radius = 3.0
         length = 7.0
-        kernel = cylindrical_grid_kernel(pixel_spacing, radius, length)
+        kernel = cylindrical_grid_intersection(pixel_spacing, radius, length)
 
 
         cylinder_volume = math.pi*radius**2*length

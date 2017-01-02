@@ -10,6 +10,7 @@ import points_utils
 
 logger = logging.getLogger(__name__)
 import sys; logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+# TODO: handle this in a "ConsoleApp" class
 
 
 def build_f(A, B, g, rho):

@@ -1,7 +1,8 @@
 import pytest
 import numpy as np
+from numpy.testing import assert_allclose
 
-from points_utils import categorize, metrics, closest
+from points_utils import categorize, metrics, closest, detect_peaks
 
 
 def fs(*args):
@@ -156,3 +157,44 @@ class TestClosest:
 
     def test_seccond_point(self):
         self.assert_ind_distance([0, 1, 5], 1, 1)
+
+
+class TestDetectPeaks:
+    def test_binary_2d(self):
+        data = np.array([
+            [0, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 0, 0],
+        ])
+        points, _ = detect_peaks(data, 1)
+        assert_allclose(points, np.array([[1, 1]]).T)
+
+    def test_gray_2d(self):
+        data = np.array([
+            [0, 0, 0.5, 0],
+            [0, 0.5, 1, 0.5],
+            [0, 0, 0.5, 0],
+        ])
+        points, _ = detect_peaks(data, 1)
+        assert_allclose(points, np.array([[1, 2]]).T)
+
+    def test_gray_2d_offset(self):
+        data = np.array([
+            [0, 0, 0, 0],
+            [0, 0, 1, 0.5],
+            [0, 0, 0, 0],
+        ])
+        points, _ = detect_peaks(data, 1)
+        assert_allclose(points, np.array([[1, 2 + 1/3]]).T)
+
+    def test_multiple_peaks_2d(self):
+        data = np.array([
+            [0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 2, 1, 0],
+            [0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 0, 5, 0],
+            [0, 0, 0, 0, 0, 0],
+        ])
+        points, _ = detect_peaks(data, 1)
+        assert_allclose(points, np.array([[1, 3], [3, 1], [3, 4]]).T)
+

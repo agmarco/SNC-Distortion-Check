@@ -72,7 +72,7 @@ class FeatureDetectionSuite(Suite):
 
         golden_points = file_io.load_points(case_input['points'])['points']
 
-        FN_A, TP_A, TP_B, FP_B = points_utils.categorize(golden_points, points, lambda bmag: 2)
+        FN_A, TP_A, TP_B, FP_B = points_utils.categorize(golden_points, points, lambda bmag: 3)
 
         context['FN_A'] = FN_A
         context['TP_A'] = TP_A

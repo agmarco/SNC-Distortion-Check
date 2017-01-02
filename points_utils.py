@@ -1,8 +1,16 @@
 import math
+import logging
 
 import numpy as np
 from orderedset import OrderedSet
 from scipy.spatial import KDTree
+from scipy import ndimage
+from scipy.ndimage.filters import maximum_filter
+from scipy.ndimage.morphology import generate_binary_structure, binary_erosion, iterate_structure
+
+import kernels
+
+logger = logging.getLogger(__name__)
 
 
 def closest(A, point):
@@ -91,6 +99,45 @@ def categorize(A, B, rho):
     #assert FP_B.shape[1] + TP_B.shape[1] == num_b
 
     return FN_A, TP_A, TP_B, FP_B
+
+
+def detect_peaks(data, pixel_spacing, search_radius, com_radius):
+    """
+    Detect peaks using a local maximum filter.  A peak is defined as the
+    maximum value within a binary neighborhood.  In order to provide subpixel
+    resolution---once the maximum values are detected, a center-of-mass
+    calculation is calculated within the same neighborhood.
+
+    Inspired by http://stackoverflow.com/a/3689710/1146963
+
+    Returns the peak locations in ijk coordinates.
+    """
+    num_dimensions = len(data.shape)
+
+    logger.info('building kernels')
+    search_neighborhood = kernels.sphere(pixel_spacing, search_radius, upsample=1)
+    com_neighborhood = kernels.sphere(pixel_spacing, com_radius, upsample=1)
+
+    logger.info('maximums')
+    maximums = ndimage.maximum_filter(data, footprint=search_neighborhood, mode='constant')
+    local_max_all = maximums == data
+
+    logger.info('minimums')
+    minimums = ndimage.minimum_filter(data, footprint=search_neighborhood, mode='constant')
+
+    logger.info('filtering out small peaks')
+    difference = maximums - minimums
+    threshold = 0.2*np.percentile(difference[local_max_all], 98)
+    local_max = np.logical_and(local_max_all, difference > threshold)
+
+    logger.info('labeling')
+    labels, num_labels = ndimage.label(ndimage.binary_dilation(local_max, com_neighborhood))
+
+    logger.info('center of mass calculations')
+    label_list = range(1, num_labels + 1)
+    points = ndimage.center_of_mass(data, labels, label_list)
+    coords = zip(*points)
+    return np.array(list(list(c) for c in coords), dtype=float), labels
 
 
 def metrics(FN_A, TP_A, TP_B, FP_B):
