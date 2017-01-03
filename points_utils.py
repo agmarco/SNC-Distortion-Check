@@ -101,7 +101,7 @@ def categorize(A, B, rho):
     return FN_A, TP_A, TP_B, FP_B
 
 
-def detect_peaks(data, pixel_spacing, search_radius, com_radius):
+def detect_peaks(data, pixel_spacing, search_radius, COM_radius):
     """
     Detect peaks using a local maximum filter.  A peak is defined as the
     maximum value within a binary neighborhood.  In order to provide subpixel
@@ -112,11 +112,8 @@ def detect_peaks(data, pixel_spacing, search_radius, com_radius):
 
     Returns the peak locations in ijk coordinates.
     """
-    num_dimensions = len(data.shape)
-
     logger.info('building kernels')
     search_neighborhood = kernels.sphere(pixel_spacing, search_radius, upsample=1)
-    com_neighborhood = kernels.sphere(pixel_spacing, com_radius, upsample=1)
 
     logger.info('maximums')
     maximums = ndimage.maximum_filter(data, footprint=search_neighborhood, mode='constant')
@@ -131,7 +128,8 @@ def detect_peaks(data, pixel_spacing, search_radius, com_radius):
     local_max = np.logical_and(local_max_all, difference > threshold)
 
     logger.info('labeling')
-    labels, num_labels = ndimage.label(ndimage.binary_dilation(local_max, com_neighborhood))
+    COM_neighborhood = kernels.sphere(pixel_spacing, COM_radius, upsample=1)
+    labels, num_labels = ndimage.label(ndimage.binary_dilation(local_max, COM_neighborhood))
 
     logger.info('center of mass calculations')
     label_list = range(1, num_labels + 1)
