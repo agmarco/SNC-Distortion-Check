@@ -24,7 +24,7 @@ if __name__ == '__main__':
     descriptors = []
     for points_specifier, color in zip(args.points, colors):
         path, variable = split_file_variable_arg(points_specifier, 'points')
-        points_xzy = file_io.load_variable(path, variable)
+        points_xyz = file_io.load_variable(path, variable)
         descriptors.append({
             'points_xyz': points_xyz,
             'scatter_kwargs': {'color': color, 'label': path},
