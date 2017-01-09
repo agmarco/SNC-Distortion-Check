@@ -251,7 +251,30 @@ Our algorithm combines our ideas with those found in the literature \cite{stanes
 
 \subsection{Feature Detection}
 
-First, we apply an unsharp mask to the image to remove background intensity gradients.  Next we convolve the preprocessed image with a 3D kernel shaped like the grid phantom intersections.  The convolved image tends to have peaks at the feature locations.  We then threshold the convolved image to obtain a binary image and perform binary operations that help isolate sets of pixels centered on the grid features.  Finally, we find the center of mass of regions of pixels centered at each region in the processed binary image.  This set of points is $B$.
+The goal of the feature detection stage is to localize the phantom grid intersections with sub-pixel precision.  Our algorithm consists of the following steps:
+
+\begin{itemize}
+    \item Invert the image if it is a CT (so that MRIs and CTs can be processed similarly).
+    \item Convolve the preprocessed image with a kernel shaped like the phantom's grid intersections.
+    \item Localize peaks in the convolved image.
+\end{itemize}
+
+The grid intersection shape is known a priori.  For example, the CIRS 603A filter contains a grid of intersecting cylindrical beams.  The intersections are spaced 15mm from one another, and the beam's radius is 1.5mm.
+
+It is important that the kernel be properly centered otherwise it will introduce a systematic shift into the detected feature locations.
+
+Aliasing can degrade the algorithm's performance when the kernel's feature dimensions are on the scale of a pixel.  We perform a crude form of antialiasing by first constructing an upsampled version of the filter which we decimate using an averaging filter.  At high upsampling numbers, the kernel construction process uses a lot memory.  To alleviate the problem, we construct a single corner of the kernel, and then reflect it into the remaining seven corners.
+
+The kernel is centered on a beam intersection, and its dimensions are approximately one grid-intersection spacing (e.g. 15mm).  A smaller kernel could also be used, however, the larger the kernel the better it will be able to differentiate grid intersections from other features in the image.
+
+Figure \ref{fig:kernel} demonstrates the geometry of the grid intersection kernel.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{kernel.pdf}
+    \caption{Geometry of the grid intersection kernel construction.  A central slice of the 3D kernel is displayed.  The red area represents the cylindrical beams forming the grid.  Each side of the green quadrants is one half the intersection spacing.  The black rectangles indicate the locations of the kernel voxels.  The blue rectangles indicate the voxel locations in the upsampled image.  Note that the kernel size may be slightly larger than the intersection spacing.}
+    \label{fig:kernel}
+\end{figure}
 
 \subsection{Rigid Registration}
 
