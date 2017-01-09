@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from points_utils import categorize, metrics, closest, detect_peaks
+from points_utils import categorize, metrics, closest, neighborhood_peaks, _valid_location
 
 
 def fs(*args):
@@ -160,41 +160,91 @@ class TestClosest:
 
 
 class TestDetectPeaks:
-    def test_binary_2d(self):
-        data = np.array([
-            [0, 0, 0, 0],
-            [0, 1, 0, 0],
-            [0, 0, 0, 0],
-        ])
-        points, _ = detect_peaks(data, 1)
-        assert_allclose(points, np.array([[1, 1]]).T)
+    def test_bad_neighborhood_dtype(self):
+        data = np.array([[0, 0]])
+        neighborhood = np.array([[1.0]])
+        with pytest.raises(ValueError):
+            neighborhood_peaks(data, neighborhood)
 
-    def test_gray_2d(self):
-        data = np.array([
-            [0, 0, 0.5, 0],
-            [0, 0.5, 1, 0.5],
-            [0, 0, 0.5, 0],
-        ])
-        points, _ = detect_peaks(data, 1)
-        assert_allclose(points, np.array([[1, 2]]).T)
+    def test_mismatched_number_of_dimensions(self):
+        data = np.array([[0, 0]])
+        neighborhood = np.array([True])
+        with pytest.raises(ValueError):
+            neighborhood_peaks(data, neighborhood)
 
-    def test_gray_2d_offset(self):
-        data = np.array([
-            [0, 0, 0, 0],
-            [0, 0, 1, 0.5],
-            [0, 0, 0, 0],
-        ])
-        points, _ = detect_peaks(data, 1)
-        assert_allclose(points, np.array([[1, 2 + 1/3]]).T)
+    def test_even_length(self):
+        data = np.array([[0, 0]])
+        neighborhood = np.array([[False, True]])
+        with pytest.raises(ValueError):
+            neighborhood_peaks(data, neighborhood)
 
-    def test_multiple_peaks_2d(self):
-        data = np.array([
-            [0, 0, 0, 0, 0, 0],
-            [0, 0, 1, 2, 1, 0],
-            [0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 0, 5, 0],
-            [0, 0, 0, 0, 0, 0],
-        ])
-        points, _ = detect_peaks(data, 1)
-        assert_allclose(points, np.array([[1, 3], [3, 1], [3, 4]]).T)
+    def test_large_neighborhood(self):
+        data = np.array([[0, 0]])
+        neighborhood = np.array([[True, True, True]])
+        with pytest.raises(ValueError):
+            neighborhood_peaks(data, neighborhood)
 
+    def test_1px_neighborhood_1d(self):
+        data = np.random.rand(3)
+        neighborhood = np.array([True])
+        peaks = neighborhood_peaks(data, neighborhood)
+        assert_allclose(peaks, np.zeros_like(data))
+
+    def test_1px_neighborhood_2d(self):
+        data = np.random.rand(3, 3)
+        neighborhood = np.array([[True]])
+        peaks = neighborhood_peaks(data, neighborhood)
+        assert_allclose(peaks, np.zeros_like(data))
+
+    def test_1px_neighborhood_3d(self):
+        data = np.random.rand(3, 3, 3)
+        neighborhood = np.array([[[True]]])
+        peaks = neighborhood_peaks(data, neighborhood)
+        assert_allclose(peaks, np.zeros_like(data))
+
+    def test_simple_2d_vertical_neighborhood(self):
+        data = np.array([
+            [0, 0.5, 0, 0],
+            [0,   1, 0, 0],
+            [0, 0.5, 0, 2],
+        ])
+        neighborhood = np.array([[True], [True], [True]])
+        expected_peaks = np.array([
+            [0,   0, 0, 0],
+            [0, 0.5, 0, 0],
+            [0,   0, 0, 2],
+        ])
+        peaks = neighborhood_peaks(data, neighborhood)
+        assert_allclose(peaks, expected_peaks)
+
+    def test_simple_2d_horizontal_neighborhood(self):
+        data = np.array([
+            [0, 0.5, 0, 0],
+            [0,   1, 0, 0],
+            [0, 0.5, 0, 2],
+        ])
+        expected_peaks = np.array([
+            [0, 0.5, 0, 0],
+            [0,   1, 0, 0],
+            [0, 0.5, 0, 2],
+        ])
+        neighborhood = np.array([[True, True, True]])
+        peaks = neighborhood_peaks(data, neighborhood)
+        assert_allclose(peaks, expected_peaks)
+
+
+class TestValidLocation:
+    def test_location_in_center(self):
+        assert not _valid_location((0, 1), data_shape=(4, 5), kernel_shape=(3, 3))
+        assert not _valid_location((0, 0), data_shape=(4, 5), kernel_shape=(3, 3))
+        assert not _valid_location((1, 0), data_shape=(4, 5), kernel_shape=(3, 3))
+        assert not _valid_location((-1, -1), data_shape=(4, 5), kernel_shape=(3, 3))
+
+        assert _valid_location((1, 1), data_shape=(4, 5), kernel_shape=(3, 3))
+        assert _valid_location((2, 3), data_shape=(4, 5), kernel_shape=(3, 3))
+        assert _valid_location((2, 2), data_shape=(4, 5), kernel_shape=(3, 3))
+        assert _valid_location((1, 3), data_shape=(4, 5), kernel_shape=(3, 3))
+        assert _valid_location((2, 1), data_shape=(4, 5), kernel_shape=(3, 3))
+
+        assert not _valid_location((3, 3), data_shape=(4, 5), kernel_shape=(3, 3))
+        assert not _valid_location((3, 4), data_shape=(4, 5), kernel_shape=(3, 3))
