@@ -146,16 +146,9 @@ def detect_peaks(data, pixel_spacing, search_radius, COM_radius):
     Inspired by http://stackoverflow.com/a/3689710/1146963
 
     Returns the peak locations in ijk coordinates.
-
-    Note that there are some performance optimizations that make the
-    implementation more complex.
-
-    In particular, for larger kernel sizes, we perform a first pass search
-    using a smaller kernel.  This is because the maximum_filter is slow with
-    larger kernel sizes.
     """
     logger.info('building neighborhood')
-    search_neighborhood = kernels.sphere(pixel_spacing, search_radius, upsample=1)
+    search_neighborhood = kernels.sphere(pixel_spacing, search_radius, upsample=1).astype(bool)
 
     logger.info('finding neighborhood peaks')
     peak_heights = find_peaks(data, search_neighborhood)
