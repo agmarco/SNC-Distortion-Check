@@ -5,10 +5,9 @@ import numpy as np
 from orderedset import OrderedSet
 from scipy.spatial import KDTree
 from scipy import ndimage
-from scipy.ndimage.filters import maximum_filter
-from scipy.ndimage.morphology import generate_binary_structure, binary_erosion, iterate_structure
 
 import kernels
+from opencl import find_peaks
 
 logger = logging.getLogger(__name__)
 
@@ -159,8 +158,7 @@ def detect_peaks(data, pixel_spacing, search_radius, COM_radius):
     search_neighborhood = kernels.sphere(pixel_spacing, search_radius, upsample=1)
 
     logger.info('finding neighborhood peaks')
-    peak_heights = neighborhood_peaks(data, search_neighborhood)
-
+    peak_heights = find_peaks(data, search_neighborhood)
     logger.info('filtering out small peaks')
     threshold = 0.2*np.percentile(peak_heights[peak_heights > 0], 98)
     peaks_thresholded = peak_heights > threshold
