@@ -31,15 +31,17 @@ class FeatureDetector:
     def run(self):
         logger.info('building kernel')
         self.kernel = self.build_kernel()
+        logger.info('preprocessing image')
+        self.preprocessed_image = self.preprocess()
         logger.info('convolving with feature kernel')
-        self.feature_image = signal.fftconvolve(self.image, self.kernel, mode='same')
+        self.feature_image = signal.fftconvolve(self.preprocessed_image, self.kernel, mode='same')
 
         logger.info('detecting peaks')
         self.points_ijk, self.label_image = peak_detection.detect_peaks(
             self.feature_image,
             self.pixel_spacing,
             self.grid_spacing/2,
-            self.grid_radius*1.5
+            self.grid_radius
         )
 
         self.points_xyz = affine.apply_affine(self.ijk_to_xyz, self.points_ijk)
@@ -48,6 +50,10 @@ class FeatureDetector:
     def build_kernel(self):
         return kernels.cylindrical_grid_intersection(
             self.pixel_spacing,
-            self.grid_radius*1.5,
+            self.grid_radius,
             self.grid_spacing
         )
+
+    def preprocess(self):
+        return self.image
+        #return unsharp_mask(self.image, self.grid_spacing/self.pixel_spacing, 1.0)

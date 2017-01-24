@@ -66,7 +66,7 @@ class FeatureDetectionSuite(Suite):
 
         context['phantom_name'] = phantom_name
         context['label_image'] = feature_detector.label_image
-        context['image'] = feature_detector.image
+        context['preprocessed_image'] = feature_detector.preprocessed_image
         context['feature_image'] = feature_detector.feature_image
         context['kernel'] = feature_detector.kernel
 
@@ -139,7 +139,7 @@ class FeatureDetectionSuite(Suite):
 
         kernel_big[slices] = kernel_small*np.max(context['feature_image'])
 
-        s = slicer.PointsSlicer(raw_voxels, ijk_to_xyz, descriptors)
+        s = slicer.PointsSlicer(context['preprocessed_image'], ijk_to_xyz, descriptors)
         s.add_renderer(slicer.render_overlay(context['feature_image']), hidden=True)
         s.add_renderer(slicer.render_points)
         s.add_renderer(slicer.render_translucent_overlay(context['label_image'] > 0, [0, 1, 0]))
