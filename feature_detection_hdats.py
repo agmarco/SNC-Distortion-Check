@@ -44,7 +44,15 @@ class FeatureDetectionSuite(Suite):
                 'points': 'data/points/011_mri_630A_arterial_TOF_3d_motsa_ND-golden.mat',
             },
             '012': {
-                'voxels': 'tmp/012_ct_1540_ST075-120kVp-25mA-voxels.mat',
+                'voxels': 'tmp/xxx_ct_1540_ST075-120kVp-25mA-voxels.mat',
+                'points': 'data/points/012_ct_1540_ST075-120kVp-25mA-golden.mat',
+            },
+            '013': {
+                'voxels': 'tmp/xxx_ct_1540_ST375-120kVp-100mA-voxels.mat',
+                'points': 'data/points/012_ct_1540_ST075-120kVp-25mA-golden.mat',
+            },
+            '014': {
+                'voxels': 'tmp/xxx_ct_1540_ST500-120kVp-100mA-voxels.mat',
                 'points': 'data/points/012_ct_1540_ST075-120kVp-25mA-golden.mat',
             },
         }
