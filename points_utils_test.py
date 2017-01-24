@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from points_utils import categorize, metrics, closest, neighborhood_peaks, _valid_location
+from points_utils import categorize, metrics, closest, _valid_location
 
 
 def fs(*args):
@@ -157,80 +157,6 @@ class TestClosest:
 
     def test_seccond_point(self):
         self.assert_ind_distance([0, 1, 5], 1, 1)
-
-
-class TestDetectPeaks:
-    def test_bad_neighborhood_dtype(self):
-        data = np.array([[0, 0]])
-        neighborhood = np.array([[1.0]])
-        with pytest.raises(ValueError):
-            neighborhood_peaks(data, neighborhood)
-
-    def test_mismatched_number_of_dimensions(self):
-        data = np.array([[0, 0]])
-        neighborhood = np.array([True])
-        with pytest.raises(ValueError):
-            neighborhood_peaks(data, neighborhood)
-
-    def test_even_length(self):
-        data = np.array([[0, 0]])
-        neighborhood = np.array([[False, True]])
-        with pytest.raises(ValueError):
-            neighborhood_peaks(data, neighborhood)
-
-    def test_large_neighborhood(self):
-        data = np.array([[0, 0]])
-        neighborhood = np.array([[True, True, True]])
-        with pytest.raises(ValueError):
-            neighborhood_peaks(data, neighborhood)
-
-    def test_1px_neighborhood_1d(self):
-        data = np.random.rand(3)
-        neighborhood = np.array([True])
-        peaks = neighborhood_peaks(data, neighborhood)
-        assert_allclose(peaks, np.zeros_like(data))
-
-    def test_1px_neighborhood_2d(self):
-        data = np.random.rand(3, 3)
-        neighborhood = np.array([[True]])
-        peaks = neighborhood_peaks(data, neighborhood)
-        assert_allclose(peaks, np.zeros_like(data))
-
-    def test_1px_neighborhood_3d(self):
-        data = np.random.rand(3, 3, 3)
-        neighborhood = np.array([[[True]]])
-        peaks = neighborhood_peaks(data, neighborhood)
-        assert_allclose(peaks, np.zeros_like(data))
-
-    def test_simple_2d_vertical_neighborhood(self):
-        data = np.array([
-            [0, 0.5, 0, 0],
-            [0,   1, 0, 0],
-            [0, 0.5, 0, 2],
-        ])
-        neighborhood = np.array([[True], [True], [True]])
-        expected_peaks = np.array([
-            [0,   0, 0, 0],
-            [0, 0.5, 0, 0],
-            [0,   0, 0, 2],
-        ])
-        peaks = neighborhood_peaks(data, neighborhood)
-        assert_allclose(peaks, expected_peaks)
-
-    def test_simple_2d_horizontal_neighborhood(self):
-        data = np.array([
-            [0, 0.5, 0, 0],
-            [0,   1, 0, 0],
-            [0, 0.5, 0, 2],
-        ])
-        expected_peaks = np.array([
-            [0, 0.5, 0, 0],
-            [0,   1, 0, 0],
-            [0, 0.5, 0, 2],
-        ])
-        neighborhood = np.array([[True, True, True]])
-        peaks = neighborhood_peaks(data, neighborhood)
-        assert_allclose(peaks, expected_peaks)
 
 
 class TestValidLocation:

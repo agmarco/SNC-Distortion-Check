@@ -8,6 +8,7 @@ from utils import invert, unsharp_mask
 import phantoms
 import kernels
 import points_utils
+import peak_detection
 
 logger = logging.getLogger(__name__)
 import sys; logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(message)s')
@@ -37,7 +38,7 @@ class FeatureDetector:
         self.feature_image = signal.fftconvolve(self.preprocessed_image, self.zero_mean_kernel, mode='same')
 
         logger.info('detecting peaks')
-        self.points_ijk, self.label_image = points_utils.detect_peaks(
+        self.points_ijk, self.label_image = peak_detection.detect_peaks(
             self.feature_image,
             self.pixel_spacing,
             self.grid_spacing/2,
