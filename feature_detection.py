@@ -33,9 +33,8 @@ class FeatureDetector:
         self.kernel = self.build_kernel()
         logger.info('preprocessing image')
         self.preprocessed_image = self.preprocess()
-        self.zero_mean_kernel = self.kernel - np.mean(self.kernel)
         logger.info('convolving with feature kernel')
-        self.feature_image = signal.fftconvolve(self.preprocessed_image, self.zero_mean_kernel, mode='same')
+        self.feature_image = signal.fftconvolve(self.preprocessed_image, self.kernel, mode='same')
 
         logger.info('detecting peaks')
         self.points_ijk, self.label_image = peak_detection.detect_peaks(
