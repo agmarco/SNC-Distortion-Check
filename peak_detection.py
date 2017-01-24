@@ -4,6 +4,7 @@ import numpy as np
 from scipy import ndimage
 import pyopencl as cl
 
+from points_utils import _valid_location
 import kernels
 
 
@@ -74,7 +75,7 @@ def detect_peaks(data, pixel_spacing, search_radius, COM_radius):
     logger.info('finding neighborhood peaks')
     peak_heights = neighborhood_peaks(data, search_neighborhood)
     logger.info('filtering out small peaks')
-    threshold = 0.6*np.percentile(peak_heights[peak_heights > 0], 98)
+    threshold = 0.2*np.percentile(peak_heights[peak_heights > 0], 98)
     peaks_thresholded = peak_heights > threshold
 
     logger.info('labeling')
@@ -85,4 +86,7 @@ def detect_peaks(data, pixel_spacing, search_radius, COM_radius):
     label_list = range(1, num_labels + 1)
     points = ndimage.center_of_mass(data, labels, label_list)
     coords = zip(*points)
-    return np.array(list(list(c) for c in coords), dtype=float), labels
+
+    in_boundary = lambda c: _valid_location(c, data.shape, search_neighborhood.shape)
+
+    return np.array(list(list(c) for c in coords if in_boundary), dtype=float), labels
