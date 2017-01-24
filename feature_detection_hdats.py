@@ -66,7 +66,7 @@ class FeatureDetectionSuite(Suite):
 
         context['phantom_name'] = phantom_name
         context['label_image'] = feature_detector.label_image
-        context['preprocessed_image'] = feature_detector.preprocessed_image
+        context['image'] = feature_detector.image
         context['feature_image'] = feature_detector.feature_image
         context['kernel'] = feature_detector.kernel
 
