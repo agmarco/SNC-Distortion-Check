@@ -28,8 +28,10 @@ def neighborhood_peaks(data, neighborhood):
     '''
     if neighborhood.dtype != bool:
         raise ValueError("Neighborhood must be a boolean array")
-    if len(data.shape) != len(neighborhood.shape):
-        raise ValueError("Neighborhood and data array must have same number of dimensions")
+    if len(data.shape) != 3:
+        raise ValueError("Data array must have three dimensions")
+    if len(neighborhood.shape) != 3:
+        raise ValueError("Neighborhood array must have three dimensions")
     if not all(nd <= dd for nd, dd in zip(neighborhood.shape, data.shape)):
         raise ValueError("Neighborhood can not be larger than the data array")
     if not all(nd % 2 for nd in neighborhood.shape):
