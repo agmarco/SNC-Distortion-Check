@@ -115,11 +115,13 @@ def merge_slice_pixel_arrays(slice_datasets):
     num_columns = slice_datasets[0].Columns
     num_slices = len(slice_datasets)
 
-    voxels = np.empty((num_rows, num_columns, num_slices), dtype=float)
+    voxels = np.empty((num_columns, num_rows, num_slices), dtype=np.float32)
 
     sorted_slice_datasets = _sort_by_slice_spacing(slice_datasets)
     for k, dataset in enumerate(sorted_slice_datasets):
-        voxels[:, :, k] = dataset.pixel_array.astype(float)
+        slope = float(getattr(dataset, 'RescaleSlope', 1))
+        intercept = float(getattr(dataset, 'RescaleIntercept', 0))
+        voxels[:, :, k] = dataset.pixel_array.astype(np.float32).T*slope + intercept
 
     return voxels
 
@@ -131,10 +133,10 @@ def ijk_to_patient_xyz_transform_matrix(slice_datasets):
     row_spacing, column_spacing = first_slice_dataset.PixelSpacing
     slice_spacing = _slice_spacing(slice_datasets)
 
-    transform = np.identity(4, dtype=float)
+    transform = np.identity(4, dtype=np.float32)
 
-    transform[:3, 0] = row_cosine*row_spacing
-    transform[:3, 1] = column_cosine*column_spacing
+    transform[:3, 0] = row_cosine*column_spacing
+    transform[:3, 1] = column_cosine*row_spacing
     transform[:3, 2] = slice_cosine*slice_spacing
 
     transform[:3, 3] = first_slice_dataset.ImagePositionPatient
