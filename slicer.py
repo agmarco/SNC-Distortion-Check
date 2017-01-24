@@ -191,7 +191,12 @@ def _scatter_in_slice(slicer, ax, descriptor):
     y = points[y_dimension, indices_in_slice]
     r = 6.0*(point_radius_pixels - distance_to_slice[indices_in_slice])
 
+    ylim = ax.get_ylim()
+    xlim = ax.get_xlim()
     ax.scatter(x, y, s=r, edgecolors='face', alpha=0.6, **descriptor.get('scatter_kwargs', {}))
+
+    ax.set_ylim(ylim)
+    ax.set_xlim(xlim)
 
 
 def render_legend(slicer):
