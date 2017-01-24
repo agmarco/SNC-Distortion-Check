@@ -115,13 +115,17 @@ def merge_slice_pixel_arrays(slice_datasets):
     num_columns = slice_datasets[0].Columns
     num_slices = len(slice_datasets)
 
-    voxels = np.empty((num_columns, num_rows, num_slices), dtype=np.float32)
+    dtype = slice_datasets[0].pixel_array.dtype
+    voxels = np.empty((num_columns, num_rows, num_slices), dtype=dtype)
 
     sorted_slice_datasets = _sort_by_slice_spacing(slice_datasets)
     for k, dataset in enumerate(sorted_slice_datasets):
-        slope = float(getattr(dataset, 'RescaleSlope', 1))
-        intercept = float(getattr(dataset, 'RescaleIntercept', 0))
-        voxels[:, :, k] = dataset.pixel_array.astype(np.float32).T*slope + intercept
+        try:
+            slope = float(getattr(dataset, 'RescaleSlope'))
+            intercept = float(getattr(dataset, 'RescaleIntercept'))
+            voxels[:, :, k] = dataset.pixel_array.astype(np.float32).T*slope + intercept
+        except AttributeError:
+            voxels[:, :, k] = dataset.pixel_array.T
 
     return voxels
 
@@ -160,6 +164,10 @@ def validate_slices_form_uniform_grid(slice_datasets):
         'Columns',
         'ImageOrientationPatient',
         'PixelSpacing',
+        'PixelRepresentation',
+        'BitsAllocated',
+        'BitsStored',
+        'HighBit',
     ]
 
     for property_name in invariant_properties:
@@ -214,9 +222,9 @@ def _extract_cosines(image_orientation):
 
 
 def _slice_attribute_equal(slice_datasets, property_name):
-    initial_value = getattr(slice_datasets[0], property_name)
+    initial_value = getattr(slice_datasets[0], property_name, None)
     for dataset in slice_datasets[1:]:
-        value = getattr(dataset, property_name)
+        value = getattr(dataset, property_name, None)
         if value != initial_value:
             msg = 'All slices must have the same value for "{}": {} != {}'
             raise DicomImportException(msg.format(property_name, value, initial_value))
