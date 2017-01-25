@@ -80,13 +80,16 @@ def detect_peaks(data, pixel_spacing, search_radius, COM_radius):
 
     logger.info('labeling')
     COM_neighborhood = kernels.sphere(pixel_spacing, COM_radius, upsample=1)
-    labels, num_labels = ndimage.label(ndimage.binary_dilation(peaks_thresholded, COM_neighborhood))
+    COM_image = ndimage.binary_dilation(peaks_thresholded, COM_neighborhood)
+    # TODO: figure out how to handle different peaks bleeding into each other
+    labels, num_labels = ndimage.label(COM_image)
 
     logger.info('center of mass calculations')
     label_list = range(1, num_labels + 1)
-    points = ndimage.center_of_mass(data, labels, label_list)
-    coords = zip(*points)
-
-    in_boundary = lambda c: _valid_location(c, data.shape, search_neighborhood.shape)
-
-    return np.array(list(list(c) for c in coords if in_boundary), dtype=float), labels
+    # TODO: clean this up; this code that throws away edge points should really
+    # be moved earlier up the chain, perhaps by handling it at the initial
+    # convolution
+    all_points = ndimage.center_of_mass(data, labels, label_list)
+    points = [p for p in all_points if _valid_location(p, data.shape, search_neighborhood.shape)]
+    coords = list(zip(*points))
+    return np.array([list(c) for c in coords], dtype=float), labels
