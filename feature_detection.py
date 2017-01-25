@@ -42,11 +42,13 @@ class FeatureDetector:
         self.feature_image = signal.fftconvolve(self.preprocessed_image, self.kernel, mode='same')
 
         logger.info('detecting peaks')
+        search_radius = self.grid_spacing/2
+        COM_radius = self.grid_radius
         self.points_ijk, self.label_image = peak_detection.detect_peaks(
             self.feature_image,
             self.pixel_spacing,
-            self.grid_spacing/2,
-            self.grid_radius
+            search_radius,
+            COM_radius
         )
 
         self.points_xyz = affine.apply_affine(self.ijk_to_xyz, self.points_ijk)
