@@ -6,7 +6,7 @@ import matplotlib.pylab as plt
 import numpy as np
 
 import file_io
-from slicer import PointsSlicer, render_points, render_cursor
+from slicer import PointsSlicer, render_points, render_cursor, render_legend
 from utils import split_file_variable_arg
 
 
@@ -33,5 +33,6 @@ if __name__ == '__main__':
     slicer = PointsSlicer(voxels, ijk_to_xyz, descriptors)
     slicer.add_renderer(render_points)
     slicer.add_renderer(render_cursor)
+    slicer.add_renderer(render_legend)
     slicer.draw()
     plt.show()
