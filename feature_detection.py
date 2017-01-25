@@ -16,15 +16,20 @@ import sys; logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='
 
 
 class FeatureDetector:
-    def __init__(self, phantom_name, image, ijk_to_xyz):
+    def __init__(self, phantom_name, modality, image, ijk_to_xyz):
         # TODO: detect whether we need to invert here
         self.image = invert(image)
         self.phantom_name = phantom_name
+        self.modality = modality
 
         self.ijk_to_xyz = ijk_to_xyz
 
-        self.grid_radius = phantoms.paramaters[phantom_name]['grid_radius']
-        self.grid_spacing = phantoms.paramaters[phantom_name]['grid_spacing']
+        actual_grid_radius = phantoms.paramaters[phantom_name]['grid_radius']
+        modality_factor = {'mri': 1.5, 'ct': 1.0}[self.modality]
+        self.grid_radius = actual_grid_radius*modality_factor
+
+        actual_grid_spacing = phantoms.paramaters[phantom_name]['grid_spacing']
+        self.grid_spacing = actual_grid_spacing
 
         self.pixel_spacing = affine.pixel_spacing(self.ijk_to_xyz)
 

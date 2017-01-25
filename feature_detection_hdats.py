@@ -68,8 +68,9 @@ class FeatureDetectionSuite(Suite):
         voxels = voxel_data['voxels']
         ijk_to_xyz = voxel_data['ijk_to_patient_xyz_transform']
         phantom_name = voxel_data['phantom_name']
+        modality = voxel_data['modality']
 
-        feature_detector = FeatureDetector(phantom_name, voxels, ijk_to_xyz)
+        feature_detector = FeatureDetector(phantom_name, modality, voxels, ijk_to_xyz)
         points = feature_detector.run()
 
         context['phantom_name'] = phantom_name

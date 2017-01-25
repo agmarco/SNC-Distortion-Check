@@ -37,6 +37,7 @@ class FullAlgorithmSuite(Suite):
         voxels = voxel_data['voxels']
         ijk_to_xyz = voxel_data['ijk_to_patient_xyz_transform']
         phantom_name = voxel_data['phantom_name']
+        modality = voxel_data['modality']
 
         golden_points = file_io.load_points(case_input['source_points'])['points']
         rotation_rad = np.deg2rad(case_input['rotation_deg'])
@@ -44,7 +45,7 @@ class FullAlgorithmSuite(Suite):
         rotated_golden_points = affine.apply_affine(rotation_mat, golden_points)
         rotated_distorted_golden_points = file_io.load_points(case_input['distorted_and_rotated_points'])['points']
 
-        detected_points = FeatureDetector(voxels, ijk_to_xyz).run()
+        detected_points = FeatureDetector(phantom_name, modality, voxels, ijk_to_xyz).run()
 
         xyztpx, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
             golden_points,
