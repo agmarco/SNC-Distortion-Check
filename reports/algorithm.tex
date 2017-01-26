@@ -259,7 +259,14 @@ The goal of the feature detection stage is to localize the phantom grid intersec
     \item Localize peaks in the convolved image.
 \end{itemize}
 
-The grid intersection shape is known a priori.  For example, the CIRS 603A filter contains a grid of intersecting cylindrical beams.  The intersections are spaced 15mm from one another, and the beam's radius is 1.5mm.
+The grid intersection shape is known a priori.  For example, the CIRS 603A filter contains a grid of intersecting cylindrical beams.  The intersections are spaced 15mm from one another, and the beam's radius is 1.5mm.  Unfortunately, MRIs tend to distort the size of they phantom's grid cylinders.  A typical example of this phenomena is displayed in Figure \ref{fig:size-distortion}.  We compensate this effect in MRI images using multiplicative factor (e.g. of using 2mm instead of 1.5mm) when processing MR images; for CT images we use the physical cylinder radius.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{size-distortion.png}
+    \caption{An MRI of a phantom with 3mm diameter grid cylinders.  The image was thresholded at a cutoff approximately halfway between the average value inside the cylinders and the average value outside the cylinders.  Multiple annotations highlight that the cylinder diameter in the images is usually larger than the actual phantom cylinder diameter.}
+    \label{fig:size-distortion}
+\end{figure}
 
 It is important that the kernel be properly centered otherwise it will introduce a systematic shift into the detected feature locations.
 
@@ -275,6 +282,19 @@ Figure \ref{fig:kernel} demonstrates the geometry of the grid intersection kerne
     \caption{Geometry of the grid intersection kernel construction.  A central slice of the 3D kernel is displayed.  The red area represents the cylindrical beams forming the grid.  Each side of the green quadrants is one half the intersection spacing.  The black rectangles indicate the locations of the kernel voxels.  The blue rectangles indicate the voxel locations in the upsampled image.  Note that the kernel size may be slightly larger than the intersection spacing.}
     \label{fig:kernel}
 \end{figure}
+
+The third stage, peak detection, involves several steps.
+
+\begin{itemize}
+    \item Build a spherical search neighborhood (a binary array) with a diameter of one grid-intersection spacing.
+    \item Search throughout the convolved image for voxels whose value is equal to the maximum value within the search neighborhood.  The hight of this peak is the maximum value in the neighborhood less the minimum value within the neighborhood.
+    \item Discard peaks that are near the edge of the image (these are usually due to border effects).
+    \item Discard peaks corresponding to noise and other features in the phantom by discarding peaks whose height is less than 30\% the height of the 98th percentile height.
+    \item Combine duplicate peaks that can occur if there are neighboring maximum values in the image.
+    \item Perform some sort of sub-voxel peak detection using the initial set of peaks as seed locations.
+\end{itemize}
+
+Details of the last two steps need to be filled in once we have settled on an algorithm.
 
 \subsection{Rigid Registration}
 
