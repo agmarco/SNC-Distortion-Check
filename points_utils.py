@@ -98,6 +98,7 @@ def _valid_location(location, data_shape, kernel_shape):
     Is the location such that the kernel, when centered there, will fully fit
     inside the data?
     '''
+    assert len(location) == len(data_shape) == len(kernel_shape)
     return all(d - (k - 1)/2 > l >= (k - 1)/2 for l, d, k in zip(location, data_shape, kernel_shape))
 
 

@@ -153,7 +153,6 @@ def _imshow(slicer, voxels, imshow_kwargs):
     slicer.k_ax.imshow(voxels[:, :, k], **imshow_kwargs)
 
 
-
 class PointsSlicer(Slicer):
     def __init__(self, voxels, ijk_to_xyz, points_descriptors):
         super().__init__(voxels)

@@ -4,6 +4,7 @@ import numpy as np
 from scipy import ndimage
 import pyopencl as cl
 
+from points_utils import _valid_location
 import kernels
 
 
@@ -28,8 +29,10 @@ def neighborhood_peaks(data, neighborhood):
     '''
     if neighborhood.dtype != bool:
         raise ValueError("Neighborhood must be a boolean array")
-    if len(data.shape) != len(neighborhood.shape):
-        raise ValueError("Neighborhood and data array must have same number of dimensions")
+    if len(data.shape) != 3:
+        raise ValueError("Data array must have three dimensions")
+    if len(neighborhood.shape) != 3:
+        raise ValueError("Neighborhood array must have three dimensions")
     if not all(nd <= dd for nd, dd in zip(neighborhood.shape, data.shape)):
         raise ValueError("Neighborhood can not be larger than the data array")
     if not all(nd % 2 for nd in neighborhood.shape):
@@ -72,15 +75,21 @@ def detect_peaks(data, pixel_spacing, search_radius, COM_radius):
     logger.info('finding neighborhood peaks')
     peak_heights = neighborhood_peaks(data, search_neighborhood)
     logger.info('filtering out small peaks')
-    threshold = 0.6*np.percentile(peak_heights[peak_heights > 0], 98)
+    threshold = 0.3*np.percentile(peak_heights[peak_heights > 0], 98)
     peaks_thresholded = peak_heights > threshold
 
     logger.info('labeling')
     COM_neighborhood = kernels.sphere(pixel_spacing, COM_radius, upsample=1)
-    labels, num_labels = ndimage.label(ndimage.binary_dilation(peaks_thresholded, COM_neighborhood))
+    COM_image = ndimage.binary_dilation(peaks_thresholded, COM_neighborhood)
+    # TODO: figure out how to handle different peaks bleeding into each other
+    labels, num_labels = ndimage.label(COM_image)
 
     logger.info('center of mass calculations')
     label_list = range(1, num_labels + 1)
-    points = ndimage.center_of_mass(data, labels, label_list)
-    coords = zip(*points)
-    return np.array(list(list(c) for c in coords), dtype=float), labels
+    # TODO: clean this up; this code that throws away edge points should really
+    # be moved earlier up the chain, perhaps by handling it at the initial
+    # convolution
+    all_points = ndimage.center_of_mass(data, labels, label_list)
+    points = [p for p in all_points if _valid_location(p, data.shape, search_neighborhood.shape)]
+    coords = list(zip(*points))
+    return np.array([list(c) for c in coords], dtype=float), labels

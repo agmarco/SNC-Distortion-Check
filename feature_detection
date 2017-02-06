@@ -15,7 +15,8 @@ if __name__ == '__main__':
     voxels = voxel_data['voxels']
     ijk_to_xyz = voxel_data['ijk_to_patient_xyz_transform']
     phantom_name = voxel_data['phantom_name']
+    modality = voxel_data['modality']
 
-    points_in_patient_xyz = FeatureDetector(phantom_name, voxels, ijk_to_xyz).run()
+    points_in_patient_xyz = FeatureDetector(phantom_name, modality, voxels, ijk_to_xyz).run()
 
     file_io.save_points(args.points, {'points': points_in_patient_xyz})

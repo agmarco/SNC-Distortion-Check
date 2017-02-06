@@ -7,9 +7,12 @@ from dicom_import import combined_series_from_zip
 import phantoms
 
 
-def phantom_name_from_file_name(file_path):
+def parse_file_name(file_path):
     '''
-    In the real application, the phantom name will be derived from user input.
+    In the real application, the phantom name will be derived from user input,
+    and the modality would usually be derived from the DICOM---and if the DICOM
+    modality is ambiguious (e.g. secondary capture), than it would be derived
+    from user input.
 
     Expects files to have format:
 
@@ -21,7 +24,7 @@ def phantom_name_from_file_name(file_path):
     if len(file_parts) < 4:
         raise ValueError("Invalid DICOM zip filename format: {}".format(file_name))
 
-    return file_parts[2]
+    return file_parts[1], file_parts[2]
 
 
 if __name__ == '__main__':
@@ -30,7 +33,7 @@ if __name__ == '__main__':
     parser.add_argument('voxels', help='Output path to write voxels-file')
     args = parser.parse_args()
 
-    phantom_name = phantom_name_from_file_name(args.zip)
+    modality, phantom_name = parse_file_name(args.zip)
 
     voxels, ijk_to_xyz = combined_series_from_zip(args.zip)
 
@@ -38,4 +41,5 @@ if __name__ == '__main__':
         'voxels': voxels,
         'ijk_to_patient_xyz_transform': ijk_to_xyz,
         'phantom_name': phantom_name,
+        'modality': modality,
     })

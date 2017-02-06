@@ -2,7 +2,7 @@ from unittest import mock
 import math
 
 import pytest
-import numpy
+import numpy as np
 
 from dicom_import import (
     combine_slices,
@@ -22,45 +22,44 @@ negative_z_cos = (0, 0, -1)
 
 arbitrary_shape = (10, 11)
 
-
-def generate_mock_slice(pixel_array, slice_position, row_cosine, column_cosine):
+class MockSlice:
     '''
-    Build a minimal DICOM dataset representing a dataslice at a particular
+    A minimal DICOM dataset representing a dataslice at a particular
     slice location.  The `slice_position` is the coordinate value along the
     remaining unused axis (i.e. the axis perpendicular to the direction
     cosines).
     '''
-    na, nb = pixel_array.shape
 
-    dataset = mock.Mock()
-    dataset.pixel_array = pixel_array
+    def __init__(self, pixel_array, slice_position, row_cosine, column_cosine):
+        na, nb = pixel_array.shape
 
-    dataset.SeriesInstanceUID = 'arbitrary uid'
-    dataset.SOPClassUID = 'arbitrary sopclass uid'
-    dataset.PixelSpacing = [1.0, 1.0]
-    dataset.Rows = na
-    dataset.Columns = nb
-    dataset.Modality = 'MR'
+        self.pixel_array = pixel_array
 
-    # assume that the images are centered on the remaining unused axis
-    a_component = [-na/2.0*c for c in row_cosine]
-    b_component = [-nb/2.0*c for c in column_cosine]
-    c_component = [(slice_position if c == 0 and cc == 0 else 0) for c, cc in zip(row_cosine, column_cosine)]
-    patient_position = [a + b + c for a, b, c in zip(a_component, b_component, c_component)]
+        self.SeriesInstanceUID = 'arbitrary uid'
+        self.SOPClassUID = 'arbitrary sopclass uid'
+        self.PixelSpacing = [1.0, 1.0]
+        self.Rows = na
+        self.Columns = nb
+        self.Modality = 'MR'
 
-    dataset.ImagePositionPatient = patient_position
+        # assume that the images are centered on the remaining unused axis
+        a_component = [-na/2.0*c for c in row_cosine]
+        b_component = [-nb/2.0*c for c in column_cosine]
+        c_component = [(slice_position if c == 0 and cc == 0 else 0) for c, cc in zip(row_cosine, column_cosine)]
+        patient_position = [a + b + c for a, b, c in zip(a_component, b_component, c_component)]
 
-    dataset.ImageOrientationPatient = list(row_cosine) + list(column_cosine)
-    return dataset
+        self.ImagePositionPatient = patient_position
+
+        self.ImageOrientationPatient = list(row_cosine) + list(column_cosine)
 
 
 @pytest.fixture
 def axial_slices():
     return [
-        generate_mock_slice(randi(*arbitrary_shape), 0, x_cos, y_cos),
-        generate_mock_slice(randi(*arbitrary_shape), 1, x_cos, y_cos),
-        generate_mock_slice(randi(*arbitrary_shape), 2, x_cos, y_cos),
-        generate_mock_slice(randi(*arbitrary_shape), 3, x_cos, y_cos),
+        MockSlice(randi(*arbitrary_shape), 0, x_cos, y_cos),
+        MockSlice(randi(*arbitrary_shape), 1, x_cos, y_cos),
+        MockSlice(randi(*arbitrary_shape), 2, x_cos, y_cos),
+        MockSlice(randi(*arbitrary_shape), 3, x_cos, y_cos),
     ]
 
 
@@ -68,16 +67,16 @@ class TestMergeSlices:
     def test_simple_axial_set(self, axial_slices):
         combined, _ = combine_slices(axial_slices[0:2])
 
-        manually_combined = numpy.dstack((axial_slices[0].pixel_array, axial_slices[1].pixel_array))
-        assert numpy.array_equal(combined, manually_combined)
+        manually_combined = np.dstack((axial_slices[0].pixel_array.T, axial_slices[1].pixel_array.T))
+        assert np.array_equal(combined, manually_combined)
 
 
 class TestMergeSlicePixelArrays:
     def test_casts_to_float(self, axial_slices):
         '''
-        The typically integer DICOM pixel data should be cast to a float.
+        Integer DICOM pixel data should retain its type.
         '''
-        assert merge_slice_pixel_arrays(axial_slices).dtype == numpy.dtype('float64')
+        assert merge_slice_pixel_arrays(axial_slices).dtype == np.dtype('uint16')
 
 
     def test_robust_to_ordering(self, axial_slices):
@@ -85,12 +84,12 @@ class TestMergeSlicePixelArrays:
         The DICOM slices should be able to be passed in in any order, and they
         should be recombined appropriately.
         '''
-        assert numpy.array_equal(
+        assert np.array_equal(
             merge_slice_pixel_arrays([axial_slices[0], axial_slices[1], axial_slices[2]]),
             merge_slice_pixel_arrays([axial_slices[1], axial_slices[0], axial_slices[2]])
         )
 
-        assert numpy.array_equal(
+        assert np.array_equal(
             merge_slice_pixel_arrays([axial_slices[0], axial_slices[1], axial_slices[2]]),
             merge_slice_pixel_arrays([axial_slices[2], axial_slices[0], axial_slices[1]])
         )
@@ -126,4 +125,4 @@ class TestValidateSlicesFormUniformGrid:
 
 
 def randi(*shape):
-    return numpy.random.randint(1000, size=shape, dtype='uint16')
+    return np.random.randint(1000, size=shape, dtype='uint16')

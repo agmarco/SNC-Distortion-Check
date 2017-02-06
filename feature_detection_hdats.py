@@ -44,7 +44,15 @@ class FeatureDetectionSuite(Suite):
                 'points': 'data/points/011_mri_630A_arterial_TOF_3d_motsa_ND-golden.mat',
             },
             '012': {
-                'voxels': 'tmp/012_ct_1540_ST075-120kVp-25mA-voxels.mat',
+                'voxels': 'tmp/xxx_ct_1540_ST075-120kVp-25mA-voxels.mat',
+                'points': 'data/points/012_ct_1540_ST075-120kVp-25mA-golden.mat',
+            },
+            '013': {
+                'voxels': 'tmp/xxx_ct_1540_ST375-120kVp-100mA-voxels.mat',
+                'points': 'data/points/012_ct_1540_ST075-120kVp-25mA-golden.mat',
+            },
+            '014': {
+                'voxels': 'tmp/xxx_ct_1540_ST500-120kVp-100mA-voxels.mat',
                 'points': 'data/points/012_ct_1540_ST075-120kVp-25mA-golden.mat',
             },
         }
@@ -60,8 +68,9 @@ class FeatureDetectionSuite(Suite):
         voxels = voxel_data['voxels']
         ijk_to_xyz = voxel_data['ijk_to_patient_xyz_transform']
         phantom_name = voxel_data['phantom_name']
+        modality = voxel_data['modality']
 
-        feature_detector = FeatureDetector(phantom_name, voxels, ijk_to_xyz)
+        feature_detector = FeatureDetector(phantom_name, modality, voxels, ijk_to_xyz)
         points = feature_detector.run()
 
         context['phantom_name'] = phantom_name
@@ -139,7 +148,7 @@ class FeatureDetectionSuite(Suite):
 
         kernel_big[slices] = kernel_small*np.max(context['feature_image'])
 
-        s = slicer.PointsSlicer(raw_voxels, ijk_to_xyz, descriptors)
+        s = slicer.PointsSlicer(context['preprocessed_image'], ijk_to_xyz, descriptors)
         s.add_renderer(slicer.render_overlay(context['feature_image']), hidden=True)
         s.add_renderer(slicer.render_points)
         s.add_renderer(slicer.render_translucent_overlay(context['label_image'] > 0, [0, 1, 0]))

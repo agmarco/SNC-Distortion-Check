@@ -20,4 +20,4 @@ and it should install everything.
 
 Run tests using
 
-    PYTHONPATH=. py.test
+    PYOPENCL_CTX=':' PYTHONPATH=. py.test

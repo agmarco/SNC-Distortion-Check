@@ -16,15 +16,20 @@ import sys; logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='
 
 
 class FeatureDetector:
-    def __init__(self, phantom_name, image, ijk_to_xyz):
+    def __init__(self, phantom_name, modality, image, ijk_to_xyz):
         # TODO: detect whether we need to invert here
         self.image = invert(image)
         self.phantom_name = phantom_name
+        self.modality = modality
 
         self.ijk_to_xyz = ijk_to_xyz
 
-        self.grid_radius = phantoms.paramaters[phantom_name]['grid_radius']
-        self.grid_spacing = phantoms.paramaters[phantom_name]['grid_spacing']
+        actual_grid_radius = phantoms.paramaters[phantom_name]['grid_radius']
+        modality_factor = {'mri': 1.5, 'ct': 1.0}[self.modality]
+        self.grid_radius = actual_grid_radius*modality_factor
+
+        actual_grid_spacing = phantoms.paramaters[phantom_name]['grid_spacing']
+        self.grid_spacing = actual_grid_spacing
 
         self.pixel_spacing = affine.pixel_spacing(self.ijk_to_xyz)
 
@@ -33,16 +38,17 @@ class FeatureDetector:
         self.kernel = self.build_kernel()
         logger.info('preprocessing image')
         self.preprocessed_image = self.preprocess()
-        self.zero_mean_kernel = self.kernel - np.mean(self.kernel)
         logger.info('convolving with feature kernel')
-        self.feature_image = signal.fftconvolve(self.preprocessed_image, self.zero_mean_kernel, mode='same')
+        self.feature_image = signal.fftconvolve(self.preprocessed_image, self.kernel, mode='same')
 
         logger.info('detecting peaks')
+        search_radius = self.grid_spacing/2
+        COM_radius = self.grid_radius
         self.points_ijk, self.label_image = peak_detection.detect_peaks(
             self.feature_image,
             self.pixel_spacing,
-            self.grid_spacing/2,
-            self.grid_radius*1.5
+            search_radius,
+            COM_radius
         )
 
         self.points_xyz = affine.apply_affine(self.ijk_to_xyz, self.points_ijk)
@@ -51,10 +57,10 @@ class FeatureDetector:
     def build_kernel(self):
         return kernels.cylindrical_grid_intersection(
             self.pixel_spacing,
-            self.grid_radius*1.5,
+            self.grid_radius,
             self.grid_spacing
         )
 
     def preprocess(self):
         return self.image
-        #return unsharp_mask(self.image, 10*self.grid_radius/self.pixel_spacing, 1.0)
+        #return unsharp_mask(self.image, self.grid_spacing/self.pixel_spacing, 1.0)
