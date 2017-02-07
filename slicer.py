@@ -26,6 +26,7 @@ class Slicer:
         self.k_ax = self.f.add_subplot(133)
         self.f.canvas.mpl_connect('scroll_event', lambda e: self.on_scroll(e))
         self.f.canvas.mpl_connect('button_press_event', lambda e: self.on_button_press(e))
+        self.f.canvas.mpl_connect('motion_notify_event', lambda e: self.on_mouse_movement(e))
         self.f.canvas.mpl_connect('key_press_event', lambda e: self.on_key_press(e))
         self._renderers = []
         self._renderers_hidden = []
@@ -72,6 +73,9 @@ class Slicer:
         self.draw()
 
     def on_button_press(self, event):
+        self.update_cursor(event)
+
+    def update_cursor(self, event):
         try:
             x_dimension, y_dimension, _ = self.axes_dimensions(event.inaxes)
         except ValueError:
@@ -81,6 +85,10 @@ class Slicer:
         self.cursor[y_dimension] = int(event.ydata)
         self.ensure_cursor_in_bounds()
         self.draw()
+
+    def on_mouse_movement(self, event):
+        if event.button == 1:
+            self.update_cursor(event)
 
     def on_key_press(self, event):
         print(event.key)
@@ -102,6 +110,7 @@ class Slicer:
             ax.images = []
             ax.collections = []
             ax.lines = []
+            ax.patches = []
 
     def draw(self):
         self.clear_axes()
