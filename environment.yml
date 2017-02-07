@@ -1,5 +1,5 @@
 name: cirs
-channels: !!python/tuple
+channels:
 - defaults
 dependencies:
 - _nb_ext_conf=0.3.0=py35_0
@@ -68,13 +68,17 @@ dependencies:
 - yaml=0.1.6=0
 - zlib=1.2.8=3
 - pip:
+  - appdirs==1.4.0
+  - cffi==1.9.1
   - dill==0.2.5
   - gitdb2==2.0.0
   - gitpython==2.1.0
+  - h5py==2.6.0
   - ipython-genutils==0.1.0
   - jupyter-client==4.4.0
   - jupyter-console==5.0.0
   - jupyter-core==4.2.0
+  - keras==1.2.1
   - nb-anacondacloud==1.2.0
   - nb-conda==2.0.0
   - nb-conda-kernels==2.0.0
@@ -82,10 +86,15 @@ dependencies:
   - nibabel==2.1.0
   - orderedset==2.0
   - prompt-toolkit==1.0.3
+  - protobuf==3.2.0
   - py==1.4.31
+  - pycparser==2.17
   - pydicom==0.9.9
   - pyopencl==2016.2.1
   - pytest==3.0.3
+  - pytools==2016.2.6
   - smmap2==2.0.1
   - tabulate==0.7.7
+  - tensorflow==0.12.1
+  - theano==0.8.2
 
