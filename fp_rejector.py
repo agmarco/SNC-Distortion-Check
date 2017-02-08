@@ -8,6 +8,8 @@ input_shape = (cube_size, cube_size, cube_size, 1)
 
 INTERSECTION_PROB_THRESHOLD = 0.4
 
+model = None
+
 def is_grid_intersection(point_ijk, voxels):
     '''
     Given an index within the CT or MRI data, use a deep learning algorithm to
