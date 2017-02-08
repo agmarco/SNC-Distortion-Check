@@ -20,6 +20,7 @@ import sys; logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='
 class FeatureDetector:
     def __init__(self, phantom_name, modality, image, ijk_to_xyz):
         # TODO: detect whether we need to invert here
+        self.orig_image = image
         self.image = invert(image)
         self.phantom_name = phantom_name
         self.modality = modality
@@ -57,7 +58,7 @@ class FeatureDetector:
         num_points = points_ijk_unfiltered.shape[1]
         is_tp = np.empty((num_points,), dtype=bool)
         for i, point in enumerate(points_ijk_unfiltered.T):
-            is_tp[i] = is_grid_intersection(np.round(point), self.image)
+            is_tp[i] = is_grid_intersection(point, self.orig_image)
 
         # TODO: find a better way to clear out the old points
         self.points_ijk = ((points_ijk_unfiltered.T)[is_tp]).T

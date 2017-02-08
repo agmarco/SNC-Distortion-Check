@@ -27,7 +27,7 @@ def is_grid_intersection(point_ijk, voxels):
 
 
 def _window_from_ijk(point_ijk, voxels):
-    i, j, k = point_ijk.astype(int)
+    i, j, k = np.round(point_ijk).astype(int)
     voxel_window = voxels[
         i - cube_size_half:i + cube_size_half + 1,
         j - cube_size_half:j + cube_size_half + 1,
