@@ -8,8 +8,10 @@ cube_size = 15
 cube_size_half = math.floor(cube_size/2)
 input_shape = (cube_size, cube_size, cube_size, 1)
 
-model = load_model('data/keras_models/v1.h5')
+model = load_model('data/keras_models/v2.h5')
+model.summary()
 
+INTERSECTION_PROB_THRESHOLD = 0.4
 
 def is_grid_intersection(point_ijk, voxels):
     '''
@@ -20,8 +22,8 @@ def is_grid_intersection(point_ijk, voxels):
     '''
     window = _window_from_ijk(point_ijk, voxels)
     if window is not None:
-        predictions = model.predict_classes(np.array([window]), verbose=0)
-        return bool(predictions[0])
+        probablities = model.predict_proba(np.array([window]), verbose=0)
+        return bool(probablities[0][1] > INTERSECTION_PROB_THRESHOLD)
     else:
         return False
 
