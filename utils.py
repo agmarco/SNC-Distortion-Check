@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 def invert(data):
-    return 2*np.mean(data) - data
+    return np.max(data) - data
 
 
 def unsharp_mask(image, sigma, weight=0.25):
