@@ -10,6 +10,7 @@ import phantoms
 import kernels
 import points_utils
 import peak_detection
+from fp_rejector import is_grid_intersection
 
 logger = logging.getLogger(__name__)
 import sys; logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(message)s')
@@ -46,11 +47,21 @@ class FeatureDetector:
 
         logger.info('detecting peaks')
         search_radius = self.grid_spacing/2
-        self.points_ijk, self.label_image = peak_detection.detect_peaks(
+        points_ijk_unfiltered, self.label_image = peak_detection.detect_peaks(
             self.feature_image,
             self.pixel_spacing,
             search_radius,
         )
+
+        logger.info('discarding false positives using neural network')
+        num_points = points_ijk_unfiltered.shape[1]
+        is_tp = np.empty((num_points,), dtype=bool)
+        for i, point in enumerate(points_ijk_unfiltered.T):
+            is_tp[i] = is_grid_intersection(np.round(point), self.image)
+
+        # TODO: find a better way to clear out the old points
+        self.points_ijk = ((points_ijk_unfiltered.T)[is_tp]).T
+        assert self.points_ijk.shape[1] > 0, 'All of the points were filtered out!'
 
         self.points_xyz = affine.apply_affine(self.ijk_to_xyz, self.points_ijk)
         return self.points_xyz
@@ -63,5 +74,5 @@ class FeatureDetector:
         )
 
     def preprocess(self):
-        #return self.image
-        return unsharp_mask(self.image, self.grid_spacing/self.pixel_spacing, 1.0)
+        return self.image
+        #return unsharp_mask(self.image, self.grid_spacing/self.pixel_spacing, 1.0)
