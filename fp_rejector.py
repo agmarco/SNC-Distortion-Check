@@ -1,15 +1,10 @@
 import math
 import numpy as np
 
-from keras.models import load_model
-
 
 cube_size = 15
 cube_size_half = math.floor(cube_size/2)
 input_shape = (cube_size, cube_size, cube_size, 1)
-
-model = load_model('data/keras_models/v2.h5')
-model.summary()
 
 INTERSECTION_PROB_THRESHOLD = 0.4
 
@@ -20,6 +15,13 @@ def is_grid_intersection(point_ijk, voxels):
 
     This is used to provide increased specificity to our peak-finding algorithm.
     '''
+    global model
+
+    if model is None:
+        from keras.models import load_model
+        model = load_model('data/keras_models/v2.h5')
+        model.summary()
+
     window = _window_from_ijk(point_ijk, voxels)
     if window is not None:
         probablities = model.predict_proba(np.array([window]), verbose=0)
