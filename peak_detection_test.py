@@ -1,8 +1,10 @@
+import math
+
 import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from peak_detection import neighborhood_peaks
+from peak_detection import neighborhood_peaks, subvoxel_maximum, detect_peaks
 
 
 class TestDetectPeaks:
@@ -135,3 +137,61 @@ class TestDetectPeaks:
         expected_peaks[4, 4, 4] = 2
         peaks = neighborhood_peaks(voxels, search_neighborhood)
         assert np.allclose(expected_peaks, peaks)
+
+
+class TestSubvoxelDetectPeaks:
+
+    def test_simple_1d_3_peak_preserved(self):
+        a = np.array([0, 1, 0], dtype=float)
+        assert subvoxel_maximum(a, 3)[0] == 1
+
+    def test_simple_1d_7_peak_preserved(self):
+        a = np.array([0, 0, 0, 2, 0, 0, 0], dtype=float)
+        assert subvoxel_maximum(a, 5)[0] == 3
+
+    def test_simple_1d_6_peak_almost_preserved(self):
+        '''
+        I believe this is a property of splines, that the peak location will get shifted
+        over a bit.
+        '''
+        a = np.array([0, 0, 0, 2, 0, 0], dtype=float)
+        assert math.isclose(subvoxel_maximum(a, 5)[0], 3, abs_tol=0.1)
+
+    def test_simple_2d_3x3_peak_preserved(self):
+        a = np.array([
+            [0, 0, 0],
+            [0, 1, 0],
+            [0, 0, 0],
+        ], dtype=float)
+        assert_allclose(subvoxel_maximum(a, 5), np.array([1, 1]))
+
+
+class TestDetectPeaks:
+    def test_rejects_peaks_on_edge(self):
+        d = np.zeros((7, 9, 11))
+        d[0, 0, 0] = 1
+        d[4, 4, 4] = 1
+        pixel_spacing = np.array([1.0, 1.0, 1.0])
+        search_radius = 1.1
+
+        expected_peaks = np.array([[4, 4, 4]], dtype=float).T
+
+        peaks, labels = detect_peaks(d, pixel_spacing, search_radius)
+
+        assert_allclose(expected_peaks, peaks)
+
+    def test_performs_subvoxel_peak_detection(self):
+        d = np.zeros((7, 9, 11))
+        d[4, 4, 4] = 1
+        d[4, 4, 5] = 1
+
+        pixel_spacing = np.array([1.0, 1.0, 1.0])
+        search_radius = 1.1
+
+        # TODO: look into the math behind the spline interpolation to verify
+        # this hardcoded value is correct
+        expected_peaks = np.array([[4, 4, 4.42105]], dtype=float).T
+
+        peaks, labels = detect_peaks(d, pixel_spacing, search_radius)
+
+        assert_allclose(expected_peaks, peaks, atol=0.001)

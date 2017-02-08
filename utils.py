@@ -1,5 +1,10 @@
+import logging
+
 import numpy as np
 from scipy.ndimage import filters
+
+
+logger = logging.getLogger(__name__)
 
 
 def invert(data):
@@ -60,3 +65,9 @@ def split_file_variable_arg(arg, default_variable):
         return parts[0], parts[1]
     else:
         raise ValueError("Invalid 'file:variable' argument.")
+
+
+def print_optimization_result(result):
+    logger.info('Optimization completed in {} iterations'.format(result.nit))
+    logger.info('Objective function evaluated {} times'.format(result.nfev))
+    logger.info('Cause of termination: {}'.format(result.message))

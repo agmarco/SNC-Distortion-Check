@@ -1,4 +1,5 @@
 import logging
+import os
 
 import numpy as np
 from scipy import signal, ndimage
@@ -26,10 +27,12 @@ class FeatureDetector:
 
         actual_grid_radius = phantoms.paramaters[phantom_name]['grid_radius']
         modality_factor = {'mri': 1.5, 'ct': 1.0}[self.modality]
-        self.grid_radius = actual_grid_radius*modality_factor
+        grid_radius_environment_factor = float(os.environ.get('GRID_RADIUS', '1'))
+        self.grid_radius = actual_grid_radius*modality_factor*grid_radius_environment_factor
 
         actual_grid_spacing = phantoms.paramaters[phantom_name]['grid_spacing']
-        self.grid_spacing = actual_grid_spacing
+        grid_spacing_environment_factor = float(os.environ.get('GRID_SPACING', '1'))
+        self.grid_spacing = actual_grid_spacing*grid_spacing_environment_factor
 
         self.pixel_spacing = affine.pixel_spacing(self.ijk_to_xyz)
 
@@ -43,12 +46,10 @@ class FeatureDetector:
 
         logger.info('detecting peaks')
         search_radius = self.grid_spacing/2
-        COM_radius = self.grid_radius
         self.points_ijk, self.label_image = peak_detection.detect_peaks(
             self.feature_image,
             self.pixel_spacing,
             search_radius,
-            COM_radius
         )
 
         self.points_xyz = affine.apply_affine(self.ijk_to_xyz, self.points_ijk)
@@ -62,5 +63,5 @@ class FeatureDetector:
         )
 
     def preprocess(self):
-        return self.image
-        #return unsharp_mask(self.image, self.grid_spacing/self.pixel_spacing, 1.0)
+        #return self.image
+        return unsharp_mask(self.image, self.grid_spacing/self.pixel_spacing, 1.0)

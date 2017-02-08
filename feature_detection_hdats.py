@@ -44,7 +44,7 @@ class FeatureDetectionSuite(Suite):
                 'points': 'data/points/011_mri_630A_arterial_TOF_3d_motsa_ND-golden.mat',
             },
             '012': {
-                'voxels': 'tmp/xxx_ct_1540_ST075-120kVp-25mA-voxels.mat',
+                'voxels': 'tmp/xxx_ct_1540_ST075-120kVp-100mA-voxels.mat',
                 'points': 'data/points/012_ct_1540_ST075-120kVp-25mA-golden.mat',
             },
             '013': {
@@ -88,15 +88,28 @@ class FeatureDetectionSuite(Suite):
         context['TP_B'] = TP_B
         context['FP_B'] = FP_B
 
-        FLE_mean, TPF, FNF, FPF = points_utils.metrics(FN_A, TP_A, TP_B, FP_B)
+        FLE_mean, TPF, FNF, FPF, FLE_percentiles = points_utils.metrics(FN_A, TP_A, TP_B, FP_B)
         metrics['FLE_mean'] = FLE_mean
         metrics['TPF'] = TPF
         metrics['FNF'] = FNF
         metrics['FPF'] = FPF
 
-        print(", ".join("{}={:06.4f}".format(k, v) for k, v in metrics.items()))
+        for p in [0, 25, 50, 75, 100]:
+            metrics['FLE_{}'.format(p)] = FLE_percentiles[p]
+
+        self.print_metrics(metrics)
 
         return metrics, context
+
+
+    def print_metrics(self, metrics):
+        for k, v in metrics.items():
+            if k.startswith('FLE_'):
+                suffix = 'mm'
+            else:
+                suffix = ''
+            print("{} = {:06.4f}{}".format(k, v, suffix))
+
 
     def verify(self, old_metrics, new_metrics):
         comments = []

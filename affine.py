@@ -48,6 +48,10 @@ def T(x, y, z):
     ], dtype='f')
 
 
+def rotation(theta, phi, xi):
+    return R_x(theta) @ R_y(phi) @ R_z(xi)
+
+
 def translation_rotation(x, y, z, theta, phi, xi):
     return R_x(theta) @ R_y(phi) @ R_z(xi) @ T(x, y, z)
 

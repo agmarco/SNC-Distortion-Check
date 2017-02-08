@@ -93,7 +93,7 @@ class TestMetrics:
         ]).T
 
         rho = lambda bmag: 1
-        FLE_mean, TPF, FNF, FPF = metrics(*categorize(A, B, rho))
+        FLE_mean, TPF, FNF, FPF, _ = metrics(*categorize(A, B, rho))
 
         assert FLE_mean == 0.0
         assert TPF == 1.0
@@ -110,7 +110,7 @@ class TestMetrics:
         ]).T
 
         rho = lambda bmag: 1
-        FLE_mean, TPF, FNF, FPF = metrics(*categorize(A, B, rho))
+        FLE_mean, TPF, FNF, FPF, _ = metrics(*categorize(A, B, rho))
 
         assert FLE_mean == 0.1
         assert TPF == 1.0
@@ -130,7 +130,7 @@ class TestMetrics:
         ]).T
 
         rho = lambda bmag: 1
-        FLE_mean, TPF, FNF, FPF = metrics(*categorize(A, B, rho))
+        FLE_mean, TPF, FNF, FPF, _ = metrics(*categorize(A, B, rho))
 
         assert FLE_mean == 0.1
         assert TPF == 2/3

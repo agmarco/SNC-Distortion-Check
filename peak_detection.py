@@ -1,3 +1,4 @@
+import math
 import logging
 
 import numpy as np
@@ -58,7 +59,7 @@ def neighborhood_peaks(data, neighborhood):
     return res_np
 
 
-def detect_peaks(data, pixel_spacing, search_radius, COM_radius):
+def detect_peaks(data, pixel_spacing, search_radius):
     """
     Detect peaks using a local maximum filter.  A peak is defined as the
     maximum value within a binary neighborhood.  In order to provide subpixel
@@ -72,24 +73,47 @@ def detect_peaks(data, pixel_spacing, search_radius, COM_radius):
     logger.info('building neighborhood')
     search_neighborhood = kernels.sphere(pixel_spacing, search_radius, upsample=1).astype(bool)
 
-    logger.info('finding neighborhood peaks')
+    assert np.sum(search_neighborhood) > 1, 'search neighborhood is too small'
+
+    logger.info('voxel-resolution peak-finding')
     peak_heights = neighborhood_peaks(data, search_neighborhood)
+
     logger.info('filtering out small peaks')
     threshold = 0.3*np.percentile(peak_heights[peak_heights > 0], 98)
     peaks_thresholded = peak_heights > threshold
 
-    logger.info('labeling')
-    COM_neighborhood = kernels.sphere(pixel_spacing, COM_radius, upsample=1)
-    COM_image = ndimage.binary_dilation(peaks_thresholded, COM_neighborhood)
-    # TODO: figure out how to handle different peaks bleeding into each other
-    labels, num_labels = ndimage.label(COM_image)
+    logger.info('removing peaks too close to edge')
+    distance_to_edge = [math.ceil(s/2.0) for s in search_neighborhood.shape]
+    peaks_thresholded[0:distance_to_edge[0], :, :] = False
+    peaks_thresholded[:, 0:distance_to_edge[1], :] = False
+    peaks_thresholded[:, :, 0:distance_to_edge[2]] = False
 
-    logger.info('center of mass calculations')
-    label_list = range(1, num_labels + 1)
-    # TODO: clean this up; this code that throws away edge points should really
-    # be moved earlier up the chain, perhaps by handling it at the initial
-    # convolution
-    all_points = ndimage.center_of_mass(data, labels, label_list)
-    points = [p for p in all_points if _valid_location(p, data.shape, search_neighborhood.shape)]
-    coords = list(zip(*points))
-    return np.array([list(c) for c in coords], dtype=float), labels
+    peaks_thresholded[-distance_to_edge[0]:, :, :] = False
+    peaks_thresholded[:, -distance_to_edge[1]:, :] = False
+    peaks_thresholded[:, :, -distance_to_edge[2]:] = False
+
+    logger.info('labeling')
+    subvoxel_neighborhood = np.ones((3, 3, 3), dtype=bool)
+    dilated_peaks_thresholded = ndimage.binary_dilation(peaks_thresholded, subvoxel_neighborhood)
+    labels, num_labels = ndimage.label(dilated_peaks_thresholded)
+
+    logger.info('subvoxel-resolution peak-finding')
+    peaks = np.empty((len(data.shape), num_labels))
+    for i, object_slices in enumerate(ndimage.measurements.find_objects(labels)):
+        slice_corner_ijk = np.array([s.start for s in object_slices])
+        roi = data[object_slices]
+        subvoxel_offset = subvoxel_maximum(roi, 7)
+        peaks[:, i] = slice_corner_ijk + subvoxel_offset
+
+    return peaks, labels
+
+
+def subvoxel_maximum(data, zoom):
+    data_zoomed = ndimage.zoom(data, zoom)
+
+    # NOTE: if there are multiple maximums, this will return the first
+    maximum_indice = np.argmax(data_zoomed)
+    maximum_coord = np.unravel_index(maximum_indice, data_zoomed.shape)
+
+    return np.array([c*(s - 1)/(zs - 1) for c, s, zs in \
+            zip(maximum_coord, data.shape, data_zoomed.shape)])

@@ -117,10 +117,12 @@ def metrics(FN_A, TP_A, TP_B, FP_B):
 
         error_vectors = (TP_A - TP_B).T
         FLEs = np.linalg.norm(error_vectors, axis=1)
+        percentiles = range(0, 100 + 1)
+        FLE_percentiles = np.percentile(FLEs, percentiles)
         FLE_mean = np.mean(FLEs)
 
         TPF = len(TP_A.T)/num_points_a
         FNF = len(FN_A.T)/num_points_a
         FPF = len(FP_B.T)/num_points_b
 
-        return FLE_mean, TPF, FNF, FPF
+        return FLE_mean, TPF, FNF, FPF, FLE_percentiles

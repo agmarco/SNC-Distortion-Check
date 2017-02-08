@@ -6,7 +6,7 @@ import scipy.optimize
 
 import affine
 import points_utils
-
+from utils import print_optimization_result
 
 logger = logging.getLogger(__name__)
 import sys; logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
@@ -102,9 +102,7 @@ def rigidly_register(A, B, g, rho, tol=1e-4):
 
     result = scipy.optimize.minimize(f, x0, method='Powell', options=options)
 
-    logger.info('Optimization completed in {} iterations'.format(result.nit))
-    logger.info('Objective function evaluated {} times'.format(result.nfev))
-    logger.info('Cause of termination: {}'.format(result.message))
+    print_optimization_result(result)
     if not result.success:
         raise ValueError('Optimization did not succeed')
 
