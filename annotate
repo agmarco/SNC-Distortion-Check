@@ -61,14 +61,14 @@ class AnnotateSlicer(PointsSlicer):
             else:
                 return
 
-        nudge_size = 0.15
+        nudge_size = 0.06
         nudge_lookup = {
-            '4': [0, nudge_size, 0],
-            '6': [0, -nudge_size, 0],
-            '8': [-nudge_size, 0, 0],
-            '2': [nudge_size, 0, 0],
-            '-': [0, 0, nudge_size],
-            '+': [0, 0, -nudge_size],
+            '1': [0, nudge_size, 0],
+            '2': [0, -nudge_size, 0],
+            '3': [-nudge_size, 0, 0],
+            '4': [nudge_size, 0, 0],
+            '5': [0, 0, nudge_size],
+            '6': [0, 0, -nudge_size],
         }
 
         if event.key == 'esc':
@@ -92,6 +92,7 @@ class AnnotateSlicer(PointsSlicer):
             nudge = np.array(nudge_list, dtype=float)
             points[:, self.selected_indice] += nudge
         else:
+            print(event.key)
             return super().on_key_press(event)
 
         if self.selected_indice is not None:

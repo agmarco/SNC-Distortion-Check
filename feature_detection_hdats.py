@@ -94,7 +94,7 @@ class FeatureDetectionSuite(Suite):
         metrics['FNF'] = FNF
         metrics['FPF'] = FPF
 
-        for p in [0, 25, 50, 75, 100]:
+        for p in [0, 25, 50, 75, 95, 99, 100]:
             metrics['FLE_{}'.format(p)] = FLE_percentiles[p]
 
         self.print_metrics(metrics)
@@ -135,6 +135,8 @@ class FeatureDetectionSuite(Suite):
         return passing, '\n' + '\n'.join(comments)
 
     def show(self, result):
+        self.print_metrics(result['metrics'])
+
         context = result['context']
         descriptors = [
             {'points_xyz': context['FN_A'], 'scatter_kwargs': {'color': 'y', 'label': 'FN_A', 'marker': 'o'}},
