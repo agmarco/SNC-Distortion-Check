@@ -112,29 +112,10 @@ class FeatureDetectionSuite(Suite):
             else:
                 print("{} = {:06.4f}".format(k, v))
 
-
     def verify(self, old_metrics, new_metrics):
-        comments = []
-
-        max_allowed_percent_change = 2.0
-
-        passing = True
-        for metric_name, new_value in new_metrics.items():
-            try:
-                old_value = old_metrics[metric_name]
-            except KeyError:
-                comments.append('Missing key in old metric: "{}"'.format(metric_name))
-                passing = False
-            percent_change = abs(old_value - new_value)/old_value*100.0
-            if percent_change < max_allowed_percent_change:
-                msg = 'Metric "{}" valid: {} -> {}'
-                comments.append(msg.format(metric_name, old_value, new_value))
-            else:
-                passing = False
-                msg = 'Metric "{}" invalid: {} -> {} ({:.2f}% change)'
-                comments.append(msg.format(metric_name, old_value, new_value, percent_change))
-
-        return passing, '\n' + '\n'.join(comments)
+        return new_metrics['TPF'] == 1.0 and \
+               new_metrics['FPF'] < 0.2 and \
+               new_metrics['FLE_100']['r'] < 0.375, ''
 
     def show(self, result):
         self.print_metrics(result['metrics'])

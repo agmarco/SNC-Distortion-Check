@@ -14,8 +14,12 @@ model = None
 def get_model():
     global model
     if model is None:
+        import sys
+        stdout = sys.stdout
+        sys.stdout = open('/dev/null', 'w')
         from keras.models import load_model
         model = load_model('data/keras_models/v2.h5')
+        sys.stdout = stdout
     return model
 
 
