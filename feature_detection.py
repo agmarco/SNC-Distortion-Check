@@ -60,8 +60,7 @@ class FeatureDetector:
         for i, point in enumerate(points_ijk_unfiltered.T):
             is_tp[i] = is_grid_intersection(point, self.orig_image)
 
-        # TODO: find a better way to clear out the old points
-        self.points_ijk = ((points_ijk_unfiltered.T)[is_tp]).T
+        self.points_ijk = points_ijk_unfiltered[:, is_tp]
         assert self.points_ijk.shape[1] > 0, 'All of the points were filtered out!'
 
         self.points_xyz = affine.apply_affine(self.ijk_to_xyz, self.points_ijk)
