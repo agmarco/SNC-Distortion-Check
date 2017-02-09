@@ -20,28 +20,7 @@ class DicomImportException(Exception):
 def combined_series_from_zip(zip_filename):
     logger.info('Extracting voxel data from "{}"'.format(zip_filename))
     datasets = _dicom_datasets_from_zip(zip_filename)
-    # TODO: ensure all datasets are from same series
-
-    # TODO: also return a combined view of the DICOM data that is necessary for
-    # the nema report
     voxels, ijk_to_xyz = combine_slices(datasets)
-
-    # TODO: move this step somewhere else, once we have a better scheme for
-    # keeping up w DICOM data; also note the feature detection performs an
-    # inversion too
-    modality = datasets[0].Modality
-    if modality == 'CT':
-        voxels = invert(voxels)
-    elif modality == 'SC':
-        # TODO: figure out a better way to do this, perhaps using the SOP class...
-        # also see if we even should support "secondary capture" images...
-        logger.warn('Assuming "SC" modality is a CT')
-        voxels = invert(voxels)
-    elif modality == 'MR':
-        pass
-    else:
-        raise DicomImportException('Invalid Modality "{}"'.format(modality))
-
     return voxels, ijk_to_xyz
 
 

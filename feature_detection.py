@@ -19,9 +19,7 @@ import sys; logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='
 
 class FeatureDetector:
     def __init__(self, phantom_name, modality, image, ijk_to_xyz):
-        # TODO: detect whether we need to invert here
-        self.orig_image = image
-        self.image = invert(image)
+        self.image = image.copy()
         self.phantom_name = phantom_name
         self.modality = modality
 
@@ -74,4 +72,7 @@ class FeatureDetector:
         )
 
     def preprocess(self):
-        return self.image
+        if self.modality == 'MR':
+            return invert(image)
+        else:
+            return image
