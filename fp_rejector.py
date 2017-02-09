@@ -1,6 +1,7 @@
 import math
 import numpy as np
 
+model = None
 
 cube_size = 15
 cube_size_half = math.floor(cube_size/2)
@@ -22,7 +23,6 @@ def is_grid_intersection(point_ijk, voxels):
     if model is None:
         from keras.models import load_model
         model = load_model('data/keras_models/v2.h5')
-        model.summary()
 
     window = _window_from_ijk(point_ijk, voxels)
     if window is not None:
