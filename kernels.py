@@ -1,8 +1,34 @@
 import math
+import collections
+import itertools
 
 import numpy as np
 
 from utils import decimate
+
+
+# def gaussian(pixel_spacing, sigma):
+    # corner_shape = tuple(1 + math.ceil((radius - 0.5*p)/p) for p in pixel_spacing)
+    # upsampled_corner_shape = tuple(upsample*n - int((upsample - 1)/2) for n in corner_shape)
+
+    # slices = [np.linspace(0, (n - 1)*p/upsample, n) for p, n in zip(pixel_spacing, upsampled_corner_shape)]
+
+    # X, Y, Z = np.meshgrid(*slices, indexing='ij')
+
+    # upsampled_kernel_corner = np.zeros(upsampled_corner_shape)
+
+    # upsampled_kernel_corner[X**2 + Y**2 + Z**2 < radius**2] = 1
+
+    # upsampled_kernel = _fill_corners(upsampled_kernel_corner)
+    # kernel = decimate(upsampled_kernel, upsample)
+
+
+def rectangle(pixel_spacing, sides):
+    if not isinstance(sides, collections.Iterable):
+        sides = itertools.repeat(sides)
+    
+    shape = tuple(1 + 2*math.ceil((0.5*s - 0.5*p)/p) for p, s in zip(pixel_spacing, sides))
+    return np.ones(shape, dtype=float)
 
 
 def sphere(pixel_spacing, radius, upsample=3):
@@ -15,7 +41,11 @@ def sphere(pixel_spacing, radius, upsample=3):
     corner_shape = tuple(1 + math.ceil((radius - 0.5*p)/p) for p in pixel_spacing)
     upsampled_corner_shape = tuple(upsample*n - int((upsample - 1)/2) for n in corner_shape)
 
-    slices = [np.linspace(0, (n - 1)*p/upsample, n) for p, n in zip(pixel_spacing, upsampled_corner_shape)]
+    slices = [
+        np.linspace(0, (n - 1)*p/upsample, n)
+        for p, n
+        in zip(pixel_spacing, upsampled_corner_shape)
+    ]
 
     X, Y, Z = np.meshgrid(*slices, indexing='ij')
 

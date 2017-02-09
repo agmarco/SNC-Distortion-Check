@@ -3,7 +3,6 @@ import logging
 
 import numpy as np
 from scipy import ndimage
-import pyopencl as cl
 
 from points_utils import _valid_location
 import kernels
@@ -39,24 +38,15 @@ def neighborhood_peaks(data, neighborhood):
     if not all(nd % 2 for nd in neighborhood.shape):
         raise ValueError("Neighborhood must have an odd number of components in each dimension")
 
-    search_offsets_absolute = np.where(neighborhood)
-    center = np.expand_dims((np.array(neighborhood.shape) - 1)/2, axis=1)
-    offset_around_center = search_offsets_absolute - center
-    search_offsets = np.vstack(offset_around_center).T.astype(np.int32)
+    maximums = ndimage.maximum_filter(data, footprint=neighborhood, mode='constant')
+    peak_locations = maximums == data
 
-    ctx = cl.create_some_context(interactive=True)
-    queue = cl.CommandQueue(ctx)
-    mf = cl.mem_flags
-    hostbuf = data.astype(np.float32)
-    source_g = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=np.ascontiguousarray(hostbuf))
-    offsets_g = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=np.ascontiguousarray(search_offsets))
-    res_np = np.zeros_like(hostbuf)
-    res_g = cl.Buffer(ctx, mf.WRITE_ONLY, size=res_np.nbytes)
-    prg_source = open("peak_detection.cl", "r").read()
-    prg = cl.Program(ctx, prg_source).build()
-    prg.find_peaks(queue, data.shape, None, source_g, res_g, offsets_g, np.int32(search_offsets.shape[0]))
-    cl.enqueue_copy(queue, res_np, res_g)
-    return res_np
+    minimums = ndimage.minimum_filter(data, footprint=neighborhood, mode='constant')
+
+    peak_heights = np.zeros_like(data)
+    peak_heights[peak_locations] = maximums[peak_locations] - minimums[peak_locations]
+
+    return peak_heights
 
 
 def detect_peaks(data, pixel_spacing, search_radius):
@@ -71,7 +61,7 @@ def detect_peaks(data, pixel_spacing, search_radius):
     Returns the peak locations in ijk coordinates.
     """
     logger.info('building neighborhood')
-    search_neighborhood = kernels.sphere(pixel_spacing, search_radius, upsample=1).astype(bool)
+    search_neighborhood = kernels.rectangle(pixel_spacing, search_radius).astype(bool)
 
     assert np.sum(search_neighborhood) > 1, 'search neighborhood is too small'
 
