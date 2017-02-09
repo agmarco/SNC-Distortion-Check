@@ -76,4 +76,3 @@ class FeatureDetector:
 
     def preprocess(self):
         return self.image
-        #return unsharp_mask(self.image, self.grid_spacing/self.pixel_spacing, 1.0)
