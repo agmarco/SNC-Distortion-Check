@@ -112,17 +112,29 @@ def metrics(FN_A, TP_A, TP_B, FP_B):
     assert num_points_a > 0
 
     if len(TP_B.T) == 0:
-        return float('NaN'), 0.0, 1.0, float('inf')
+        raise NotImplementedError('No points in B!')
     else:
 
-        error_vectors = (TP_A - TP_B).T
-        FLEs = np.linalg.norm(error_vectors, axis=1)
+        error_vectors = TP_A - TP_B
+        error_vector_norms = np.linalg.norm(error_vectors, axis=0)
+
         percentiles = range(0, 100 + 1)
-        FLE_percentiles = np.percentile(FLEs, percentiles)
-        FLE_mean = np.mean(FLEs)
+        error_percentiles = {
+            p: {'r': r, 'x': x, 'y': y, 'z': z}
+            for
+            p, r, x, y, z
+            in
+            zip(
+                percentiles,
+                np.percentile(error_vector_norms, percentiles),
+                np.percentile(np.abs(error_vectors[0, :]), percentiles),
+                np.percentile(np.abs(error_vectors[1, :]), percentiles),
+                np.percentile(np.abs(error_vectors[2, :]), percentiles),
+            )
+        }
 
         TPF = len(TP_A.T)/num_points_a
-        FNF = len(FN_A.T)/num_points_a
         FPF = len(FP_B.T)/num_points_b
 
-        return FLE_mean, TPF, FNF, FPF, FLE_percentiles
+        return TPF, FPF, error_percentiles
+

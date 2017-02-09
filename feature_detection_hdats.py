@@ -92,10 +92,8 @@ class FeatureDetectionSuite(Suite):
         context['TP_B'] = TP_B
         context['FP_B'] = FP_B
 
-        FLE_mean, TPF, FNF, FPF, FLE_percentiles = points_utils.metrics(FN_A, TP_A, TP_B, FP_B)
-        metrics['FLE_mean'] = FLE_mean
+        TPF, FPF, FLE_percentiles = points_utils.metrics(FN_A, TP_A, TP_B, FP_B)
         metrics['TPF'] = TPF
-        metrics['FNF'] = FNF
         metrics['FPF'] = FPF
 
         for p in [0, 25, 50, 75, 95, 99, 100]:
@@ -109,10 +107,10 @@ class FeatureDetectionSuite(Suite):
     def print_metrics(self, metrics):
         for k, v in metrics.items():
             if k.startswith('FLE_'):
-                suffix = 'mm'
+                msg = "{} = {:06.4f}mm ({:06.4f}mm, {:06.4f}mm, {:06.4f}mm)"
+                print(msg.format(k, v['r'], v['x'], v['y'], v['z']))
             else:
-                suffix = ''
-            print("{} = {:06.4f}{}".format(k, v, suffix))
+                print("{} = {:06.4f}".format(k, v))
 
 
     def verify(self, old_metrics, new_metrics):

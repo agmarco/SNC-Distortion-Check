@@ -93,11 +93,9 @@ class TestMetrics:
         ]).T
 
         rho = lambda bmag: 1
-        FLE_mean, TPF, FNF, FPF, _ = metrics(*categorize(A, B, rho))
+        TPF, FPF, _ = metrics(*categorize(A, B, rho))
 
-        assert FLE_mean == 0.0
         assert TPF == 1.0
-        assert FNF == 0.0
         assert FPF == 0.0
 
     def test_two_matched_points(self):
@@ -110,11 +108,9 @@ class TestMetrics:
         ]).T
 
         rho = lambda bmag: 1
-        FLE_mean, TPF, FNF, FPF, _ = metrics(*categorize(A, B, rho))
+        TPF, FPF, _ = metrics(*categorize(A, B, rho))
 
-        assert FLE_mean == 0.1
         assert TPF == 1.0
-        assert FNF == 0.0
         assert FPF == 0.0
 
     def test_four_matched_one_false_negative(self):
@@ -130,11 +126,9 @@ class TestMetrics:
         ]).T
 
         rho = lambda bmag: 1
-        FLE_mean, TPF, FNF, FPF, _ = metrics(*categorize(A, B, rho))
+        TPF, FPF, _ = metrics(*categorize(A, B, rho))
 
-        assert FLE_mean == 0.1
         assert TPF == 2/3
-        assert FNF == 1/3
         assert FPF == 0.0
 
 
