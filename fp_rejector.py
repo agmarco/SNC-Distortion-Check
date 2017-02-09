@@ -11,6 +11,33 @@ INTERSECTION_PROB_THRESHOLD = 0.4
 
 model = None
 
+def get_model():
+    global model
+    if model is None:
+        from keras.models import load_model
+        model = load_model('data/keras_models/v2.h5')
+    return model
+
+
+def remove_fps(points_ijk_unfiltered, voxels):
+    model = get_model()
+
+    num_points = points_ijk_unfiltered.shape[1]
+    is_fp = np.zeros((num_points,), dtype=bool)
+    windows = []
+    for i, point_ijk in enumerate(points_ijk_unfiltered.T):
+        window = _window_from_ijk(point_ijk, voxels)
+        if window is None:
+            is_fp[i] = True
+        else:
+            windows.append(window)
+
+    probablities = model.predict_proba(np.array(windows), verbose=0)
+    is_fp[~is_fp] = probablities[:, 1] < INTERSECTION_PROB_THRESHOLD
+
+    return points_ijk_unfiltered[:, ~is_fp]
+
+
 def is_grid_intersection(point_ijk, voxels):
     '''
     Given an index within the CT or MRI data, use a deep learning algorithm to
@@ -18,11 +45,7 @@ def is_grid_intersection(point_ijk, voxels):
 
     This is used to provide increased specificity to our peak-finding algorithm.
     '''
-    global model
-
-    if model is None:
-        from keras.models import load_model
-        model = load_model('data/keras_models/v2.h5')
+    model = get_model()
 
     window = _window_from_ijk(point_ijk, voxels)
     if window is not None:

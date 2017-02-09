@@ -10,7 +10,7 @@ import phantoms
 import kernels
 import points_utils
 import peak_detection
-from fp_rejector import is_grid_intersection
+from fp_rejector import remove_fps
 
 logger = logging.getLogger(__name__)
 import sys; logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(message)s')
@@ -53,12 +53,10 @@ class FeatureDetector:
         )
 
         logger.info('discarding false positives using neural network')
-        num_points = points_ijk_unfiltered.shape[1]
-        is_tp = np.empty((num_points,), dtype=bool)
-        for i, point in enumerate(points_ijk_unfiltered.T):
-            is_tp[i] = is_grid_intersection(point, self.orig_image)
 
-        self.points_ijk = points_ijk_unfiltered[:, is_tp]
+        # TODO: switch to using original image after updating the model
+        inverted_image = invert(self.image)
+        self.points_ijk = remove_fps(points_ijk_unfiltered, inverted_image)
         assert self.points_ijk.shape[1] > 0, 'All of the points were filtered out!'
 
         self.points_xyz = affine.apply_affine(self.ijk_to_xyz, self.points_ijk)
@@ -73,6 +71,6 @@ class FeatureDetector:
 
     def preprocess(self):
         if self.modality == 'MR':
-            return invert(image)
+            return invert(self.image)
         else:
-            return image
+            return self.image
