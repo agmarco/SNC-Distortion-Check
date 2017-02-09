@@ -1,10 +1,13 @@
 import logging
+import math
 
 import numpy as np
 from scipy.ndimage import filters
 
 
 logger = logging.getLogger(__name__)
+import sys; logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(message)s')
+# TODO: handle this in a "ConsoleApp" class
 
 
 def invert(data):
@@ -71,3 +74,18 @@ def print_optimization_result(result):
     logger.info('Optimization completed in {} iterations'.format(result.nit))
     logger.info('Objective function evaluated {} times'.format(result.nfev))
     logger.info('Cause of termination: {}'.format(result.message))
+
+
+def print_xyztpx(xyztpx):
+    x, y, z, theta, phi, xi = xyztpx
+    r = math.sqrt(x*x + y*y + z*z)
+
+    translation_msg = 'Translation of {:06.4f}mm ({:06.4f}mm, {:06.4f}mm, {:06.4f}mm)'
+    logger.info(translation_msg.format(r, x, y, z))
+
+    rotation_msg = 'Rotation of {:06.4f}°, {:06.4f}°, {:06.4f}°'
+    logger.info(rotation_msg.format(
+        math.degrees(theta),
+        math.degrees(phi),
+        math.degrees(xi)
+    ))
