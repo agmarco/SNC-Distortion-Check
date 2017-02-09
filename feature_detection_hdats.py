@@ -45,15 +45,19 @@ class FeatureDetectionSuite(Suite):
             },
             '012': {
                 'voxels': 'tmp/xxx_ct_1540_ST075-120kVp-100mA-voxels.mat',
-                'points': 'data/points/012_ct_1540_ST075-120kVp-25mA-golden.mat',
+                'points': 'data/points/1540-hand-v1.mat',
             },
             '013': {
-                'voxels': 'tmp/xxx_ct_1540_ST375-120kVp-100mA-voxels.mat',
-                'points': 'data/points/012_ct_1540_ST075-120kVp-25mA-golden.mat',
+                'voxels': 'tmp/xxx_ct_1540_ST125-120kVp-100mA-voxels.mat',
+                'points': 'data/points/1540-hand-v1.mat',
             },
             '014': {
-                'voxels': 'tmp/xxx_ct_1540_ST500-120kVp-100mA-voxels.mat',
-                'points': 'data/points/012_ct_1540_ST075-120kVp-25mA-golden.mat',
+                'voxels': 'tmp/xxx_ct_1540_ST150-120kVp-100mA-voxels.mat',
+                'points': 'data/points/1540-hand-v1.mat',
+            },
+            '015': {
+                'voxels': 'tmp/xxx_ct_1540_ST250-120kVp-100mA-voxels.mat',
+                'points': 'data/points/1540-hand-v1.mat',
             },
         }
         return cases
