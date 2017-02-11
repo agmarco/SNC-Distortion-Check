@@ -1,4 +1,4 @@
-from math import cos, sin, pi
+from math import cos, sin, pi, radians
 
 import numpy as np
 
@@ -81,3 +81,17 @@ def pixel_spacing(ijk_to_xyz):
     test_xyz_points = apply_affine(ijk_to_xyz, test_ijk_points)
     dvec = test_xyz_points[:, 1:] - test_xyz_points[:, 0].reshape(3, 1)
     return np.abs(np.linalg.norm(dvec, axis=0))
+
+
+def rotate_about(points, x, y, z, theta, phi, xi):
+    affine = T(x, y, z) @ \
+             R_x(radians(theta)) @ \
+             R_y(radians(phi)) @ \
+             R_z(radians(xi)) @ \
+             T(-x, -y, -z)
+    return apply_affine(affine, points)
+
+
+def translate(points, x, y, z):
+    affine = T(x, y, z)
+    return apply_affine(affine, points)

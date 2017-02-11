@@ -46,8 +46,15 @@ if __name__ == '__main__':
     parser.add_argument('output', help='Output path to write registered CAD points-file')
     args = parser.parse_args()
 
-    cad_points = file_io.load_points(args.cad)['points']
+    cad_points_untranslated = file_io.load_points(args.cad)['points']
     algorithm_points = file_io.load_points(args.points)['points']
+
+    cad_middle = np.mean(cad_points_untranslated, axis=1)
+    algorithm_middle = np.mean(algorithm_points, axis=1)
+    shift = algorithm_middle - cad_middle
+    # cad_points = affine.translate(cad_points_untranslated, *shift)
+    cad_points = cad_points_untranslated
+    cad_points = affine.rotate_about(cad_points, *algorithm_middle, 0, 0, 0)
 
     # these are hard coded for now
     spacing = 15.0
