@@ -63,10 +63,16 @@ class FeatureDetector:
         return self.points_xyz
 
     def build_kernel(self):
-        return kernels.cylindrical_grid_intersection(
+        # TODO: consider using cross initially, and then gaussian.  This would
+        # be as "backup" for the CNN.
+        # return kernels.cylindrical_grid_intersection(
+            # self.pixel_spacing,
+            # self.grid_radius,
+            # self.grid_spacing
+        # )
+        return kernels.gaussian(
             self.pixel_spacing,
-            self.grid_radius,
-            self.grid_spacing
+            self.grid_radius
         )
 
     def preprocess(self):
