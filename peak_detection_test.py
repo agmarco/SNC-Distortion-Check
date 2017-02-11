@@ -190,7 +190,7 @@ class TestDetectPeaks:
 
         # TODO: look into the math behind the spline interpolation to verify
         # this hardcoded value is correct
-        expected_peaks = np.array([[4, 4, 4.42105]], dtype=float).T
+        expected_peaks = np.array([[4, 4, 4.444444]], dtype=float).T
 
         peaks, labels = detect_peaks(d, pixel_spacing, search_radius)
 
