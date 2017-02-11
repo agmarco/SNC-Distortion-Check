@@ -91,12 +91,10 @@ class Slicer:
             self.update_cursor(event)
 
     def on_key_press(self, event):
-        print(event.key)
         number_keys = [str(i) for i in range(10)]
         if event.key in number_keys:
             index = int(event.key)
             if index < len(self._renderers_hidden):
-                print(index)
                 self._renderers_hidden[index] = not self._renderers_hidden[index]
                 self.draw()
 
