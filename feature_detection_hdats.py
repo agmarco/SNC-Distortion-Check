@@ -85,7 +85,8 @@ class FeatureDetectionSuite(Suite):
 
         golden_points = file_io.load_points(case_input['points'])['points']
 
-        FN_A, TP_A, TP_B, FP_B = points_utils.categorize(golden_points, points, lambda bmag: 3)
+        rho = lambda bmag: 3
+        FN_A, TP_A, TP_B, FP_B = points_utils.categorize(golden_points, points, rho)
 
         context['FN_A'] = FN_A
         context['TP_A'] = TP_A
@@ -102,7 +103,6 @@ class FeatureDetectionSuite(Suite):
         self.print_metrics(metrics)
 
         return metrics, context
-
 
     def print_metrics(self, metrics):
         for k, v in metrics.items():
@@ -122,10 +122,38 @@ class FeatureDetectionSuite(Suite):
 
         context = result['context']
         descriptors = [
-            {'points_xyz': context['FN_A'], 'scatter_kwargs': {'color': 'y', 'label': 'FN_A', 'marker': 'o'}},
-            {'points_xyz': context['TP_A'], 'scatter_kwargs': {'color': 'g', 'label': 'TP_A', 'marker': 'o'}},
-            {'points_xyz': context['TP_B'], 'scatter_kwargs': {'color': 'g', 'label': 'TP_B', 'marker': 'x'}},
-            {'points_xyz': context['FP_B'], 'scatter_kwargs': {'color': 'r', 'label': 'FP_B', 'marker': 'x'}},
+            {
+                'points_xyz': context['FN_A'],
+                'scatter_kwargs': {
+                    'color': 'y',
+                    'label': 'FN_A',
+                    'marker': 'o'
+                }
+            },
+            {
+                'points_xyz': context['TP_A'],
+                'scatter_kwargs': {
+                    'color': 'g',
+                    'label': 'TP_A',
+                    'marker': 'o'
+                }
+            },
+            {
+                'points_xyz': context['TP_B'],
+                'scatter_kwargs': {
+                    'color': 'g',
+                    'label': 'TP_B',
+                    'marker': 'x'
+                }
+            },
+            {
+                'points_xyz': context['FP_B'],
+                'scatter_kwargs': {
+                    'color': 'r',
+                    'label': 'FP_B',
+                    'marker': 'x'
+                }
+            },
         ]
 
         voxel_data = file_io.load_voxels(context['case_input']['voxels'])
@@ -149,7 +177,10 @@ class FeatureDetectionSuite(Suite):
         s = slicer.PointsSlicer(context['preprocessed_image'], ijk_to_xyz, descriptors)
         s.add_renderer(slicer.render_overlay(context['feature_image']), hidden=True)
         s.add_renderer(slicer.render_points)
-        s.add_renderer(slicer.render_translucent_overlay(context['label_image'] > 0, [0, 1, 0]))
+        s.add_renderer(slicer.render_translucent_overlay(
+            context['label_image'] > 0,
+            [0, 1, 0]
+        ))
         s.add_renderer(slicer.render_translucent_overlay(kernel_big, [1, 0, 0]))
         s.add_renderer(slicer.render_cursor)
         s.draw()
