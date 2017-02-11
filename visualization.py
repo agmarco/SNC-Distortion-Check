@@ -7,7 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 
 def scatter3(label_to_points):
-    colors = itertools.cycle(["c", "g", "r", "y", "k"])
+    colors = itertools.cycle(["c", "r", "g", "y", "k"])
 
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(111, projection='3d')
