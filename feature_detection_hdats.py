@@ -43,21 +43,21 @@ class FeatureDetectionSuite(Suite):
                 # 'voxels': 'tmp/011_mri_603A_arterial_TOF_3d_motsa_ND-voxels.mat',
                 # 'points': 'data/points/011_mri_630A_arterial_TOF_3d_motsa_ND-golden.mat',
             # },
-            '012': {
+            '1540-075': {
                 'voxels': 'tmp/xxx_ct_1540_ST075-120kVp-100mA-voxels.mat',
-                'points': 'data/points/1540-hand-v1.mat',
+                'points': 'data/points/1540-gaussian.mat',
             },
-            '013': {
+            '1540-125': {
                 'voxels': 'tmp/xxx_ct_1540_ST125-120kVp-100mA-voxels.mat',
-                'points': 'data/points/1540-hand-v1.mat',
+                'points': 'data/points/1540-gaussian.mat',
             },
-            '014': {
+            '1540-150': {
                 'voxels': 'tmp/xxx_ct_1540_ST150-120kVp-100mA-voxels.mat',
-                'points': 'data/points/1540-hand-v1.mat',
+                'points': 'data/points/1540-gaussian.mat',
             },
-            '015': {
+            '1540-250': {
                 'voxels': 'tmp/xxx_ct_1540_ST250-120kVp-100mA-voxels.mat',
-                'points': 'data/points/1540-hand-v1.mat',
+                'points': 'data/points/1540-gaussian.mat',
             },
         }
         return cases
