@@ -7,27 +7,29 @@ import numpy as np
 from utils import decimate
 
 
-# def gaussian(pixel_spacing, sigma):
-    # corner_shape = tuple(1 + math.ceil((radius - 0.5*p)/p) for p in pixel_spacing)
-    # upsampled_corner_shape = tuple(upsample*n - int((upsample - 1)/2) for n in corner_shape)
+def _kernel_shape(pixel_spacing, sides):
+    '''
+    Figure out the kernel shape, for a given rectangular size.
 
-    # slices = [np.linspace(0, (n - 1)*p/upsample, n) for p, n in zip(pixel_spacing, upsampled_corner_shape)]
+    Ensures:
+    - The number of elements is odd along each dimension
+    - The pixel size on each end is rounded up.
+    '''
+    if not isinstance(sides, collections.Iterable):
+        sides = itertools.repeat(sides)
+    return tuple(1 + 2*math.ceil((0.5*s - 0.5*p)/p) for p, s in zip(pixel_spacing, sides))
 
-    # X, Y, Z = np.meshgrid(*slices, indexing='ij')
 
-    # upsampled_kernel_corner = np.zeros(upsampled_corner_shape)
-
-    # upsampled_kernel_corner[X**2 + Y**2 + Z**2 < radius**2] = 1
-
-    # upsampled_kernel = _fill_corners(upsampled_kernel_corner)
-    # kernel = decimate(upsampled_kernel, upsample)
+def gaussian(pixel_spacing, sigma):
+    shape = _kernel_shape(pixel_spacing, 2*2.5*sigma)
+    slices = [np.linspace(-(n - 1)/2*p, (n - 1)/2*p, n) for p, n in zip(pixel_spacing, shape)]
+    X, Y, Z = np.meshgrid(*slices, indexing='ij')
+    kernel = np.exp(-(X**2 + Y**2 + Z**2)/(2*sigma**2))
+    return kernel/np.sum(kernel)
 
 
 def rectangle(pixel_spacing, sides):
-    if not isinstance(sides, collections.Iterable):
-        sides = itertools.repeat(sides)
-    
-    shape = tuple(1 + 2*math.ceil((0.5*s - 0.5*p)/p) for p, s in zip(pixel_spacing, sides))
+    shape = _kernel_shape(pixel_spacing, sides)
     return np.ones(shape, dtype=float)
 
 
