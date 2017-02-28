@@ -1,0 +1,7 @@
+pip-tools
+pydicom
+orderedset
+keras
+tensorflow
+matplotlib
+numpy

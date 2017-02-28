@@ -1,7 +1,7 @@
 __pycache__
 .cache
 .ipynb_checkpoints/
-.CONDABUILD
+.PYTHONDEPS
 .idea/
 .hdattarchive
 data.mk
