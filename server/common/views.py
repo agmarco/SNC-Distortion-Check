@@ -1,3 +1,5 @@
+import logging
+
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.urls import reverse
@@ -5,6 +7,9 @@ from django import forms
 
 from server.common.models import Scan
 import dicom_import 
+
+
+logger = loggging.getLogger(__name__)
 
 
 class UploadScanForm(forms.Form):
@@ -24,7 +29,9 @@ def upload_file(request):
         form_with_data = UploadScanForm(request.POST, request.FILES)
         if form_with_data.is_valid():
             instance = Scan(dicom_archive=request.FILES['dicom_archive'])
+            logger.info("Starting to save")
             instance.save()
+            logger.info("Done saving")
 
             message = 'Upload was successful'
             form = UploadScanForm()
