@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+import sys
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -33,6 +34,8 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'development_secret_key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(os.getenv('DEBUG'))
+
+TESTING = 'pytest' in sys.argv[0] or 'py.test' in sys.argv[0]
 
 ALLOWED_HOSTS = [os.getenv('HOSTNAME', '*')]
 
@@ -128,3 +131,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+# Celery
+
+CELERY_BROKER_URL = os.getenv('REDIS_URL')
+CELERY_ACCEPT_CONTENT = ['json']
+
+if TESTING:
+    CELERY_ALWAYS_EAGER = True
+    CELERY_EAGER_PROPAGATES_EXCEPTIONS = True

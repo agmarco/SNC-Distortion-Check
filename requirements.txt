@@ -30,6 +30,7 @@ pyparsing==2.1.10         # via matplotlib, packaging
 python-dateutil==2.6.0    # via matplotlib
 pytz==2016.10             # via celery, matplotlib
 pyyaml==3.12              # via keras
+redis==2.10.5
 scipy==0.18.1             # via theano
 six==1.10.0               # via cycler, keras, matplotlib, packaging, pip-tools, protobuf, python-dateutil, setuptools, tensorflow, theano
 tensorflow==1.0.0

@@ -9,6 +9,7 @@ appnope==0.1.0            # via ipython
 bleach==1.5.0             # via nbconvert
 decorator==4.0.11         # via ipython, traitlets
 entrypoints==0.2.2        # via nbconvert
+honcho==0.7.1
 html5lib==0.9999999       # via bleach
 ipykernel==4.5.2          # via ipywidgets, notebook
 ipython-genutils==0.1.0   # via nbformat, notebook, traitlets

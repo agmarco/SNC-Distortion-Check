@@ -2,3 +2,4 @@ ipywidgets
 ipython
 pytest
 nbstripout
+honcho
