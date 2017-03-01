@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+import logging.config
 import sys
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -167,3 +168,35 @@ else:
     MEDIA_FILES_LOCATION = 'media'
     MEDIA_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, MEDIA_FILES_LOCATION)
     DEFAULT_FILE_STORAGE = "storages.backends.s3boto.S3BotoStorage"
+print(MEDIA_URL)
+
+
+# Logging
+
+log_format = '%(levelname)s [%(name)s.%(process)d]  %(message)s'
+
+LOGGING_CONFIG = None
+
+logging.config.dictConfig({
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': log_format,
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        }
+    },
+    'loggers': {
+        '': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+    }
+})
