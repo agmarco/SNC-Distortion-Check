@@ -13,3 +13,4 @@ dj-database-url
 django-dotenv
 psycopg2
 redis
+django-storages

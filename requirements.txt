@@ -13,7 +13,8 @@ click==6.7                # via pip-tools
 cycler==0.10.0            # via matplotlib
 dj-database-url==0.4.2
 django-dotenv==1.4.1
-django==1.10.5
+django-storages==1.5.2
+django==1.10.6
 first==2.0.1              # via pip-tools
 gunicorn==19.6.0
 keras==1.2.2
@@ -24,7 +25,7 @@ orderedset==2.0
 packaging==16.8           # via setuptools
 pip-tools==1.8.0
 protobuf==3.2.0           # via tensorflow
-psycopg2==2.6.2
+psycopg2==2.7
 pydicom==0.9.9
 pyparsing==2.1.10         # via matplotlib, packaging
 python-dateutil==2.6.0    # via matplotlib
