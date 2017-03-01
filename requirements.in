@@ -8,7 +8,7 @@ numpy
 django
 celery
 gunicorn
-boto
+boto3
 dj-database-url
 django-dotenv
 psycopg2

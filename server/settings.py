@@ -45,6 +45,7 @@ ALLOWED_HOSTS = [os.getenv('HOSTNAME', '*')]
 
 INSTALLED_APPS = [
     'server.common',
+    'storages',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -148,14 +149,13 @@ if TESTING:
 
 BASE_URL = os.environ["BASE_URL"]
 MEDIA_PATH = 'media/'
+MEDIA_URL = ''
 
 if TESTING:
-    MEDIA_URL = '/media/'
     MEDIA_ROOT = os.path.join(
         tempfile.gettempdir(), 'cirs', 'media', str(int(time.time())),
     )
 elif DEBUG:
-    MEDIA_URL = '%s/%s' % (BASE_URL, MEDIA_PATH)
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 else:
     AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
@@ -164,10 +164,7 @@ else:
         raise ImproperlyConfigured('AWS env variable(s) missing')
     AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
     AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
-    AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
-    MEDIA_FILES_LOCATION = 'media'
-    MEDIA_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, MEDIA_FILES_LOCATION)
-    DEFAULT_FILE_STORAGE = "storages.backends.s3boto.S3BotoStorage"
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
 
 # Logging
