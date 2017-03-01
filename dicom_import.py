@@ -20,6 +20,9 @@ class DicomImportException(Exception):
 def combined_series_from_zip(zip_filename):
     logger.info('Extracting voxel data from "{}"'.format(zip_filename))
     datasets = _dicom_datasets_from_zip(zip_filename)
+    if len(datasets) == 0:
+        raise DicomImportException('Zipfile does not contain any valid DICOM files')
+
     voxels, ijk_to_xyz = combine_slices(datasets)
     return voxels, ijk_to_xyz
 
@@ -79,7 +82,7 @@ def combine_slices(slice_datasets):
       must be the same (0020,0032)
     '''
     if len(slice_datasets) == 0:
-        raise DicomImportException("Must provide at least one dataset")
+        raise DicomImportException("Must provide at least one DICOM dataset")
 
     validate_slices_form_uniform_grid(slice_datasets)
 

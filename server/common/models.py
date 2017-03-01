@@ -1,3 +1,5 @@
 from django.db import models
 
-# Create your models here.
+
+class Scan(models.Model):
+    dicom_archive = models.FileField(upload_to='scan_dicom')

@@ -3,7 +3,13 @@ import os
 import sys
 
 if __name__ == "__main__":
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
+
+    # HACK: set current directory (first position in the path) up a level; this
+    # avoids name collisions with importing `celery`; this ensures that
+    # manage.py is run with the root at the root of the repository
+    sys.path[0] = os.path.dirname(sys.path[0])  
+
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "server.settings")
     try:
         from django.core.management import execute_from_command_line
     except ImportError:

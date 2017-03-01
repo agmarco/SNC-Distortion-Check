@@ -15,9 +15,9 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
-from server.common.views import hello
+from server.common.views import upload_file
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^$', hello),
+    url(r'^$', upload_file),
 ]
