@@ -2,7 +2,7 @@
 
 ## System Dependencies
 
-- Python 3.5
+- Python 3.6
 - Redis
 - Postgres
 - Linux utilities (e.g. Make)
