@@ -6,4 +6,4 @@ __pycache__
 .hdattarchive
 data.mk
 .DS_Store
-.sample.env
+.env

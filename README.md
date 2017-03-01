@@ -12,11 +12,9 @@
 
 Once have met all the system dependencies (and you are in a virtual environment, if you want one):
 
-    make .PYTHONDEPS
-    ./createdb
-    make
+    make devsetup
 
-and it should install a Postgres database  all your python dependencies, etc.
+and it should install a Postgres database all your python dependencies, etc.
 
 ## Run Server
 

@@ -36,7 +36,11 @@ tmp/%-distortion.mat: tmp/%-voxels.mat tmp/%-matched-points.mat .CONDABUILD
 	./interpolate $< $(word 2,$^) $@
 
 
-.PHONY: clean
+.PHONY: clean devsetup
+
+devsetup: .PYTHONDEPS
+	cp .sample.env .env
+	./createdb
 
 clean:
 	git clean -fqx tmp
