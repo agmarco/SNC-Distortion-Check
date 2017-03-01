@@ -5,3 +5,10 @@ keras
 tensorflow
 matplotlib
 numpy
+django
+celery
+gunicorn
+boto
+dj-database-url
+django-dotenv
+psycopg2
