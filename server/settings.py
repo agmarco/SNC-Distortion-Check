@@ -43,7 +43,7 @@ ALLOWED_HOSTS = [os.getenv('HOSTNAME', '*')]
 # Application definition
 
 INSTALLED_APPS = [
-    'common',
+    'server.common',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -62,7 +62,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'urls'
+ROOT_URLCONF = 'server.urls'
 
 TEMPLATES = [
     {
