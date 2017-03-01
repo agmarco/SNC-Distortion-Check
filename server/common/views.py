@@ -9,7 +9,7 @@ from server.common.models import Scan
 import dicom_import 
 
 
-logger = loggging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class UploadScanForm(forms.Form):
