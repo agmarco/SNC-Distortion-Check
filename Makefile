@@ -19,28 +19,32 @@ unregistered-points: $(patsubst data/dicom/%.zip,tmp/%-unregistered-points.mat,$
 	touch $@
 
 
-tmp/%-voxels.mat: data/dicom/%.zip .CONDABUILD
-	./dicom2voxels $< $@
+tmp/%-voxels.mat: data/dicom/%.zip .PYTHONDEPS
+	./process/dicom2voxels $< $@
 
-tmp/%-unregistered-points.mat: tmp/%-voxels.mat .CONDABUILD
-	./feature_detection $< $@
+tmp/%-unregistered-points.mat: tmp/%-voxels.mat .PYTHONDEPS
+	./process/feature_detection $< $@
 
-tmp/%-matched-points.mat: tmp/%-voxels.mat tmp/%-unregistered-points.mat .CONDABUILD
-	./register_golden $< $(word 2,$^) $@
+tmp/%-matched-points.mat: tmp/%-voxels.mat tmp/%-unregistered-points.mat .PYTHONDEPS
+	./process/register_golden $< $(word 2,$^) $@
 
-tmp/%-report.pdf: tmp/%-matched-points.mat .CONDABUILD
-	./report $< $@
-
-
-tmp/%-distortion.mat: tmp/%-voxels.mat tmp/%-matched-points.mat .CONDABUILD
-	./interpolate $< $(word 2,$^) $@
+tmp/%-report.pdf: tmp/%-matched-points.mat .PYTHONDEPS
+	./process/report $< $@
 
 
-.PHONY: clean devsetup
+tmp/%-distortion.mat: tmp/%-voxels.mat tmp/%-matched-points.mat .PYTHONDEPS
+	./process/interpolate $< $(word 2,$^) $@
+
+
+.PHONY: clean devsetup freezedeps
 
 devsetup: .PYTHONDEPS
 	cp .sample.env .env
 	./createdb
+
+freezedeps:
+	pip-compile requirements.in > requirements.txt
+	pip-compile dev-requirements.in > dev-requirements.txt
 
 clean:
 	git clean -fqx tmp

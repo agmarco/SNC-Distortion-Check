@@ -14,3 +14,4 @@ django-dotenv
 psycopg2
 redis
 django-storages
+h5py

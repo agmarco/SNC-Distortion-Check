@@ -1,13 +1,10 @@
 import logging
 
-from django.shortcuts import render
-from django.http import HttpResponse
-from django.urls import reverse
 from django import forms
+from django.shortcuts import render
 
+from process import dicom_import
 from server.common.models import Scan
-import dicom_import 
-
 
 logger = logging.getLogger(__name__)
 

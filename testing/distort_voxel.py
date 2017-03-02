@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 import argparse
-
 import math
 from functools import partial
 
 import numpy as np
 from scipy.ndimage.interpolation import geometric_transform
 
-import file_io
-from affine import translation_rotation, apply_affine
+from process import file_io
+from process.affine import translation_rotation, apply_affine
 
 
 def affine_point(mat, point):

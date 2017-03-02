@@ -6,7 +6,9 @@
 - Redis
 - Postgres
 - Linux utilities (e.g. Make)
+- Lib HDF5
 
+You can install all of these using homebrew pretty easily on mac.
 
 ## Installation
 

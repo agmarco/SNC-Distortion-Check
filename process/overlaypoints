@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+import argparse
+import itertools
+
+import matplotlib.pylab as plt
+
+from process import file_io
+from slicer import PointsSlicer, render_points, render_cursor, render_legend
+from utils import split_file_variable_arg
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('voxels')
+    parser.add_argument('points', nargs='+', default=None)
+    args = parser.parse_args()
+
+    input_data = file_io.load_voxels(args.voxels)
+    voxels = input_data['voxels']
+    ijk_to_xyz = input_data['ijk_to_patient_xyz_transform']
+
+    colors = itertools.cycle(["c", "g", "r", "y", "k"])
+    descriptors = []
+    for points_specifier, color in zip(args.points, colors):
+        path, variable = split_file_variable_arg(points_specifier, 'points')
+        points_xyz = file_io.load_variable(path, variable)
+        descriptors.append({
+            'points_xyz': points_xyz,
+            'scatter_kwargs': {'color': color, 'label': path},
+        })
+
+    slicer = PointsSlicer(voxels, ijk_to_xyz, descriptors)
+    slicer.add_renderer(render_points)
+    slicer.add_renderer(render_cursor)
+    slicer.add_renderer(render_legend)
+    slicer.draw()
+    plt.show()

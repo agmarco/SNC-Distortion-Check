@@ -3,7 +3,7 @@ import argparse
 
 import numpy as np
 
-import file_io
+from process import file_io
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

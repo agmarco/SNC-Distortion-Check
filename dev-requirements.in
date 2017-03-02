@@ -3,3 +3,4 @@ ipython
 pytest
 nbstripout
 honcho
+gitpython

@@ -1,0 +1,14 @@
+#!/usr/bin/env python
+import argparse
+
+from process import file_io
+from slicer import show_slices
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('voxels')
+    args = parser.parse_args()
+
+    voxels = file_io.load_voxels(args.voxels)['voxels']
+    show_slices(voxels)
