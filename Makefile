@@ -36,9 +36,9 @@ tmp/%-distortion.mat: tmp/%-voxels.mat tmp/%-matched-points.mat .PYTHONDEPS
 	./process/interpolate $< $(word 2,$^) $@
 
 
-.PHONY: clean devsetup freezedeps
+.PHONY: clean cleandev dev freezedeps
 
-devsetup: .PYTHONDEPS
+dev: .PYTHONDEPS
 	cp .sample.env .env
 	./createdb
 
@@ -48,3 +48,8 @@ freezedeps:
 
 clean:
 	git clean -fqx tmp
+	git clean -fqx .hdattarchive
+
+cleandev:
+	./dropdb
+	git clean -fqx

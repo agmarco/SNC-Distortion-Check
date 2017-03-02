@@ -10,13 +10,34 @@
 
 You can install all of these using homebrew pretty easily on mac.
 
+## Everything
+
+Use this command to clean everything, install a new dev setup, run all the
+tests, and then start all the processes:
+
+    make cleandev && make dev && pytest && honcho start
+
 ## Installation
 
 Once have met all the system dependencies (and you are in a virtual environment, if you want one):
 
-    make devsetup
+    make dev
 
 and it should install a Postgres database all your python dependencies, etc.
+
+You may need to customize your `.env` file to point to your Redis and Postgres installs.
+
+## Clean devsetup
+
+You can remove all temporary files, and drop your development database using:
+
+    make cleandev
+
+You can just clean normal stuff using:
+
+    make clean
+
+See the makefile for details.
 
 ## Run Server
 
@@ -28,4 +49,4 @@ You can run the celery task runner and the web server using:
 
 Run tests using
 
-    PYTHONPATH=. py.test
+    pytest
