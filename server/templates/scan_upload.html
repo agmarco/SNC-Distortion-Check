@@ -7,4 +7,23 @@
     {{ form }}
     <input type="submit" value="Submit" />
 </form>
+<h2>Scans</h2>
+<table>
+  {% for scan in scans %}
+  <tr>
+    <td>
+      {{ scan.id }}
+    </td>
+    <td>
+      {% if scan.processing %}
+        Scan is currently being processed.
+      {% elif scan.errors  %}
+        Error while processing: {{ scan.errors }}
+      {% elif scan.result  %}
+        Processed: {{ scan.result }}
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
 {% endblock %}

@@ -4,7 +4,8 @@ from django import forms
 from django.shortcuts import render
 
 from process import dicom_import
-from server.common.models import Scan
+from .models import Scan
+from .tasks import process_scan
 
 logger = logging.getLogger(__name__)
 
@@ -25,10 +26,12 @@ def upload_file(request):
     if request.method == 'POST':
         form_with_data = UploadScanForm(request.POST, request.FILES)
         if form_with_data.is_valid():
-            instance = Scan(dicom_archive=request.FILES['dicom_archive'])
+            scan = Scan(dicom_archive=request.FILES['dicom_archive'])
             logger.info("Starting to save")
-            instance.save()
+            scan.processing = True
+            scan.save()
             logger.info("Done saving")
+            process_scan.delay(scan.pk)
 
             message = 'Upload was successful'
             form = UploadScanForm()
@@ -36,7 +39,13 @@ def upload_file(request):
             message = 'Error uploading'
             form = form_with_data
     else:
-        message = ''
+        message = 'Upload a Scan!'
         form = UploadScanForm()
 
-    return render(request, 'scan_upload.html', {'form': form, 'message': message})
+    scans = Scan.objects.all()
+
+    return render(request, 'scan_upload.html', {
+        'form': form,
+        'message': message,
+        'scans': scans,
+    })
