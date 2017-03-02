@@ -1,11 +1,15 @@
+import logging
 import zipfile
 
 from celery import shared_task
+from celery.signals import task_failure
 from django.db import transaction
 
 from .models import Scan
 from process.dicom_import import combine_slices, dicom_datasets_from_zip
 from process.feature_detection import FeatureDetector
+
+logger = logging.getLogger(__name__)
 
 
 @shared_task
@@ -31,3 +35,8 @@ def process_scan(scan_id):
         scan.processing = False
         scan.save()
         raise e
+
+
+@task_failure.connect
+def task_failure_handler(task_id=None, exception=None, args=None, **kwargs):
+    logging.info("{} {} {}".format(task_id, str(exception), str(args)))
