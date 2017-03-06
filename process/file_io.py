@@ -31,7 +31,7 @@ def load_voxels(path):
 
 def save_voxels(path, data):
     phantom_name = data['phantom_name']
-    valid_phantom_names = list(phantoms.paramaters.keys())
+    valid_phantom_names = list(process.phantoms.paramaters.keys())
     if phantom_name not in valid_phantom_names:
         msg = 'Invalid phantom name "{}". Must be one of:\n- {}'
         raise ValueError(msg.format(phantom_name, '\n- '.join(valid_phantom_names)))

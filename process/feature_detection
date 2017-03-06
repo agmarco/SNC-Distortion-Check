@@ -2,7 +2,7 @@
 import argparse
 
 from process import file_io
-from feature_detection import FeatureDetector
+from process.feature_detection import FeatureDetector
 
 
 if __name__ == '__main__':
