@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 import os
 import logging.config
 import sys
+import tempfile
+import time
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -45,6 +47,7 @@ ALLOWED_HOSTS = [os.getenv('HOSTNAME', '*')]
 
 INSTALLED_APPS = [
     'server.common',
+    'server.django_numpy',
     'storages',
     'django.contrib.admin',
     'django.contrib.auth',

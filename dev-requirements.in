@@ -1,6 +1,7 @@
 ipywidgets
 ipython
 pytest
+pytest-django
 nbstripout
 honcho
 gitpython
