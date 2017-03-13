@@ -1,10 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-from .fields import NumpyFileField, NumpyStrField
+from server.django_numpy.fields import NumpyTextField
 
 
-class StandardMixin(models.Model):
+class CommonFieldsMixin(models.Model):
     deleted = models.BooleanField(default=False)
     created_on = models.DateTimeField(auto_now_add=True)
     last_modified_on = models.DateTimeField(auto_now=True)
@@ -13,7 +13,7 @@ class StandardMixin(models.Model):
         abstract = True
 
 
-class Institution(models.Model, StandardMixin):
+class Institution(CommonFieldsMixin):
     name = models.CharField(max_length=255)
     number_of_licenses = models.PositiveIntegerField(default=1)
 
@@ -21,11 +21,11 @@ class Institution(models.Model, StandardMixin):
         return "Institution {}".format(self.name)
 
 
-class User(AbstractUser, StandardMixin):
+class User(AbstractUser, CommonFieldsMixin):
     institution = models.ForeignKey(Institution, models.CASCADE, null=True, blank=True)
 
 
-class Phantom(models.Model, StandardMixin):
+class Phantom(CommonFieldsMixin):
     CIRS_603A = 'CIRS_603A'
     CIRS_604 = 'CIRS_604'
     MODEL_CHOICES = (
@@ -42,7 +42,7 @@ class Phantom(models.Model, StandardMixin):
         return "Phantom {} {} {}".format(self.institution, self.model, self.name)
 
 
-class Machine(models.Model, StandardMixin):
+class Machine(CommonFieldsMixin):
     name = models.CharField(max_length=255)
     model = models.CharField(max_length=255)
     institution = models.ForeignKey(Institution, models.CASCADE)
@@ -51,7 +51,7 @@ class Machine(models.Model, StandardMixin):
         return "Machine {} {} {}".format(self.institution, self.model, self.name)
 
 
-class Sequence(models.Model, StandardMixin):
+class Sequence(CommonFieldsMixin):
     name = models.CharField(max_length=255)
     institution = models.ForeignKey(Institution, models.CASCADE)
     instructions = models.TextField(blank=True, default='')
@@ -60,7 +60,7 @@ class Sequence(models.Model, StandardMixin):
         return "Sequence {} {} {}".format(self.institution, self.name)
 
 
-class MachineSequencePair(models.Model, StandardMixin):
+class MachineSequencePair(CommonFieldsMixin):
     machine = models.ForeignKey(Machine, models.CASCADE)
     sequence = models.ForeignKey(Sequence, models.CASCADE)
     tolerance = models.FloatField()
@@ -73,25 +73,27 @@ class MachineSequencePair(models.Model, StandardMixin):
         )
 
 
-class DicomSeries(models.Model, StandardMixin):
+class DicomSeries(CommonFieldsMixin):
     zipped_dicom_files = models.FileField(upload_to='dicom_series/zipped_dicom_files')
-    voxels = NumpyFileField(upload_to='dicom_series/voxels')
-    ijk_to_xyz = NumpyStrField()
-    shape = NumpyStrField()
+    voxels = NumpyTextField()
+    #voxels = NumpyFileField(upload_to='dicom_series/voxels')
+    ijk_to_xyz = NumpyTextField()
+    shape = NumpyTextField()
     series_uid = models.CharField(max_length=64)
 
     def __str__(self):
         return "Dicom Series {}".format(self.series_uid)
 
 
-class Fiducials(models.Model, StandardMixin):
-    fiducials = NumpyFileField(upload_to='fiducials/fiducials')
+class Fiducials(CommonFieldsMixin):
+    #fiducials = NumpyTextField(upload_to='fiducials/fiducials')
+    fiducials = NumpyTextField()
 
     def __str__(self):
         return "Fiducials {}".format(self.id)
 
 
-class GoldenFiducials(models.Model, StandardMixin):
+class GoldenFiducials(CommonFieldsMixin):
     phantom = models.ForeignKey(Phantom, models.CASCADE)
     dicom_series = models.ForeignKey(DicomSeries, models.CASCADE, null=True)
     fiducials = models.ForeignKey(Fiducials, models.CASCADE)
@@ -100,8 +102,8 @@ class GoldenFiducials(models.Model, StandardMixin):
         return "Golden Fiducials {}".format(self.id)
 
 
-class Scan(models.Model, StandardMixin):
-    creator = models.ForeignKey(User, models.SET_NULL)
+class Scan(CommonFieldsMixin):
+    creator = models.ForeignKey(User, models.SET_NULL, null=True)
     machine_sequence_pair = models.ForeignKey(MachineSequencePair, models.CASCADE)
     dicom_series = models.ForeignKey(DicomSeries, models.CASCADE)
     detected_fiducials = models.ForeignKey(Fiducials, models.CASCADE)
