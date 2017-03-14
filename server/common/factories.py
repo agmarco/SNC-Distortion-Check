@@ -1,9 +1,13 @@
 import factory
 
+from .models import Phantom
+
 
 class InstitutionFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.Institution"
+
+    name = "John Hopkins"
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -41,3 +45,41 @@ class GroupFactory(factory.django.DjangoModelFactory):
         model = "auth.Group"
 
     name = factory.Sequence("group{0}".format)
+
+
+class MachineFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "common.Machine"
+
+    name = factory.Sequence("Machine {0}".format)
+    model = "MAGNETOM Vida"
+    manufacturer = "Siemens"
+    institution = factory.SubFactory(InstitutionFactory)
+
+
+class PhantomFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "common.Phantom"
+
+    name = factory.Sequence("Machine {0}".format)
+    model = Phantom.CIRS_603A
+    institution = factory.SubFactory(InstitutionFactory)
+    serial_number = factory.Sequence("Serial Number {0}".format)
+
+
+class SequenceFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "common.Sequence"
+
+    name = factory.Sequence("Sequence {0}".format)
+    instructions = 'Set the FOV and all of the gradients and everything the right way.'
+    institution = factory.SubFactory(InstitutionFactory)
+
+
+class MachineSequencePairFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "common.MachineSequencePair"
+
+    machine = factory.SubFactory(MachineFactory)
+    sequence = factory.SubFactory(SequenceFactory)
+    tolerance = 3.5

@@ -13,15 +13,15 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(models.Phantom)
 class PhantomAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('name', 'institution', 'model', 'serial_number')
 
 @admin.register(models.Machine)
 class MachineAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('name', 'institution', 'model', 'manufacturer')
 
 @admin.register(models.Sequence)
 class SequenceAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('name', 'institution', 'instructions')
 
 @admin.register(models.MachineSequencePair)
 class MachineSequencePairAdmin(admin.ModelAdmin):

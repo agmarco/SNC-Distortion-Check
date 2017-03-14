@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 
-from server.common.factories import UserFactory, GroupFactory, InstitutionFactory
+from server.common.factories import UserFactory, GroupFactory, InstitutionFactory, PhantomFactory, SequenceFactory, MachineSequencePairFactory, MachineFactory
+from server.common.models import Phantom
 
 
 class Command(BaseCommand):
@@ -37,4 +38,47 @@ class Command(BaseCommand):
             email="john.doe@johnhopkins.edu",
             institution=john_hopkins,
             groups=[therapists],
+        )
+
+        machine_a = MachineFactory.create(
+            name='MRI Scanner East',
+            institution=john_hopkins,
+        )
+        machine_b = MachineFactory.create(
+            name='MRI Scanner West',
+            institution=john_hopkins,
+        )
+
+        phantom_a = PhantomFactory(
+            name='Head Phantom 1',
+            model=Phantom.CIRS_603A,
+            institution=john_hopkins,
+        )
+        phantom_b = PhantomFactory(
+            name='Head Phantom 2',
+            model=Phantom.CIRS_603A,
+            institution=john_hopkins,
+        )
+        phantom_c = PhantomFactory(
+            name='Body Phantom',
+            model=Phantom.CIRS_604,
+            institution=john_hopkins,
+        )
+
+        sequence_a = SequenceFactory(
+            name="T1-Weighted Abdominal",
+            institution=john_hopkins,
+        )
+        sequence_b = SequenceFactory(
+            name="T1-Weighted Neural",
+            institution=john_hopkins,
+        )
+        sequence_c = SequenceFactory(
+            name="T2-Weighted Neural",
+            institution=john_hopkins,
+        )
+
+        machine_sequence_pair = MachineSequencePairFactory(
+            sequence=sequence_a,
+            machine=machine_a,
         )
