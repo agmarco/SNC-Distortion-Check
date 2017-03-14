@@ -41,6 +41,7 @@ tmp/%-distortion.mat: tmp/%-voxels.mat tmp/%-matched-points.mat .PYTHONDEPS
 dev: .PYTHONDEPS
 	cp .sample.env .env
 	./createdb
+	python server/manage.py generate_dev_data
 
 freezedeps:
 	pip-compile requirements.in > requirements.txt
