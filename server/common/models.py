@@ -5,7 +5,8 @@ from server.django_numpy.fields import NumpyTextField
 
 
 class CommonFieldsMixin(models.Model):
-    deleted = models.BooleanField(default=False)
+    deleted_ht = 'Deleted items are hidden from non-admins'
+    deleted = models.BooleanField(default=False, help_text=deleted_ht)
     created_on = models.DateTimeField(auto_now_add=True)
     last_modified_on = models.DateTimeField(auto_now=True)
 
@@ -14,15 +15,18 @@ class CommonFieldsMixin(models.Model):
 
 
 class Institution(CommonFieldsMixin):
-    name = models.CharField(max_length=255)
-    number_of_licenses = models.PositiveIntegerField(default=1)
+    name_ht = 'This is how the institution will be identified within the UI'
+    name = models.CharField(max_length=255, help_text=name_ht)
+    number_of_licenses_ht = 'The number of machines that the institution is allowed to add'
+    number_of_licenses = models.PositiveIntegerField(default=1, help_text=number_of_licenses_ht)
 
     def __str__(self):
-        return "Institution {}".format(self.name)
+        return "{}".format(self.name)
 
 
 class User(AbstractUser, CommonFieldsMixin):
-    institution = models.ForeignKey(Institution, models.CASCADE, null=True, blank=True)
+    institution_ht = 'The institution this user is a member of; will be blank for admin users'
+    institution = models.ForeignKey(Institution, models.CASCADE, null=True, blank=True, help_text=institution_ht)
 
 
 class Phantom(CommonFieldsMixin):
@@ -33,31 +37,40 @@ class Phantom(CommonFieldsMixin):
         (CIRS_604, '604'),
     )
 
-    name = models.CharField(max_length=255)
+    name_ht = 'This is how the phantom will be identified within the UI'
+    name = models.CharField(max_length=255, help_text=name_ht)
     institution = models.ForeignKey(Institution, models.CASCADE)
-    model = models.CharField(max_length=255, choices=MODEL_CHOICES)
-    serial_number = models.CharField(max_length=255)
+    model_ht = 'The model of phantom (e.g. the CIRS 603A head phantom)'
+    model = models.CharField(max_length=255, choices=MODEL_CHOICES, help_text=model_ht)
+    serial_number_ht = 'The Phantom\'s serial number'
+    serial_number = models.CharField(max_length=255, help_text=serial_number_ht)
 
     def __str__(self):
         return "Phantom {} {} {}".format(self.institution, self.model, self.name)
 
 
 class Machine(CommonFieldsMixin):
-    name = models.CharField(max_length=255)
-    model = models.CharField(max_length=255)
+    name_ht = 'This is how the machine will be identified within the UI'
+    name = models.CharField(max_length=255, help_text=name_ht)
+    model_ht = 'The model of the MR scanner (e.g. MAGNETOM Vida)'
+    model = models.CharField(max_length=255, help_text=model_ht)
+    manufacturer_ht = 'The company that manufactures the MR scanner (e.g. Siemens)'
+    manufacturer = models.CharField(max_length=255, help_text=manufacturer_ht)
     institution = models.ForeignKey(Institution, models.CASCADE)
 
     def __str__(self):
-        return "Machine {} {} {}".format(self.institution, self.model, self.name)
+        return "{}".format(self.name)
 
 
 class Sequence(CommonFieldsMixin):
-    name = models.CharField(max_length=255)
+    name_ht = 'This is how the MR scan sequence type will be identified within the UI'
+    name = models.CharField(max_length=255, help_text=name_ht)
     institution = models.ForeignKey(Institution, models.CASCADE)
-    instructions = models.TextField(blank=True, default='')
+    instructions_ht = 'Instructions describing how to capture this type of MR scan sequence'
+    instructions = models.TextField(blank=True, default='', help_text=instructions_ht)
 
     def __str__(self):
-        return "Sequence {} {} {}".format(self.institution, self.name)
+        return "{}".format(self.name)
 
 
 class MachineSequencePair(CommonFieldsMixin):
@@ -66,11 +79,10 @@ class MachineSequencePair(CommonFieldsMixin):
     tolerance = models.FloatField()
 
     def __str__(self):
-        return "Machine Sequence Pair {} {} {}".format(
-            self.machine.institution,
-            self.machine.name,
-            self.sequence.name,
-        )
+        return "{} : {}".format(self.machine.name, self.sequence.name)
+
+    class Meta:
+        verbose_name = 'Machine-Sequence Combination'
 
 
 class DicomSeries(CommonFieldsMixin):
@@ -79,11 +91,15 @@ class DicomSeries(CommonFieldsMixin):
     #voxels = NumpyFileField(upload_to='dicom_series/voxels')
     ijk_to_xyz = NumpyTextField()
     shape = NumpyTextField()
-    series_uid = models.CharField(max_length=64)
+    series_uid_ht = 'The DICOM Series Instance UID, which should uniquely identify a scan'
+    series_uid = models.CharField(max_length=64, verbose_name='Series Instance UID', help_text=series_uid_ht)
 
     def __str__(self):
         return "Dicom Series {}".format(self.series_uid)
 
+    class Meta:
+        verbose_name = 'DICOM Series'
+        verbose_name_plural = 'DICOM Series'
 
 class Fiducials(CommonFieldsMixin):
     #fiducials = NumpyTextField(upload_to='fiducials/fiducials')
@@ -91,6 +107,10 @@ class Fiducials(CommonFieldsMixin):
 
     def __str__(self):
         return "Fiducials {}".format(self.id)
+
+    class Meta:
+        verbose_name = 'Fiducials'
+        verbose_name_plural = 'Fiducials'
 
 
 class GoldenFiducials(CommonFieldsMixin):
@@ -100,6 +120,10 @@ class GoldenFiducials(CommonFieldsMixin):
 
     def __str__(self):
         return "Golden Fiducials {}".format(self.id)
+
+    class Meta:
+        verbose_name = 'Golden Fiducials'
+        verbose_name_plural = 'Golden Fiducials'
 
 
 class Scan(CommonFieldsMixin):

@@ -1,6 +1,11 @@
 import factory
 
 
+class InstitutionFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "common.Institution"
+
+
 class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.User"

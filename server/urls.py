@@ -17,6 +17,8 @@ from django.conf.urls import url
 from django.contrib import admin
 from server.common.views import upload_file
 
+admin.site.site_header = 'CIRS Distortion Check Admin'
+
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', upload_file),
