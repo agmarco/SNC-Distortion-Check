@@ -39,4 +39,11 @@ def upload_file(request):
 
 
 def configuration(request):
-    return render(request, 'configuration.html', {})
+    institution = request.user.institution
+
+    return render(request, 'configuration.html', {
+        'phantoms': institution.phantom_set.objects.all(),
+        'machines': institution.machine_set.objects.all(),
+        'sequences': institution.sequence_set.objects.all(),
+        'users': institution.user_set.objects.all(),
+    })
