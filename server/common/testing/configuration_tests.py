@@ -1,4 +1,5 @@
 import pytest
+from django.contrib.auth.models import Permission
 
 from django.test import Client
 from django.contrib.auth import get_user_model
@@ -12,7 +13,10 @@ from server.common.models import Phantom
 def test_configuration_permissions():
 
     # populate database
+    configuration_permission = Permission.objects.get(codename='configuration')
+
     medical_physicists = GroupFactory.create(name='medical_physicists')
+    medical_physicists.permissions.add(configuration_permission)
     therapists = GroupFactory.create(name='therapists')
 
     john_hopkins = InstitutionFactory.create(name='John Hopkins')
@@ -53,7 +57,10 @@ def test_configuration_permissions():
 def test_configuration_context():
 
     # populate database
+    configuration_permission = Permission.objects.get(codename='configuration')
+
     medical_physicists = GroupFactory.create(name='medical_physicists')
+    medical_physicists.permissions.add(configuration_permission)
 
     john_hopkins = InstitutionFactory.create(name='John Hopkins')
     utexas = InstitutionFactory.create(name='University of Texas')
@@ -134,6 +141,8 @@ def test_configuration_context():
 
     client.force_login(user_a)
     response = client.get(url)
+
+    print(response)
 
     phantoms = response.context['phantoms']
     machines = response.context['machines']

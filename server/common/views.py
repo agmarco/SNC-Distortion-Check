@@ -1,7 +1,6 @@
 import logging
 
-from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
+from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render, redirect
 
 from .models import Scan
@@ -41,10 +40,8 @@ def upload_file(request):
 
 
 @login_required
+@permission_required('common.configuration', raise_exception=True)
 def configuration(request):
-    if not request.user.groups.filter(name='medical_physicists').count():
-        raise PermissionDenied
-
     institution = request.user.institution
     return render(request, 'configuration.html', {
         'phantoms': institution.phantom_set.filter(deleted=False),

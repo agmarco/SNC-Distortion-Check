@@ -1,3 +1,4 @@
+from django.contrib.auth.models import Permission
 from django.core.management.base import BaseCommand, CommandError
 
 from server.common.factories import UserFactory, GroupFactory, InstitutionFactory, PhantomFactory, SequenceFactory, MachineSequencePairFactory, MachineFactory
@@ -8,7 +9,10 @@ class Command(BaseCommand):
     help = 'Load some test data into the database.'
 
     def handle(self, *args, **options):
+        configuration_permission = Permission.objects.get(codename='configuration')
+
         medical_physicists = GroupFactory.create(name='medical_physicists')
+        medical_physicists.permissions.add(configuration_permission)
         therapists = GroupFactory.create(name='therapists')
 
         admin = UserFactory.create(

@@ -102,6 +102,7 @@ class DicomSeries(CommonFieldsMixin):
         verbose_name = 'DICOM Series'
         verbose_name_plural = 'DICOM Series'
 
+
 class Fiducials(CommonFieldsMixin):
     #fiducials = NumpyTextField(upload_to='fiducials/fiducials')
     fiducials = NumpyTextField()
@@ -142,3 +143,11 @@ class Scan(CommonFieldsMixin):
 
     def __str__(self):
         return "Scan {}".format(self.id)
+
+
+class Global(models.Model):
+    class Meta:
+        managed = False
+        permissions = (
+            ('configuration', 'Configuration'),
+        )
