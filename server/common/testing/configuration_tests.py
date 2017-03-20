@@ -142,8 +142,6 @@ def test_configuration_context():
     client.force_login(user_a)
     response = client.get(url)
 
-    print(response)
-
     phantoms = response.context['phantoms']
     machines = response.context['machines']
     sequences = response.context['sequences']
