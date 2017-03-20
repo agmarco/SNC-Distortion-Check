@@ -209,3 +209,8 @@ logging.config.dictConfig({
 # Users
 
 AUTH_USER_MODEL = 'common.User'
+
+
+# Auth
+
+LOGIN_REDIRECT_URL = 'configuration'

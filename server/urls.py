@@ -15,11 +15,15 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
-from server.common.views import upload_file
+from django.contrib.auth import views as auth_views
+from server.common.views import upload_file, configuration
 
 admin.site.site_header = 'CIRS Distortion Check Admin'
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    url(r'^login/$', auth_views.login, name='login'),
+    url(r'^logout/$', auth_views.logout, name='logout'),
+    url(r'^configuration/$', configuration, name='configuration'),
     url(r'^$', upload_file),
 ]
