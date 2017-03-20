@@ -213,4 +213,5 @@ AUTH_USER_MODEL = 'common.User'
 
 # Auth
 
+LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'configuration'
