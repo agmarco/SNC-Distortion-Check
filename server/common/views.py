@@ -1,5 +1,6 @@
 import logging
 
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
 
 from .models import Scan
@@ -39,11 +40,14 @@ def upload_file(request):
 
 
 def configuration(request):
+    if not request.user.groups.filter(name='medical_physicists').count():
+        raise PermissionDenied
+
     institution = request.user.institution
 
     return render(request, 'configuration.html', {
-        'phantoms': institution.phantom_set.objects.all(),
-        'machines': institution.machine_set.objects.all(),
-        'sequences': institution.sequence_set.objects.all(),
-        'users': institution.user_set.objects.all(),
+        'phantoms': institution.phantom_set.all(),
+        'machines': institution.machine_set.all(),
+        'sequences': institution.sequence_set.all(),
+        'users': institution.user_set.all(),
     })

@@ -3,10 +3,13 @@ import pytest
 from django.test import Client
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from django.core.management import call_command
 
 
 @pytest.mark.django_db
-def configuration_permissions():
+def test_configuration_permissions():
+    call_command('generate_dev_data')
+
     client = Client()
     url = reverse('configuration')
 
@@ -24,7 +27,9 @@ def configuration_permissions():
 
 
 @pytest.mark.django_db
-def configuration_context():
+def test_configuration_context():
+    call_command('generate_dev_data')
+
     client = Client()
     url = reverse('configuration')
 
@@ -38,10 +43,10 @@ def configuration_context():
     users = response.context['users']
 
     # only display items from the user's institution
-    assert all([phantom.institution is current_user.institution for phantom in phantoms])
-    assert all([machine.institution is current_user.institution for machine in machines])
-    assert all([sequence.institution is current_user.institution for sequence in sequences])
-    assert all([user.institution is current_user.institution for user in users])
+    assert all([phantom.institution.pk == current_user.institution.pk for phantom in phantoms])
+    assert all([machine.institution.pk == current_user.institution.pk for machine in machines])
+    assert all([sequence.institution.pk == current_user.institution.pk for sequence in sequences])
+    assert all([user.institution.pk == current_user.institution.pk for user in users])
 
     # don't display deleted items
     assert all([not phantom.deleted for phantom in phantoms])
