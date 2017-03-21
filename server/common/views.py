@@ -170,18 +170,15 @@ class DeleteSequence(DeleteView):
 
 
 @login_required
-@permission_required('common.configuration', raise_exception=True)
 def add_user(request):
     return render(request, 'common/user_add.html')
 
 
 @login_required
-@permission_required('common.configuration', raise_exception=True)
 def edit_user(request, pk):
     return render(request, 'common/user_edit.html')
 
 
 @login_required
-@permission_required('common.configuration', raise_exception=True)
 def delete_user(request, pk):
     return redirect('configuration')

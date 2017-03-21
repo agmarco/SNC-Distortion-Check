@@ -9,43 +9,6 @@ from server.common import factories
 
 
 @pytest.mark.django_db
-def test_configuration_permissions():
-
-    # populate database
-    configuration_permission = Permission.objects.get(codename='configuration')
-
-    medical_physicists = factories.GroupFactory.create(name='Medical Physicist')
-    medical_physicists.permissions.add(configuration_permission)
-    therapists = factories.GroupFactory.create(name='Therapist')
-
-    john_hopkins = factories.InstitutionFactory.create(name='John Hopkins')
-
-    medical_physicist = factories.UserFactory.create(
-        username="medical_physicist",
-        institution=john_hopkins,
-        groups=[medical_physicists],
-    )
-    therapist = factories.UserFactory.create(
-        username="therapist",
-        institution=john_hopkins,
-        groups=[therapists],
-    )
-
-    client = Client()
-    url = reverse('configuration')
-
-    # non-medical-physicist user unauthorized
-    client.force_login(therapist)
-    response = client.get(url)
-    assert response.status_code == 403
-
-    # medical-physicist user authorized
-    client.force_login(medical_physicist)
-    response = client.get(url)
-    assert response.status_code == 200
-
-
-@pytest.mark.django_db
 def test_configuration_context():
 
     # populate database
