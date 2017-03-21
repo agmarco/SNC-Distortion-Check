@@ -26,20 +26,20 @@ urlpatterns = [
     url(r'^logout/$', auth_views.logout, name='logout'),
     url(r'^configuration/$', views.configuration, name='configuration'),
 
-    url(r'^phantoms/add/$', views.AddPhantom.as_view(), name='add_phantom'),
-    url(r'^phantoms/edit/(?P<pk>\d+)/$', views.EditPhantom.as_view(), name='edit_phantom'),
+    url(r'^phantoms/add/$', views.CreatePhantom.as_view(), name='create_phantom'),
+    url(r'^phantoms/edit/(?P<pk>\d+)/$', views.UpdatePhantom.as_view(), name='update_phantom'),
     url(r'^phantoms/delete/(?P<pk>\d+)/$', views.DeletePhantom.as_view(), name='delete_phantom'),
 
-    url(r'^machines/add/$', views.AddMachine.as_view(), name='add_machine'),
-    url(r'^machines/edit/(?P<pk>\d+)/$', views.EditMachine.as_view(), name='edit_machine'),
+    url(r'^machines/add/$', views.CreateMachine.as_view(), name='create_machine'),
+    url(r'^machines/edit/(?P<pk>\d+)/$', views.UpdateMachine.as_view(), name='update_machine'),
     url(r'^machines/delete/(?P<pk>\d+)/$', views.DeleteMachine.as_view(), name='delete_machine'),
 
-    url(r'^sequences/add/$', views.AddSequence.as_view(), name='add_sequence'),
-    url(r'^sequences/edit/(?P<pk>\d+)/$', views.EditSequence.as_view(), name='edit_sequence'),
+    url(r'^sequences/add/$', views.CreateSequence.as_view(), name='create_sequence'),
+    url(r'^sequences/edit/(?P<pk>\d+)/$', views.UpdateSequence.as_view(), name='update_sequence'),
     url(r'^sequences/delete/(?P<pk>\d+)/$', views.DeleteSequence.as_view(), name='delete_sequence'),
 
-    url(r'^users/add/$', views.add_user, name='add_user'),
-    url(r'^users/edit/(\d+)/$', views.edit_user, name='edit_user'),
+    url(r'^users/add/$', views.create_user, name='create_user'),
+    url(r'^users/edit/(\d+)/$', views.update_user, name='update_user'),
     url(r'^users/delete/(\d+)/$', views.delete_user, name='delete_user'),
 
     url(r'^$', views.upload_file),

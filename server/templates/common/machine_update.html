@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block "content" %}
+  <h1>Edit MRI Scanner</h1>
+  <form action="{% url 'update_machine' pk=machine.pk %}" method="post">
+    {% csrf_token %}
+    {{ form.errors }}
+    {{ form.name.label }} {{ form.name }}<br>
+    {{ form.model.label }} {{ form.model }}<br>
+    {{ form.manufacturer.label }} {{ form.manufacturer }}<br>
+    <input type="submit" value="Save">
+  </form>
+{% endblock %}

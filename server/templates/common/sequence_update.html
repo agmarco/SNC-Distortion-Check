@@ -1,13 +1,12 @@
 {% extends "base.html" %}
 
 {% block "content" %}
-  <h1>Add MRI Scanner</h1>
-  <form action="{% url 'add_machine' %}" method="post">
+  <h1>Edit MRI Sequence</h1>
+  <form action="{% url 'update_sequence' pk=sequence.pk %}" method="post">
     {% csrf_token %}
     {{ form.errors }}
     {{ form.name.label }} {{ form.name }}<br>
-    {{ form.model.label }} {{ form.model }}<br>
-    {{ form.manufacturer.label }} {{ form.manufacturer }}<br>
+    {{ form.instructions.label }} {{ form.instructions }}<br>
     <input type="submit" value="Save">
   </form>
 {% endblock %}

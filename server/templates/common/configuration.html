@@ -4,7 +4,7 @@
   <h1>Configuration</h1>
 
   <h2>Phantoms</h2>
-  <a href="{% url 'add_phantom' %}">Add Phantom</a>
+  <a href="{% url 'create_phantom' %}">Add Phantom</a>
   <table>
     <thead>
       <tr>
@@ -23,7 +23,7 @@
           <td>{{ phantom.serial_number }}</td>
           <td>{{ phantom.gold_standard_locations }}</td>
           <td>
-            <a href="{% url 'edit_phantom' phantom.pk %}">Edit</a>
+            <a href="{% url 'update_phantom' phantom.pk %}">Edit</a>
             <a href="{% url 'delete_phantom' phantom.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>
           </td>
         </tr>
@@ -32,7 +32,7 @@
   </table>
 
   <h2>MRI Scanners</h2>
-  <a href="{% url 'add_machine' %}">Add Machine</a>
+  <a href="{% url 'create_machine' %}">Add Machine</a>
   <table>
     <thead>
       <tr>
@@ -49,7 +49,7 @@
           <td>{{ machine.model }}</td>
           <td>{{ machine.manufacturer }}</td>
           <td>
-            <a href="{% url 'edit_machine' machine.pk %}">Edit</a>
+            <a href="{% url 'update_machine' machine.pk %}">Edit</a>
             <a href="{% url 'delete_machine' machine.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>
           </td>
         </tr>
@@ -58,7 +58,7 @@
   </table>
 
   <h2>MRI Sequences</h2>
-  <a href="{% url 'add_sequence' %}">Add Sequence</a>
+  <a href="{% url 'create_sequence' %}">Add Sequence</a>
   <table>
     <thead>
       <tr>
@@ -73,7 +73,7 @@
           <td>{{ sequence.name }}</td>
           <td>{{ sequence.instructions }}</td>
           <td>
-            <a href="{% url 'edit_sequence' sequence.pk %}">Edit</a>
+            <a href="{% url 'update_sequence' sequence.pk %}">Edit</a>
             <a href="{% url 'delete_sequence' sequence.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>
           </td>
         </tr>
@@ -82,7 +82,7 @@
   </table>
 
   <h2>Users</h2>
-  <a href="{% url 'add_user' %}">Add User</a>
+  <a href="{% url 'create_user' %}">Add User</a>
   <table>
     <thead>
       <tr>
@@ -99,7 +99,7 @@
           <td>{{ user.email }}</td>
           <td>{{ user.groups.all|join:", " }}</td>
           <td>
-            <a href="{% url 'edit_user' user.pk %}">Edit</a>
+            <a href="{% url 'update_user' user.pk %}">Edit</a>
             <a href="{% url 'delete_user' user.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>
           </td>
         </tr>

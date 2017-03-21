@@ -2,7 +2,7 @@
 
 {% block "content" %}
   <h1>Edit Phantom</h1>
-  <form action="{% url 'edit_phantom' pk=phantom.pk %}" method="post">
+  <form action="{% url 'update_phantom' pk=phantom.pk %}" method="post">
     {% csrf_token %}
     {{ form.errors }}
     {{ form.name.label }} {{ form.name }} <input type="submit" value="Save Name Change">

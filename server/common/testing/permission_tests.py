@@ -54,13 +54,13 @@ def test_medical_phycisist_permissions():
 
     _assert_can_view(medical_physicist, (
         reverse('configuration'),
-        reverse('add_phantom'),
+        reverse('create_phantom'),
         f'/phantoms/edit/{phantom.pk}/',
         f'/phantoms/delete/{phantom.pk}/',
-        reverse('add_machine'),
+        reverse('create_machine'),
         f'/machines/edit/{machine.pk}/',
         f'/machines/delete/{machine.pk}',
-        reverse('add_sequence'),
+        reverse('create_sequence'),
         f'/sequences/edit/{sequence.pk}/',
         f'/sequences/delete/{sequence.pk}/',
     ))
@@ -86,13 +86,13 @@ def test_medical_phycisist_permissions():
 
     _assert_cannot_view(therapist, (
         reverse('configuration'),
-        reverse('add_phantom'),
+        reverse('create_phantom'),
         f'/phantoms/edit/{phantom.pk}/',
         f'/phantoms/delete/{phantom.pk}/',
-        reverse('add_machine'),
+        reverse('create_machine'),
         f'/machines/edit/{machine.pk}/',
         f'/machines/delete/{machine.pk}/',
-        reverse('add_sequence'),
+        reverse('create_sequence'),
         f'/sequences/edit/{sequence.pk}/',
         f'/sequences/delete/{sequence.pk}/',
     ))
