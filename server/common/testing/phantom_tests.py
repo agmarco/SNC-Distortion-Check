@@ -1,7 +1,7 @@
 import pytest
 
 from django.test import Client
-from django.urls import reverse_lazy
+from django.urls import reverse
 from django.contrib.auth.models import Permission
 
 from server.common import factories
@@ -29,7 +29,7 @@ def test_phantom_crud():
     client.force_login(user)
 
     # add phantom
-    url = reverse_lazy('add_phantom')
+    url = reverse('add_phantom')
 
     phantom_name = 'Add Phantom'
     phantom_model = Phantom.CIRS_603A
@@ -49,7 +49,7 @@ def test_phantom_crud():
     assert phantom.institution == user.institution
 
     # edit phantom
-    url = reverse_lazy('edit_phantom', phantom.pk)
+    url = f'/phantoms/edit/{phantom.pk}/'  # reverse and reverse_lazy both cause circular imports when called with an argument
     phantom_name = 'Edit Phantom'
 
     client.post(url, data={'name': phantom_name})
@@ -60,7 +60,7 @@ def test_phantom_crud():
 
     # delete phantom
 
-    url = reverse_lazy('delete_phantom', phantom.pk)
+    url = f'/phantoms/delete/{phantom.pk}/'
 
     client.post(url)
 
