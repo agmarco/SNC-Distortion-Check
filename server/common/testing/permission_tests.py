@@ -12,8 +12,11 @@ def _assert_can_view(user, urls):
     client.force_login(user)
 
     for url in urls:
-        response = client.get(url)
-        assert response.status_code == 200
+        assert client.get(url).status_code in (200, 302, 405)
+        assert client.post(url).status_code in (200, 302, 405)
+        assert client.put(url).status_code in (200, 302, 405)
+        assert client.patch(url).status_code in (200, 302, 405)
+        assert client.delete(url).status_code in (200, 302, 405)
 
 
 def _assert_cannot_view(user, urls):
@@ -21,8 +24,11 @@ def _assert_cannot_view(user, urls):
     client.force_login(user)
 
     for url in urls:
-        response = client.get(url)
-        assert response.status_code == 403
+        assert client.get(url).status_code in (403, 405)
+        assert client.post(url).status_code in (403, 405)
+        assert client.put(url).status_code in (403, 405)
+        assert client.patch(url).status_code in (403, 405)
+        assert client.delete(url).status_code in (403, 405)
 
 
 @pytest.mark.django_db
