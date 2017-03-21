@@ -126,11 +126,11 @@ class Fiducials(CommonFieldsMixin):
 class GoldenFiducials(CommonFieldsMixin):
     CT = 'CT'
     CAD = 'CAD'
-    Raw = 'Raw'
+    RAW = 'RAW'
     SOURCE_TYPE_CHOICES = (
         (CT, 'CT Scan'),
         (CAD, 'CAD Model'),
-        (Raw, 'Raw Points'),
+        (RAW, 'Raw Points'),
     )
 
     phantom = models.ForeignKey(Phantom, models.CASCADE)
