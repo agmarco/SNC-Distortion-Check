@@ -105,14 +105,17 @@ class Command(BaseCommand):
             fiducials=fiducials_a,
             dicom_series=dicom_series_a,
             source_type=GoldenFiducials.CT,
+            is_active=True,
         )
         golden_fiducials_b = factories.GoldenFiducialsFactory(
             phantom=phantom_b,
             fiducials=fiducials_b,
             source_type=GoldenFiducials.CAD,
+            is_active=True,
         )
         golden_fiducials_b = factories.GoldenFiducialsFactory(
             phantom=phantom_c,
             fiducials=fiducials_c,
             source_type=GoldenFiducials.CAD,
+            is_active=True,
         )

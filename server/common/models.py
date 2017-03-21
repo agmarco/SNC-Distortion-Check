@@ -52,22 +52,9 @@ class Phantom(CommonFieldsMixin):
     def __str__(self):
         return "Phantom {} {} {}".format(self.institution, self.model, self.name)
 
-    @staticmethod
-    def _format_golden_fiducials(gf):
-        if gf.source_type == GoldenFiducials.CT:
-            dicom_archive = gf.dicom_series.zipped_dicom_files
-            with zipfile.ZipFile(dicom_archive, 'r') as f:
-                dicom_datasets = dicom_datasets_from_zip(f)
-            date = datetime.strptime(dicom_datasets[0].AcquisitionDate, '%Y%m%d').strftime('%d %B %Y')
-
-            return f'{gf.get_source_type_display()} Taken on {date}'
-        return gf.get_source_type_display()
-
     @property
-    def gold_standard_locations(self):
-        """Display the source locations for the gold standard points."""
-
-        return ','.join([self._format_golden_fiducials(gf) for gf in self.goldenfiducials_set.all()])
+    def gold_standard(self):
+        return self.goldenfiducials_set.get(is_active=True)
 
 
 class Machine(CommonFieldsMixin):
@@ -139,12 +126,15 @@ class Fiducials(CommonFieldsMixin):
 class GoldenFiducials(CommonFieldsMixin):
     CT = 'CT'
     CAD = 'CAD'
+    Raw = 'Raw'
     SOURCE_TYPE_CHOICES = (
-        (CT, 'CT'),
+        (CT, 'CT Scan'),
         (CAD, 'CAD Model'),
+        (Raw, 'Raw Points'),
     )
 
     phantom = models.ForeignKey(Phantom, models.CASCADE)
+    is_active = models.BooleanField()
     dicom_series = models.ForeignKey(DicomSeries, models.CASCADE, null=True)
     fiducials = models.ForeignKey(Fiducials, models.CASCADE)
     source_type_ht = 'The source type for the golden fiducials  (e.g. CT Scan or CAD Model).'
@@ -152,6 +142,17 @@ class GoldenFiducials(CommonFieldsMixin):
 
     def __str__(self):
         return "Golden Fiducials {}".format(self.id)
+
+    @property
+    def source_summary(self):
+        if self.source_type == GoldenFiducials.CT:
+            dicom_archive = self.dicom_series.zipped_dicom_files
+            with zipfile.ZipFile(dicom_archive, 'r') as f:
+                dicom_datasets = dicom_datasets_from_zip(f)
+            date = datetime.strptime(dicom_datasets[0].AcquisitionDate, '%Y%m%d').strftime('%d %B %Y')
+
+            return f'{self.get_source_type_display()} Taken on {date}'
+        return self.get_source_type_display()
 
     class Meta:
         verbose_name = 'Golden Fiducials'

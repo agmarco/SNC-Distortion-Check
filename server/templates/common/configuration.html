@@ -21,7 +21,7 @@
           <td>{{ phantom.name }}</td>
           <td>{{ phantom.model }}</td>
           <td>{{ phantom.serial_number }}</td>
-          <td>{{ phantom.gold_standard_locations }}</td>
+          <td>{{ phantom.gold_standard.source_summary }}</td>
           <td>
             <a href="{% url 'update_phantom' phantom.pk %}">Edit</a>
             <a href="{% url 'delete_phantom' phantom.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>
