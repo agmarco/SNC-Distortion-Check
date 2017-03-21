@@ -1,9 +1,13 @@
+import os
+
 from django.contrib.auth.models import Permission
 from django.core.management.base import BaseCommand, CommandError
+from django.core.files import File
+from django.conf import settings
 
 from server.common.factories import (UserFactory, GroupFactory, InstitutionFactory, PhantomFactory, SequenceFactory, MachineSequencePairFactory,
-                                     MachineFactory, DicomSeriesFactory, FiducialsFactory, GoldenFiducialsFactory)
-from server.common.models import Phantom
+                                     MachineFactory, DicomSeriesFactory, GoldenFiducialsFactory, FiducialsFactory)
+from server.common.models import Phantom, GoldenFiducials
 
 
 class Command(BaseCommand):
@@ -88,4 +92,28 @@ class Command(BaseCommand):
             machine=machine_a,
         )
 
-        dicom_series = DicomSeriesFactory()
+        dicom_series_a = DicomSeriesFactory()
+        with open(os.path.join(settings.BASE_DIR, 'data/dicom/001_ct_603A_E3148_ST1.25.zip'), 'rb') as dicom_file:
+            dicom_series_a.zipped_dicom_files.save(f'dicom_series_{dicom_series_a.pk}.png', File(dicom_file))
+        dicom_series_a.save()
+
+        fiducials_a = FiducialsFactory()
+        fiducials_b = FiducialsFactory()
+        fiducials_c = FiducialsFactory()
+
+        golden_fiducials_a = GoldenFiducialsFactory(
+            phantom=phantom_a,
+            fiducials=fiducials_a,
+            dicom_series=dicom_series_a,
+            source_type=GoldenFiducials.CT,
+        )
+        golden_fiducials_b = GoldenFiducialsFactory(
+            phantom=phantom_b,
+            fiducials=fiducials_b,
+            source_type=GoldenFiducials.CAD,
+        )
+        golden_fiducials_b = GoldenFiducialsFactory(
+            phantom=phantom_c,
+            fiducials=fiducials_c,
+            source_type=GoldenFiducials.CAD,
+        )

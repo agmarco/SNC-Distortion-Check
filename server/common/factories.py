@@ -1,6 +1,6 @@
 import factory
 
-from .models import Phantom
+from .models import Phantom, GoldenFiducials
 
 
 class InstitutionFactory(factory.django.DjangoModelFactory):
@@ -85,22 +85,20 @@ class MachineSequencePairFactory(factory.django.DjangoModelFactory):
     tolerance = 3.5
 
 
-class GoldenFiducialsFactory(factory.django.DjangoModelFactory):
+class DicomSeriesFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = "common.GoldenFiducials"
-
-    name = factory.Sequence("golden_fiducials{0}".format)
+        model = "common.DicomSeries"
 
 
 class FiducialsFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.Fiducials"
 
-    name = factory.Sequence("fiducials{0}".format)
 
-
-class DicomSeriesFactory(factory.django.DjangoModelFactory):
+class GoldenFiducialsFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = "common.DicomSeries"
+        model = "common.GoldenFiducials"
 
-    name = factory.Sequence("dicom_series{0}".format)
+    phantom = factory.SubFactory(PhantomFactory)
+    fiducials = factory.SubFactory(FiducialsFactory)
+    dicom_series = factory.SubFactory(DicomSeriesFactory)

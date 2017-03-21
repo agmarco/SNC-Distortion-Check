@@ -23,7 +23,7 @@
           <td>{{ phantom.name }}</td>
           <td>{{ phantom.model }}</td>
           <td>{{ phantom.serial_number }}</td>
-          <td></td>
+          <td>{{ phantom.gold_standard_locations }}</td>
           <td>
             <a href="{% url 'edit_phantom' phantom.pk %}">Edit</a>
             <a href="{% url 'delete_phantom' phantom.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>

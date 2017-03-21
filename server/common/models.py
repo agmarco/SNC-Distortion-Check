@@ -1,7 +1,11 @@
+import zipfile
+from datetime import datetime
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 from server.django_numpy.fields import NumpyTextField
+from process.dicom_import import dicom_datasets_from_zip
 
 
 class CommonFieldsMixin(models.Model):
@@ -47,6 +51,22 @@ class Phantom(CommonFieldsMixin):
 
     def __str__(self):
         return "Phantom {} {} {}".format(self.institution, self.model, self.name)
+
+    @property
+    def gold_standard_locations(self):
+        """Display the source locations for the gold standard points."""
+
+        def format_golden_fiducials(gf):
+            if gf.source_type == GoldenFiducials.CT:
+                dicom_archive = gf.dicom_series.zipped_dicom_files
+                with zipfile.ZipFile(dicom_archive, 'r') as f:
+                    dicom_datasets = dicom_datasets_from_zip(f)
+                date = datetime.strptime(dicom_datasets[0].AcquisitionDate, '%Y%m%d').strftime('%d %B %Y')
+
+                return '{} Taken on {}'.format(gf.get_source_type_display(), date)
+            return gf.get_source_type_display()
+
+        return ','.join([format_golden_fiducials(gf) for gf in self.goldenfiducials_set.all()])
 
 
 class Machine(CommonFieldsMixin):
@@ -116,9 +136,18 @@ class Fiducials(CommonFieldsMixin):
 
 
 class GoldenFiducials(CommonFieldsMixin):
+    CT = 'CT'
+    CAD = 'CAD'
+    SOURCE_TYPE_CHOICES = (
+        (CT, 'CT'),
+        (CAD, 'CAD Model'),
+    )
+
     phantom = models.ForeignKey(Phantom, models.CASCADE)
     dicom_series = models.ForeignKey(DicomSeries, models.CASCADE, null=True)
     fiducials = models.ForeignKey(Fiducials, models.CASCADE)
+    source_type_ht = 'The source type for the golden fiducials  (e.g. CT Scan or CAD Model).'
+    source_type = models.CharField(max_length=3, choices=SOURCE_TYPE_CHOICES, help_text=source_type_ht)
 
     def __str__(self):
         return "Golden Fiducials {}".format(self.id)
