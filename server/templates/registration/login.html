@@ -2,10 +2,12 @@
 
 {% block "content" %}
 <h1>CIRS Distortion Check</h1>
-<form action="{% url 'login' %}" method="post">
+  <form action="{% url 'login' %}" method="post">
     {% csrf_token %}
-    {{ form }}
+    {{ form.errors }}
+    {{ form.username.label }} {{ form.username }}<br>
+    {{ form.password.label }} {{ form.password }}<br>
     <input type="submit" value="Login" />
     <a href="#">Having trouble logging in?</a>
-</form>
+  </form>
 {% endblock %}

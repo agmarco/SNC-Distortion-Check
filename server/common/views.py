@@ -3,9 +3,9 @@ import logging
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render, redirect
 
-from .models import Scan
+from .models import Scan, Phantom
 from .tasks import process_scan
-from .forms import UploadScanForm
+from .forms import UploadScanForm, AddPhantomForm, EditPhantomForm, MachineForm, SequenceForm
 
 logger = logging.getLogger(__name__)
 
@@ -54,19 +54,49 @@ def configuration(request):
 @login_required
 @permission_required('common.configuration', raise_exception=True)
 def add_phantom(request):
-    return render(request, 'add_phantom.html')
+    if request.method == 'POST':
+        form = AddPhantomForm(request.POST)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.institution = request.user.institution
+            instance.save()
+            return redirect('configuration')
+    else:
+        form = AddPhantomForm()
+
+    return render(request, 'add_phantom.html', {'form': form})
 
 
 @login_required
 @permission_required('common.configuration', raise_exception=True)
 def edit_phantom(request, pk):
-    return render(request, 'edit_phantom.html')
+    phantom = Phantom.objects.get(pk=pk)
+
+    if request.method == 'POST':
+        form = EditPhantomForm(request.POST, instance=phantom)
+        if form.is_valid():
+            form.save()
+            return redirect('configuration')
+    else:
+        form = EditPhantomForm(instance=phantom)
+
+    return render(request, 'edit_phantom.html', {
+        'phantom': phantom,
+        'form': form,
+    })
 
 
 @login_required
 @permission_required('common.configuration', raise_exception=True)
 def delete_phantom(request, pk):
-    return redirect('configuration')
+    phantom = Phantom.objects.get(pk=pk)
+
+    if request.method == 'POST':
+        phantom.deleted = True
+        phantom.save()
+        return redirect('configuration')
+
+    return render(request, 'delete_phantom.html', {'phantom': phantom})
 
 
 @login_required
