@@ -52,21 +52,22 @@ class Phantom(CommonFieldsMixin):
     def __str__(self):
         return "Phantom {} {} {}".format(self.institution, self.model, self.name)
 
+    @staticmethod
+    def _format_golden_fiducials(gf):
+        if gf.source_type == GoldenFiducials.CT:
+            dicom_archive = gf.dicom_series.zipped_dicom_files
+            with zipfile.ZipFile(dicom_archive, 'r') as f:
+                dicom_datasets = dicom_datasets_from_zip(f)
+            date = datetime.strptime(dicom_datasets[0].AcquisitionDate, '%Y%m%d').strftime('%d %B %Y')
+
+            return f'{gf.get_source_type_display()} Taken on {date}'
+        return gf.get_source_type_display()
+
     @property
     def gold_standard_locations(self):
         """Display the source locations for the gold standard points."""
 
-        def format_golden_fiducials(gf):
-            if gf.source_type == GoldenFiducials.CT:
-                dicom_archive = gf.dicom_series.zipped_dicom_files
-                with zipfile.ZipFile(dicom_archive, 'r') as f:
-                    dicom_datasets = dicom_datasets_from_zip(f)
-                date = datetime.strptime(dicom_datasets[0].AcquisitionDate, '%Y%m%d').strftime('%d %B %Y')
-
-                return f'{gf.get_source_type_display()} Taken on {date}'
-            return gf.get_source_type_display()
-
-        return ','.join([format_golden_fiducials(gf) for gf in self.goldenfiducials_set.all()])
+        return ','.join([self._format_golden_fiducials(gf) for gf in self.goldenfiducials_set.all()])
 
 
 class Machine(CommonFieldsMixin):
