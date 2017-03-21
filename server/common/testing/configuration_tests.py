@@ -61,10 +61,10 @@ def test_configuration_context():
     users = response.context['users']
 
     # only display items from the user's institution
-    assert all([phantom.institution.pk == user_a.institution.pk for phantom in phantoms])
-    assert all([machine.institution.pk == user_a.institution.pk for machine in machines])
-    assert all([sequence.institution.pk == user_a.institution.pk for sequence in sequences])
-    assert all([user.institution.pk == user_a.institution.pk for user in users])
+    assert all([phantom.institution == user_a.institution for phantom in phantoms])
+    assert all([machine.institution == user_a.institution for machine in machines])
+    assert all([sequence.institution == user_a.institution for sequence in sequences])
+    assert all([user.institution == user_a.institution for user in users])
 
     # don't display deleted items
     assert all([not phantom.deleted for phantom in phantoms])

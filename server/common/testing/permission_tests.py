@@ -90,3 +90,50 @@ def test_medical_phycisist_permissions():
         f'/sequences/edit/{sequence.pk}/',
         f'/sequences/delete/{sequence.pk}/',
     ))
+
+
+@pytest.mark.django_db
+def test_institution_permissions():
+
+    # populate database
+    configuration_permission = Permission.objects.get(codename='configuration')
+
+    medical_physicists = factories.GroupFactory.create(name='Medical Physicist')
+    medical_physicists.permissions.add(configuration_permission)
+
+    john_hopkins = factories.InstitutionFactory.create(name='John Hopkins')
+    utexas = factories.InstitutionFactory.create(name='University of Texas')
+
+    user_a = factories.UserFactory.create(
+        username="user_a",
+        institution=john_hopkins,
+        groups=[medical_physicists],
+    )
+
+    user_b = factories.UserFactory.create(
+        username="user_b",
+        institution=utexas,
+        groups=[medical_physicists],
+    )
+
+    phantom = factories.PhantomFactory(institution=john_hopkins)
+    machine = factories.MachineFactory(institution=john_hopkins)
+    sequence = factories.SequenceFactory(institution=john_hopkins)
+
+    _assert_can_view(user_a, (
+        f'/phantoms/edit/{phantom.pk}/',
+        f'/phantoms/delete/{phantom.pk}/',
+        f'/machines/edit/{machine.pk}/',
+        f'/machines/delete/{machine.pk}/',
+        f'/sequences/edit/{sequence.pk}/',
+        f'/sequences/delete/{sequence.pk}/',
+    ))
+
+    _assert_cannot_view(user_b, (
+        f'/phantoms/edit/{phantom.pk}/',
+        f'/phantoms/delete/{phantom.pk}/',
+        f'/machines/edit/{machine.pk}/',
+        f'/machines/delete/{machine.pk}/',
+        f'/sequences/edit/{sequence.pk}/',
+        f'/sequences/delete/{sequence.pk}/',
+    ))

@@ -1,6 +1,7 @@
 import logging
 
 from django.contrib.auth.decorators import login_required, permission_required
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect
 from django.utils.decorators import method_decorator
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin
@@ -78,6 +79,12 @@ class EditPhantom(UpdateView):
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_edit'
 
+    def dispatch(self, request, *args, **kwargs):
+        object = self.get_object()
+        if object.institution != self.request.user.institution:
+            raise PermissionDenied
+        return super(EditPhantom, self).dispatch(request, *args, **kwargs)
+
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(permission_required('common.configuration', raise_exception=True), name='dispatch')
@@ -91,6 +98,12 @@ class DeletePhantom(DeleteView):
         self.object.deleted = True
         self.object.save()
         return HttpResponseRedirect(success_url)
+
+    def dispatch(self, request, *args, **kwargs):
+        object = self.get_object()
+        if object.institution != self.request.user.institution:
+            raise PermissionDenied
+        return super(DeletePhantom, self).dispatch(request, *args, **kwargs)
 
 
 @method_decorator(login_required, name='dispatch')
@@ -116,6 +129,12 @@ class EditMachine(UpdateView):
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_edit'
 
+    def dispatch(self, request, *args, **kwargs):
+        object = self.get_object()
+        if object.institution != self.request.user.institution:
+            raise PermissionDenied
+        return super(EditMachine, self).dispatch(request, *args, **kwargs)
+
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(permission_required('common.configuration', raise_exception=True), name='dispatch')
@@ -129,6 +148,12 @@ class DeleteMachine(DeleteView):
         self.object.deleted = True
         self.object.save()
         return HttpResponseRedirect(success_url)
+
+    def dispatch(self, request, *args, **kwargs):
+        object = self.get_object()
+        if object.institution != self.request.user.institution:
+            raise PermissionDenied
+        return super(DeleteMachine, self).dispatch(request, *args, **kwargs)
 
 
 @method_decorator(login_required, name='dispatch')
@@ -154,6 +179,12 @@ class EditSequence(UpdateView):
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_edit'
 
+    def dispatch(self, request, *args, **kwargs):
+        object = self.get_object()
+        if object.institution != self.request.user.institution:
+            raise PermissionDenied
+        return super(EditSequence, self).dispatch(request, *args, **kwargs)
+
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(permission_required('common.configuration', raise_exception=True), name='dispatch')
@@ -167,6 +198,12 @@ class DeleteSequence(DeleteView):
         self.object.deleted = True
         self.object.save()
         return HttpResponseRedirect(success_url)
+
+    def dispatch(self, request, *args, **kwargs):
+        object = self.get_object()
+        if object.institution != self.request.user.institution:
+            raise PermissionDenied
+        return super(DeleteSequence, self).dispatch(request, *args, **kwargs)
 
 
 @login_required
