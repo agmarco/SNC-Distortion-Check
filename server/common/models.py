@@ -63,7 +63,7 @@ class Phantom(CommonFieldsMixin):
                     dicom_datasets = dicom_datasets_from_zip(f)
                 date = datetime.strptime(dicom_datasets[0].AcquisitionDate, '%Y%m%d').strftime('%d %B %Y')
 
-                return '{} Taken on {}'.format(gf.get_source_type_display(), date)
+                return f'{gf.get_source_type_display()} Taken on {date}'
             return gf.get_source_type_display()
 
         return ','.join([format_golden_fiducials(gf) for gf in self.goldenfiducials_set.all()])
