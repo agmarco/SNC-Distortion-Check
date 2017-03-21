@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
 {% block "content" %}
-  <h1>Delete Phantom</h1>
-  <p>Are you sure you want to delete "{{ phantom.name }}"?</p>
-  <form action="{% url 'delete_phantom' phantom.pk %}" method="post">
+  <h1>Delete MRI Sequence</h1>
+  <p>Are you sure you want to delete "{{ sequence.name }}"?</p>
+  <form action="{% url 'delete_sequence' pk=sequence.pk %}" method="post">
     {% csrf_token %}
     <input type="submit" value="Yes">
     <a href="{% url 'configuration' %}">Cancel</a>

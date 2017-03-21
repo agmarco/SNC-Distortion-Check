@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block "content" %}
+  <h1>Delete Phantom</h1>
+  <p>Are you sure you want to delete "{{ phantom.name }}"?</p>
+  <form action="{% url 'delete_phantom' pk=phantom.pk %}" method="post">
+    {% csrf_token %}
+    <input type="submit" value="Yes">
+    <a href="{% url 'configuration' %}">Cancel</a>
+  </form>
+{% endblock %}

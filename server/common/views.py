@@ -1,11 +1,15 @@
 import logging
 
 from django.contrib.auth.decorators import login_required, permission_required
+from django.http import HttpResponseRedirect
+from django.utils.decorators import method_decorator
+from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin
 from django.shortcuts import render, redirect
+from django.urls import reverse_lazy
 
-from .models import Scan, Phantom
+from .models import Scan, Phantom, Machine, Sequence
 from .tasks import process_scan
-from .forms import UploadScanForm, AddPhantomForm, EditPhantomForm, MachineForm, SequenceForm
+from .forms import UploadScanForm
 
 logger = logging.getLogger(__name__)
 
@@ -51,100 +55,130 @@ def configuration(request):
     })
 
 
-@login_required
-@permission_required('common.configuration', raise_exception=True)
-def add_phantom(request):
-    if request.method == 'POST':
-        form = AddPhantomForm(request.POST)
-        if form.is_valid():
-            instance = form.save(commit=False)
-            instance.institution = request.user.institution
-            instance.save()
-            return redirect('configuration')
-    else:
-        form = AddPhantomForm()
+@method_decorator(login_required, name='dispatch')
+@method_decorator(permission_required('common.configuration', raise_exception=True), name='dispatch')
+class AddPhantom(CreateView):
+    model = Phantom
+    fields = ('name', 'model', 'serial_number')
+    success_url = reverse_lazy('configuration')
+    template_name_suffix = '_add'
 
-    return render(request, 'add_phantom.html', {'form': form})
-
-
-@login_required
-@permission_required('common.configuration', raise_exception=True)
-def edit_phantom(request, pk):
-    phantom = Phantom.objects.get(pk=pk)
-
-    if request.method == 'POST':
-        form = EditPhantomForm(request.POST, instance=phantom)
-        if form.is_valid():
-            form.save()
-            return redirect('configuration')
-    else:
-        form = EditPhantomForm(instance=phantom)
-
-    return render(request, 'edit_phantom.html', {
-        'phantom': phantom,
-        'form': form,
-    })
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.institution = self.request.user.institution
+        self.object.save()
+        return super(ModelFormMixin, self).form_valid(form)
 
 
-@login_required
-@permission_required('common.configuration', raise_exception=True)
-def delete_phantom(request, pk):
-    phantom = Phantom.objects.get(pk=pk)
-
-    if request.method == 'POST':
-        phantom.deleted = True
-        phantom.save()
-        return redirect('configuration')
-
-    return render(request, 'delete_phantom.html', {'phantom': phantom})
+@method_decorator(login_required, name='dispatch')
+@method_decorator(permission_required('common.configuration', raise_exception=True), name='dispatch')
+class EditPhantom(UpdateView):
+    model = Phantom
+    fields = ('name',)
+    success_url = reverse_lazy('configuration')
+    template_name_suffix = '_edit'
 
 
-@login_required
-@permission_required('common.configuration', raise_exception=True)
-def add_machine(request):
-    return render(request, 'add_machine.html')
+@method_decorator(login_required, name='dispatch')
+@method_decorator(permission_required('common.configuration', raise_exception=True), name='dispatch')
+class DeletePhantom(DeleteView):
+    model = Phantom
+    success_url = reverse_lazy('configuration')
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        self.object.deleted = True
+        self.object.save()
+        return HttpResponseRedirect(success_url)
 
 
-@login_required
-@permission_required('common.configuration', raise_exception=True)
-def edit_machine(request, pk):
-    return render(request, 'edit_machine.html')
+@method_decorator(login_required, name='dispatch')
+@method_decorator(permission_required('common.configuration', raise_exception=True), name='dispatch')
+class AddMachine(CreateView):
+    model = Machine
+    fields = ('name', 'model', 'manufacturer')
+    success_url = reverse_lazy('configuration')
+    template_name_suffix = '_add'
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.institution = self.request.user.institution
+        self.object.save()
+        return super(ModelFormMixin, self).form_valid(form)
 
 
-@login_required
-@permission_required('common.configuration', raise_exception=True)
-def delete_machine(request, pk):
-    return redirect('configuration')
+@method_decorator(login_required, name='dispatch')
+@method_decorator(permission_required('common.configuration', raise_exception=True), name='dispatch')
+class EditMachine(UpdateView):
+    model = Machine
+    fields = ('name', 'model', 'manufacturer')
+    success_url = reverse_lazy('configuration')
+    template_name_suffix = '_edit'
 
 
-@login_required
-@permission_required('common.configuration', raise_exception=True)
-def add_sequence(request):
-    return render(request, 'add_sequence.html')
+@method_decorator(login_required, name='dispatch')
+@method_decorator(permission_required('common.configuration', raise_exception=True), name='dispatch')
+class DeleteMachine(DeleteView):
+    model = Machine
+    success_url = reverse_lazy('configuration')
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        self.object.deleted = True
+        self.object.save()
+        return HttpResponseRedirect(success_url)
 
 
-@login_required
-@permission_required('common.configuration', raise_exception=True)
-def edit_sequence(request, pk):
-    return render(request, 'edit_sequence.html')
+@method_decorator(login_required, name='dispatch')
+@method_decorator(permission_required('common.configuration', raise_exception=True), name='dispatch')
+class AddSequence(CreateView):
+    model = Sequence
+    fields = ('name', 'instructions')
+    success_url = reverse_lazy('configuration')
+    template_name_suffix = '_add'
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.institution = self.request.user.institution
+        self.object.save()
+        return super(ModelFormMixin, self).form_valid(form)
 
 
-@login_required
-@permission_required('common.configuration', raise_exception=True)
-def delete_sequence(request, pk):
-    return redirect('configuration')
+@method_decorator(login_required, name='dispatch')
+@method_decorator(permission_required('common.configuration', raise_exception=True), name='dispatch')
+class EditSequence(UpdateView):
+    model = Sequence
+    fields = ('name', 'instructions')
+    success_url = reverse_lazy('configuration')
+    template_name_suffix = '_edit'
+
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(permission_required('common.configuration', raise_exception=True), name='dispatch')
+class DeleteSequence(DeleteView):
+    model = Sequence
+    success_url = reverse_lazy('configuration')
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        self.object.deleted = True
+        self.object.save()
+        return HttpResponseRedirect(success_url)
 
 
 @login_required
 @permission_required('common.configuration', raise_exception=True)
 def add_user(request):
-    return render(request, 'add_user.html')
+    return render(request, 'common/user_add.html')
 
 
 @login_required
 @permission_required('common.configuration', raise_exception=True)
 def edit_user(request, pk):
-    return render(request, 'edit_user.html')
+    return render(request, 'common/user_edit.html')
 
 
 @login_required

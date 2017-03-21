@@ -1,8 +1,6 @@
 from django import forms
 from process import dicom_import
 
-from .models import Phantom, Machine, Sequence
-
 
 class UploadScanForm(forms.Form):
     dicom_archive = forms.FileField()
@@ -14,27 +12,3 @@ class UploadScanForm(forms.Form):
             raise forms.ValidationError(e.args[0])
 
         return self.cleaned_data
-
-
-class AddPhantomForm(forms.ModelForm):
-    class Meta:
-        model = Phantom
-        fields = ('name', 'model', 'serial_number')
-
-
-class EditPhantomForm(forms.ModelForm):
-    class Meta:
-        model = Phantom
-        fields = ('name',)
-
-
-class MachineForm(forms.ModelForm):
-    class Meta:
-        model = Machine
-        fields = ('name', 'model', 'manufacturer')
-
-
-class SequenceForm(forms.ModelForm):
-    class Meta:
-        model = Sequence
-        fields = ('name', 'instructions')

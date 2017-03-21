@@ -104,7 +104,7 @@ def test_machine_crud():
     machine = Machine.objects.first()
     assert machine.name == machine_name
     assert machine.model == machine_model
-    assert machine.serial_number == machine_manufacturer
+    assert machine.manufacturer == machine_manufacturer
     assert machine.institution == user.institution
 
     # edit machine
@@ -123,7 +123,7 @@ def test_machine_crud():
     machine = Machine.objects.first()
     assert machine.name == machine_name
     assert machine.model == machine_model
-    assert machine.serial_number == machine_manufacturer
+    assert machine.manufacturer == machine_manufacturer
 
     # delete machine
 

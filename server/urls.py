@@ -25,17 +25,22 @@ urlpatterns = [
     url(r'^login/$', auth_views.login, name='login'),
     url(r'^logout/$', auth_views.logout, name='logout'),
     url(r'^configuration/$', views.configuration, name='configuration'),
-    url(r'^phantoms/add/$', views.add_phantom, name='add_phantom'),
-    url(r'^phantoms/edit/(\d+)/$', views.edit_phantom, name='edit_phantom'),
-    url(r'^phantoms/delete/(\d+)/$', views.delete_phantom, name='delete_phantom'),
-    url(r'^machines/add/$', views.add_machine, name='add_machine'),
-    url(r'^machines/edit/(\d+)/$', views.edit_machine, name='edit_machine'),
-    url(r'^machines/delete/(\d+)/$', views.delete_machine, name='delete_machine'),
-    url(r'^sequences/add/$', views.add_sequence, name='add_sequence'),
-    url(r'^sequences/edit/(\d+)/$', views.edit_sequence, name='edit_sequence'),
-    url(r'^sequences/delete/(\d+)/$', views.delete_sequence, name='delete_sequence'),
+
+    url(r'^phantoms/add/$', views.AddPhantom.as_view(), name='add_phantom'),
+    url(r'^phantoms/edit/(?P<pk>\d+)/$', views.EditPhantom.as_view(), name='edit_phantom'),
+    url(r'^phantoms/delete/(?P<pk>\d+)/$', views.DeletePhantom.as_view(), name='delete_phantom'),
+
+    url(r'^machines/add/$', views.AddMachine.as_view(), name='add_machine'),
+    url(r'^machines/edit/(?P<pk>\d+)/$', views.EditMachine.as_view(), name='edit_machine'),
+    url(r'^machines/delete/(?P<pk>\d+)/$', views.DeleteMachine.as_view(), name='delete_machine'),
+
+    url(r'^sequences/add/$', views.AddSequence.as_view(), name='add_sequence'),
+    url(r'^sequences/edit/(?P<pk>\d+)/$', views.EditSequence.as_view(), name='edit_sequence'),
+    url(r'^sequences/delete/(?P<pk>\d+)/$', views.DeleteSequence.as_view(), name='delete_sequence'),
+
     url(r'^users/add/$', views.add_user, name='add_user'),
     url(r'^users/edit/(\d+)/$', views.edit_user, name='edit_user'),
     url(r'^users/delete/(\d+)/$', views.delete_user, name='delete_user'),
+
     url(r'^$', views.upload_file),
 ]
