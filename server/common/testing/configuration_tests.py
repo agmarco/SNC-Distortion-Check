@@ -15,9 +15,9 @@ def test_configuration_permissions():
     # populate database
     configuration_permission = Permission.objects.get(codename='configuration')
 
-    medical_physicists = GroupFactory.create(name='medical_physicists')
+    medical_physicists = GroupFactory.create(name='Medical Physicist')
     medical_physicists.permissions.add(configuration_permission)
-    therapists = GroupFactory.create(name='therapists')
+    therapists = GroupFactory.create(name='Therapist')
 
     john_hopkins = InstitutionFactory.create(name='John Hopkins')
 
@@ -59,7 +59,7 @@ def test_configuration_context():
     # populate database
     configuration_permission = Permission.objects.get(codename='configuration')
 
-    medical_physicists = GroupFactory.create(name='medical_physicists')
+    medical_physicists = GroupFactory.create(name='Medical Physicist')
     medical_physicists.permissions.add(configuration_permission)
 
     john_hopkins = InstitutionFactory.create(name='John Hopkins')

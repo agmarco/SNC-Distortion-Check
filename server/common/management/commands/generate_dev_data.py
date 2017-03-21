@@ -11,9 +11,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         configuration_permission = Permission.objects.get(codename='configuration')
 
-        medical_physicists = GroupFactory.create(name='medical_physicists')
+        medical_physicists = GroupFactory.create(name='Medical Physicist')
         medical_physicists.permissions.add(configuration_permission)
-        therapists = GroupFactory.create(name='therapists')
+        therapists = GroupFactory.create(name='Therapist')
 
         admin = UserFactory.create(
             username="admin",
