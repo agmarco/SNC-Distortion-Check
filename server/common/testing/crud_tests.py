@@ -70,40 +70,38 @@ def test_crud():
     client.force_login(user)
 
     phantom = _test_create_view(user, reverse('create_phantom'), Phantom, {
-        'name': 'Add Phantom',
+        'name': 'Create Phantom',
         'model': Phantom.CIRS_603A,
         'serial_number': '12345',
     })
 
     # reverse and reverse_lazy both cause circular imports when called with an argument
-    _test_update_view(user, f'/phantoms/edit/{phantom.pk}/', Phantom, {
-        'name': 'Update Phantom',
-    })
+    _test_update_view(user, f'/phantoms/edit/{phantom.pk}/', Phantom, {'name': 'Update Phantom'})
 
     _test_delete_view(user, f'/phantoms/delete/{phantom.pk}/', Phantom)
 
     machine = _test_create_view(user, reverse('create_machine'), Machine, {
-        'name': 'Add Machine',
-        'model': 'Add Model',
-        'manufacturer': 'Add Manufacturer',
+        'name': 'Create Machine',
+        'model': 'Creatre Model',
+        'manufacturer': 'Create Manufacturer',
     })
 
     _test_update_view(user, f'/machines/edit/{machine.pk}/', Machine, {
-        'name': 'Edit Machine',
-        'model': 'Edit Model',
-        'manufacturer': 'Edit Manufacturer',
+        'name': 'Update Machine',
+        'model': 'Update Model',
+        'manufacturer': 'Update Manufacturer',
     })
 
     _test_delete_view(user, f'/machines/delete/{machine.pk}/', Machine)
 
     sequence = _test_create_view(user, reverse('create_sequence'), Sequence, {
-        'name': 'Add Sequence',
-        'instructions': 'Add Instructions',
+        'name': 'Create Sequence',
+        'instructions': 'Create Instructions',
     })
 
     _test_update_view(user, f'/sequences/edit/{sequence.pk}/', Sequence, {
-        'name': 'Edit Sequence',
-        'instructions': 'Edit Instructions',
+        'name': 'Update Sequence',
+        'instructions': 'Update Instructions',
     })
 
     _test_delete_view(user, f'/sequences/delete/{sequence.pk}/', Sequence)
