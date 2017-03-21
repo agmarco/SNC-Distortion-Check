@@ -83,3 +83,24 @@ class MachineSequencePairFactory(factory.django.DjangoModelFactory):
     machine = factory.SubFactory(MachineFactory)
     sequence = factory.SubFactory(SequenceFactory)
     tolerance = 3.5
+
+
+class GoldenFiducialsFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "common.GoldenFiducials"
+
+    name = factory.Sequence("golden_fiducials{0}".format)
+
+
+class FiducialsFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "common.Fiducials"
+
+    name = factory.Sequence("fiducials{0}".format)
+
+
+class DicomSeriesFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "common.DicomSeries"
+
+    name = factory.Sequence("dicom_series{0}".format)

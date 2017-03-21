@@ -1,7 +1,8 @@
 from django.contrib.auth.models import Permission
 from django.core.management.base import BaseCommand, CommandError
 
-from server.common.factories import UserFactory, GroupFactory, InstitutionFactory, PhantomFactory, SequenceFactory, MachineSequencePairFactory, MachineFactory
+from server.common.factories import (UserFactory, GroupFactory, InstitutionFactory, PhantomFactory, SequenceFactory, MachineSequencePairFactory,
+                                     MachineFactory, DicomSeriesFactory, FiducialsFactory, GoldenFiducialsFactory)
 from server.common.models import Phantom
 
 
@@ -86,3 +87,5 @@ class Command(BaseCommand):
             sequence=sequence_a,
             machine=machine_a,
         )
+
+        dicom_series = DicomSeriesFactory()

@@ -51,49 +51,73 @@ def configuration(request):
     })
 
 
+@login_required
+@permission_required('common.configuration', raise_exception=True)
 def add_phantom(request):
     return render(request, 'add_phantom.html')
 
 
-def edit_phantom(request):
+@login_required
+@permission_required('common.configuration', raise_exception=True)
+def edit_phantom(request, pk):
     return render(request, 'edit_phantom.html')
 
 
-def delete_phantom(request):
+@login_required
+@permission_required('common.configuration', raise_exception=True)
+def delete_phantom(request, pk):
     return redirect('configuration')
 
 
+@login_required
+@permission_required('common.configuration', raise_exception=True)
 def add_machine(request):
     return render(request, 'add_machine.html')
 
 
-def edit_machine(request):
+@login_required
+@permission_required('common.configuration', raise_exception=True)
+def edit_machine(request, pk):
     return render(request, 'edit_machine.html')
 
 
-def delete_machine(request):
+@login_required
+@permission_required('common.configuration', raise_exception=True)
+def delete_machine(request, pk):
     return redirect('configuration')
 
 
+@login_required
+@permission_required('common.configuration', raise_exception=True)
 def add_sequence(request):
     return render(request, 'add_sequence.html')
 
 
-def edit_sequence(request):
+@login_required
+@permission_required('common.configuration', raise_exception=True)
+def edit_sequence(request, pk):
     return render(request, 'edit_sequence.html')
 
 
-def delete_sequence(request):
+@login_required
+@permission_required('common.configuration', raise_exception=True)
+def delete_sequence(request, pk):
     return redirect('configuration')
 
 
+@login_required
+@permission_required('common.configuration', raise_exception=True)
 def add_user(request):
     return render(request, 'add_user.html')
 
 
-def edit_user(request):
+@login_required
+@permission_required('common.configuration', raise_exception=True)
+def edit_user(request, pk):
     return render(request, 'edit_user.html')
 
 
-def delete_user(request):
+@login_required
+@permission_required('common.configuration', raise_exception=True)
+def delete_user(request, pk):
     return redirect('configuration')

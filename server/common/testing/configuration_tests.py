@@ -23,18 +23,11 @@ def test_configuration_permissions():
 
     medical_physicist = UserFactory.create(
         username="medical_physicist",
-        first_name="Mary",
-        last_name="Jane",
-        email="mary.jane@johnhopkins.edu",
         institution=john_hopkins,
         groups=[medical_physicists],
     )
-
     therapist = UserFactory.create(
         username="therapist",
-        first_name="John",
-        last_name="Doe",
-        email="john.doe@johnhopkins.edu",
         institution=john_hopkins,
         groups=[therapists],
     )
@@ -67,74 +60,32 @@ def test_configuration_context():
 
     user_a = UserFactory.create(
         username="user_a",
-        first_name="Mary",
-        last_name="Jane",
-        email="mary.jane@johnhopkins.edu",
         institution=john_hopkins,
         groups=[medical_physicists],
     )
     user_b = UserFactory.create(
         username="user_b",
-        first_name="John",
-        last_name="Doe",
-        email="john.doe@johnhopkins.edu",
         institution=john_hopkins,
         groups=[medical_physicists],
         deleted=True,
     )
     user_c = UserFactory.create(
         username="user_c",
-        first_name="Gustav",
-        last_name="Mahler",
-        email="gustav.mahler@utexas.edu",
         institution=utexas,
         groups=[medical_physicists],
     )
 
-    machine_a = MachineFactory.create(
-        name='MRI Scanner East',
-        institution=john_hopkins,
-    )
-    machine_b = MachineFactory.create(
-        name='MRI Scanner West',
-        institution=john_hopkins,
-        deleted=True,
-    )
-    machine_c = MachineFactory.create(
-        name='MRI Scanner North',
-        institution=utexas,
-    )
+    machine_a = MachineFactory.create(institution=john_hopkins)
+    machine_b = MachineFactory.create(institution=john_hopkins, deleted=True)
+    machine_c = MachineFactory.create(institution=utexas)
 
-    phantom_a = PhantomFactory(
-        name='Head Phantom 1',
-        model=Phantom.CIRS_603A,
-        institution=john_hopkins,
-    )
-    phantom_b = PhantomFactory(
-        name='Head Phantom 2',
-        model=Phantom.CIRS_603A,
-        institution=john_hopkins,
-        deleted=True,
-    )
-    phantom_c = PhantomFactory(
-        name='Body Phantom',
-        model=Phantom.CIRS_604,
-        institution=utexas,
-    )
+    phantom_a = PhantomFactory(institution=john_hopkins)
+    phantom_b = PhantomFactory(institution=john_hopkins, deleted=True)
+    phantom_c = PhantomFactory(institution=utexas)
 
-    sequence_a = SequenceFactory(
-        name="T1-Weighted Abdominal",
-        institution=john_hopkins,
-    )
-    sequence_b = SequenceFactory(
-        name="T1-Weighted Neural",
-        institution=john_hopkins,
-        deleted=True,
-    )
-    sequence_c = SequenceFactory(
-        name="T2-Weighted Neural",
-        institution=utexas,
-    )
+    sequence_a = SequenceFactory(institution=john_hopkins)
+    sequence_b = SequenceFactory(institution=john_hopkins, deleted=True)
+    sequence_c = SequenceFactory(institution=utexas)
 
     client = Client()
     url = reverse('configuration')
