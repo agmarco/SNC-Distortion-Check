@@ -14,7 +14,7 @@ class UploadScanForm(forms.Form):
         return self.cleaned_data
 
 
-class UploadGoldStandardCTForm(forms.Form):
+class UploadCTForm(forms.Form):
     dicom_archive = forms.FileField()
 
     def clean_dicom_archive(self):
@@ -26,5 +26,5 @@ class UploadGoldStandardCTForm(forms.Form):
         return self.cleaned_data
 
 
-class UploadGoldStandardRawForm(forms.Form):
+class UploadRawForm(forms.Form):
     csv = forms.FileField()

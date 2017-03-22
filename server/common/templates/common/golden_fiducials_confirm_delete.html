@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block "content" %}
-  <h1>Delete Phantom</h1>
+  <h1>Delete Golden Fiducials</h1>
   <p>Are you sure you want to delete "{{ golden_fiducials.name }}"?</p>
   <form action="{% url 'delete_golden_fiducials' pk=golden_fiducials.pk %}" method="post">
     {% csrf_token %}

@@ -1,6 +1,5 @@
 import logging
 
-from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
@@ -9,7 +8,7 @@ from django.urls import reverse_lazy
 
 from .models import Scan, Phantom, Machine, Sequence, GoldenFiducials
 from .tasks import process_scan
-from .forms import UploadScanForm, UploadGoldStandardCTForm, UploadGoldStandardRawForm
+from .forms import UploadScanForm, UploadCTForm, UploadRawForm
 from .factories import GoldenFiducialsFactory, FiducialsFactory
 from .decorators import check_institution, login_and_permission_required
 from .mixins import DeletionMixin
@@ -88,6 +87,7 @@ class UpdatePhantom(UpdateView):
     fields = ('name',)
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_update'
+    pk_url_kwarg = 'phantom'
 
 
 @method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
@@ -95,6 +95,7 @@ class UpdatePhantom(UpdateView):
 class DeletePhantom(DeletionMixin, DeleteView):
     model = Phantom
     success_url = reverse_lazy('configuration')
+    pk_url_kwarg = 'phantom'
 
 
 @method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
@@ -118,6 +119,7 @@ class UpdateMachine(UpdateView):
     fields = ('name', 'model', 'manufacturer')
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_update'
+    pk_url_kwarg = 'machine'
 
 
 @method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
@@ -125,6 +127,7 @@ class UpdateMachine(UpdateView):
 class DeleteMachine(DeletionMixin, DeleteView):
     model = Machine
     success_url = reverse_lazy('configuration')
+    pk_url_kwarg = 'machine'
 
 
 @method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
@@ -148,6 +151,7 @@ class UpdateSequence(UpdateView):
     fields = ('name', 'instructions')
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_update'
+    pk_url_kwarg = 'sequence'
 
 
 @method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
@@ -155,6 +159,19 @@ class UpdateSequence(UpdateView):
 class DeleteSequence(DeletionMixin, DeleteView):
     model = Sequence
     success_url = reverse_lazy('configuration')
+    pk_url_kwarg = 'sequence'
+
+
+@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
+class GoldenFiducialsCTUpload(FormView):
+    form_class = UploadCTForm
+    template_name = 'common/upload_ct.html'
+
+
+@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
+class GoldenFiducialsRawUpload(FormView):
+    form_class = UploadRawForm
+    template_name = 'common/upload_raw.html'
 
 
 @method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
@@ -163,19 +180,12 @@ class DeleteGoldenFiducials(DeletionMixin, DeleteView):
     model = GoldenFiducials
 
     def get_success_url(self):
-        return reverse('update_phantom', self.object.pk)
+        return reverse('update_phantom', self.kwargs['phantom'])
 
 
 @method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
-class GoldStandardCTFormView(FormView):
-    form_class = UploadGoldStandardCTForm
-    template_name = 'common/gold_standard_ct_upload.html'
-
-
-@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
-class GoldStandardRawFormView(FormView):
-    form_class = UploadGoldStandardRawForm
-    template_name = 'common/gold_standard_raw_upload.html'
+def set_active_golden_fiducials(request, phantom=None, gold=None):
+    return redirect('update_phantom', phantom)
 
 
 @login_and_permission_required('common.configuration')
@@ -184,10 +194,10 @@ def create_user(request):
 
 
 @login_and_permission_required('common.configuration')
-def update_user(request, pk):
+def update_user(request, user=None):
     return render(request, 'common/user_update.html')
 
 
 @login_and_permission_required('common.configuration')
-def delete_user(request, pk):
+def delete_user(request, user=None):
     return redirect('configuration')

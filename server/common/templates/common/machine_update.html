@@ -2,7 +2,7 @@
 
 {% block "content" %}
   <h1>Edit MRI Scanner</h1>
-  <form action="{% url 'update_machine' pk=machine.pk %}" method="post">
+  <form action="{% url 'update_machine' machine=machine.pk %}" method="post">
     {% csrf_token %}
     {{ form.errors }}
     {{ form.name.label }} {{ form.name }}<br>
