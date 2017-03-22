@@ -1,6 +1,5 @@
 import logging
 
-from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect
 from django.utils.decorators import method_decorator
@@ -11,6 +10,7 @@ from django.urls import reverse_lazy
 from .models import Scan, Phantom, Machine, Sequence
 from .tasks import process_scan
 from .forms import UploadScanForm
+from .decorators import check_institution, login_and_permission_required
 
 logger = logging.getLogger(__name__)
 
@@ -44,8 +44,7 @@ def upload_file(request):
     })
 
 
-@login_required
-@permission_required('common.configuration', raise_exception=True)
+@login_and_permission_required('common.configuration', raise_exception=True)
 def configuration(request):
     institution = request.user.institution
     return render(request, 'common/configuration.html', {
@@ -56,8 +55,7 @@ def configuration(request):
     })
 
 
-@method_decorator(login_required, name='dispatch')
-@method_decorator(permission_required('common.configuration', raise_exception=True), name='dispatch')
+@method_decorator(login_and_permission_required('common.configuration', raise_exception=True), name='dispatch')
 class CreatePhantom(CreateView):
     model = Phantom
     fields = ('name', 'model', 'serial_number')
@@ -71,23 +69,17 @@ class CreatePhantom(CreateView):
         return super(ModelFormMixin, self).form_valid(form)
 
 
-@method_decorator(login_required, name='dispatch')
-@method_decorator(permission_required('common.configuration', raise_exception=True), name='dispatch')
+@method_decorator(login_and_permission_required('common.configuration', raise_exception=True), name='dispatch')
+@check_institution
 class UpdatePhantom(UpdateView):
     model = Phantom
     fields = ('name',)
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_update'
 
-    def dispatch(self, request, *args, **kwargs):
-        object = self.get_object()
-        if object.institution != self.request.user.institution:
-            raise PermissionDenied
-        return super(UpdatePhantom, self).dispatch(request, *args, **kwargs)
 
-
-@method_decorator(login_required, name='dispatch')
-@method_decorator(permission_required('common.configuration', raise_exception=True), name='dispatch')
+@method_decorator(login_and_permission_required('common.configuration', raise_exception=True), name='dispatch')
+@check_institution
 class DeletePhantom(DeleteView):
     model = Phantom
     success_url = reverse_lazy('configuration')
@@ -99,15 +91,8 @@ class DeletePhantom(DeleteView):
         self.object.save()
         return HttpResponseRedirect(success_url)
 
-    def dispatch(self, request, *args, **kwargs):
-        object = self.get_object()
-        if object.institution != self.request.user.institution:
-            raise PermissionDenied
-        return super(DeletePhantom, self).dispatch(request, *args, **kwargs)
 
-
-@method_decorator(login_required, name='dispatch')
-@method_decorator(permission_required('common.configuration', raise_exception=True), name='dispatch')
+@method_decorator(login_and_permission_required('common.configuration', raise_exception=True), name='dispatch')
 class CreateMachine(CreateView):
     model = Machine
     fields = ('name', 'model', 'manufacturer')
@@ -121,23 +106,17 @@ class CreateMachine(CreateView):
         return super(ModelFormMixin, self).form_valid(form)
 
 
-@method_decorator(login_required, name='dispatch')
-@method_decorator(permission_required('common.configuration', raise_exception=True), name='dispatch')
+@method_decorator(login_and_permission_required('common.configuration', raise_exception=True), name='dispatch')
+@check_institution
 class UpdateMachine(UpdateView):
     model = Machine
     fields = ('name', 'model', 'manufacturer')
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_update'
 
-    def dispatch(self, request, *args, **kwargs):
-        object = self.get_object()
-        if object.institution != self.request.user.institution:
-            raise PermissionDenied
-        return super(UpdateMachine, self).dispatch(request, *args, **kwargs)
 
-
-@method_decorator(login_required, name='dispatch')
-@method_decorator(permission_required('common.configuration', raise_exception=True), name='dispatch')
+@method_decorator(login_and_permission_required('common.configuration', raise_exception=True), name='dispatch')
+@check_institution
 class DeleteMachine(DeleteView):
     model = Machine
     success_url = reverse_lazy('configuration')
@@ -149,15 +128,8 @@ class DeleteMachine(DeleteView):
         self.object.save()
         return HttpResponseRedirect(success_url)
 
-    def dispatch(self, request, *args, **kwargs):
-        object = self.get_object()
-        if object.institution != self.request.user.institution:
-            raise PermissionDenied
-        return super(DeleteMachine, self).dispatch(request, *args, **kwargs)
 
-
-@method_decorator(login_required, name='dispatch')
-@method_decorator(permission_required('common.configuration', raise_exception=True), name='dispatch')
+@method_decorator(login_and_permission_required('common.configuration', raise_exception=True), name='dispatch')
 class CreateSequence(CreateView):
     model = Sequence
     fields = ('name', 'instructions')
@@ -171,23 +143,17 @@ class CreateSequence(CreateView):
         return super(ModelFormMixin, self).form_valid(form)
 
 
-@method_decorator(login_required, name='dispatch')
-@method_decorator(permission_required('common.configuration', raise_exception=True), name='dispatch')
+@method_decorator(login_and_permission_required('common.configuration', raise_exception=True), name='dispatch')
+@check_institution
 class UpdateSequence(UpdateView):
     model = Sequence
     fields = ('name', 'instructions')
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_update'
 
-    def dispatch(self, request, *args, **kwargs):
-        object = self.get_object()
-        if object.institution != self.request.user.institution:
-            raise PermissionDenied
-        return super(UpdateSequence, self).dispatch(request, *args, **kwargs)
 
-
-@method_decorator(login_required, name='dispatch')
-@method_decorator(permission_required('common.configuration', raise_exception=True), name='dispatch')
+@method_decorator(login_and_permission_required('common.configuration', raise_exception=True), name='dispatch')
+@check_institution
 class DeleteSequence(DeleteView):
     model = Sequence
     success_url = reverse_lazy('configuration')
@@ -199,23 +165,17 @@ class DeleteSequence(DeleteView):
         self.object.save()
         return HttpResponseRedirect(success_url)
 
-    def dispatch(self, request, *args, **kwargs):
-        object = self.get_object()
-        if object.institution != self.request.user.institution:
-            raise PermissionDenied
-        return super(DeleteSequence, self).dispatch(request, *args, **kwargs)
 
-
-@login_required
+@login_and_permission_required('common.configuration', raise_exception=True)
 def create_user(request):
     return render(request, 'common/user_create.html')
 
 
-@login_required
+@login_and_permission_required('common.configuration', raise_exception=True)
 def update_user(request, pk):
     return render(request, 'common/user_update.html')
 
 
-@login_required
+@login_and_permission_required('common.configuration', raise_exception=True)
 def delete_user(request, pk):
     return redirect('configuration')
