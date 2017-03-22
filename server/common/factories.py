@@ -95,11 +95,6 @@ class DicomSeriesFactory(factory.django.DjangoModelFactory):
         model = "common.DicomSeries"
 
 
-class CadModelFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = "common.CadModel"
-
-
 class FiducialsFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.Fiducials"

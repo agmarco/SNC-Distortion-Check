@@ -57,15 +57,9 @@ class Command(BaseCommand):
             institution=johns_hopkins,
         )
 
-        cad_model_a = factories.CadModelFactory()
-        with open(os.path.join(settings.BASE_DIR, 'data/points/603A.mat'), 'rb') as mat_file:
-            cad_model_a.mat_file.save(f'cad_model_{cad_model_a.pk}.mat', File(mat_file))
-            cad_model_a.save()
-
         phantom_model_a = factories.PhantomModelFactory(
             name = 'CIRS 603A',
             model_number = '603A',
-            cad_model = cad_model_a,
         )
         phantom_model_b = factories.PhantomModelFactory(
             name='CIRS 604',
@@ -119,18 +113,18 @@ class Command(BaseCommand):
             phantom=phantom_a,
             fiducials=fiducials_a,
             dicom_series=dicom_series_a,
-            source_type=GoldenFiducials.CT,
+            type=GoldenFiducials.CT,
             is_active=True,
         )
         golden_fiducials_b = factories.GoldenFiducialsFactory(
             phantom=phantom_b,
             fiducials=fiducials_b,
-            source_type=GoldenFiducials.CAD,
+            type=GoldenFiducials.CAD,
             is_active=True,
         )
         golden_fiducials_b = factories.GoldenFiducialsFactory(
             phantom=phantom_c,
             fiducials=fiducials_c,
-            source_type=GoldenFiducials.CAD,
+            type=GoldenFiducials.CAD,
             is_active=True,
         )

@@ -33,26 +33,13 @@ class User(AbstractUser, CommonFieldsMixin):
     institution = models.ForeignKey(Institution, models.CASCADE, null=True, blank=True, help_text=institution_ht)
 
 
-class CadModel(CommonFieldsMixin):
-    mat_file = models.FileField(upload_to='cad_model/mat_file')
-    voxels = NumpyTextField()
-    ijk_to_xyz = NumpyTextField()
-    shape = NumpyTextField()
-
-    def __str__(self):
-        return f"CAD Model {self.pk}"
-
-    class Meta:
-        verbose_name = 'CAD Model'
-
-
 class PhantomModel(CommonFieldsMixin):
     name_ht = 'This is how the phantom model will be identified within the UI'
     name = models.CharField(max_length=255, help_text=name_ht)
     model_number_ht = 'The model number (e.g. 603A)'
     model_number = models.CharField(max_length=255, help_text=model_number_ht)
-    cad_model_ht = 'The hard-coded gold standard points for the phantom model'
-    cad_model = models.ForeignKey(CadModel, models.CASCADE, null=True, help_text=cad_model_ht)
+    cad_fiducials_ht = 'The hard-coded gold standard points for the phantom model'
+    cad_fiducials = models.ForeignKey(Fiducials, models.CASCADE, help_text=cad_fiducials_ht)
 
     def __str__(self):
         return self.name
@@ -142,29 +129,28 @@ class Fiducials(CommonFieldsMixin):
 
 
 class GoldenFiducials(CommonFieldsMixin):
-    CT = 'CT'
     CAD = 'CAD'
+    CT = 'CT'
     RAW = 'RAW'
-    SOURCE_TYPE_CHOICES = (
-        (CT, 'CT Scan'),
+    TYPE_CHOICES = (
         (CAD, 'CAD Model'),
+        (CT, 'CT Scan'),
         (RAW, 'Raw Points'),
     )
 
     phantom = models.ForeignKey(Phantom, models.CASCADE)
     is_active = models.BooleanField()
     dicom_series = models.ForeignKey(DicomSeries, models.CASCADE, null=True)
-    cad_model = models.ForeignKey(CadModel, models.CASCADE, null=True)
     fiducials = models.ForeignKey(Fiducials, models.CASCADE)
-    source_type_ht = 'The source type for the golden fiducials  (e.g. CT Scan or CAD Model).'
-    source_type = models.CharField(max_length=3, choices=SOURCE_TYPE_CHOICES, help_text=source_type_ht)
+    type_ht = 'The source type for the golden fiducials  (e.g. CT Scan or CAD Model).'
+    type = models.CharField(max_length=3, choices=TYPE_CHOICES, help_text=type_ht)
 
     def __str__(self):
         return "Golden Fiducials {}".format(self.id)
 
     @property
     def acquisition_date(self):
-        if not self.source_type == GoldenFiducials.CT:
+        if not self.type == GoldenFiducials.CT:
             raise AttributeError
 
         dicom_archive = self.dicom_series.zipped_dicom_files
@@ -174,10 +160,10 @@ class GoldenFiducials(CommonFieldsMixin):
 
     @property
     def source_summary(self):
-        if self.source_type == GoldenFiducials.CT:
-            return f"{self.get_source_type_display()} Taken on {self.acquisition_date.strftime('%d %B %Y')}"
+        if self.type == GoldenFiducials.CT:
+            return f"{self.get_type_display()} Taken on {self.acquisition_date.strftime('%d %B %Y')}"
         else:
-            return self.get_source_type_display()
+            return self.get_type_display()
 
     class Meta:
         verbose_name = 'Golden Fiducials'

@@ -2,13 +2,13 @@ import logging
 
 from django.http import HttpResponseRedirect
 from django.utils.decorators import method_decorator
-from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin
+from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 
 from .models import Scan, Phantom, Machine, Sequence, GoldenFiducials
 from .tasks import process_scan
-from .forms import UploadScanForm
+from .forms import UploadScanForm, UploadGoldStandardCTForm, UploadGoldStandardRawForm
 from .factories import GoldenFiducialsFactory, FiducialsFactory
 from .decorators import check_institution, login_and_permission_required
 
@@ -56,6 +56,18 @@ def configuration(request):
 
 
 @method_decorator(login_and_permission_required('common.configuration', raise_exception=True), name='dispatch')
+class GoldStandardCTFormView(FormView):
+    form_class = UploadGoldStandardCTForm
+    template_name = 'gold_standard_ct_upload.html'
+
+
+@method_decorator(login_and_permission_required('common.configuration', raise_exception=True), name='dispatch')
+class GoldStandardRawFormView(FormView):
+    form_class = UploadGoldStandardRawForm
+    template_name = 'gold_standard_raw_upload.html'
+
+
+@method_decorator(login_and_permission_required('common.configuration', raise_exception=True), name='dispatch')
 class CreatePhantom(CreateView):
     model = Phantom
     fields = ('name', 'model', 'serial_number')
@@ -72,8 +84,7 @@ class CreatePhantom(CreateView):
         golden_fiducials = GoldenFiducialsFactory(
             phantom=self.object,
             fiducials=fiducials,
-            cad_model=self.object.model.cad_model,
-            source_type=GoldenFiducials.CAD,
+            type=GoldenFiducials.CAD,
             is_active=True,
         )
 
