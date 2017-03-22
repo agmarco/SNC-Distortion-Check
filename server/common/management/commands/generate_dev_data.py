@@ -57,13 +57,20 @@ class Command(BaseCommand):
             institution=johns_hopkins,
         )
 
+        fiducials_a = factories.FiducialsFactory()
+        fiducials_b = factories.FiducialsFactory()
+        fiducials_c = factories.FiducialsFactory()
+        fiducials_d = factories.FiducialsFactory()
+
         phantom_model_a = factories.PhantomModelFactory(
-            name = 'CIRS 603A',
-            model_number = '603A',
+            name='CIRS 603A',
+            model_number='603A',
+            cad_fiducials=fiducials_a,
         )
         phantom_model_b = factories.PhantomModelFactory(
             name='CIRS 604',
             model_number='604',
+            cad_fiducials=fiducials_b,
         )
 
         phantom_a = factories.PhantomFactory(
@@ -82,6 +89,44 @@ class Command(BaseCommand):
             institution=johns_hopkins,
         )
 
+        golden_fiducials_a = factories.GoldenFiducialsFactory(
+            phantom=phantom_a,
+            fiducials=fiducials_a,
+            type=GoldenFiducials.CAD,
+            is_active=True,
+        )
+        golden_fiducials_b = factories.GoldenFiducialsFactory(
+            phantom=phantom_b,
+            fiducials=fiducials_a,
+            type=GoldenFiducials.CAD,
+            is_active=True,
+        )
+        golden_fiducials_c = factories.GoldenFiducialsFactory(
+            phantom=phantom_c,
+            fiducials=fiducials_b,
+            type=GoldenFiducials.CAD,
+            is_active=True,
+        )
+
+        dicom_series = factories.DicomSeriesFactory()
+        with open(os.path.join(settings.BASE_DIR, 'data/dicom/001_ct_603A_E3148_ST1.25.zip'), 'rb') as dicom_file:
+            dicom_series.zipped_dicom_files.save(f'dicom_series_{dicom_series.pk}.zip', File(dicom_file))
+            dicom_series.save()
+
+        golden_fiducials_d = factories.GoldenFiducialsFactory(
+            phantom=phantom_a,
+            fiducials=fiducials_c,
+            dicom_series=dicom_series,
+            type=GoldenFiducials.CT,
+            is_active=False,
+        )
+        golden_fiducials_e = factories.GoldenFiducialsFactory(
+            phantom=phantom_a,
+            fiducials=fiducials_d,
+            type=GoldenFiducials.RAW,
+            is_active=False,
+        )
+
         sequence_a = factories.SequenceFactory(
             name="T1-Weighted Abdominal",
             institution=johns_hopkins,
@@ -98,33 +143,4 @@ class Command(BaseCommand):
         machine_sequence_pair = factories.MachineSequencePairFactory(
             sequence=sequence_a,
             machine=machine_a,
-        )
-
-        dicom_series_a = factories.DicomSeriesFactory()
-        with open(os.path.join(settings.BASE_DIR, 'data/dicom/001_ct_603A_E3148_ST1.25.zip'), 'rb') as dicom_file:
-            dicom_series_a.zipped_dicom_files.save(f'dicom_series_{dicom_series_a.pk}.zip', File(dicom_file))
-        dicom_series_a.save()
-
-        fiducials_a = factories.FiducialsFactory()
-        fiducials_b = factories.FiducialsFactory()
-        fiducials_c = factories.FiducialsFactory()
-
-        golden_fiducials_a = factories.GoldenFiducialsFactory(
-            phantom=phantom_a,
-            fiducials=fiducials_a,
-            dicom_series=dicom_series_a,
-            type=GoldenFiducials.CT,
-            is_active=True,
-        )
-        golden_fiducials_b = factories.GoldenFiducialsFactory(
-            phantom=phantom_b,
-            fiducials=fiducials_b,
-            type=GoldenFiducials.CAD,
-            is_active=True,
-        )
-        golden_fiducials_b = factories.GoldenFiducialsFactory(
-            phantom=phantom_c,
-            fiducials=fiducials_c,
-            type=GoldenFiducials.CAD,
-            is_active=True,
         )

@@ -1,11 +1,8 @@
-import os
 import pytest
 
 from django.test import Client
 from django.urls import reverse
 from django.db import models
-from django.conf import settings
-from django.core.files import File
 from django.contrib.auth.models import Permission
 
 from server.common import factories
@@ -96,9 +93,9 @@ def test_crud():
     assert phantom.goldenfiducials_set.count() == 1
 
     # reverse and reverse_lazy both cause circular imports when called with an argument
-    _test_update_view(user, f'/phantoms/edit/{phantom.pk}/', Phantom, {'name': 'Update Phantom'})
+    _test_update_view(user, f'/phantoms/{phantom.pk}/edit/', Phantom, {'name': 'Update Phantom'})
 
-    _test_delete_view(user, f'/phantoms/delete/{phantom.pk}/', Phantom)
+    _test_delete_view(user, f'/phantoms/{phantom.pk}/delete/', Phantom)
 
     machine = _test_create_view(user, reverse('create_machine'), Machine, {
         'name': 'Create Machine',
@@ -106,22 +103,22 @@ def test_crud():
         'manufacturer': 'Create Manufacturer',
     })
 
-    _test_update_view(user, f'/machines/edit/{machine.pk}/', Machine, {
+    _test_update_view(user, f'/machines/{machine.pk}/edit/', Machine, {
         'name': 'Update Machine',
         'model': 'Update Model',
         'manufacturer': 'Update Manufacturer',
     })
 
-    _test_delete_view(user, f'/machines/delete/{machine.pk}/', Machine)
+    _test_delete_view(user, f'/machines/{machine.pk}/delete/', Machine)
 
     sequence = _test_create_view(user, reverse('create_sequence'), Sequence, {
         'name': 'Create Sequence',
         'instructions': 'Create Instructions',
     })
 
-    _test_update_view(user, f'/sequences/edit/{sequence.pk}/', Sequence, {
+    _test_update_view(user, f'/sequences/{sequence.pk}/edit/', Sequence, {
         'name': 'Update Sequence',
         'instructions': 'Update Instructions',
     })
 
-    _test_delete_view(user, f'/sequences/delete/{sequence.pk}/', Sequence)
+    _test_delete_view(user, f'/sequences/{sequence.pk}/delete/', Sequence)

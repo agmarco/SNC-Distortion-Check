@@ -33,6 +33,18 @@ class User(AbstractUser, CommonFieldsMixin):
     institution = models.ForeignKey(Institution, models.CASCADE, null=True, blank=True, help_text=institution_ht)
 
 
+class Fiducials(CommonFieldsMixin):
+    #fiducials = NumpyTextField(upload_to='fiducials/fiducials')
+    fiducials = NumpyTextField()
+
+    def __str__(self):
+        return "Fiducials {}".format(self.id)
+
+    class Meta:
+        verbose_name = 'Fiducials'
+        verbose_name_plural = 'Fiducials'
+
+
 class PhantomModel(CommonFieldsMixin):
     name_ht = 'This is how the phantom model will be identified within the UI'
     name = models.CharField(max_length=255, help_text=name_ht)
@@ -114,18 +126,6 @@ class DicomSeries(CommonFieldsMixin):
     class Meta:
         verbose_name = 'DICOM Series'
         verbose_name_plural = 'DICOM Series'
-
-
-class Fiducials(CommonFieldsMixin):
-    #fiducials = NumpyTextField(upload_to='fiducials/fiducials')
-    fiducials = NumpyTextField()
-
-    def __str__(self):
-        return "Fiducials {}".format(self.id)
-
-    class Meta:
-        verbose_name = 'Fiducials'
-        verbose_name_plural = 'Fiducials'
 
 
 class GoldenFiducials(CommonFieldsMixin):

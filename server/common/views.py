@@ -1,6 +1,7 @@
 import logging
 
 from django.http import HttpResponseRedirect
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
 from django.shortcuts import render, redirect
@@ -11,6 +12,7 @@ from .tasks import process_scan
 from .forms import UploadScanForm, UploadGoldStandardCTForm, UploadGoldStandardRawForm
 from .factories import GoldenFiducialsFactory, FiducialsFactory
 from .decorators import check_institution, login_and_permission_required
+from .mixins import DeletionMixin
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +46,7 @@ def upload_file(request):
     })
 
 
-@login_and_permission_required('common.configuration', raise_exception=True)
+@login_and_permission_required('common.configuration')
 def configuration(request):
     institution = request.user.institution
     return render(request, 'common/configuration.html', {
@@ -55,19 +57,7 @@ def configuration(request):
     })
 
 
-@method_decorator(login_and_permission_required('common.configuration', raise_exception=True), name='dispatch')
-class GoldStandardCTFormView(FormView):
-    form_class = UploadGoldStandardCTForm
-    template_name = 'gold_standard_ct_upload.html'
-
-
-@method_decorator(login_and_permission_required('common.configuration', raise_exception=True), name='dispatch')
-class GoldStandardRawFormView(FormView):
-    form_class = UploadGoldStandardRawForm
-    template_name = 'gold_standard_raw_upload.html'
-
-
-@method_decorator(login_and_permission_required('common.configuration', raise_exception=True), name='dispatch')
+@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
 class CreatePhantom(CreateView):
     model = Phantom
     fields = ('name', 'model', 'serial_number')
@@ -91,7 +81,7 @@ class CreatePhantom(CreateView):
         return super(ModelFormMixin, self).form_valid(form)
 
 
-@method_decorator(login_and_permission_required('common.configuration', raise_exception=True), name='dispatch')
+@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
 @check_institution
 class UpdatePhantom(UpdateView):
     model = Phantom
@@ -100,21 +90,14 @@ class UpdatePhantom(UpdateView):
     template_name_suffix = '_update'
 
 
-@method_decorator(login_and_permission_required('common.configuration', raise_exception=True), name='dispatch')
+@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
 @check_institution
-class DeletePhantom(DeleteView):
+class DeletePhantom(DeletionMixin, DeleteView):
     model = Phantom
     success_url = reverse_lazy('configuration')
 
-    def delete(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        success_url = self.get_success_url()
-        self.object.deleted = True
-        self.object.save()
-        return HttpResponseRedirect(success_url)
 
-
-@method_decorator(login_and_permission_required('common.configuration', raise_exception=True), name='dispatch')
+@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
 class CreateMachine(CreateView):
     model = Machine
     fields = ('name', 'model', 'manufacturer')
@@ -128,7 +111,7 @@ class CreateMachine(CreateView):
         return super(ModelFormMixin, self).form_valid(form)
 
 
-@method_decorator(login_and_permission_required('common.configuration', raise_exception=True), name='dispatch')
+@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
 @check_institution
 class UpdateMachine(UpdateView):
     model = Machine
@@ -137,21 +120,14 @@ class UpdateMachine(UpdateView):
     template_name_suffix = '_update'
 
 
-@method_decorator(login_and_permission_required('common.configuration', raise_exception=True), name='dispatch')
+@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
 @check_institution
-class DeleteMachine(DeleteView):
+class DeleteMachine(DeletionMixin, DeleteView):
     model = Machine
     success_url = reverse_lazy('configuration')
 
-    def delete(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        success_url = self.get_success_url()
-        self.object.deleted = True
-        self.object.save()
-        return HttpResponseRedirect(success_url)
 
-
-@method_decorator(login_and_permission_required('common.configuration', raise_exception=True), name='dispatch')
+@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
 class CreateSequence(CreateView):
     model = Sequence
     fields = ('name', 'instructions')
@@ -165,7 +141,7 @@ class CreateSequence(CreateView):
         return super(ModelFormMixin, self).form_valid(form)
 
 
-@method_decorator(login_and_permission_required('common.configuration', raise_exception=True), name='dispatch')
+@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
 @check_institution
 class UpdateSequence(UpdateView):
     model = Sequence
@@ -174,30 +150,44 @@ class UpdateSequence(UpdateView):
     template_name_suffix = '_update'
 
 
-@method_decorator(login_and_permission_required('common.configuration', raise_exception=True), name='dispatch')
+@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
 @check_institution
-class DeleteSequence(DeleteView):
+class DeleteSequence(DeletionMixin, DeleteView):
     model = Sequence
     success_url = reverse_lazy('configuration')
 
-    def delete(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        success_url = self.get_success_url()
-        self.object.deleted = True
-        self.object.save()
-        return HttpResponseRedirect(success_url)
+
+@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
+@check_institution
+class DeleteGoldenFiducials(DeletionMixin, DeleteView):
+    model = GoldenFiducials
+
+    def get_success_url(self):
+        return reverse('update_phantom', self.object.pk)
 
 
-@login_and_permission_required('common.configuration', raise_exception=True)
+@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
+class GoldStandardCTFormView(FormView):
+    form_class = UploadGoldStandardCTForm
+    template_name = 'common/gold_standard_ct_upload.html'
+
+
+@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
+class GoldStandardRawFormView(FormView):
+    form_class = UploadGoldStandardRawForm
+    template_name = 'common/gold_standard_raw_upload.html'
+
+
+@login_and_permission_required('common.configuration')
 def create_user(request):
     return render(request, 'common/user_create.html')
 
 
-@login_and_permission_required('common.configuration', raise_exception=True)
+@login_and_permission_required('common.configuration')
 def update_user(request, pk):
     return render(request, 'common/user_update.html')
 
 
-@login_and_permission_required('common.configuration', raise_exception=True)
+@login_and_permission_required('common.configuration')
 def delete_user(request, pk):
     return redirect('configuration')

@@ -55,14 +55,14 @@ def test_medical_phycisist_permissions():
     _assert_can_view(medical_physicist, (
         reverse('configuration'),
         reverse('create_phantom'),
-        f'/phantoms/edit/{phantom.pk}/',
-        f'/phantoms/delete/{phantom.pk}/',
+        f'/phantoms/{phantom.pk}/edit/',
+        f'/phantoms/{phantom.pk}/delete/',
         reverse('create_machine'),
-        f'/machines/edit/{machine.pk}/',
-        f'/machines/delete/{machine.pk}',
+        f'/machines/{machine.pk}/edit/',
+        f'/machines/{machine.pk}/delete/',
         reverse('create_sequence'),
-        f'/sequences/edit/{sequence.pk}/',
-        f'/sequences/delete/{sequence.pk}/',
+        f'/sequences/{sequence.pk}/edit/',
+        f'/sequences/{sequence.pk}/delete/',
     ))
 
 
@@ -87,14 +87,14 @@ def test_medical_phycisist_permissions():
     _assert_cannot_view(therapist, (
         reverse('configuration'),
         reverse('create_phantom'),
-        f'/phantoms/edit/{phantom.pk}/',
-        f'/phantoms/delete/{phantom.pk}/',
+        f'/phantoms/{phantom.pk}/edit/',
+        f'/phantoms/{phantom.pk}/delete/',
         reverse('create_machine'),
-        f'/machines/edit/{machine.pk}/',
-        f'/machines/delete/{machine.pk}/',
+        f'/machines/{machine.pk}/edit/',
+        f'/machines/{machine.pk}/delete/',
         reverse('create_sequence'),
-        f'/sequences/edit/{sequence.pk}/',
-        f'/sequences/delete/{sequence.pk}/',
+        f'/sequences/{sequence.pk}/edit/',
+        f'/sequences/{sequence.pk}/delete/',
     ))
 
 
@@ -127,19 +127,19 @@ def test_institution_permissions():
     sequence = factories.SequenceFactory(institution=johns_hopkins)
 
     _assert_can_view(user_a, (
-        f'/phantoms/edit/{phantom.pk}/',
-        f'/phantoms/delete/{phantom.pk}/',
-        f'/machines/edit/{machine.pk}/',
-        f'/machines/delete/{machine.pk}/',
-        f'/sequences/edit/{sequence.pk}/',
-        f'/sequences/delete/{sequence.pk}/',
+        f'/phantoms/{phantom.pk}/edit/',
+        f'/phantoms/{phantom.pk}/delete/',
+        f'/machines/{machine.pk}/edit/',
+        f'/machines/{machine.pk}/delete/',
+        f'/sequences/{sequence.pk}/edit/',
+        f'/sequences/{sequence.pk}/delete/',
     ))
 
     _assert_cannot_view(user_b, (
-        f'/phantoms/edit/{phantom.pk}/',
-        f'/phantoms/delete/{phantom.pk}/',
-        f'/machines/edit/{machine.pk}/',
-        f'/machines/delete/{machine.pk}/',
-        f'/sequences/edit/{sequence.pk}/',
-        f'/sequences/delete/{sequence.pk}/',
+        f'/phantoms/{phantom.pk}/edit/',
+        f'/phantoms/{phantom.pk}/delete/',
+        f'/machines/{machine.pk}/edit/',
+        f'/machines/{machine.pk}/delete/',
+        f'/sequences/{sequence.pk}/edit/',
+        f'/sequences/{sequence.pk}/delete/',
     ))

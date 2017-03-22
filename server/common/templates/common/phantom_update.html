@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% load static %}
+
 {% block "content" %}
   <h1>Edit Phantom</h1>
   <form action="{% url 'update_phantom' pk=phantom.pk %}" method="post">
@@ -9,4 +11,29 @@
   </form>
   <label>Model Number</label> {{ phantom.model }}<br>
   <label>Serial Number</label> {{ phantom.serial_number }}
+  <table>
+  <thead>
+    <tr>
+      <th>Active</th>
+      <th>Gold Standard Grid Intersection Locations</th>
+      <th colspan="4">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for golden_fiducials in phantom.goldenfiducials_set.all %}
+      <tr>
+        <td>{% if golden_fiducials.is_active %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>
+        <td>{{ golden_fiducials.source_summary }}</td>
+        <td>{% if golden_fiducials.type == 'CT' %}<a href="#">Download Images</a>{% endif %}</td>
+        <td><a href="#">Download Points</a></td>
+        <td>{% if not golden_fiducials.is_active %}<a href="#">Set Active</a>{% endif %}</td>
+        <td>{% if not golden_fiducials.is_active and not golden_fiducials.type == 'CAD' %}<a href="#"><i class="fa fa-trash-o" aria-hidden="true"></i></a>{% endif %}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+  </table>
+{% endblock %}
+
+{% block "scripts" %}
+  <script src="{% static 'fontawesome.js' %}"></script>
 {% endblock %}

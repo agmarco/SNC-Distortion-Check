@@ -57,9 +57,16 @@ class MachineFactory(factory.django.DjangoModelFactory):
     institution = factory.SubFactory(InstitutionFactory)
 
 
+class FiducialsFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "common.Fiducials"
+
+
 class PhantomModelFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.PhantomModel"
+
+    cad_fiducials = factory.SubFactory(FiducialsFactory)
 
 
 class PhantomFactory(factory.django.DjangoModelFactory):
@@ -93,11 +100,6 @@ class MachineSequencePairFactory(factory.django.DjangoModelFactory):
 class DicomSeriesFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.DicomSeries"
-
-
-class FiducialsFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = "common.Fiducials"
 
 
 class GoldenFiducialsFactory(factory.django.DjangoModelFactory):
