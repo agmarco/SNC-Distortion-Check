@@ -33,19 +33,37 @@ class User(AbstractUser, CommonFieldsMixin):
     institution = models.ForeignKey(Institution, models.CASCADE, null=True, blank=True, help_text=institution_ht)
 
 
-class Phantom(CommonFieldsMixin):
-    CIRS_603A = 'CIRS_603A'
-    CIRS_604 = 'CIRS_604'
-    MODEL_CHOICES = (
-        (CIRS_603A, '603A'),
-        (CIRS_604, '604'),
-    )
+class CadModel(CommonFieldsMixin):
+    mat_file = models.FileField(upload_to='cad_model/mat_file')
+    voxels = NumpyTextField()
+    ijk_to_xyz = NumpyTextField()
+    shape = NumpyTextField()
 
+    def __str__(self):
+        return f"CAD Model {self.pk}"
+
+    class Meta:
+        verbose_name = 'CAD Model'
+
+
+class PhantomModel(CommonFieldsMixin):
+    name_ht = 'This is how the phantom model will be identified within the UI'
+    name = models.CharField(max_length=255, help_text=name_ht)
+    model_number_ht = 'The model number (e.g. 603A)'
+    model_number = models.CharField(max_length=255, help_text=model_number_ht)
+    cad_model_ht = 'The hard-coded gold standard points for the phantom model'
+    cad_model = models.ForeignKey(CadModel, models.CASCADE, null=True, help_text=cad_model_ht)
+
+    def __str__(self):
+        return self.name
+
+
+class Phantom(CommonFieldsMixin):
     name_ht = 'This is how the phantom will be identified within the UI'
     name = models.CharField(max_length=255, help_text=name_ht)
     institution = models.ForeignKey(Institution, models.CASCADE)
     model_ht = 'The model of phantom (e.g. the CIRS 603A head phantom)'
-    model = models.CharField(max_length=255, choices=MODEL_CHOICES, help_text=model_ht)
+    model = models.ForeignKey(PhantomModel, models.CASCADE, help_text=model_ht)
     serial_number_ht = 'The Phantom\'s serial number'
     serial_number = models.CharField(max_length=255, help_text=serial_number_ht)
 
@@ -104,7 +122,7 @@ class DicomSeries(CommonFieldsMixin):
     series_uid = models.CharField(max_length=64, verbose_name='Series Instance UID', help_text=series_uid_ht)
 
     def __str__(self):
-        return "Dicom Series {}".format(self.series_uid)
+        return "DICOM Series {}".format(self.series_uid)
 
     class Meta:
         verbose_name = 'DICOM Series'
@@ -136,6 +154,7 @@ class GoldenFiducials(CommonFieldsMixin):
     phantom = models.ForeignKey(Phantom, models.CASCADE)
     is_active = models.BooleanField()
     dicom_series = models.ForeignKey(DicomSeries, models.CASCADE, null=True)
+    cad_model = models.ForeignKey(CadModel, models.CASCADE, null=True)
     fiducials = models.ForeignKey(Fiducials, models.CASCADE)
     source_type_ht = 'The source type for the golden fiducials  (e.g. CT Scan or CAD Model).'
     source_type = models.CharField(max_length=3, choices=SOURCE_TYPE_CHOICES, help_text=source_type_ht)

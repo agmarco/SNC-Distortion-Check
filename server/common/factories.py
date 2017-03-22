@@ -57,12 +57,17 @@ class MachineFactory(factory.django.DjangoModelFactory):
     institution = factory.SubFactory(InstitutionFactory)
 
 
+class PhantomModelFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "common.PhantomModel"
+
+
 class PhantomFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.Phantom"
 
     name = factory.Sequence("Machine {0}".format)
-    model = Phantom.CIRS_603A
+    model = factory.SubFactory(PhantomModelFactory)
     institution = factory.SubFactory(InstitutionFactory)
     serial_number = factory.Sequence("Serial Number {0}".format)
 
@@ -88,6 +93,11 @@ class MachineSequencePairFactory(factory.django.DjangoModelFactory):
 class DicomSeriesFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.DicomSeries"
+
+
+class CadModelFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "common.CadModel"
 
 
 class FiducialsFactory(factory.django.DjangoModelFactory):

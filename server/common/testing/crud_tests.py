@@ -66,12 +66,17 @@ def test_crud():
         groups=[medical_physicists],
     )
 
+    phantom_model = factories.PhantomModelFactory(
+        name='CIRS 603A',
+        model_number='603A',
+    )
+
     client = Client()
     client.force_login(user)
 
     phantom = _test_create_view(user, reverse('create_phantom'), Phantom, {
         'name': 'Create Phantom',
-        'model': Phantom.CIRS_603A,
+        'model': phantom_model,
         'serial_number': '12345',
     })
 

@@ -57,19 +57,34 @@ class Command(BaseCommand):
             institution=johns_hopkins,
         )
 
+        cad_model_a = factories.CadModelFactory()
+        with open(os.path.join(settings.BASE_DIR, 'data/points/603A.mat'), 'rb') as mat_file:
+            cad_model_a.mat_file.save(f'cad_model_{cad_model_a.pk}.mat', File(mat_file))
+            cad_model_a.save()
+
+        phantom_model_a = factories.PhantomModelFactory(
+            name = 'CIRS 603A',
+            model_number = '603A',
+            cad_model = cad_model_a,
+        )
+        phantom_model_b = factories.PhantomModelFactory(
+            name='CIRS 604',
+            model_number='604',
+        )
+
         phantom_a = factories.PhantomFactory(
             name='Head Phantom 1',
-            model=Phantom.CIRS_603A,
+            model=phantom_model_a,
             institution=johns_hopkins,
         )
         phantom_b = factories.PhantomFactory(
             name='Head Phantom 2',
-            model=Phantom.CIRS_603A,
+            model=phantom_model_a,
             institution=johns_hopkins,
         )
         phantom_c = factories.PhantomFactory(
             name='Body Phantom',
-            model=Phantom.CIRS_604,
+            model=phantom_model_b,
             institution=johns_hopkins,
         )
 
