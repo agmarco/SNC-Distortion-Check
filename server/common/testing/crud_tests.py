@@ -2,6 +2,7 @@ import pytest
 
 from django.test import Client
 from django.urls import reverse
+from django.db import models
 from django.contrib.auth.models import Permission
 
 from server.common import factories
@@ -16,8 +17,13 @@ def _test_create_view(user, url, model_class, data):
     assert model_class.objects.count() == 1
     model = model_class.objects.first()
 
-    for key in data.keys():
-        assert getattr(model, key) == data[key]
+    for field_name in data.keys():
+
+        # if the field is a foreign key, check that the primary key equals the POST data
+        if isinstance(model._meta.get_field(field_name), models.ForeignKey):
+            assert getattr(model, field_name).pk == int(data[field_name])
+        else:
+            assert getattr(model, field_name) == data[field_name]
     assert model.institution == user.institution
 
     return model
@@ -31,8 +37,11 @@ def _test_update_view(user, url, model_class, data):
     assert model_class.objects.count() == 1
     model = model_class.objects.first()
 
-    for key in data.keys():
-        assert getattr(model, key) == data[key]
+    for field_name in data.keys():
+        if isinstance(model._meta.get_field(field_name), models.ForeignKey):
+            assert getattr(model, field_name).pk == int(data[field_name])
+        else:
+            assert getattr(model, field_name) == data[field_name]
 
     return model
 
@@ -76,7 +85,7 @@ def test_crud():
 
     phantom = _test_create_view(user, reverse('create_phantom'), Phantom, {
         'name': 'Create Phantom',
-        'model': phantom_model,
+        'model': str(phantom_model.pk),
         'serial_number': '12345',
     })
 
