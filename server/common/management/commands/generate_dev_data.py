@@ -93,7 +93,7 @@ class Command(BaseCommand):
 
         dicom_series_a = factories.DicomSeriesFactory()
         with open(os.path.join(settings.BASE_DIR, 'data/dicom/001_ct_603A_E3148_ST1.25.zip'), 'rb') as dicom_file:
-            dicom_series_a.zipped_dicom_files.save(f'dicom_series_{dicom_series_a.pk}.png', File(dicom_file))
+            dicom_series_a.zipped_dicom_files.save(f'dicom_series_{dicom_series_a.pk}.zip', File(dicom_file))
         dicom_series_a.save()
 
         fiducials_a = factories.FiducialsFactory()
