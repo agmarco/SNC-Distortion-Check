@@ -1,8 +1,11 @@
+import os
 import pytest
 
 from django.test import Client
 from django.urls import reverse
 from django.db import models
+from django.conf import settings
+from django.core.files import File
 from django.contrib.auth.models import Permission
 
 from server.common import factories
@@ -75,9 +78,15 @@ def test_crud():
         groups=[medical_physicists],
     )
 
+    cad_model = factories.CadModelFactory()
+    with open(os.path.join(settings.BASE_DIR, 'data/points/603A.mat'), 'rb') as mat_file:
+        cad_model.mat_file.save(f'cad_model_{cad_model.pk}.mat', File(mat_file))
+        cad_model.save()
+
     phantom_model = factories.PhantomModelFactory(
         name='CIRS 603A',
         model_number='603A',
+        cad_model=cad_model,
     )
 
     client = Client()
@@ -88,6 +97,10 @@ def test_crud():
         'model': str(phantom_model.pk),
         'serial_number': '12345',
     })
+
+    # check that a GoldenFiducials was created
+    assert phantom.goldenfiducials_set.count() == 1
+    assert phantom.gold_standard.cad_model == phantom.model.cad_model
 
     # reverse and reverse_lazy both cause circular imports when called with an argument
     _test_update_view(user, f'/phantoms/edit/{phantom.pk}/', Phantom, {'name': 'Update Phantom'})
