@@ -144,15 +144,21 @@ class GoldenFiducials(CommonFieldsMixin):
         return "Golden Fiducials {}".format(self.id)
 
     @property
+    def acquisition_date(self):
+        if not self.source_type == GoldenFiducials.CT:
+            raise AttributeError
+
+        dicom_archive = self.dicom_series.zipped_dicom_files
+        with zipfile.ZipFile(dicom_archive, 'r') as f:
+            dicom_datasets = dicom_datasets_from_zip(f)
+        return datetime.strptime(dicom_datasets[0].AcquisitionDate, '%Y%m%d')
+
+    @property
     def source_summary(self):
         if self.source_type == GoldenFiducials.CT:
-            dicom_archive = self.dicom_series.zipped_dicom_files
-            with zipfile.ZipFile(dicom_archive, 'r') as f:
-                dicom_datasets = dicom_datasets_from_zip(f)
-            date = datetime.strptime(dicom_datasets[0].AcquisitionDate, '%Y%m%d').strftime('%d %B %Y')
-
-            return f'{self.get_source_type_display()} Taken on {date}'
-        return self.get_source_type_display()
+            return f"{self.get_source_type_display()} Taken on {self.acquisition_date.strftime('%d %B %Y')}"
+        else:
+            return self.get_source_type_display()
 
     class Meta:
         verbose_name = 'Golden Fiducials'
