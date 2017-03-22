@@ -40,17 +40,17 @@ def test_medical_phycisist_permissions():
     medical_physicists = factories.GroupFactory.create(name='Medical Physicist')
     medical_physicists.permissions.add(configuration_permission)
 
-    john_hopkins = factories.InstitutionFactory.create(name='John Hopkins')
+    johns_hopkins = factories.InstitutionFactory.create(name='Johns Hopkins')
 
     medical_physicist = factories.UserFactory.create(
         username="medical_physicist",
-        institution=john_hopkins,
+        institution=johns_hopkins,
         groups=[medical_physicists],
     )
 
-    phantom = factories.PhantomFactory(institution=john_hopkins)
-    machine = factories.MachineFactory(institution=john_hopkins)
-    sequence = factories.SequenceFactory(institution=john_hopkins)
+    phantom = factories.PhantomFactory(institution=johns_hopkins)
+    machine = factories.MachineFactory(institution=johns_hopkins)
+    sequence = factories.SequenceFactory(institution=johns_hopkins)
 
     _assert_can_view(medical_physicist, (
         reverse('configuration'),
@@ -72,17 +72,17 @@ def test_medical_phycisist_permissions():
     # populate database
     therapists = factories.GroupFactory.create(name='Therapist')
 
-    john_hopkins = factories.InstitutionFactory.create(name='John Hopkins')
+    johns_hopkins = factories.InstitutionFactory.create(name='Johns Hopkins')
 
     therapist = factories.UserFactory.create(
         username="therapist",
-        institution=john_hopkins,
+        institution=johns_hopkins,
         groups=[therapists],
     )
 
-    phantom = factories.PhantomFactory(institution=john_hopkins)
-    machine = factories.MachineFactory(institution=john_hopkins)
-    sequence = factories.SequenceFactory(institution=john_hopkins)
+    phantom = factories.PhantomFactory(institution=johns_hopkins)
+    machine = factories.MachineFactory(institution=johns_hopkins)
+    sequence = factories.SequenceFactory(institution=johns_hopkins)
 
     _assert_cannot_view(therapist, (
         reverse('configuration'),
@@ -107,12 +107,12 @@ def test_institution_permissions():
     medical_physicists = factories.GroupFactory.create(name='Medical Physicist')
     medical_physicists.permissions.add(configuration_permission)
 
-    john_hopkins = factories.InstitutionFactory.create(name='John Hopkins')
+    johns_hopkins = factories.InstitutionFactory.create(name='Johns Hopkins')
     utexas = factories.InstitutionFactory.create(name='University of Texas')
 
     user_a = factories.UserFactory.create(
         username="user_a",
-        institution=john_hopkins,
+        institution=johns_hopkins,
         groups=[medical_physicists],
     )
 
@@ -122,9 +122,9 @@ def test_institution_permissions():
         groups=[medical_physicists],
     )
 
-    phantom = factories.PhantomFactory(institution=john_hopkins)
-    machine = factories.MachineFactory(institution=john_hopkins)
-    sequence = factories.SequenceFactory(institution=john_hopkins)
+    phantom = factories.PhantomFactory(institution=johns_hopkins)
+    machine = factories.MachineFactory(institution=johns_hopkins)
+    sequence = factories.SequenceFactory(institution=johns_hopkins)
 
     _assert_can_view(user_a, (
         f'/phantoms/edit/{phantom.pk}/',

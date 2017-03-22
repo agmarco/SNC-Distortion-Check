@@ -157,7 +157,7 @@ if TESTING:
 
 BASE_URL = os.environ["BASE_URL"]
 MEDIA_PATH = 'media/'
-MEDIA_URL = ''
+MEDIA_URL = '/media/'
 
 if TESTING:
     MEDIA_ROOT = os.path.join(

@@ -7,7 +7,7 @@ class InstitutionFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.Institution"
 
-    name = "John Hopkins"
+    name = "Johns Hopkins"
 
 
 class UserFactory(factory.django.DjangoModelFactory):

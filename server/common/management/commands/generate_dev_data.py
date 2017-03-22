@@ -28,14 +28,14 @@ class Command(BaseCommand):
             is_superuser=True
         )
 
-        john_hopkins = factories.InstitutionFactory.create(name='John Hopkins')
+        johns_hopkins = factories.InstitutionFactory.create(name='Johns Hopkins')
 
         medical_physicist = factories.UserFactory.create(
             username="medical_physicist",
             first_name="Mary",
             last_name="Jane",
             email="mary.jane@johnhopkins.edu",
-            institution=john_hopkins,
+            institution=johns_hopkins,
             groups=[medical_physicists],
         )
 
@@ -44,46 +44,46 @@ class Command(BaseCommand):
             first_name="John",
             last_name="Doe",
             email="john.doe@johnhopkins.edu",
-            institution=john_hopkins,
+            institution=johns_hopkins,
             groups=[therapists],
         )
 
         machine_a = factories.MachineFactory.create(
             name='MRI Scanner East',
-            institution=john_hopkins,
+            institution=johns_hopkins,
         )
         machine_b = factories.MachineFactory.create(
             name='MRI Scanner West',
-            institution=john_hopkins,
+            institution=johns_hopkins,
         )
 
         phantom_a = factories.PhantomFactory(
             name='Head Phantom 1',
             model=Phantom.CIRS_603A,
-            institution=john_hopkins,
+            institution=johns_hopkins,
         )
         phantom_b = factories.PhantomFactory(
             name='Head Phantom 2',
             model=Phantom.CIRS_603A,
-            institution=john_hopkins,
+            institution=johns_hopkins,
         )
         phantom_c = factories.PhantomFactory(
             name='Body Phantom',
             model=Phantom.CIRS_604,
-            institution=john_hopkins,
+            institution=johns_hopkins,
         )
 
         sequence_a = factories.SequenceFactory(
             name="T1-Weighted Abdominal",
-            institution=john_hopkins,
+            institution=johns_hopkins,
         )
         sequence_b = factories.SequenceFactory(
             name="T1-Weighted Neural",
-            institution=john_hopkins,
+            institution=johns_hopkins,
         )
         sequence_c = factories.SequenceFactory(
             name="T2-Weighted Neural",
-            institution=john_hopkins,
+            institution=johns_hopkins,
         )
 
         machine_sequence_pair = factories.MachineSequencePairFactory(

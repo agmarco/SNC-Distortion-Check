@@ -58,11 +58,11 @@ def test_crud():
     medical_physicists = factories.GroupFactory.create(name='Medical Physicist')
     medical_physicists.permissions.add(configuration_permission)
 
-    john_hopkins = factories.InstitutionFactory.create(name='John Hopkins')
+    johns_hopkins = factories.InstitutionFactory.create(name='Johns Hopkins')
 
     user = factories.UserFactory.create(
         username="medical_physicist",
-        institution=john_hopkins,
+        institution=johns_hopkins,
         groups=[medical_physicists],
     )
 

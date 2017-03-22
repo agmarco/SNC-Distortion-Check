@@ -17,17 +17,17 @@ def test_configuration_context():
     medical_physicists = factories.GroupFactory.create(name='Medical Physicist')
     medical_physicists.permissions.add(configuration_permission)
 
-    john_hopkins = factories.InstitutionFactory.create(name='John Hopkins')
+    johns_hopkins = factories.InstitutionFactory.create(name='Johns Hopkins')
     utexas = factories.InstitutionFactory.create(name='University of Texas')
 
     user_a = factories.UserFactory.create(
         username="user_a",
-        institution=john_hopkins,
+        institution=johns_hopkins,
         groups=[medical_physicists],
     )
     user_b = factories.UserFactory.create(
         username="user_b",
-        institution=john_hopkins,
+        institution=johns_hopkins,
         groups=[medical_physicists],
         deleted=True,
     )
@@ -37,16 +37,16 @@ def test_configuration_context():
         groups=[medical_physicists],
     )
 
-    machine_a = factories.MachineFactory.create(institution=john_hopkins)
-    machine_b = factories.MachineFactory.create(institution=john_hopkins, deleted=True)
+    machine_a = factories.MachineFactory.create(institution=johns_hopkins)
+    machine_b = factories.MachineFactory.create(institution=johns_hopkins, deleted=True)
     machine_c = factories.MachineFactory.create(institution=utexas)
 
-    phantom_a = factories.PhantomFactory(institution=john_hopkins)
-    phantom_b = factories.PhantomFactory(institution=john_hopkins, deleted=True)
+    phantom_a = factories.PhantomFactory(institution=johns_hopkins)
+    phantom_b = factories.PhantomFactory(institution=johns_hopkins, deleted=True)
     phantom_c = factories.PhantomFactory(institution=utexas)
 
-    sequence_a = factories.SequenceFactory(institution=john_hopkins)
-    sequence_b = factories.SequenceFactory(institution=john_hopkins, deleted=True)
+    sequence_a = factories.SequenceFactory(institution=johns_hopkins)
+    sequence_b = factories.SequenceFactory(institution=johns_hopkins, deleted=True)
     sequence_c = factories.SequenceFactory(institution=utexas)
 
     client = Client()
@@ -61,13 +61,13 @@ def test_configuration_context():
     users = response.context['users']
 
     # only display items from the user's institution
-    assert all([phantom.institution == user_a.institution for phantom in phantoms])
-    assert all([machine.institution == user_a.institution for machine in machines])
-    assert all([sequence.institution == user_a.institution for sequence in sequences])
-    assert all([user.institution == user_a.institution for user in users])
+    assert all(phantom.institution == user_a.institution for phantom in phantoms)
+    assert all(machine.institution == user_a.institution for machine in machines)
+    assert all(sequence.institution == user_a.institution for sequence in sequences)
+    assert all(user.institution == user_a.institution for user in users)
 
     # don't display deleted items
-    assert all([not phantom.deleted for phantom in phantoms])
-    assert all([not machine.deleted for machine in machines])
-    assert all([not sequence.deleted for sequence in sequences])
-    assert all([not user.deleted for user in users])
+    assert all(not phantom.deleted for phantom in phantoms)
+    assert all(not machine.deleted for machine in machines)
+    assert all(not sequence.deleted for sequence in sequences)
+    assert all(not user.deleted for user in users)

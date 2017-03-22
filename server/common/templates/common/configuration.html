@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% load static %}
+
 {% block "content" %}
   <h1>Configuration</h1>
 
@@ -109,5 +111,5 @@
 {% endblock %}
 
 {% block "scripts" %}
-  <script src="https://use.fontawesome.com/5a6955599f.js"></script>
+  <script src="{% static 'fontawesome.js' %}"></script>
 {% endblock %}

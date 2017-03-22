@@ -176,6 +176,7 @@ class Scan(CommonFieldsMixin):
         return "Scan {}".format(self.id)
 
 
+# This table creates permissions that are not associated with a model.
 class Global(models.Model):
     class Meta:
         managed = False
