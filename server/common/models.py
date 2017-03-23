@@ -43,7 +43,7 @@ class Institution(CommonFieldsMixin):
         return "{}".format(self.name)
 
 
-class User(AbstractUser, CommonFieldsMixin):
+class User(CommonFieldsMixin, AbstractUser):
     institution_ht = 'The institution this user is a member of; will be blank for admin users'
     institution = models.ForeignKey(Institution, models.CASCADE, null=True, blank=True, help_text=institution_ht)
 
