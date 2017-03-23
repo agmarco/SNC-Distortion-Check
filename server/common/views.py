@@ -1,6 +1,7 @@
 import logging
 
 from django.core.exceptions import PermissionDenied
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
 from django.shortcuts import render, redirect, get_object_or_404
@@ -48,10 +49,10 @@ def upload_file(request):
 def configuration(request):
     institution = request.user.institution
     return render(request, 'common/configuration.html', {
-        'phantoms': institution.phantom_set.filter(deleted=False),
-        'machines': institution.machine_set.filter(deleted=False),
-        'sequences': institution.sequence_set.filter(deleted=False),
-        'users': institution.user_set.filter(deleted=False),
+        'phantoms': institution.phantom_set.active(),
+        'machines': institution.machine_set.active(),
+        'sequences': institution.sequence_set.active(),
+        'users': institution.user_set.active(),
     })
 
 
@@ -169,7 +170,12 @@ class DeleteGoldenFiducials(DeletionMixin, DeleteView):
         return super(DeleteGoldenFiducials, self).delete(request, *args, **kwargs)
 
     def get_success_url(self):
-        return redirect('update_phantom', self.kwargs['phantom_pk'])
+        return reverse('update_phantom', args=(self.kwargs['phantom_pk'],))
+
+    def get_context_data(self, **kwargs):
+        context = super(DeleteGoldenFiducials, self).get_context_data(**kwargs)
+        context.update({'phantom_pk': self.kwargs['phantom_pk']})
+        return context
 
 
 @login_and_permission_required('common.configuration')

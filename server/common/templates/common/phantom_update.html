@@ -20,7 +20,7 @@
     </tr>
   </thead>
   <tbody>
-    {% for golden_fiducials in phantom.goldenfiducials_set.all %}
+    {% for golden_fiducials in phantom.goldenfiducials_set.active %}
       <tr>
         <td>{% if golden_fiducials.is_active %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>
         <td>{{ golden_fiducials.source_summary }}</td>
@@ -34,7 +34,7 @@
             </form>
           {% endif %}
         </td>
-        <td>{% if not golden_fiducials.is_active and not golden_fiducials.type == 'CAD' %}<a href="#"><i class="fa fa-trash-o" aria-hidden="true"></i></a>{% endif %}</td>
+        <td>{% if not golden_fiducials.is_active and not golden_fiducials.type == 'CAD' %}<a href="{% url 'delete_golden_fiducials' phantom.pk golden_fiducials.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>{% endif %}</td>
       </tr>
     {% endfor %}
   </tbody>

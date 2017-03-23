@@ -8,11 +8,26 @@ from server.django_numpy.fields import NumpyTextField
 from process.dicom_import import dicom_datasets_from_zip
 
 
+class CommonFieldsSet(models.QuerySet):
+    def active(self):
+        return self.filter(deleted=False)
+
+
+class CommonFieldsManager(models.Manager):
+    def get_queryset(self):
+        return CommonFieldsSet(self.model, using=self._db)
+
+    def active(self):
+        return self.get_queryset().active()
+
+
 class CommonFieldsMixin(models.Model):
     deleted_ht = 'Deleted items are hidden from non-admins'
     deleted = models.BooleanField(default=False, help_text=deleted_ht)
     created_on = models.DateTimeField(auto_now_add=True)
     last_modified_on = models.DateTimeField(auto_now=True)
+
+    objects = CommonFieldsManager()
 
     class Meta:
         abstract = True

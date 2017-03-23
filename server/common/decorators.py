@@ -31,7 +31,7 @@ def validate_institution(model_class=None, pk_url_kwarg='pk', get_institution=la
                 obj = get_object_or_404(model_class, pk=kwargs[pk_url_kwarg])
                 if get_institution(obj) != request.user.institution:
                     raise PermissionDenied
-                view(request, *args, **kwargs)
+                return view(request, *args, **kwargs)
             return inner
     return decorator
 
