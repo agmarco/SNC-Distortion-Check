@@ -1,11 +1,9 @@
 import logging
 import zipfile
-
-import numpy as np
+from datetime import datetime
 
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect
-from django.core.files.base import ContentFile
 from django.urls import reverse
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
 from django.shortcuts import render, redirect, get_object_or_404
@@ -13,7 +11,8 @@ from django.urls import reverse_lazy
 
 from process import dicom_import
 from process.feature_detection import FeatureDetector
-from server.common.factories import DicomSeriesFactory, FiducialsFactory, GoldenFiducialsFactory
+
+from .factories import DicomSeriesFactory, FiducialsFactory, GoldenFiducialsFactory
 from .models import Scan, Phantom, Machine, Sequence, GoldenFiducials
 from .tasks import process_scan
 from .forms import UploadScanForm, UploadCTForm, UploadRawForm
@@ -168,32 +167,31 @@ class GoldenFiducialsCTUpload(FormView):
     template_name = 'common/upload_ct.html'
 
     def form_valid(self, form):
-        # create DICOM series
-        with zipfile.ZipFile(self.request.FILES['dicom_archive'], 'r') as zip_file:
-            datasets = dicom_import.dicom_datasets_from_zip(zip_file)
 
+        phantom = get_object_or_404(Phantom, pk=self.kwargs['pk'])
+
+        # create DICOM series
+        dicom_archive = self.request.FILES['dicom_archive']
+        with zipfile.ZipFile(dicom_archive, 'r') as zip_file:
+            datasets = dicom_import.dicom_datasets_from_zip(zip_file)
         voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
         dicom_series = DicomSeriesFactory(
             voxels=voxels,
             ijk_to_xyz=ijk_to_xyz,
             shape=voxels.shape,
             series_uid=datasets[0].SeriesInstanceUID,
+            acquisition_date=datetime.strptime(datasets[0].AcquisitionDate, '%Y%m%d'),
         )
-        content_file = ContentFile(b'')
-        np.save(content_file, voxels)
-        dicom_series.zipped_dicom_files.save(name='voxels', content=content_file)
+        dicom_series.zipped_dicom_files.save(name=f'dicom_series_{dicom_series.pk}.zip', content=self.request.FILES['dicom_archive'])
 
         # create fiducials
-        modality = datasets[0].Modality
-        points_in_patient_xyz = FeatureDetector(form.instance.name, modality, voxels, ijk_to_xyz).run()
-
+        modality = datasets[0].Modality.lower()
+        points_in_patient_xyz = FeatureDetector(phantom.model.model_number, modality, voxels, ijk_to_xyz).run()
         fiducials = FiducialsFactory(fiducials=points_in_patient_xyz)
-
-        logger.info(points_in_patient_xyz)
 
         # create golden fiducials
         GoldenFiducialsFactory(
-            phantom=form.instance,
+            phantom=phantom,
             is_active=False,
             dicom_series=dicom_series,
             fiducials=fiducials,

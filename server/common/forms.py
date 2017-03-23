@@ -24,12 +24,8 @@ class UploadScanForm(forms.Form):
         return self.cleaned_data
 
 
-class UploadCTForm(forms.ModelForm):
+class UploadCTForm(forms.Form):
     dicom_archive = forms.FileField(label="File browser")
-
-    class Meta:
-        model = Phantom
-        fields = ()
 
     def clean_dicom_archive(self):
         try:
@@ -40,12 +36,8 @@ class UploadCTForm(forms.ModelForm):
         return self.cleaned_data
 
 
-class UploadRawForm(forms.ModelForm):
+class UploadRawForm(forms.Form):
     csv = forms.FileField(label="File browser")
-
-    class Meta:
-        model = Phantom
-        fields = ()
 
     def clean_csv(self):
         return self.cleaned_data
