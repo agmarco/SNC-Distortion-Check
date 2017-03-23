@@ -198,11 +198,11 @@ class GoldenFiducialsCTUpload(FormView):
         # create golden fiducials
         GoldenFiducialsFactory(
             phantom=phantom,
-            is_active=False,
             dicom_series=dicom_series,
             fiducials=fiducials,
             type=GoldenFiducials.CT,
         )
+
         return super(GoldenFiducialsCTUpload, self).form_valid(form)
 
     def get_context_data(self, **kwargs):

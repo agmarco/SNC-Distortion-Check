@@ -111,13 +111,11 @@ class Command(BaseCommand):
             fiducials=fiducials_c,
             dicom_series=dicom_series,
             type=GoldenFiducials.CT,
-            is_active=False,
         )
         golden_fiducials_b = factories.GoldenFiducialsFactory(
             phantom=phantom_a,
             fiducials=fiducials_d,
             type=GoldenFiducials.RAW,
-            is_active=False,
         )
 
         sequence_a = factories.SequenceFactory(

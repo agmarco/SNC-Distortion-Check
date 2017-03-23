@@ -1,15 +1,6 @@
-import zipfile
-
-import numpy as np
-
 from django import forms
-from django.core.files.base import ContentFile
 
 from process import dicom_import
-from process.feature_detection import FeatureDetector
-
-from .models import Phantom, GoldenFiducials
-from .factories import DicomSeriesFactory, FiducialsFactory, GoldenFiducialsFactory
 
 
 class UploadScanForm(forms.Form):

@@ -108,7 +108,6 @@ def test_crud():
         phantom=phantom,
         fiducials=fiducials_b,
         type=GoldenFiducials.RAW,
-        is_active=False,
     )
     _test_delete_view(user, reverse('delete_golden_fiducials', args=(phantom.pk, golden_fiducials.pk)), GoldenFiducials)
 
