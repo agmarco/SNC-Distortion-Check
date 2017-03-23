@@ -1,7 +1,5 @@
 import factory
 
-from .models import Phantom
-
 
 class InstitutionFactory(factory.django.DjangoModelFactory):
     class Meta:

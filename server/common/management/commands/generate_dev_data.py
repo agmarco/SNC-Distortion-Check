@@ -1,12 +1,12 @@
 import os
 
 from django.contrib.auth.models import Permission
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.core.files import File
 from django.conf import settings
 
 from server.common import factories
-from server.common.models import Phantom, GoldenFiducials
+from server.common.models import GoldenFiducials
 
 
 class Command(BaseCommand):
@@ -89,38 +89,19 @@ class Command(BaseCommand):
             institution=johns_hopkins,
         )
 
-        golden_fiducials_a = factories.GoldenFiducialsFactory(
-            phantom=phantom_a,
-            fiducials=fiducials_a,
-            type=GoldenFiducials.CAD,
-            is_active=True,
-        )
-        golden_fiducials_b = factories.GoldenFiducialsFactory(
-            phantom=phantom_b,
-            fiducials=fiducials_a,
-            type=GoldenFiducials.CAD,
-            is_active=True,
-        )
-        golden_fiducials_c = factories.GoldenFiducialsFactory(
-            phantom=phantom_c,
-            fiducials=fiducials_b,
-            type=GoldenFiducials.CAD,
-            is_active=True,
-        )
-
         dicom_series = factories.DicomSeriesFactory()
         with open(os.path.join(settings.BASE_DIR, 'data/dicom/001_ct_603A_E3148_ST1.25.zip'), 'rb') as dicom_file:
             dicom_series.zipped_dicom_files.save(f'dicom_series_{dicom_series.pk}.zip', File(dicom_file))
             dicom_series.save()
 
-        golden_fiducials_d = factories.GoldenFiducialsFactory(
+        golden_fiducials_a = factories.GoldenFiducialsFactory(
             phantom=phantom_a,
             fiducials=fiducials_c,
             dicom_series=dicom_series,
             type=GoldenFiducials.CT,
             is_active=False,
         )
-        golden_fiducials_e = factories.GoldenFiducialsFactory(
+        golden_fiducials_b = factories.GoldenFiducialsFactory(
             phantom=phantom_a,
             fiducials=fiducials_d,
             type=GoldenFiducials.RAW,

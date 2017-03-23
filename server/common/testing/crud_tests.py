@@ -99,7 +99,7 @@ def test_crud():
 
     machine = _test_create_view(user, reverse('create_machine'), Machine, {
         'name': 'Create Machine',
-        'model': 'Creatre Model',
+        'model': 'Create Model',
         'manufacturer': 'Create Manufacturer',
     })
 

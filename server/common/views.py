@@ -9,7 +9,6 @@ from django.urls import reverse_lazy
 from .models import Scan, Phantom, Machine, Sequence, GoldenFiducials
 from .tasks import process_scan
 from .forms import UploadScanForm, UploadCTForm, UploadRawForm
-from .factories import GoldenFiducialsFactory, FiducialsFactory
 from .decorators import check_institution, login_and_permission_required
 from .mixins import DeletionMixin
 
@@ -67,16 +66,6 @@ class CreatePhantom(CreateView):
         self.object = form.save(commit=False)
         self.object.institution = self.request.user.institution
         self.object.save()
-
-        # create a golden fiducials object that points to the CAD model for the selected phantom model
-        fiducials = FiducialsFactory()
-        golden_fiducials = GoldenFiducialsFactory(
-            phantom=self.object,
-            fiducials=fiducials,
-            type=GoldenFiducials.CAD,
-            is_active=True,
-        )
-
         return super(ModelFormMixin, self).form_valid(form)
 
 
