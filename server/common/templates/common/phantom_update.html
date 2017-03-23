@@ -39,6 +39,8 @@
     {% endfor %}
   </tbody>
   </table>
+  <a href="{% url 'upload_ct' phantom.pk %}">Upload Gold Standard CT</a>
+  <a href="{% url 'upload_raw' phantom.pk %}">Upload Raw Points</a>
 {% endblock %}
 
 {% block "scripts" %}

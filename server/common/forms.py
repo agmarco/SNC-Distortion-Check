@@ -1,5 +1,15 @@
+import zipfile
+
+import numpy as np
+
 from django import forms
+from django.core.files.base import ContentFile
+
 from process import dicom_import
+from process.feature_detection import FeatureDetector
+
+from .models import Phantom, GoldenFiducials
+from .factories import DicomSeriesFactory, FiducialsFactory, GoldenFiducialsFactory
 
 
 class UploadScanForm(forms.Form):
@@ -14,8 +24,12 @@ class UploadScanForm(forms.Form):
         return self.cleaned_data
 
 
-class UploadCTForm(forms.Form):
-    dicom_archive = forms.FileField()
+class UploadCTForm(forms.ModelForm):
+    dicom_archive = forms.FileField(label="File browser")
+
+    class Meta:
+        model = Phantom
+        fields = ()
 
     def clean_dicom_archive(self):
         try:
@@ -26,5 +40,12 @@ class UploadCTForm(forms.Form):
         return self.cleaned_data
 
 
-class UploadRawForm(forms.Form):
-    csv = forms.FileField()
+class UploadRawForm(forms.ModelForm):
+    csv = forms.FileField(label="File browser")
+
+    class Meta:
+        model = Phantom
+        fields = ()
+
+    def clean_csv(self):
+        return self.cleaned_data

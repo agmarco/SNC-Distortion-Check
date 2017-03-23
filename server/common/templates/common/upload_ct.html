@@ -1,5 +1,11 @@
 {% extends "base.html" %}
 
 {% block "content" %}
-
+  <h1>Upload Gold Standard CT</h1>
+  <p>The uploaded file should be a zip-archive containing CT DICOM slices for the gold standard CT scan of the phantom.</p>
+  <form action="{% url 'upload_ct' pk %}" enctype="multipart/form-data" method="post">
+    {% csrf_token %}
+    {{ form.errors }}
+    {{ form.dicom_archive.label }} {{ form.dicom_archive }} <input type="submit" value="Upload">
+  </form>
 {% endblock %}
