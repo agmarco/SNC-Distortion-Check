@@ -170,7 +170,7 @@ class DeleteGoldenFiducials(DeletionMixin, DeleteView):
         return super(DeleteGoldenFiducials, self).delete(request, *args, **kwargs)
 
     def get_success_url(self):
-        return reverse('update_phantom', args=(str(self.kwargs['phantom_pk']),))
+        return redirect('update_phantom', self.kwargs['phantom_pk'])
 
 
 @login_and_permission_required('common.configuration')

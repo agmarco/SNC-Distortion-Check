@@ -55,14 +55,14 @@ def test_medical_phycisist_permissions():
     _assert_can_view(medical_physicist, (
         reverse('configuration'),
         reverse('create_phantom'),
-        f'/phantoms/{phantom.pk}/edit/',
-        f'/phantoms/{phantom.pk}/delete/',
+        reverse('update_phantom', args=(phantom.pk,)),
+        reverse('delete_phantom', args=(phantom.pk,)),
         reverse('create_machine'),
-        f'/machines/{machine.pk}/edit/',
-        f'/machines/{machine.pk}/delete/',
+        reverse('update_machine', args=(machine.pk,)),
+        reverse('delete_machine', args=(machine.pk,)),
         reverse('create_sequence'),
-        f'/sequences/{sequence.pk}/edit/',
-        f'/sequences/{sequence.pk}/delete/',
+        reverse('update_sequence', args=(sequence.pk,)),
+        reverse('delete_sequence', args=(sequence.pk,)),
     ))
 
 
@@ -87,14 +87,14 @@ def test_medical_phycisist_permissions():
     _assert_cannot_view(therapist, (
         reverse('configuration'),
         reverse('create_phantom'),
-        f'/phantoms/{phantom.pk}/edit/',
-        f'/phantoms/{phantom.pk}/delete/',
+        reverse('update_phantom', args=(phantom.pk,)),
+        reverse('delete_phantom', args=(phantom.pk,)),
         reverse('create_machine'),
-        f'/machines/{machine.pk}/edit/',
-        f'/machines/{machine.pk}/delete/',
+        reverse('update_machine', args=(machine.pk,)),
+        reverse('delete_machine', args=(machine.pk,)),
         reverse('create_sequence'),
-        f'/sequences/{sequence.pk}/edit/',
-        f'/sequences/{sequence.pk}/delete/',
+        reverse('update_sequence', args=(sequence.pk,)),
+        reverse('delete_sequence', args=(sequence.pk,)),
     ))
 
 
@@ -127,19 +127,19 @@ def test_institution_permissions():
     sequence = factories.SequenceFactory(institution=johns_hopkins)
 
     _assert_can_view(user_a, (
-        f'/phantoms/{phantom.pk}/edit/',
-        f'/phantoms/{phantom.pk}/delete/',
-        f'/machines/{machine.pk}/edit/',
-        f'/machines/{machine.pk}/delete/',
-        f'/sequences/{sequence.pk}/edit/',
-        f'/sequences/{sequence.pk}/delete/',
+        reverse('update_phantom', args=(phantom.pk,)),
+        reverse('delete_phantom', args=(phantom.pk,)),
+        reverse('update_machine', args=(machine.pk,)),
+        reverse('delete_machine', args=(machine.pk,)),
+        reverse('update_sequence', args=(sequence.pk,)),
+        reverse('delete_sequence', args=(sequence.pk,)),
     ))
 
     _assert_cannot_view(user_b, (
-        f'/phantoms/{phantom.pk}/edit/',
-        f'/phantoms/{phantom.pk}/delete/',
-        f'/machines/{machine.pk}/edit/',
-        f'/machines/{machine.pk}/delete/',
-        f'/sequences/{sequence.pk}/edit/',
-        f'/sequences/{sequence.pk}/delete/',
+        reverse('update_phantom', args=(phantom.pk,)),
+        reverse('delete_phantom', args=(phantom.pk,)),
+        reverse('update_machine', args=(machine.pk,)),
+        reverse('delete_machine', args=(machine.pk,)),
+        reverse('update_sequence', args=(sequence.pk,)),
+        reverse('delete_sequence', args=(sequence.pk,)),
     ))

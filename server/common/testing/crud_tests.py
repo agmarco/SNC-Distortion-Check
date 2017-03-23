@@ -112,11 +112,10 @@ def test_crud():
         type=GoldenFiducials.RAW,
         is_active=False,
     )
-    _test_delete_view(user, f'/phantoms/{phantom.pk}/gold-standards/{golden_fiducials.pk}/delete/', GoldenFiducials)
+    _test_delete_view(user, reverse('delete_gold', args=(phantom.pk, golden_fiducials.pk)), GoldenFiducials)
 
-    # reverse and reverse_lazy both cause circular imports when called with an argument
-    _test_update_view(user, f'/phantoms/{phantom.pk}/edit/', Phantom, update_phantom_data)
-    _test_delete_view(user, f'/phantoms/{phantom.pk}/delete/', Phantom)
+    _test_update_view(user, reverse('update_phantom', args=(phantom.pk,)), Phantom, update_phantom_data)
+    _test_delete_view(user, reverse('delete_phantom', args=(phantom.pk,)), Phantom)
 
     create_machine_data = {
         'name': 'Create Machine',
@@ -130,8 +129,8 @@ def test_crud():
     }
 
     machine = _test_create_view(user, reverse('create_machine'), Machine, create_machine_data)
-    _test_update_view(user, f'/machines/{machine.pk}/edit/', Machine, update_machine_data)
-    _test_delete_view(user, f'/machines/{machine.pk}/delete/', Machine)
+    _test_update_view(user, reverse('update_machine', args=(machine.pk,)), Machine, update_machine_data)
+    _test_delete_view(user, reverse('delete_machine', args=(machine.pk,)), Machine)
 
     create_sequence_data = {
         'name': 'Create Sequence',
@@ -143,5 +142,5 @@ def test_crud():
     }
 
     sequence = _test_create_view(user, reverse('create_sequence'), Sequence, create_sequence_data)
-    _test_update_view(user, f'/sequences/{sequence.pk}/edit/', Sequence, update_sequence_data)
-    _test_delete_view(user, f'/sequences/{sequence.pk}/delete/', Sequence)
+    _test_update_view(user, reverse('update_sequence', args=(sequence.pk,)), Sequence, update_sequence_data)
+    _test_delete_view(user, reverse('delete_sequence', args=(sequence.pk,)), Sequence)
