@@ -1,12 +1,18 @@
 import logging
+import zipfile
+
+import numpy as np
 
 from django.core.exceptions import PermissionDenied
+from django.core.files.base import ContentFile
 from django.urls import reverse
-from django.utils.decorators import method_decorator
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 
+from process import dicom_import
+from process.feature_detection import FeatureDetector
+from server.common.factories import DicomSeriesFactory, FiducialsFactory, GoldenFiducialsFactory
 from .models import Scan, Phantom, Machine, Sequence, GoldenFiducials
 from .tasks import process_scan
 from .forms import UploadScanForm, UploadCTForm, UploadRawForm
@@ -151,11 +157,61 @@ class GoldenFiducialsCTUpload(FormView):
     form_class = UploadCTForm
     template_name = 'common/upload_ct.html'
 
+    def form_valid(self, form):
+        # create DICOM series
+        with zipfile.ZipFile(self.request.FILES['dicom_archive'], 'r') as zip_file:
+            datasets = dicom_import.dicom_datasets_from_zip(zip_file)
+
+        voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
+        dicom_series = DicomSeriesFactory(
+            voxels=voxels,
+            ijk_to_xyz=ijk_to_xyz,
+            shape=voxels.shape,
+            series_uid=datasets[0].SeriesInstanceUID,
+        )
+        content_file = ContentFile(b'')
+        np.save(content_file, voxels)
+        dicom_series.zipped_dicom_files.save(name='voxels', content=content_file)
+
+        # create fiducials
+        modality = datasets[0].Modality
+        points_in_patient_xyz = FeatureDetector(form.instance.name, modality, voxels, ijk_to_xyz).run()
+
+        fiducials = FiducialsFactory(fiducials=points_in_patient_xyz)
+
+        logger.info(points_in_patient_xyz)
+
+        # create golden fiducials
+        GoldenFiducialsFactory(
+            phantom=form.instance,
+            is_active=False,
+            dicom_series=dicom_series,
+            fiducials=fiducials,
+            type=GoldenFiducials.CT,
+        )
+        return super(GoldenFiducialsCTUpload, self).form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super(GoldenFiducialsCTUpload, self).get_context_data(**kwargs)
+        context.update({'pk': self.kwargs['pk']})
+        return context
+
+    def get_success_url(self):
+        return reverse('update_phantom', args=(self.kwargs['pk'],))
+
 
 @login_and_permission_required('common.configuration')
 class GoldenFiducialsRawUpload(FormView):
     form_class = UploadRawForm
     template_name = 'common/upload_raw.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(GoldenFiducialsRawUpload, self).get_context_data(**kwargs)
+        context.update({'pk': self.kwargs['pk']})
+        return context
+
+    def get_success_url(self):
+        return reverse('update_phantom', args=(self.kwargs['pk'],))
 
 
 @login_and_permission_required('common.configuration')
