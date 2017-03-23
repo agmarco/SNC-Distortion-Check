@@ -64,10 +64,10 @@ def upload_file(request):
 def configuration(request):
     institution = request.user.institution
     return render(request, 'common/configuration.html', {
-        'phantoms': institution.phantom_set.active(),
-        'machines': institution.machine_set.active(),
-        'sequences': institution.sequence_set.active(),
-        'users': institution.user_set.active(),
+        'phantoms': institution.phantom_set.active().order_by('-last_modified_on'),
+        'machines': institution.machine_set.active().order_by('-last_modified_on'),
+        'sequences': institution.sequence_set.active().order_by('-last_modified_on'),
+        'users': institution.user_set.active().order_by('-last_modified_on'),
     })
 
 
@@ -92,6 +92,10 @@ class UpdatePhantom(UpdateView):
     fields = ('name',)
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_update'
+
+    @property
+    def golden_fiducials(self):
+        return self.object.goldenfiducials_set.active().order_by('-last_modified_on')
 
 
 @login_and_permission_required('common.configuration')
@@ -170,19 +174,21 @@ class GoldenFiducialsCTUpload(FormView):
 
         phantom = get_object_or_404(Phantom, pk=self.kwargs['pk'])
 
+        # TODO move this to a celery task, mark as in_progress
+
         # create DICOM series
         dicom_archive = self.request.FILES['dicom_archive']
         with zipfile.ZipFile(dicom_archive, 'r') as zip_file:
             datasets = dicom_import.dicom_datasets_from_zip(zip_file)
         voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
         dicom_series = DicomSeriesFactory(
+            zipped_dicom_files=self.request.FILES['dicom_archive'],
             voxels=voxels,
             ijk_to_xyz=ijk_to_xyz,
             shape=voxels.shape,
             series_uid=datasets[0].SeriesInstanceUID,
             acquisition_date=datetime.strptime(datasets[0].AcquisitionDate, '%Y%m%d'),
         )
-        dicom_series.zipped_dicom_files.save(name=f'dicom_series_{dicom_series.pk}.zip', content=self.request.FILES['dicom_archive'])
 
         # create fiducials
         modality = datasets[0].Modality.lower()
@@ -223,7 +229,7 @@ class GoldenFiducialsRawUpload(FormView):
 
 
 @login_and_permission_required('common.configuration')
-@validate_institution(get_institution=lambda obj: obj.phantom.institution)
+@validate_institution()
 class DeleteGoldenFiducials(CirsDeleteView):
     model = GoldenFiducials
 
@@ -243,7 +249,7 @@ class DeleteGoldenFiducials(CirsDeleteView):
 
 
 @login_and_permission_required('common.configuration')
-@validate_institution(model_class=GoldenFiducials, get_institution=lambda obj: obj.phantom.institution)
+@validate_institution(model_class=GoldenFiducials)
 def activate_golden_fiducials(request, phantom_pk=None, pk=None):
     golden_fiducials = get_object_or_404(GoldenFiducials, pk=pk)
     golden_fiducials.activate()

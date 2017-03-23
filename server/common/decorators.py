@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 
 
-def validate_institution(model_class=None, pk_url_kwarg='pk', get_institution=lambda obj: obj.institution):
+def validate_institution(model_class=None, pk_url_kwarg='pk'):
     """
     Checks that the user belongs to the same institution as the object.
     If the decoratee is a class, the object is obtained using the specified model_class and pk_url_kwarg if they are
@@ -26,7 +26,7 @@ def validate_institution(model_class=None, pk_url_kwarg='pk', get_institution=la
                     obj = instance.get_object()
                 else:
                     raise Exception("You must either specify the model_class, or implement the get_object method.")
-                if get_institution(obj) != request.user.institution:
+                if obj.institution != request.user.institution:
                     raise PermissionDenied
                 return old_dispatch(instance, request, *args, **kwargs)
 
@@ -37,7 +37,7 @@ def validate_institution(model_class=None, pk_url_kwarg='pk', get_institution=la
             @wraps(view)
             def wrapper(request, *args, **kwargs):
                 obj = get_object_or_404(model_class, pk=kwargs[pk_url_kwarg])
-                if get_institution(obj) != request.user.institution:
+                if obj.institution != request.user.institution:
                     raise PermissionDenied
                 return view(request, *args, **kwargs)
             return wrapper

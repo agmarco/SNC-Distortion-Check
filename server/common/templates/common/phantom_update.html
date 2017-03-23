@@ -20,7 +20,7 @@
     </tr>
   </thead>
   <tbody>
-    {% for golden_fiducials in phantom.goldenfiducials_set.active %}
+    {% for golden_fiducials in view.golden_fiducials %}
       <tr>
         <td>{% if golden_fiducials.is_active %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>
         <td>{{ golden_fiducials.source_summary }}</td>

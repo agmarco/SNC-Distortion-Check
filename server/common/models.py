@@ -1,12 +1,8 @@
-import zipfile
-from datetime import datetime
-
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import UserManager
 
 from server.django_numpy.fields import NumpyTextField
-from process.dicom_import import dicom_datasets_from_zip
 
 
 class CommonFieldsSet(models.QuerySet):
@@ -186,6 +182,10 @@ class GoldenFiducials(CommonFieldsMixin):
             return f"{self.get_type_display()} Taken on {self.dicom_series.acquisition_date.strftime('%d %B %Y')}"
         else:
             return self.get_type_display()
+
+    @property
+    def institution(self):
+        return self.phantom.institution
 
     class Meta:
         verbose_name = 'Golden Fiducials'
