@@ -25,8 +25,8 @@
           <td>{{ phantom.serial_number }}</td>
           <td>{{ phantom.gold_standard.source_summary }}</td>
           <td>
-            <a href="{% url 'update_phantom' phantom=phantom.pk %}">Edit</a>
-            <a href="{% url 'delete_phantom' phantom=phantom.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>
+            <a href="{% url 'update_phantom' phantom.pk %}">Edit</a>
+            <a href="{% url 'delete_phantom' phantom.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>
           </td>
         </tr>
       {% endfor %}
@@ -51,8 +51,8 @@
           <td>{{ machine.model }}</td>
           <td>{{ machine.manufacturer }}</td>
           <td>
-            <a href="{% url 'update_machine' machine=machine.pk %}">Edit</a>
-            <a href="{% url 'delete_machine' machine=machine.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>
+            <a href="{% url 'update_machine' machine.pk %}">Edit</a>
+            <a href="{% url 'delete_machine' machine.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>
           </td>
         </tr>
       {% endfor %}
@@ -75,8 +75,8 @@
           <td>{{ sequence.name }}</td>
           <td>{{ sequence.instructions }}</td>
           <td>
-            <a href="{% url 'update_sequence' sequence=sequence.pk %}">Edit</a>
-            <a href="{% url 'delete_sequence' sequence=sequence.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>
+            <a href="{% url 'update_sequence' sequence.pk %}">Edit</a>
+            <a href="{% url 'delete_sequence' sequence.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>
           </td>
         </tr>
       {% endfor %}
@@ -101,8 +101,8 @@
           <td>{{ user.email }}</td>
           <td>{{ user.groups.all|join:", " }}</td>
           <td>
-            <a href="{% url 'update_user' user=user.pk %}">Edit</a>
-            <a href="{% url 'delete_user' user=user.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>
+            <a href="{% url 'update_user' user.pk %}">Edit</a>
+            <a href="{% url 'delete_user' user.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>
           </td>
         </tr>
       {% endfor %}

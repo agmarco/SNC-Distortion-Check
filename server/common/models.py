@@ -148,6 +148,14 @@ class GoldenFiducials(CommonFieldsMixin):
     def __str__(self):
         return "Golden Fiducials {}".format(self.id)
 
+    def activate(self):
+        current_gold_standard = self.phantom.gold_standard
+        current_gold_standard.is_active = False
+        current_gold_standard.save()
+
+        self.is_active = True
+        self.save()
+
     @property
     def acquisition_date(self):
         if not self.type == GoldenFiducials.CT:

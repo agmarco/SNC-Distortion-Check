@@ -1,15 +1,16 @@
 import logging
 
+from django.core.exceptions import PermissionDenied
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 
 from .models import Scan, Phantom, Machine, Sequence, GoldenFiducials
 from .tasks import process_scan
 from .forms import UploadScanForm, UploadCTForm, UploadRawForm
-from .decorators import check_institution, login_and_permission_required
+from .decorators import validate_institution, login_and_permission_required
 from .mixins import DeletionMixin
 
 logger = logging.getLogger(__name__)
@@ -70,21 +71,19 @@ class CreatePhantom(CreateView):
 
 
 @method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
-@check_institution
+@validate_institution()
 class UpdatePhantom(UpdateView):
     model = Phantom
     fields = ('name',)
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_update'
-    pk_url_kwarg = 'phantom'
 
 
 @method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
-@check_institution
+@validate_institution()
 class DeletePhantom(DeletionMixin, DeleteView):
     model = Phantom
     success_url = reverse_lazy('configuration')
-    pk_url_kwarg = 'phantom'
 
 
 @method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
@@ -102,21 +101,19 @@ class CreateMachine(CreateView):
 
 
 @method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
-@check_institution
+@validate_institution()
 class UpdateMachine(UpdateView):
     model = Machine
     fields = ('name', 'model', 'manufacturer')
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_update'
-    pk_url_kwarg = 'machine'
 
 
 @method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
-@check_institution
+@validate_institution()
 class DeleteMachine(DeletionMixin, DeleteView):
     model = Machine
     success_url = reverse_lazy('configuration')
-    pk_url_kwarg = 'machine'
 
 
 @method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
@@ -134,21 +131,19 @@ class CreateSequence(CreateView):
 
 
 @method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
-@check_institution
+@validate_institution()
 class UpdateSequence(UpdateView):
     model = Sequence
     fields = ('name', 'instructions')
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_update'
-    pk_url_kwarg = 'sequence'
 
 
 @method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
-@check_institution
+@validate_institution()
 class DeleteSequence(DeletionMixin, DeleteView):
     model = Sequence
     success_url = reverse_lazy('configuration')
-    pk_url_kwarg = 'sequence'
 
 
 @method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
@@ -164,17 +159,26 @@ class GoldenFiducialsRawUpload(FormView):
 
 
 @method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
-@check_institution
+@validate_institution()
 class DeleteGoldenFiducials(DeletionMixin, DeleteView):
     model = GoldenFiducials
 
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.object.type == GoldenFiducials.CAD or self.object.is_active:
+            raise PermissionDenied
+        return super(DeleteGoldenFiducials, self).delete(request, *args, **kwargs)
+
     def get_success_url(self):
-        return reverse('update_phantom', self.kwargs['phantom'])
+        return reverse('update_phantom', self.kwargs['phantom_pk'])
 
 
-@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
-def set_active_golden_fiducials(request, phantom=None, gold=None):
-    return redirect('update_phantom', phantom)
+@login_and_permission_required('common.configuration')
+@validate_institution(model_class=GoldenFiducials)
+def activate_golden_fiducials(request, phantom_pk=None, pk=None):
+    golden_fiducials = get_object_or_404(GoldenFiducials, pk=pk)
+    golden_fiducials.activate()
+    return redirect('update_phantom', phantom_pk)
 
 
 @login_and_permission_required('common.configuration')
