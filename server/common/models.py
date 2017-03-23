@@ -3,6 +3,7 @@ from datetime import datetime
 
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import UserManager
 
 from server.django_numpy.fields import NumpyTextField
 from process.dicom_import import dicom_datasets_from_zip
@@ -43,9 +44,15 @@ class Institution(CommonFieldsMixin):
         return "{}".format(self.name)
 
 
-class User(CommonFieldsMixin, AbstractUser):
+class CommonFieldsUserManager(CommonFieldsManager, UserManager):
+    pass
+
+
+class User(AbstractUser, CommonFieldsMixin):
     institution_ht = 'The institution this user is a member of; will be blank for admin users'
     institution = models.ForeignKey(Institution, models.CASCADE, null=True, blank=True, help_text=institution_ht)
+
+    objects = CommonFieldsUserManager()
 
 
 class Fiducials(CommonFieldsMixin):
