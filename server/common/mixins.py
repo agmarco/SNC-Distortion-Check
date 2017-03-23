@@ -6,7 +6,6 @@ class DeletionMixin(object):
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
-        success_url = self.get_success_url()
         self.object.deleted = True
         self.object.save()
-        return HttpResponseRedirect(success_url)
+        return HttpResponseRedirect(self.get_success_url())

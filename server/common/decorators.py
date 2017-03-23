@@ -5,7 +5,7 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 
 
-def validate_institution(model_class=None, pk_url_kwarg='pk'):
+def validate_institution(model_class=None, pk_url_kwarg='pk', get_institution=lambda obj: obj.institution):
     """
     Checks that the user belongs to the same institution as the object.
     If the decoratee is a class, the object is obtained from view.get_object().
@@ -14,18 +14,21 @@ def validate_institution(model_class=None, pk_url_kwarg='pk'):
 
     def decorator(view):
         if inspect.isclass(view):
-            class Inner(view):
-                def dispatch(self, request, *args, **kwargs):
-                    obj = self.get_object()  # assume self.get_object() is implemented
-                    if obj.institution != request.user.institution:
-                        raise PermissionDenied
-                    return super(Inner, self).dispatch(request, *args, **kwargs)
-            return Inner
+            old_dispatch = view.dispatch
+
+            def new_dispatch(instance, request, *args, **kwargs):
+                obj = instance.get_object()  # assume self.get_object() is implemented
+                if get_institution(obj) != request.user.institution:
+                    raise PermissionDenied
+                return old_dispatch(instance, request, *args, **kwargs)
+
+            view.dispatch = new_dispatch
+            return view
 
         else:
             def inner(request, *args, **kwargs):
                 obj = get_object_or_404(model_class, pk=kwargs[pk_url_kwarg])
-                if obj.institution != request.user.institution:
+                if get_institution(obj) != request.user.institution:
                     raise PermissionDenied
                 view(request, *args, **kwargs)
             return inner

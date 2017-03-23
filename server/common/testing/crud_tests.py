@@ -6,16 +6,18 @@ from django.db import models
 from django.contrib.auth.models import Permission
 
 from server.common import factories
-from server.common.models import Phantom, Machine, Sequence
+from server.common.models import Phantom, Machine, Sequence, GoldenFiducials
 
 
 def _test_create_view(user, url, model_class, data):
+    current_count = model_class.objects.count()
+
     client = Client()
     client.force_login(user)
     client.post(url, data=data)
 
-    assert model_class.objects.count() == 1
-    model = model_class.objects.first()
+    assert model_class.objects.count() == current_count + 1
+    model = model_class.objects.all().order_by('-last_modified_on').first()
 
     for field_name in data.keys():
 
@@ -30,12 +32,14 @@ def _test_create_view(user, url, model_class, data):
 
 
 def _test_update_view(user, url, model_class, data):
+    current_count = model_class.objects.count()
+
     client = Client()
     client.force_login(user)
     client.post(url, data=data)
 
-    assert model_class.objects.count() == 1
-    model = model_class.objects.first()
+    assert model_class.objects.count() == current_count
+    model = model_class.objects.all().order_by('-last_modified_on').first()
 
     for field_name in data.keys():
         if isinstance(model._meta.get_field(field_name), models.ForeignKey):
@@ -47,12 +51,14 @@ def _test_update_view(user, url, model_class, data):
 
 
 def _test_delete_view(user, url, model_class):
+    current_count = model_class.objects.count()
+
     client = Client()
     client.force_login(user)
     client.post(url)
 
-    assert model_class.objects.count() == 1
-    model = model_class.objects.first()
+    assert model_class.objects.count() == current_count
+    model = model_class.objects.all().order_by('-last_modified_on').first()
     assert model.deleted
 
     return model
@@ -75,50 +81,67 @@ def test_crud():
         groups=[medical_physicists],
     )
 
+    fiducials_a = factories.FiducialsFactory()
+
     phantom_model = factories.PhantomModelFactory(
         name='CIRS 603A',
         model_number='603A',
+        cad_fiducials=fiducials_a,
     )
 
     client = Client()
     client.force_login(user)
 
-    phantom = _test_create_view(user, reverse('create_phantom'), Phantom, {
+    create_phantom_data = {
         'name': 'Create Phantom',
         'model': str(phantom_model.pk),
         'serial_number': '12345',
-    })
+    }
+    update_phantom_data = {'name': 'Update Phantom'}
 
-    # check that a GoldenFiducials was created
+    phantom = _test_create_view(user, reverse('create_phantom'), Phantom, create_phantom_data)
+
+    # check that a GoldenFiducials was created and activated
     assert phantom.goldenfiducials_set.count() == 1
 
-    # reverse and reverse_lazy both cause circular imports when called with an argument
-    _test_update_view(user, f'/phantoms/{phantom.pk}/edit/', Phantom, {'name': 'Update Phantom'})
+    # test deletion of an inactive GoldenFiducials
+    fiducials_b = factories.FiducialsFactory()
+    golden_fiducials = factories.GoldenFiducialsFactory(
+        phantom=phantom,
+        fiducials=fiducials_b,
+        type=GoldenFiducials.RAW,
+        is_active=False,
+    )
+    _test_delete_view(user, f'/phantoms/{phantom.pk}/gold-standards/{golden_fiducials.pk}/delete/', GoldenFiducials)
 
+    # reverse and reverse_lazy both cause circular imports when called with an argument
+    _test_update_view(user, f'/phantoms/{phantom.pk}/edit/', Phantom, update_phantom_data)
     _test_delete_view(user, f'/phantoms/{phantom.pk}/delete/', Phantom)
 
-    machine = _test_create_view(user, reverse('create_machine'), Machine, {
+    create_machine_data = {
         'name': 'Create Machine',
         'model': 'Create Model',
         'manufacturer': 'Create Manufacturer',
-    })
-
-    _test_update_view(user, f'/machines/{machine.pk}/edit/', Machine, {
+    }
+    update_machine_data = {
         'name': 'Update Machine',
         'model': 'Update Model',
         'manufacturer': 'Update Manufacturer',
-    })
+    }
 
+    machine = _test_create_view(user, reverse('create_machine'), Machine, create_machine_data)
+    _test_update_view(user, f'/machines/{machine.pk}/edit/', Machine, update_machine_data)
     _test_delete_view(user, f'/machines/{machine.pk}/delete/', Machine)
 
-    sequence = _test_create_view(user, reverse('create_sequence'), Sequence, {
+    create_sequence_data = {
         'name': 'Create Sequence',
         'instructions': 'Create Instructions',
-    })
-
-    _test_update_view(user, f'/sequences/{sequence.pk}/edit/', Sequence, {
+    }
+    update_sequence_data = {
         'name': 'Update Sequence',
         'instructions': 'Update Instructions',
-    })
+    }
 
+    sequence = _test_create_view(user, reverse('create_sequence'), Sequence, create_sequence_data)
+    _test_update_view(user, f'/sequences/{sequence.pk}/edit/', Sequence, update_sequence_data)
     _test_delete_view(user, f'/sequences/{sequence.pk}/delete/', Sequence)

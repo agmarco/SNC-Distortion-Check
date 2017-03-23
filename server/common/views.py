@@ -159,7 +159,7 @@ class GoldenFiducialsRawUpload(FormView):
 
 
 @method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
-@validate_institution()
+@validate_institution(get_institution=lambda obj: obj.phantom.institution)
 class DeleteGoldenFiducials(DeletionMixin, DeleteView):
     model = GoldenFiducials
 
@@ -170,11 +170,11 @@ class DeleteGoldenFiducials(DeletionMixin, DeleteView):
         return super(DeleteGoldenFiducials, self).delete(request, *args, **kwargs)
 
     def get_success_url(self):
-        return reverse('update_phantom', self.kwargs['phantom_pk'])
+        return reverse('update_phantom', args=(str(self.kwargs['phantom_pk']),))
 
 
 @login_and_permission_required('common.configuration')
-@validate_institution(model_class=GoldenFiducials)
+@validate_institution(model_class=GoldenFiducials, get_institution=lambda obj: obj.phantom.institution)
 def activate_golden_fiducials(request, phantom_pk=None, pk=None):
     golden_fiducials = get_object_or_404(GoldenFiducials, pk=pk)
     golden_fiducials.activate()
@@ -187,10 +187,10 @@ def create_user(request):
 
 
 @login_and_permission_required('common.configuration')
-def update_user(request, user=None):
+def update_user(request, pk=None):
     return render(request, 'common/user_update.html')
 
 
 @login_and_permission_required('common.configuration')
-def delete_user(request, user=None):
+def delete_user(request, pk=None):
     return redirect('configuration')
