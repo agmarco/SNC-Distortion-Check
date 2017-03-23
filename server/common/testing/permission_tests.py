@@ -67,7 +67,7 @@ def test_medical_phycisist_permissions():
 
 
 @pytest.mark.django_db
-def test_medical_phycisist_permissions():
+def test_therapist_permissions():
 
     # populate database
     therapists = factories.GroupFactory.create(name='Therapist')
