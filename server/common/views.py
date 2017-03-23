@@ -1,12 +1,28 @@
 import logging
 
-from django.shortcuts import render
+from django.core.exceptions import PermissionDenied
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse_lazy
 
-from .models import Scan
+from .models import Scan, Phantom, Machine, Sequence, GoldenFiducials
 from .tasks import process_scan
-from .forms import UploadScanForm
+from .forms import UploadScanForm, UploadCTForm, UploadRawForm
+from .decorators import validate_institution, login_and_permission_required
 
 logger = logging.getLogger(__name__)
+
+
+class CirsDeleteView(DeleteView):
+    """A view providing the ability to delete objects by setting their 'deleted' attribute."""
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.deleted = True
+        self.object.save()
+        return HttpResponseRedirect(self.get_success_url())
 
 
 def upload_file(request):
@@ -31,12 +47,164 @@ def upload_file(request):
 
     scans = Scan.objects.all()
 
-    return render(request, 'scan_upload.html', {
+    return render(request, 'common/scan_upload.html', {
         'form': form,
         'message': message,
         'scans': scans,
     })
 
 
+@login_and_permission_required('common.configuration')
 def configuration(request):
-    return render(request, 'configuration.html', {})
+    institution = request.user.institution
+    return render(request, 'common/configuration.html', {
+        'phantoms': institution.phantom_set.active(),
+        'machines': institution.machine_set.active(),
+        'sequences': institution.sequence_set.active(),
+        'users': institution.user_set.active(),
+    })
+
+
+@login_and_permission_required('common.configuration')
+class CreatePhantom(CreateView):
+    model = Phantom
+    fields = ('name', 'model', 'serial_number')
+    success_url = reverse_lazy('configuration')
+    template_name_suffix = '_create'
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.institution = self.request.user.institution
+        self.object.save()
+        return super(ModelFormMixin, self).form_valid(form)
+
+
+@login_and_permission_required('common.configuration')
+@validate_institution()
+class UpdatePhantom(UpdateView):
+    model = Phantom
+    fields = ('name',)
+    success_url = reverse_lazy('configuration')
+    template_name_suffix = '_update'
+
+
+@login_and_permission_required('common.configuration')
+@validate_institution()
+class DeletePhantom(CirsDeleteView):
+    model = Phantom
+    success_url = reverse_lazy('configuration')
+
+
+@login_and_permission_required('common.configuration')
+class CreateMachine(CreateView):
+    model = Machine
+    fields = ('name', 'model', 'manufacturer')
+    success_url = reverse_lazy('configuration')
+    template_name_suffix = '_create'
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.institution = self.request.user.institution
+        self.object.save()
+        return super(ModelFormMixin, self).form_valid(form)
+
+
+@login_and_permission_required('common.configuration')
+@validate_institution()
+class UpdateMachine(UpdateView):
+    model = Machine
+    fields = ('name', 'model', 'manufacturer')
+    success_url = reverse_lazy('configuration')
+    template_name_suffix = '_update'
+
+
+@login_and_permission_required('common.configuration')
+@validate_institution()
+class DeleteMachine(CirsDeleteView):
+    model = Machine
+    success_url = reverse_lazy('configuration')
+
+
+@login_and_permission_required('common.configuration')
+class CreateSequence(CreateView):
+    model = Sequence
+    fields = ('name', 'instructions')
+    success_url = reverse_lazy('configuration')
+    template_name_suffix = '_create'
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.institution = self.request.user.institution
+        self.object.save()
+        return super(ModelFormMixin, self).form_valid(form)
+
+
+@login_and_permission_required('common.configuration')
+@validate_institution()
+class UpdateSequence(UpdateView):
+    model = Sequence
+    fields = ('name', 'instructions')
+    success_url = reverse_lazy('configuration')
+    template_name_suffix = '_update'
+
+
+@login_and_permission_required('common.configuration')
+@validate_institution()
+class DeleteSequence(CirsDeleteView):
+    model = Sequence
+    success_url = reverse_lazy('configuration')
+
+
+@login_and_permission_required('common.configuration')
+class GoldenFiducialsCTUpload(FormView):
+    form_class = UploadCTForm
+    template_name = 'common/upload_ct.html'
+
+
+@login_and_permission_required('common.configuration')
+class GoldenFiducialsRawUpload(FormView):
+    form_class = UploadRawForm
+    template_name = 'common/upload_raw.html'
+
+
+@login_and_permission_required('common.configuration')
+@validate_institution(get_institution=lambda obj: obj.phantom.institution)
+class DeleteGoldenFiducials(CirsDeleteView):
+    model = GoldenFiducials
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.object.type == GoldenFiducials.CAD or self.object.is_active:
+            raise PermissionDenied
+        return super(DeleteGoldenFiducials, self).delete(request, *args, **kwargs)
+
+    def get_success_url(self):
+        return reverse('update_phantom', args=(self.kwargs['phantom_pk'],))
+
+    def get_context_data(self, **kwargs):
+        context = super(DeleteGoldenFiducials, self).get_context_data(**kwargs)
+        context.update({'phantom_pk': self.kwargs['phantom_pk']})
+        return context
+
+
+@login_and_permission_required('common.configuration')
+@validate_institution(model_class=GoldenFiducials, get_institution=lambda obj: obj.phantom.institution)
+def activate_golden_fiducials(request, phantom_pk=None, pk=None):
+    golden_fiducials = get_object_or_404(GoldenFiducials, pk=pk)
+    golden_fiducials.activate()
+    return redirect('update_phantom', phantom_pk)
+
+
+@login_and_permission_required('common.configuration')
+def create_user(request):
+    return render(request, 'common/user_create.html')
+
+
+@login_and_permission_required('common.configuration')
+def update_user(request, pk=None):
+    return render(request, 'common/user_update.html')
+
+
+@login_and_permission_required('common.configuration')
+def delete_user(request, pk=None):
+    return redirect('configuration')

@@ -13,10 +13,11 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
+from django.conf import settings
 from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from server.common.views import upload_file, configuration
+from server.common import views
 
 admin.site.site_header = 'CIRS Distortion Check Admin'
 
@@ -24,6 +25,34 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^login/$', auth_views.login, name='login'),
     url(r'^logout/$', auth_views.logout, name='logout'),
-    url(r'^configuration/$', configuration, name='configuration'),
-    url(r'^$', upload_file),
+    url(r'^configuration/$', views.configuration, name='configuration'),
+
+    url(r'^phantoms/add/$', views.CreatePhantom.as_view(), name='create_phantom'),
+    url(r'^phantoms/(?P<pk>\d+)/edit/$', views.UpdatePhantom.as_view(), name='update_phantom'),
+    url(r'^phantoms/(?P<pk>\d+)/delete/$', views.DeletePhantom.as_view(), name='delete_phantom'),
+    url(r'^phantoms/(?P<pk>\d+)/gold-standards/upload-ct/$', views.GoldenFiducialsCTUpload.as_view(), name='upload_ct'),
+    url(r'^phantoms/(?P<pk>\d+)/gold-standards/upload-raw/$', views.GoldenFiducialsRawUpload.as_view(), name='upload_raw'),
+    url(r'^phantoms/(?P<phantom_pk>\d+)/gold-standards/(?P<pk>\d+)/delete/$', views.DeleteGoldenFiducials.as_view(), name='delete_golden_fiducials'),
+    url(r'^phantoms/(?P<phantom_pk>\d+)/gold-standards/(?P<pk>\d+)/activate/$', views.activate_golden_fiducials, name='activate_golden_fiducials'),
+
+    url(r'^machines/add/$', views.CreateMachine.as_view(), name='create_machine'),
+    url(r'^machines/(?P<pk>\d+)/edit/$', views.UpdateMachine.as_view(), name='update_machine'),
+    url(r'^machines/(?P<pk>\d+)/delete/$', views.DeleteMachine.as_view(), name='delete_machine'),
+
+    url(r'^sequences/add/$', views.CreateSequence.as_view(), name='create_sequence'),
+    url(r'^sequences/(?P<pk>\d+)/edit/$', views.UpdateSequence.as_view(), name='update_sequence'),
+    url(r'^sequences/(?P<pk>\d+)/delete/$', views.DeleteSequence.as_view(), name='delete_sequence'),
+
+    url(r'^users/add/$', views.create_user, name='create_user'),
+    url(r'^users/(?P<pk>\d+)/edit/$', views.update_user, name='update_user'),
+    url(r'^users/(?P<pk>\d+)/delete/$', views.delete_user, name='delete_user'),
+
+    url(r'^$', views.upload_file),
 ]
+
+if settings.DEBUG:
+    from django.conf.urls.static import static
+    from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+
+    urlpatterns += staticfiles_urlpatterns()
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

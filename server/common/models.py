@@ -1,7 +1,25 @@
+import zipfile
+from datetime import datetime
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import UserManager
 
 from server.django_numpy.fields import NumpyTextField
+from process.dicom_import import dicom_datasets_from_zip
+
+
+class CommonFieldsSet(models.QuerySet):
+    def active(self):
+        return self.filter(deleted=False)
+
+
+class CommonFieldsManager(models.Manager):
+    def get_queryset(self):
+        return CommonFieldsSet(self.model, using=self._db)
+
+    def active(self):
+        return self.get_queryset().active()
 
 
 class CommonFieldsMixin(models.Model):
@@ -9,6 +27,8 @@ class CommonFieldsMixin(models.Model):
     deleted = models.BooleanField(default=False, help_text=deleted_ht)
     created_on = models.DateTimeField(auto_now_add=True)
     last_modified_on = models.DateTimeField(auto_now=True)
+
+    objects = CommonFieldsManager()
 
     class Meta:
         abstract = True
@@ -24,29 +44,56 @@ class Institution(CommonFieldsMixin):
         return "{}".format(self.name)
 
 
+class CommonFieldsUserManager(CommonFieldsManager, UserManager):
+    pass
+
+
 class User(AbstractUser, CommonFieldsMixin):
     institution_ht = 'The institution this user is a member of; will be blank for admin users'
     institution = models.ForeignKey(Institution, models.CASCADE, null=True, blank=True, help_text=institution_ht)
 
+    objects = CommonFieldsUserManager()
+
+
+class Fiducials(CommonFieldsMixin):
+    #fiducials = NumpyTextField(upload_to='fiducials/fiducials')
+    fiducials = NumpyTextField()
+
+    def __str__(self):
+        return "Fiducials {}".format(self.id)
+
+    class Meta:
+        verbose_name = 'Fiducials'
+        verbose_name_plural = 'Fiducials'
+
+
+class PhantomModel(CommonFieldsMixin):
+    name_ht = 'This is how the phantom model will be identified within the UI'
+    name = models.CharField(max_length=255, help_text=name_ht)
+    model_number_ht = 'The model number (e.g. 603A)'
+    model_number = models.CharField(max_length=255, help_text=model_number_ht)
+    cad_fiducials_ht = 'The hard-coded gold standard points for the phantom model'
+    cad_fiducials = models.ForeignKey(Fiducials, models.CASCADE, help_text=cad_fiducials_ht)
+
+    def __str__(self):
+        return self.name
+
 
 class Phantom(CommonFieldsMixin):
-    CIRS_603A = 'CIRS_603A'
-    CIRS_604 = 'CIRS_604'
-    MODEL_CHOICES = (
-        (CIRS_603A, '603A'),
-        (CIRS_604, '604'),
-    )
-
     name_ht = 'This is how the phantom will be identified within the UI'
     name = models.CharField(max_length=255, help_text=name_ht)
     institution = models.ForeignKey(Institution, models.CASCADE)
     model_ht = 'The model of phantom (e.g. the CIRS 603A head phantom)'
-    model = models.CharField(max_length=255, choices=MODEL_CHOICES, help_text=model_ht)
+    model = models.ForeignKey(PhantomModel, models.CASCADE, help_text=model_ht)
     serial_number_ht = 'The Phantom\'s serial number'
     serial_number = models.CharField(max_length=255, help_text=serial_number_ht)
 
     def __str__(self):
         return "Phantom {} {} {}".format(self.institution, self.model, self.name)
+
+    @property
+    def gold_standard(self):
+        return self.goldenfiducials_set.get(is_active=True)
 
 
 class Machine(CommonFieldsMixin):
@@ -94,33 +141,51 @@ class DicomSeries(CommonFieldsMixin):
     shape = NumpyTextField()
     series_uid_ht = 'The DICOM Series Instance UID, which should uniquely identify a scan'
     series_uid = models.CharField(max_length=64, verbose_name='Series Instance UID', help_text=series_uid_ht)
+    acquisition_date_ht = 'The DICOM Series Instance Acquisition Date'
+    acquisition_date = models.DateField(help_text=acquisition_date_ht)
 
     def __str__(self):
-        return "Dicom Series {}".format(self.series_uid)
+        return "DICOM Series {}".format(self.series_uid)
 
     class Meta:
         verbose_name = 'DICOM Series'
         verbose_name_plural = 'DICOM Series'
 
-class Fiducials(CommonFieldsMixin):
-    #fiducials = NumpyTextField(upload_to='fiducials/fiducials')
-    fiducials = NumpyTextField()
-
-    def __str__(self):
-        return "Fiducials {}".format(self.id)
-
-    class Meta:
-        verbose_name = 'Fiducials'
-        verbose_name_plural = 'Fiducials'
-
 
 class GoldenFiducials(CommonFieldsMixin):
+    CAD = 'CAD'
+    CT = 'CT'
+    RAW = 'RAW'
+    TYPE_CHOICES = (
+        (CAD, 'CAD Model'),
+        (CT, 'CT Scan'),
+        (RAW, 'Raw Points'),
+    )
+
     phantom = models.ForeignKey(Phantom, models.CASCADE)
+    is_active = models.BooleanField()
     dicom_series = models.ForeignKey(DicomSeries, models.CASCADE, null=True)
     fiducials = models.ForeignKey(Fiducials, models.CASCADE)
+    type_ht = 'The source type for the golden fiducials  (e.g. CT Scan or CAD Model).'
+    type = models.CharField(max_length=3, choices=TYPE_CHOICES, help_text=type_ht)
 
     def __str__(self):
         return "Golden Fiducials {}".format(self.id)
+
+    def activate(self):
+        current_gold_standard = self.phantom.gold_standard
+        current_gold_standard.is_active = False
+        current_gold_standard.save()
+
+        self.is_active = True
+        self.save()
+
+    @property
+    def source_summary(self):
+        if self.type == GoldenFiducials.CT:
+            return f"{self.get_type_display()} Taken on {self.dicom_series.acquisition_date.strftime('%d %B %Y')}"
+        else:
+            return self.get_type_display()
 
     class Meta:
         verbose_name = 'Golden Fiducials'
@@ -142,3 +207,12 @@ class Scan(CommonFieldsMixin):
 
     def __str__(self):
         return "Scan {}".format(self.id)
+
+
+# This table creates permissions that are not associated with a model.
+class Global(models.Model):
+    class Meta:
+        managed = False
+        permissions = (
+            ('configuration', 'Configuration'),
+        )

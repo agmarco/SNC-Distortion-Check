@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block "content" %}
+  <h1>Configuration</h1>
+
+  <h2>Phantoms</h2>
+  <a href="{% url 'create_phantom' %}">Add Phantom</a>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Model Number</th>
+        <th>Serial Number</th>
+        <th>Gold Standard Grid Intersection Locations</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for phantom in phantoms %}
+        <tr>
+          <td>{{ phantom.name }}</td>
+          <td>{{ phantom.model }}</td>
+          <td>{{ phantom.serial_number }}</td>
+          <td>{{ phantom.gold_standard.source_summary }}</td>
+          <td>
+            <a href="{% url 'update_phantom' phantom.pk %}">Edit</a>
+            <a href="{% url 'delete_phantom' phantom.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>MRI Scanners</h2>
+  <a href="{% url 'create_machine' %}">Add Machine</a>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Model</th>
+        <th>Vendor</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for machine in machines %}
+        <tr>
+          <td>{{ machine.name }}</td>
+          <td>{{ machine.model }}</td>
+          <td>{{ machine.manufacturer }}</td>
+          <td>
+            <a href="{% url 'update_machine' machine.pk %}">Edit</a>
+            <a href="{% url 'delete_machine' machine.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>MRI Sequences</h2>
+  <a href="{% url 'create_sequence' %}">Add Sequence</a>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Instructions</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sequence in sequences %}
+        <tr>
+          <td>{{ sequence.name }}</td>
+          <td>{{ sequence.instructions }}</td>
+          <td>
+            <a href="{% url 'update_sequence' sequence.pk %}">Edit</a>
+            <a href="{% url 'delete_sequence' sequence.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Users</h2>
+  <a href="{% url 'create_user' %}">Add User</a>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>User Type</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+        <tr>
+          <td>{{ user.get_full_name }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.groups.all|join:", " }}</td>
+          <td>
+            <a href="{% url 'update_user' user.pk %}">Edit</a>
+            <a href="{% url 'delete_user' user.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
+
+{% block "scripts" %}
+  <script src="{% static 'fontawesome.js' %}"></script>
+{% endblock %}

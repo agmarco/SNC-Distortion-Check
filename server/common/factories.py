@@ -1,13 +1,11 @@
 import factory
 
-from .models import Phantom
-
 
 class InstitutionFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.Institution"
 
-    name = "John Hopkins"
+    name = "Johns Hopkins"
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -57,12 +55,24 @@ class MachineFactory(factory.django.DjangoModelFactory):
     institution = factory.SubFactory(InstitutionFactory)
 
 
+class FiducialsFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "common.Fiducials"
+
+
+class PhantomModelFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "common.PhantomModel"
+
+    cad_fiducials = factory.SubFactory(FiducialsFactory)
+
+
 class PhantomFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.Phantom"
 
     name = factory.Sequence("Machine {0}".format)
-    model = Phantom.CIRS_603A
+    model = factory.SubFactory(PhantomModelFactory)
     institution = factory.SubFactory(InstitutionFactory)
     serial_number = factory.Sequence("Serial Number {0}".format)
 
@@ -83,3 +93,16 @@ class MachineSequencePairFactory(factory.django.DjangoModelFactory):
     machine = factory.SubFactory(MachineFactory)
     sequence = factory.SubFactory(SequenceFactory)
     tolerance = 3.5
+
+
+class DicomSeriesFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "common.DicomSeries"
+
+
+class GoldenFiducialsFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "common.GoldenFiducials"
+
+    phantom = factory.SubFactory(PhantomFactory)
+    fiducials = factory.SubFactory(FiducialsFactory)

@@ -1,17 +1,28 @@
-from django.core.management.base import BaseCommand, CommandError
+import os
+import zipfile
+from datetime import datetime
 
-from server.common.factories import UserFactory, GroupFactory, InstitutionFactory, PhantomFactory, SequenceFactory, MachineSequencePairFactory, MachineFactory
-from server.common.models import Phantom
+from django.contrib.auth.models import Permission
+from django.core.management.base import BaseCommand
+from django.core.files import File
+from django.conf import settings
+
+from process import dicom_import
+from server.common import factories
+from server.common.models import GoldenFiducials
 
 
 class Command(BaseCommand):
     help = 'Load some test data into the database.'
 
     def handle(self, *args, **options):
-        medical_physicists = GroupFactory.create(name='medical_physicists')
-        therapists = GroupFactory.create(name='therapists')
+        configuration_permission = Permission.objects.get(codename='configuration')
 
-        admin = UserFactory.create(
+        medical_physicists = factories.GroupFactory.create(name='Medical Physicist')
+        medical_physicists.permissions.add(configuration_permission)
+        therapists = factories.GroupFactory.create(name='Therapist')
+
+        admin = factories.UserFactory.create(
             username="admin",
             email="admin@cirs.com",
             first_name="admin",
@@ -20,65 +31,109 @@ class Command(BaseCommand):
             is_superuser=True
         )
 
-        john_hopkins = InstitutionFactory.create(name='John Hopkins')
+        johns_hopkins = factories.InstitutionFactory.create(name='Johns Hopkins')
 
-        medical_physicist = UserFactory.create(
+        medical_physicist = factories.UserFactory.create(
             username="medical_physicist",
             first_name="Mary",
             last_name="Jane",
             email="mary.jane@johnhopkins.edu",
-            institution=john_hopkins,
+            institution=johns_hopkins,
             groups=[medical_physicists],
         )
 
-        therapist = UserFactory.create(
+        therapist = factories.UserFactory.create(
             username="therapist",
             first_name="John",
             last_name="Doe",
             email="john.doe@johnhopkins.edu",
-            institution=john_hopkins,
+            institution=johns_hopkins,
             groups=[therapists],
         )
 
-        machine_a = MachineFactory.create(
+        machine_a = factories.MachineFactory.create(
             name='MRI Scanner East',
-            institution=john_hopkins,
+            institution=johns_hopkins,
         )
-        machine_b = MachineFactory.create(
+        machine_b = factories.MachineFactory.create(
             name='MRI Scanner West',
-            institution=john_hopkins,
+            institution=johns_hopkins,
         )
 
-        phantom_a = PhantomFactory(
+        fiducials_a = factories.FiducialsFactory()
+        fiducials_b = factories.FiducialsFactory()
+        fiducials_c = factories.FiducialsFactory()
+        fiducials_d = factories.FiducialsFactory()
+
+        phantom_model_a = factories.PhantomModelFactory(
+            name='CIRS 603A',
+            model_number='603A',
+            cad_fiducials=fiducials_a,
+        )
+        phantom_model_b = factories.PhantomModelFactory(
+            name='CIRS 604',
+            model_number='604',
+            cad_fiducials=fiducials_b,
+        )
+
+        phantom_a = factories.PhantomFactory(
             name='Head Phantom 1',
-            model=Phantom.CIRS_603A,
-            institution=john_hopkins,
+            model=phantom_model_a,
+            institution=johns_hopkins,
         )
-        phantom_b = PhantomFactory(
+        phantom_b = factories.PhantomFactory(
             name='Head Phantom 2',
-            model=Phantom.CIRS_603A,
-            institution=john_hopkins,
+            model=phantom_model_a,
+            institution=johns_hopkins,
         )
-        phantom_c = PhantomFactory(
+        phantom_c = factories.PhantomFactory(
             name='Body Phantom',
-            model=Phantom.CIRS_604,
-            institution=john_hopkins,
+            model=phantom_model_b,
+            institution=johns_hopkins,
         )
 
-        sequence_a = SequenceFactory(
+        dicom_filename = 'data/dicom/001_ct_603A_E3148_ST1.25.zip'
+        with zipfile.ZipFile(dicom_filename, 'r') as zip_file:
+            datasets = dicom_import.dicom_datasets_from_zip(zip_file)
+        voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
+        dicom_series = factories.DicomSeriesFactory(
+            voxels=voxels,
+            ijk_to_xyz=ijk_to_xyz,
+            shape=voxels.shape,
+            series_uid=datasets[0].SeriesInstanceUID,
+            acquisition_date=datetime.strptime(datasets[0].AcquisitionDate, '%Y%m%d'),
+        )
+        with open(os.path.join(settings.BASE_DIR, dicom_filename), 'rb') as dicom_file:
+            dicom_series.zipped_dicom_files.save(f'dicom_series_{dicom_series.pk}.zip', File(dicom_file))
+
+        golden_fiducials_a = factories.GoldenFiducialsFactory(
+            phantom=phantom_a,
+            fiducials=fiducials_c,
+            dicom_series=dicom_series,
+            type=GoldenFiducials.CT,
+            is_active=False,
+        )
+        golden_fiducials_b = factories.GoldenFiducialsFactory(
+            phantom=phantom_a,
+            fiducials=fiducials_d,
+            type=GoldenFiducials.RAW,
+            is_active=False,
+        )
+
+        sequence_a = factories.SequenceFactory(
             name="T1-Weighted Abdominal",
-            institution=john_hopkins,
+            institution=johns_hopkins,
         )
-        sequence_b = SequenceFactory(
+        sequence_b = factories.SequenceFactory(
             name="T1-Weighted Neural",
-            institution=john_hopkins,
+            institution=johns_hopkins,
         )
-        sequence_c = SequenceFactory(
+        sequence_c = factories.SequenceFactory(
             name="T2-Weighted Neural",
-            institution=john_hopkins,
+            institution=johns_hopkins,
         )
 
-        machine_sequence_pair = MachineSequencePairFactory(
+        machine_sequence_pair = factories.MachineSequencePairFactory(
             sequence=sequence_a,
             machine=machine_a,
         )
