@@ -1,4 +1,5 @@
 import inspect
+from functools import wraps
 
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import PermissionDenied
@@ -9,7 +10,8 @@ from django.utils.decorators import method_decorator
 def validate_institution(model_class=None, pk_url_kwarg='pk', get_institution=lambda obj: obj.institution):
     """
     Checks that the user belongs to the same institution as the object.
-    If the decoratee is a class, the object is obtained from view.get_object().
+    If the decoratee is a class, the object is obtained using the specified model_class and pk_url_kwarg if they are
+    provided, or view.get_object() otherwise.
     If decoratee is a function, the object is obtained using the specified model_class and pk_url_kwarg.
     """
 
@@ -18,7 +20,12 @@ def validate_institution(model_class=None, pk_url_kwarg='pk', get_institution=la
             old_dispatch = view.dispatch
 
             def new_dispatch(instance, request, *args, **kwargs):
-                obj = instance.get_object()  # assume self.get_object() is implemented
+                if model_class:
+                    obj = get_object_or_404(model_class, pk=kwargs[pk_url_kwarg])
+                elif callable(getattr(instance, 'get_object', None)):
+                    obj = instance.get_object()
+                else:
+                    raise Exception("You must either specify the model_class, or implement the get_object method.")
                 if get_institution(obj) != request.user.institution:
                     raise PermissionDenied
                 return old_dispatch(instance, request, *args, **kwargs)
@@ -27,12 +34,13 @@ def validate_institution(model_class=None, pk_url_kwarg='pk', get_institution=la
             return view
 
         else:
-            def inner(request, *args, **kwargs):
+            @wraps(view)
+            def wrapper(request, *args, **kwargs):
                 obj = get_object_or_404(model_class, pk=kwargs[pk_url_kwarg])
                 if get_institution(obj) != request.user.institution:
                     raise PermissionDenied
                 return view(request, *args, **kwargs)
-            return inner
+            return wrapper
     return decorator
 
 

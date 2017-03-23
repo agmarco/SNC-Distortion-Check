@@ -1,8 +1,8 @@
 import logging
 
 from django.core.exceptions import PermissionDenied
+from django.http import HttpResponseRedirect
 from django.urls import reverse
-from django.utils.decorators import method_decorator
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
@@ -11,9 +11,18 @@ from .models import Scan, Phantom, Machine, Sequence, GoldenFiducials
 from .tasks import process_scan
 from .forms import UploadScanForm, UploadCTForm, UploadRawForm
 from .decorators import validate_institution, login_and_permission_required
-from .mixins import DeletionMixin
 
 logger = logging.getLogger(__name__)
+
+
+class CirsDeleteView(DeleteView):
+    """A view providing the ability to delete objects by setting their 'deleted' attribute."""
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.deleted = True
+        self.object.save()
+        return HttpResponseRedirect(self.get_success_url())
 
 
 def upload_file(request):
@@ -81,7 +90,7 @@ class UpdatePhantom(UpdateView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class DeletePhantom(DeletionMixin, DeleteView):
+class DeletePhantom(CirsDeleteView):
     model = Phantom
     success_url = reverse_lazy('configuration')
 
@@ -111,7 +120,7 @@ class UpdateMachine(UpdateView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class DeleteMachine(DeletionMixin, DeleteView):
+class DeleteMachine(CirsDeleteView):
     model = Machine
     success_url = reverse_lazy('configuration')
 
@@ -141,7 +150,7 @@ class UpdateSequence(UpdateView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class DeleteSequence(DeletionMixin, DeleteView):
+class DeleteSequence(CirsDeleteView):
     model = Sequence
     success_url = reverse_lazy('configuration')
 
@@ -160,7 +169,7 @@ class GoldenFiducialsRawUpload(FormView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution(get_institution=lambda obj: obj.phantom.institution)
-class DeleteGoldenFiducials(DeletionMixin, DeleteView):
+class DeleteGoldenFiducials(CirsDeleteView):
     model = GoldenFiducials
 
     def delete(self, request, *args, **kwargs):

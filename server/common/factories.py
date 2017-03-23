@@ -106,4 +106,3 @@ class GoldenFiducialsFactory(factory.django.DjangoModelFactory):
 
     phantom = factory.SubFactory(PhantomFactory)
     fiducials = factory.SubFactory(FiducialsFactory)
-    dicom_series = factory.SubFactory(DicomSeriesFactory)

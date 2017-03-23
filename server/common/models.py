@@ -141,6 +141,8 @@ class DicomSeries(CommonFieldsMixin):
     shape = NumpyTextField()
     series_uid_ht = 'The DICOM Series Instance UID, which should uniquely identify a scan'
     series_uid = models.CharField(max_length=64, verbose_name='Series Instance UID', help_text=series_uid_ht)
+    acquisition_date_ht = 'The DICOM Series Instance Acquisition Date'
+    acquisition_date = models.DateField(help_text=acquisition_date_ht)
 
     def __str__(self):
         return "DICOM Series {}".format(self.series_uid)
@@ -179,19 +181,9 @@ class GoldenFiducials(CommonFieldsMixin):
         self.save()
 
     @property
-    def acquisition_date(self):
-        if not self.type == GoldenFiducials.CT:
-            raise AttributeError
-
-        dicom_archive = self.dicom_series.zipped_dicom_files
-        with zipfile.ZipFile(dicom_archive, 'r') as f:
-            dicom_datasets = dicom_datasets_from_zip(f)
-        return datetime.strptime(dicom_datasets[0].AcquisitionDate, '%Y%m%d')
-
-    @property
     def source_summary(self):
         if self.type == GoldenFiducials.CT:
-            return f"{self.get_type_display()} Taken on {self.acquisition_date.strftime('%d %B %Y')}"
+            return f"{self.get_type_display()} Taken on {self.dicom_series.acquisition_date.strftime('%d %B %Y')}"
         else:
             return self.get_type_display()
 

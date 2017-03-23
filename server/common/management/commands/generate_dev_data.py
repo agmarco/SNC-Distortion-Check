@@ -1,10 +1,13 @@
 import os
+import zipfile
+from datetime import datetime
 
 from django.contrib.auth.models import Permission
 from django.core.management.base import BaseCommand
 from django.core.files import File
 from django.conf import settings
 
+from process import dicom_import
 from server.common import factories
 from server.common.models import GoldenFiducials
 
@@ -89,10 +92,19 @@ class Command(BaseCommand):
             institution=johns_hopkins,
         )
 
-        dicom_series = factories.DicomSeriesFactory()
-        with open(os.path.join(settings.BASE_DIR, 'data/dicom/001_ct_603A_E3148_ST1.25.zip'), 'rb') as dicom_file:
+        dicom_filename = 'data/dicom/001_ct_603A_E3148_ST1.25.zip'
+        with zipfile.ZipFile(dicom_filename, 'r') as zip_file:
+            datasets = dicom_import.dicom_datasets_from_zip(zip_file)
+        voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
+        dicom_series = factories.DicomSeriesFactory(
+            voxels=voxels,
+            ijk_to_xyz=ijk_to_xyz,
+            shape=voxels.shape,
+            series_uid=datasets[0].SeriesInstanceUID,
+            acquisition_date=datetime.strptime(datasets[0].AcquisitionDate, '%Y%m%d'),
+        )
+        with open(os.path.join(settings.BASE_DIR, dicom_filename), 'rb') as dicom_file:
             dicom_series.zipped_dicom_files.save(f'dicom_series_{dicom_series.pk}.zip', File(dicom_file))
-            dicom_series.save()
 
         golden_fiducials_a = factories.GoldenFiducialsFactory(
             phantom=phantom_a,

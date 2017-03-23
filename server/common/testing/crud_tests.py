@@ -9,6 +9,16 @@ from server.common import factories
 from server.common.models import Phantom, Machine, Sequence, GoldenFiducials
 
 
+def _validate_fields(model, data):
+    for field_name in data.keys():
+
+        # if the field is a foreign key, check that the primary key equals the POST data
+        if isinstance(model._meta.get_field(field_name), models.ForeignKey):
+            assert getattr(model, field_name).pk == int(data[field_name])
+        else:
+            assert getattr(model, field_name) == data[field_name]
+
+
 def _test_create_view(user, url, model_class, data):
     current_count = model_class.objects.count()
 
@@ -18,14 +28,7 @@ def _test_create_view(user, url, model_class, data):
 
     assert model_class.objects.count() == current_count + 1
     model = model_class.objects.all().order_by('-last_modified_on').first()
-
-    for field_name in data.keys():
-
-        # if the field is a foreign key, check that the primary key equals the POST data
-        if isinstance(model._meta.get_field(field_name), models.ForeignKey):
-            assert getattr(model, field_name).pk == int(data[field_name])
-        else:
-            assert getattr(model, field_name) == data[field_name]
+    _validate_fields(model, data)
     assert model.institution == user.institution
 
     return model
@@ -40,12 +43,7 @@ def _test_update_view(user, url, model_class, data):
 
     assert model_class.objects.count() == current_count
     model = model_class.objects.all().order_by('-last_modified_on').first()
-
-    for field_name in data.keys():
-        if isinstance(model._meta.get_field(field_name), models.ForeignKey):
-            assert getattr(model, field_name).pk == int(data[field_name])
-        else:
-            assert getattr(model, field_name) == data[field_name]
+    _validate_fields(model, data)
 
     return model
 
