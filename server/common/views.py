@@ -1,7 +1,6 @@
 import logging
 
 from django.core.exceptions import PermissionDenied
-from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
 from django.shortcuts import render, redirect, get_object_or_404
@@ -56,7 +55,7 @@ def configuration(request):
     })
 
 
-@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
+@login_and_permission_required('common.configuration')
 class CreatePhantom(CreateView):
     model = Phantom
     fields = ('name', 'model', 'serial_number')
@@ -70,7 +69,7 @@ class CreatePhantom(CreateView):
         return super(ModelFormMixin, self).form_valid(form)
 
 
-@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
+@login_and_permission_required('common.configuration')
 @validate_institution()
 class UpdatePhantom(UpdateView):
     model = Phantom
@@ -79,14 +78,14 @@ class UpdatePhantom(UpdateView):
     template_name_suffix = '_update'
 
 
-@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
+@login_and_permission_required('common.configuration')
 @validate_institution()
 class DeletePhantom(DeletionMixin, DeleteView):
     model = Phantom
     success_url = reverse_lazy('configuration')
 
 
-@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
+@login_and_permission_required('common.configuration')
 class CreateMachine(CreateView):
     model = Machine
     fields = ('name', 'model', 'manufacturer')
@@ -100,7 +99,7 @@ class CreateMachine(CreateView):
         return super(ModelFormMixin, self).form_valid(form)
 
 
-@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
+@login_and_permission_required('common.configuration')
 @validate_institution()
 class UpdateMachine(UpdateView):
     model = Machine
@@ -109,14 +108,14 @@ class UpdateMachine(UpdateView):
     template_name_suffix = '_update'
 
 
-@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
+@login_and_permission_required('common.configuration')
 @validate_institution()
 class DeleteMachine(DeletionMixin, DeleteView):
     model = Machine
     success_url = reverse_lazy('configuration')
 
 
-@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
+@login_and_permission_required('common.configuration')
 class CreateSequence(CreateView):
     model = Sequence
     fields = ('name', 'instructions')
@@ -130,7 +129,7 @@ class CreateSequence(CreateView):
         return super(ModelFormMixin, self).form_valid(form)
 
 
-@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
+@login_and_permission_required('common.configuration')
 @validate_institution()
 class UpdateSequence(UpdateView):
     model = Sequence
@@ -139,26 +138,26 @@ class UpdateSequence(UpdateView):
     template_name_suffix = '_update'
 
 
-@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
+@login_and_permission_required('common.configuration')
 @validate_institution()
 class DeleteSequence(DeletionMixin, DeleteView):
     model = Sequence
     success_url = reverse_lazy('configuration')
 
 
-@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
+@login_and_permission_required('common.configuration')
 class GoldenFiducialsCTUpload(FormView):
     form_class = UploadCTForm
     template_name = 'common/upload_ct.html'
 
 
-@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
+@login_and_permission_required('common.configuration')
 class GoldenFiducialsRawUpload(FormView):
     form_class = UploadRawForm
     template_name = 'common/upload_raw.html'
 
 
-@method_decorator(login_and_permission_required('common.configuration'), name='dispatch')
+@login_and_permission_required('common.configuration')
 @validate_institution(get_institution=lambda obj: obj.phantom.institution)
 class DeleteGoldenFiducials(DeletionMixin, DeleteView):
     model = GoldenFiducials

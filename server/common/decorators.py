@@ -3,6 +3,7 @@ import inspect
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
 
 
 def validate_institution(model_class=None, pk_url_kwarg='pk', get_institution=lambda obj: obj.institution):
@@ -39,5 +40,8 @@ def login_and_permission_required(permission, **kwargs):
     """Checks that user is logged in and has the specified permission."""
 
     def decorator(view):
-        return login_required(permission_required(permission, raise_exception=True, **kwargs)(view))
+        if inspect.isclass(view):
+            return method_decorator((login_required, permission_required(permission, raise_exception=True, **kwargs)), name='dispatch')(view)
+        else:
+            return login_required(permission_required(permission, raise_exception=True, **kwargs)(view))
     return decorator
