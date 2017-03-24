@@ -101,6 +101,7 @@ def test_crud():
 
     # check that a GoldenFiducials was created and activated
     assert phantom.goldenfiducials_set.count() == 1
+    # TODO test activated
 
     # test deletion of an inactive GoldenFiducials
     fiducials_b = factories.FiducialsFactory()
@@ -110,6 +111,7 @@ def test_crud():
         type=GoldenFiducials.RAW,
     )
     _test_delete_view(user, reverse('delete_golden_fiducials', args=(phantom.pk, golden_fiducials.pk)), GoldenFiducials)
+    # TODO test deletion of active and CAD model
 
     _test_update_view(user, reverse('update_phantom', args=(phantom.pk,)), Phantom, update_phantom_data)
     _test_delete_view(user, reverse('delete_phantom', args=(phantom.pk,)), Phantom)
