@@ -10,11 +10,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 
 from process import dicom_import
-from process.feature_detection import FeatureDetector
+from server.common.factories import DicomSeriesFactory
 
-from .factories import DicomSeriesFactory, FiducialsFactory, GoldenFiducialsFactory
 from .models import Scan, Phantom, Machine, Sequence, GoldenFiducials
-from .tasks import process_scan
+from .tasks import process_scan, process_ct_upload
 from .forms import UploadScanForm, UploadCTForm, UploadRawForm
 from .decorators import validate_institution, login_and_permission_required
 
@@ -58,6 +57,38 @@ def upload_file(request):
         'message': message,
         'scans': scans,
     })
+
+
+@login_and_permission_required('common.configuration')
+class GoldenFiducialsCTUpload(FormView):
+    form_class = UploadCTForm
+    template_name = 'common/upload_ct.html'
+
+    def form_valid(self, form):
+
+        # create DICOM series
+        with zipfile.ZipFile(self.request.FILES['dicom_archive'], 'r') as zip_file:
+            datasets = dicom_import.dicom_datasets_from_zip(zip_file)
+        voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
+        dicom_series = DicomSeriesFactory(
+            zipped_dicom_files=self.request.FILES['dicom_archive'],
+            voxels=voxels,
+            ijk_to_xyz=ijk_to_xyz,
+            shape=voxels.shape,
+            series_uid=datasets[0].SeriesInstanceUID,
+            acquisition_date=datetime.strptime(datasets[0].AcquisitionDate, '%Y%m%d'),
+        )
+
+        process_ct_upload.delay(self.kwargs['pk'], dicom_series.pk)
+        return super(GoldenFiducialsCTUpload, self).form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super(GoldenFiducialsCTUpload, self).get_context_data(**kwargs)
+        context.update({'pk': self.kwargs['pk']})
+        return context
+
+    def get_success_url(self):
+        return reverse('update_phantom', args=(self.kwargs['pk'],))
 
 
 @login_and_permission_required('common.configuration')
@@ -163,55 +194,6 @@ class UpdateSequence(UpdateView):
 class DeleteSequence(CirsDeleteView):
     model = Sequence
     success_url = reverse_lazy('configuration')
-
-
-@login_and_permission_required('common.configuration')
-class GoldenFiducialsCTUpload(FormView):
-    form_class = UploadCTForm
-    template_name = 'common/upload_ct.html'
-
-    def form_valid(self, form):
-
-        phantom = get_object_or_404(Phantom, pk=self.kwargs['pk'])
-
-        # TODO move this to a celery task, mark as in_progress
-
-        # create DICOM series
-        dicom_archive = self.request.FILES['dicom_archive']
-        with zipfile.ZipFile(dicom_archive, 'r') as zip_file:
-            datasets = dicom_import.dicom_datasets_from_zip(zip_file)
-        voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
-        dicom_series = DicomSeriesFactory(
-            zipped_dicom_files=self.request.FILES['dicom_archive'],
-            voxels=voxels,
-            ijk_to_xyz=ijk_to_xyz,
-            shape=voxels.shape,
-            series_uid=datasets[0].SeriesInstanceUID,
-            acquisition_date=datetime.strptime(datasets[0].AcquisitionDate, '%Y%m%d'),
-        )
-
-        # create fiducials
-        modality = datasets[0].Modality.lower()
-        points_in_patient_xyz = FeatureDetector(phantom.model.model_number, modality, voxels, ijk_to_xyz).run()
-        fiducials = FiducialsFactory(fiducials=points_in_patient_xyz)
-
-        # create golden fiducials
-        GoldenFiducialsFactory(
-            phantom=phantom,
-            dicom_series=dicom_series,
-            fiducials=fiducials,
-            type=GoldenFiducials.CT,
-        )
-
-        return super(GoldenFiducialsCTUpload, self).form_valid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super(GoldenFiducialsCTUpload, self).get_context_data(**kwargs)
-        context.update({'pk': self.kwargs['pk']})
-        return context
-
-    def get_success_url(self):
-        return reverse('update_phantom', args=(self.kwargs['pk'],))
 
 
 @login_and_permission_required('common.configuration')

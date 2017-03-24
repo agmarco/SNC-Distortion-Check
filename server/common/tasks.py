@@ -5,9 +5,11 @@ from celery import shared_task
 from celery.signals import task_failure
 from django.db import transaction
 
-from .models import Scan
 from process.dicom_import import combine_slices, dicom_datasets_from_zip
 from process.feature_detection import FeatureDetector
+
+from server.common.factories import FiducialsFactory, GoldenFiducialsFactory
+from .models import Scan, Phantom, GoldenFiducials, DicomSeries
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +36,25 @@ def process_scan(scan_id):
         scan.errors = str(e)
         scan.processing = False
         scan.save()
+        raise e
+
+
+@shared_task
+def process_ct_upload(phantom_id, dicom_series_pk):
+    try:
+        with transaction.atomic():
+            phantom = Phantom.objects.get(pk=phantom_id)
+            dicom_series = DicomSeries.objects.get(pk=dicom_series_pk)
+
+            points_in_patient_xyz = FeatureDetector(phantom.model.model_number, 'ct', dicom_series.voxels, dicom_series.ijk_to_xyz).run()
+            fiducials = FiducialsFactory(fiducials=points_in_patient_xyz)
+            GoldenFiducialsFactory(
+                phantom=phantom,
+                dicom_series=dicom_series,
+                fiducials=fiducials,
+                type=GoldenFiducials.CT,
+            )
+    except Exception as e:
         raise e
 
 
