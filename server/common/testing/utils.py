@@ -69,9 +69,7 @@ def validate_delete_view(user, url, model_class):
 
 
 def assert_can_get(user, urls):
-    """
-    Assert that the url returns a 200 or 302 for GET requests.
-    """
+    """Assert that the url returns a 200 or 302 for GET requests."""
 
     client = Client()
     client.force_login(user)
@@ -79,9 +77,7 @@ def assert_can_get(user, urls):
 
 
 def assert_can_post(user, urls):
-    """
-    Assert that the url returns a 200 or 302 for POST requests.
-    """
+    """Assert that the url returns a 200 or 302 for POST requests."""
 
     client = Client()
     client.force_login(user)
@@ -89,9 +85,7 @@ def assert_can_post(user, urls):
 
 
 def assert_cannot_get(user, urls):
-    """
-    Assert that the url returns a 403 for GET requests.
-    """
+    """Assert that the url returns a 403 for GET requests."""
 
     client = Client()
     client.force_login(user)
@@ -99,9 +93,7 @@ def assert_cannot_get(user, urls):
 
 
 def assert_cannot_post(user, urls):
-    """
-    Assert that the url returns a 403 for POST requests.
-    """
+    """Assert that the url returns a 403 for POST requests."""
 
     client = Client()
     client.force_login(user)
@@ -110,9 +102,7 @@ def assert_cannot_post(user, urls):
 
 
 def assert_can_view(user, urls):
-    """
-    Assert that the url returns a 200, 302, or 405 for GET and POST requests.
-    """
+    """Assert that the url returns a 200, 302, or 405 for GET and POST requests."""
 
     client = Client()
     client.force_login(user)
@@ -123,9 +113,7 @@ def assert_can_view(user, urls):
 
 
 def assert_cannot_view(user, urls):
-    """
-   Assert that the url returns a 403 or 405 for GET and POST requests.
-   """
+    """Assert that the url returns a 403 or 405 for GET and POST requests."""
 
     client = Client()
     client.force_login(user)

@@ -64,13 +64,13 @@ def upload_file(request):
 @login_and_permission_required('common.configuration')
 def configuration(request):
     institution = request.user.institution
-    can_manage_users = request.user.has_perm('common.manage_users')
+    manage_users = request.user.has_perm('common.manage_users')
     return render(request, 'common/configuration.html', {
         'phantoms': institution.phantom_set.active().order_by('-last_modified_on'),
         'machines': institution.machine_set.active().order_by('-last_modified_on'),
         'sequences': institution.sequence_set.active().order_by('-last_modified_on'),
-        'users': institution.user_set.active().order_by('-last_modified_on') if can_manage_users else [],
-        'can_manage_users': can_manage_users,
+        'users': institution.user_set.active().order_by('-last_modified_on') if manage_users else [],
+        'manage_users': manage_users,
     })
 
 
