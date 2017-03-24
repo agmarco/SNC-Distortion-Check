@@ -1,6 +1,5 @@
 import logging
 import zipfile
-from datetime import datetime
 
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect
@@ -57,38 +56,6 @@ def upload_file(request):
         'message': message,
         'scans': scans,
     })
-
-
-@login_and_permission_required('common.configuration')
-class GoldenFiducialsCTUpload(FormView):
-    form_class = UploadCTForm
-    template_name = 'common/upload_ct.html'
-
-    def form_valid(self, form):
-
-        # create DICOM series
-        with zipfile.ZipFile(self.request.FILES['dicom_archive'], 'r') as zip_file:
-            datasets = dicom_import.dicom_datasets_from_zip(zip_file)
-        voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
-        dicom_series = DicomSeriesFactory(
-            zipped_dicom_files=self.request.FILES['dicom_archive'],
-            voxels=voxels,
-            ijk_to_xyz=ijk_to_xyz,
-            shape=voxels.shape,
-            series_uid=datasets[0].SeriesInstanceUID,
-            acquisition_date=datetime.strptime(datasets[0].AcquisitionDate, '%Y%m%d'),
-        )
-
-        process_ct_upload.delay(self.kwargs['pk'], dicom_series.pk)
-        return super(GoldenFiducialsCTUpload, self).form_valid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super(GoldenFiducialsCTUpload, self).get_context_data(**kwargs)
-        context.update({'pk': self.kwargs['pk']})
-        return context
-
-    def get_success_url(self):
-        return reverse('update_phantom', args=(self.kwargs['pk'],))
 
 
 @login_and_permission_required('common.configuration')
@@ -194,6 +161,36 @@ class UpdateSequence(UpdateView):
 class DeleteSequence(CirsDeleteView):
     model = Sequence
     success_url = reverse_lazy('configuration')
+
+
+@login_and_permission_required('common.configuration')
+class GoldenFiducialsCTUpload(FormView):
+    form_class = UploadCTForm
+    template_name = 'common/upload_ct.html'
+
+    def form_valid(self, form):
+        with zipfile.ZipFile(self.request.FILES['dicom_archive'], 'r') as zip_file:
+            datasets = dicom_import.dicom_datasets_from_zip(zip_file)
+        voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
+
+        dicom_series = DicomSeriesFactory(
+            zipped_dicom_files=self.request.FILES['dicom_archive'],
+            voxels=voxels,
+            ijk_to_xyz=ijk_to_xyz,
+            shape=voxels.shape,
+            datasets=datasets,
+        )
+        process_ct_upload.delay(self.kwargs['pk'], dicom_series.pk)
+
+        return super(GoldenFiducialsCTUpload, self).form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super(GoldenFiducialsCTUpload, self).get_context_data(**kwargs)
+        context.update({'pk': self.kwargs['pk']})
+        return context
+
+    def get_success_url(self):
+        return reverse('update_phantom', args=(self.kwargs['pk'],))
 
 
 @login_and_permission_required('common.configuration')

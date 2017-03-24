@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import factory
 
 
@@ -98,6 +100,12 @@ class MachineSequencePairFactory(factory.django.DjangoModelFactory):
 class DicomSeriesFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.DicomSeries"
+
+    series_uid = factory.LazyAttribute(lambda obj: obj.datasets[0].SeriesInstanceUID)
+    acquisition_date = factory.LazyAttribute(lambda obj: datetime.strptime(obj.datasets[0].AcquisitionDate, '%Y%m%d'))
+
+    class Params:
+        datasets = None
 
 
 class GoldenFiducialsFactory(factory.django.DjangoModelFactory):

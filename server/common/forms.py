@@ -6,7 +6,7 @@ from process import dicom_import
 
 
 class UploadScanForm(forms.Form):
-    dicom_archive = forms.FileField(label="File browser")
+    dicom_archive = forms.FileField()
 
     def clean_dicom_archive(self):
         try:

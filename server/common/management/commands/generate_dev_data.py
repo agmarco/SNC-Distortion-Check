@@ -1,6 +1,5 @@
 import os
 import zipfile
-from datetime import datetime
 
 from django.contrib.auth.models import Permission
 from django.core.management.base import BaseCommand
@@ -100,8 +99,7 @@ class Command(BaseCommand):
             voxels=voxels,
             ijk_to_xyz=ijk_to_xyz,
             shape=voxels.shape,
-            series_uid=datasets[0].SeriesInstanceUID,
-            acquisition_date=datetime.strptime(datasets[0].AcquisitionDate, '%Y%m%d'),
+            datasets=datasets,
         )
         with open(os.path.join(settings.BASE_DIR, dicom_filename), 'rb') as dicom_file:
             dicom_series.zipped_dicom_files.save(f'dicom_series_{dicom_series.pk}.zip', File(dicom_file))
