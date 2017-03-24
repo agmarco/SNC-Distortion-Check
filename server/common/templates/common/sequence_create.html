@@ -5,8 +5,9 @@
   <form action="{% url 'create_sequence' %}" method="post">
     {% csrf_token %}
     {{ form.errors }}
-    {{ form.name.label }} {{ form.name }}<br>
-    {{ form.instructions.label }} {{ form.instructions }}<br>
+    {% for field in form %}
+      {{ field.label }} {{ field }}<br>
+    {% endfor %}
     <input type="submit" value="Save">
   </form>
 {% endblock %}

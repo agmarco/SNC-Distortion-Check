@@ -14,7 +14,7 @@ import numpy as np
 
 from process import dicom_import
 from server.common.factories import DicomSeriesFactory, FiducialsFactory, GoldenFiducialsFactory
-from .models import Scan, Phantom, Machine, Sequence, GoldenFiducials
+from .models import Scan, Phantom, Machine, Sequence, GoldenFiducials, User
 from .tasks import process_scan, process_ct_upload
 from .forms import UploadScanForm, UploadCTForm, UploadRawForm
 from .decorators import validate_institution, login_and_permission_required
@@ -64,11 +64,13 @@ def upload_file(request):
 @login_and_permission_required('common.configuration')
 def configuration(request):
     institution = request.user.institution
+    can_manage_users = request.user.has_perm('common.manage_users')
     return render(request, 'common/configuration.html', {
         'phantoms': institution.phantom_set.active().order_by('-last_modified_on'),
         'machines': institution.machine_set.active().order_by('-last_modified_on'),
         'sequences': institution.sequence_set.active().order_by('-last_modified_on'),
-        'users': institution.user_set.active().order_by('-last_modified_on'),
+        'users': institution.user_set.active().order_by('-last_modified_on') if can_manage_users else [],
+        'can_manage_users': can_manage_users,
     })
 
 
@@ -260,16 +262,31 @@ class DeleteSequence(CirsDeleteView):
     success_url = reverse_lazy('configuration')
 
 
-@login_and_permission_required('common.configuration')
-def create_user(request):
-    return render(request, 'common/user_create.html')
+@login_and_permission_required('common.manage_users')
+class CreateUser(CreateView):
+    model = User
+    fields = ('username', 'first_name', 'last_name', 'email')
+    success_url = reverse_lazy('configuration')
+    template_name_suffix = '_create'
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.institution = self.request.user.institution
+        self.object.save()
+        return super(ModelFormMixin, self).form_valid(form)
 
 
-@login_and_permission_required('common.configuration')
-def update_user(request, pk=None):
-    return render(request, 'common/user_update.html')
+@login_and_permission_required('common.manage_users')
+@validate_institution()
+class UpdateUser(UpdateView):
+    model = User
+    fields = ('username', 'first_name', 'last_name', 'email')
+    success_url = reverse_lazy('configuration')
+    template_name_suffix = '_update'
 
 
-@login_and_permission_required('common.configuration')
-def delete_user(request, pk=None):
-    return redirect('configuration')
+@login_and_permission_required('common.manage_users')
+@validate_institution()
+class DeleteUser(CirsDeleteView):
+    model = User
+    success_url = reverse_lazy('configuration')

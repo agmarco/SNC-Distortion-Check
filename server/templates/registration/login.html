@@ -5,8 +5,9 @@
 <form action="{% url 'login' %}" method="post">
   {% csrf_token %}
   {{ form.errors }}
-  {{ form.username.label }} {{ form.username }}<br>
-  {{ form.password.label }} {{ form.password }}<br>
+  {% for field in form %}
+    {{ field.label }} {{ field }}<br>
+  {% endfor %}
   <input type="submit" value="Login" />
   <a href="#">Having trouble logging in?</a>
 </form>

@@ -44,9 +44,9 @@ url(r'^phantoms/(?P<phantom_pk>\d+)/gold-standards/(?P<golden_fiducials_pk>\d+)/
     url(r'^sequences/(?P<pk>\d+)/edit/$', views.UpdateSequence.as_view(), name='update_sequence'),
     url(r'^sequences/(?P<pk>\d+)/delete/$', views.DeleteSequence.as_view(), name='delete_sequence'),
 
-    url(r'^users/add/$', views.create_user, name='create_user'),
-    url(r'^users/(?P<pk>\d+)/edit/$', views.update_user, name='update_user'),
-    url(r'^users/(?P<pk>\d+)/delete/$', views.delete_user, name='delete_user'),
+    url(r'^users/add/$', views.CreateUser.as_view(), name='create_user'),
+    url(r'^users/(?P<pk>\d+)/edit/$', views.UpdateUser.as_view(), name='update_user'),
+    url(r'^users/(?P<pk>\d+)/delete/$', views.DeleteUser.as_view(), name='delete_user'),
 
     url(r'^$', views.upload_file),
 ]

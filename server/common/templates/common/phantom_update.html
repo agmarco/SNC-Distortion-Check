@@ -7,7 +7,10 @@
   <form action="{% url 'update_phantom' phantom.pk %}" method="post">
     {% csrf_token %}
     {{ form.errors }}
-    {{ form.name.label }} {{ form.name }} <input type="submit" value="Save Name Change">
+    {% for field in form %}
+      {{ field.label }} {{ field }}<br>
+    {% endfor %}
+    <input type="submit" value="Save Name Change">
   </form>
   <label>Model Number</label> {{ phantom.model }}<br>
   <label>Serial Number</label> {{ phantom.serial_number }}

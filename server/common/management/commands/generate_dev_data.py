@@ -16,9 +16,15 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         configuration_permission = Permission.objects.get(codename='configuration')
+        manage_users_permission = Permission.objects.get(codename='manage_users')
+
+        managers = factories.GroupFactory.create(name='Manager')
+        managers.permissions.add(configuration_permission)
+        managers.permissions.add(manage_users_permission)
 
         medical_physicists = factories.GroupFactory.create(name='Medical Physicist')
         medical_physicists.permissions.add(configuration_permission)
+
         therapists = factories.GroupFactory.create(name='Therapist')
 
         admin = factories.UserFactory.create(
@@ -31,6 +37,15 @@ class Command(BaseCommand):
         )
 
         johns_hopkins = factories.InstitutionFactory.create(name='Johns Hopkins')
+
+        manager = factories.UserFactory.create(
+            username="manager",
+            first_name="Sergei",
+            last_name="Rachmaninoff",
+            email="sergei.rachmaninoff@johnhopkins.edu",
+            institution=johns_hopkins,
+            groups=[managers],
+        )
 
         medical_physicist = factories.UserFactory.create(
             username="medical_physicist",

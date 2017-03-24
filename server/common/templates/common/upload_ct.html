@@ -6,6 +6,9 @@
   <form action="{% url 'upload_ct' pk %}" enctype="multipart/form-data" method="post">
     {% csrf_token %}
     {{ form.errors }}
-    {{ form.dicom_archive.label }} {{ form.dicom_archive }} <input type="submit" value="Upload">
+    {% for field in form %}
+      {{ field.label }} {{ field }}<br>
+    {% endfor %}
+    <input type="submit" value="Upload">
   </form>
 {% endblock %}

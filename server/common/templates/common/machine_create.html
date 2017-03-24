@@ -5,9 +5,9 @@
   <form action="{% url 'create_machine' %}" method="post">
     {% csrf_token %}
     {{ form.errors }}
-    {{ form.name.label }} {{ form.name }}<br>
-    {{ form.model.label }} {{ form.model }}<br>
-    {{ form.manufacturer.label }} {{ form.manufacturer }}<br>
+    {% for field in form %}
+      {{ field.label }} {{ field }}<br>
+    {% endfor %}
     <input type="submit" value="Save">
   </form>
 {% endblock %}
