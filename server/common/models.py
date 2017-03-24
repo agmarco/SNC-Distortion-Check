@@ -180,6 +180,8 @@ class GoldenFiducials(CommonFieldsMixin):
     def source_summary(self):
         if self.type == GoldenFiducials.CT:
             return f"{self.get_type_display()} Taken on {self.dicom_series.acquisition_date.strftime('%d %B %Y')}"
+        elif self.type == GoldenFiducials.RAW:
+            return f"{self.get_type_display()} Uploaded on {self.created_on.strftime('%d %B %Y')}"
         else:
             return self.get_type_display()
 

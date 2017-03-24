@@ -1,16 +1,19 @@
+import csv
 import logging
 import zipfile
 
 from django.core.exceptions import PermissionDenied
+from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 
-from process import dicom_import
-from server.common.factories import DicomSeriesFactory
+import numpy as np
 
+from process import dicom_import
+from server.common.factories import DicomSeriesFactory, FiducialsFactory, GoldenFiducialsFactory
 from .models import Scan, Phantom, Machine, Sequence, GoldenFiducials
 from .tasks import process_scan, process_ct_upload
 from .forms import UploadScanForm, UploadCTForm, UploadRawForm
@@ -103,6 +106,100 @@ class DeletePhantom(CirsDeleteView):
     success_url = reverse_lazy('configuration')
 
 
+def golden_fiducials_csv(request, phantom_pk=None, golden_fiducials_pk=None):
+    golden_fiducials = get_object_or_404(GoldenFiducials, pk=golden_fiducials_pk)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{golden_fiducials.source_summary}.csv"'
+
+    writer = csv.writer(response)
+    for fiducial in golden_fiducials.fiducials.fiducials.T:
+        writer.writerow(fiducial)
+    return response
+
+
+@login_and_permission_required('common.configuration')
+class GoldenFiducialsCTUpload(FormView):
+    form_class = UploadCTForm
+    template_name = 'common/upload_ct.html'
+
+    def form_valid(self, form):
+        with zipfile.ZipFile(self.request.FILES['dicom_archive'], 'r') as zip_file:
+            datasets = dicom_import.dicom_datasets_from_zip(zip_file)
+        voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
+
+        dicom_series = DicomSeriesFactory(
+            zipped_dicom_files=self.request.FILES['dicom_archive'],
+            voxels=voxels,
+            ijk_to_xyz=ijk_to_xyz,
+            shape=voxels.shape,
+            datasets=datasets,
+        )
+        process_ct_upload.delay(self.kwargs['pk'], dicom_series.pk)
+
+        return super(GoldenFiducialsCTUpload, self).form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super(GoldenFiducialsCTUpload, self).get_context_data(**kwargs)
+        context.update({'pk': self.kwargs['pk']})
+        return context
+
+    def get_success_url(self):
+        return reverse('update_phantom', args=(self.kwargs['pk'],))
+
+
+@login_and_permission_required('common.configuration')
+class GoldenFiducialsRawUpload(FormView):
+    form_class = UploadRawForm
+    template_name = 'common/upload_raw.html'
+
+    def form_valid(self, form):
+        phantom = Phantom.objects.get(pk=self.kwargs['pk'])
+        fiducials = FiducialsFactory(fiducials=np.genfromtxt(self.request.FILES['csv'], delimiter=',').T)
+        GoldenFiducialsFactory(
+            phantom=phantom,
+            fiducials=fiducials,
+            type=GoldenFiducials.RAW,
+        )
+        return super(GoldenFiducialsRawUpload, self).form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super(GoldenFiducialsRawUpload, self).get_context_data(**kwargs)
+        context.update({'pk': self.kwargs['pk']})
+        return context
+
+    def get_success_url(self):
+        return reverse('update_phantom', args=(self.kwargs['pk'],))
+
+
+@login_and_permission_required('common.configuration')
+@validate_institution()
+class DeleteGoldenFiducials(CirsDeleteView):
+    model = GoldenFiducials
+    pk_url_kwarg = 'golden_fiducials_pk'
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.object.type == GoldenFiducials.CAD or self.object.is_active:
+            raise PermissionDenied
+        return super(DeleteGoldenFiducials, self).delete(request, *args, **kwargs)
+
+    def get_success_url(self):
+        return reverse('update_phantom', args=(self.kwargs['phantom_pk'],))
+
+    def get_context_data(self, **kwargs):
+        context = super(DeleteGoldenFiducials, self).get_context_data(**kwargs)
+        context.update({'phantom_pk': self.kwargs['phantom_pk']})
+        return context
+
+
+@login_and_permission_required('common.configuration')
+@validate_institution(model_class=GoldenFiducials)
+def activate_golden_fiducials(request, phantom_pk=None, golden_fiducials_pk=None):
+    golden_fiducials = get_object_or_404(GoldenFiducials, pk=golden_fiducials_pk)
+    golden_fiducials.activate()
+    return redirect('update_phantom', phantom_pk)
+
+
 @login_and_permission_required('common.configuration')
 class CreateMachine(CreateView):
     model = Machine
@@ -161,78 +258,6 @@ class UpdateSequence(UpdateView):
 class DeleteSequence(CirsDeleteView):
     model = Sequence
     success_url = reverse_lazy('configuration')
-
-
-@login_and_permission_required('common.configuration')
-class GoldenFiducialsCTUpload(FormView):
-    form_class = UploadCTForm
-    template_name = 'common/upload_ct.html'
-
-    def form_valid(self, form):
-        with zipfile.ZipFile(self.request.FILES['dicom_archive'], 'r') as zip_file:
-            datasets = dicom_import.dicom_datasets_from_zip(zip_file)
-        voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
-
-        dicom_series = DicomSeriesFactory(
-            zipped_dicom_files=self.request.FILES['dicom_archive'],
-            voxels=voxels,
-            ijk_to_xyz=ijk_to_xyz,
-            shape=voxels.shape,
-            datasets=datasets,
-        )
-        process_ct_upload.delay(self.kwargs['pk'], dicom_series.pk)
-
-        return super(GoldenFiducialsCTUpload, self).form_valid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super(GoldenFiducialsCTUpload, self).get_context_data(**kwargs)
-        context.update({'pk': self.kwargs['pk']})
-        return context
-
-    def get_success_url(self):
-        return reverse('update_phantom', args=(self.kwargs['pk'],))
-
-
-@login_and_permission_required('common.configuration')
-class GoldenFiducialsRawUpload(FormView):
-    form_class = UploadRawForm
-    template_name = 'common/upload_raw.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(GoldenFiducialsRawUpload, self).get_context_data(**kwargs)
-        context.update({'pk': self.kwargs['pk']})
-        return context
-
-    def get_success_url(self):
-        return reverse('update_phantom', args=(self.kwargs['pk'],))
-
-
-@login_and_permission_required('common.configuration')
-@validate_institution()
-class DeleteGoldenFiducials(CirsDeleteView):
-    model = GoldenFiducials
-
-    def delete(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        if self.object.type == GoldenFiducials.CAD or self.object.is_active:
-            raise PermissionDenied
-        return super(DeleteGoldenFiducials, self).delete(request, *args, **kwargs)
-
-    def get_success_url(self):
-        return reverse('update_phantom', args=(self.kwargs['phantom_pk'],))
-
-    def get_context_data(self, **kwargs):
-        context = super(DeleteGoldenFiducials, self).get_context_data(**kwargs)
-        context.update({'phantom_pk': self.kwargs['phantom_pk']})
-        return context
-
-
-@login_and_permission_required('common.configuration')
-@validate_institution(model_class=GoldenFiducials)
-def activate_golden_fiducials(request, phantom_pk=None, pk=None):
-    golden_fiducials = get_object_or_404(GoldenFiducials, pk=pk)
-    golden_fiducials.activate()
-    return redirect('update_phantom', phantom_pk)
 
 
 @login_and_permission_required('common.configuration')

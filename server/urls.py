@@ -32,8 +32,9 @@ urlpatterns = [
     url(r'^phantoms/(?P<pk>\d+)/delete/$', views.DeletePhantom.as_view(), name='delete_phantom'),
     url(r'^phantoms/(?P<pk>\d+)/gold-standards/upload-ct/$', views.GoldenFiducialsCTUpload.as_view(), name='upload_ct'),
     url(r'^phantoms/(?P<pk>\d+)/gold-standards/upload-raw/$', views.GoldenFiducialsRawUpload.as_view(), name='upload_raw'),
-    url(r'^phantoms/(?P<phantom_pk>\d+)/gold-standards/(?P<pk>\d+)/delete/$', views.DeleteGoldenFiducials.as_view(), name='delete_golden_fiducials'),
-    url(r'^phantoms/(?P<phantom_pk>\d+)/gold-standards/(?P<pk>\d+)/activate/$', views.activate_golden_fiducials, name='activate_golden_fiducials'),
+    url(r'^phantoms/(?P<phantom_pk>\d+)/gold-standards/(?P<golden_fiducials_pk>\d+)/delete/$', views.DeleteGoldenFiducials.as_view(), name='delete_golden_fiducials'),
+    url(r'^phantoms/(?P<phantom_pk>\d+)/gold-standards/(?P<golden_fiducials_pk>\d+)/activate/$', views.activate_golden_fiducials, name='activate_golden_fiducials'),
+url(r'^phantoms/(?P<phantom_pk>\d+)/gold-standards/(?P<golden_fiducials_pk>\d+)/csv/$', views.golden_fiducials_csv, name='golden_fiducials_csv'),
 
     url(r'^machines/add/$', views.CreateMachine.as_view(), name='create_machine'),
     url(r'^machines/(?P<pk>\d+)/edit/$', views.UpdateMachine.as_view(), name='update_machine'),

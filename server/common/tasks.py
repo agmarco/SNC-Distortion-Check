@@ -40,11 +40,11 @@ def process_scan(scan_id):
 
 
 @shared_task
-def process_ct_upload(phantom_id, dicom_series_pk):
+def process_ct_upload(phantom_id, dicom_series_id):
     try:
         with transaction.atomic():
             phantom = Phantom.objects.get(pk=phantom_id)
-            dicom_series = DicomSeries.objects.get(pk=dicom_series_pk)
+            dicom_series = DicomSeries.objects.get(pk=dicom_series_id)
 
             points_in_patient_xyz = FeatureDetector(phantom.model.model_number, 'ct', dicom_series.voxels, dicom_series.ijk_to_xyz).run()
             fiducials = FiducialsFactory(fiducials=points_in_patient_xyz)
