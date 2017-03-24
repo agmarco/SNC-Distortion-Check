@@ -1,34 +1,10 @@
 import pytest
 
-from django.test import Client
 from django.urls import reverse
 from django.contrib.auth.models import Permission
 
 from server.common import factories
-
-
-def _assert_can_view(user, urls):
-    client = Client()
-    client.force_login(user)
-
-    for url in urls:
-        assert client.get(url).status_code in (200, 302, 405)
-        assert client.post(url).status_code in (200, 302, 405)
-        assert client.put(url).status_code in (200, 302, 405)
-        assert client.patch(url).status_code in (200, 302, 405)
-        assert client.delete(url).status_code in (200, 302, 405)
-
-
-def _assert_cannot_view(user, urls):
-    client = Client()
-    client.force_login(user)
-
-    for url in urls:
-        assert client.get(url).status_code in (403, 405)
-        assert client.post(url).status_code in (403, 405)
-        assert client.put(url).status_code in (403, 405)
-        assert client.patch(url).status_code in (403, 405)
-        assert client.delete(url).status_code in (403, 405)
+from .utils import assert_can_view, assert_cannot_view
 
 
 @pytest.mark.django_db
@@ -52,7 +28,7 @@ def test_medical_phycisist_permissions():
     machine = factories.MachineFactory(institution=johns_hopkins)
     sequence = factories.SequenceFactory(institution=johns_hopkins)
 
-    _assert_can_view(medical_physicist, (
+    assert_can_view(medical_physicist, (
         reverse('configuration'),
         reverse('create_phantom'),
         reverse('update_phantom', args=(phantom.pk,)),
@@ -84,7 +60,7 @@ def test_therapist_permissions():
     machine = factories.MachineFactory(institution=johns_hopkins)
     sequence = factories.SequenceFactory(institution=johns_hopkins)
 
-    _assert_cannot_view(therapist, (
+    assert_cannot_view(therapist, (
         reverse('configuration'),
         reverse('create_phantom'),
         reverse('update_phantom', args=(phantom.pk,)),
@@ -126,7 +102,7 @@ def test_institution_permissions():
     machine = factories.MachineFactory(institution=johns_hopkins)
     sequence = factories.SequenceFactory(institution=johns_hopkins)
 
-    _assert_can_view(user_a, (
+    assert_can_view(user_a, (
         reverse('update_phantom', args=(phantom.pk,)),
         reverse('delete_phantom', args=(phantom.pk,)),
         reverse('update_machine', args=(machine.pk,)),
@@ -135,7 +111,7 @@ def test_institution_permissions():
         reverse('delete_sequence', args=(sequence.pk,)),
     ))
 
-    _assert_cannot_view(user_b, (
+    assert_cannot_view(user_b, (
         reverse('update_phantom', args=(phantom.pk,)),
         reverse('delete_phantom', args=(phantom.pk,)),
         reverse('update_machine', args=(machine.pk,)),

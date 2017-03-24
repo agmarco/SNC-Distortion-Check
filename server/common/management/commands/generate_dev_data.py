@@ -59,20 +59,13 @@ class Command(BaseCommand):
             institution=johns_hopkins,
         )
 
-        fiducials_a = factories.FiducialsFactory()
-        fiducials_b = factories.FiducialsFactory()
-        fiducials_c = factories.FiducialsFactory()
-        fiducials_d = factories.FiducialsFactory()
-
         phantom_model_a = factories.PhantomModelFactory(
             name='CIRS 603A',
             model_number='603A',
-            cad_fiducials=fiducials_a,
         )
         phantom_model_b = factories.PhantomModelFactory(
             name='CIRS 604',
             model_number='604',
-            cad_fiducials=fiducials_b,
         )
 
         phantom_a = factories.PhantomFactory(
@@ -106,13 +99,11 @@ class Command(BaseCommand):
 
         golden_fiducials_a = factories.GoldenFiducialsFactory(
             phantom=phantom_a,
-            fiducials=fiducials_c,
             dicom_series=dicom_series,
             type=GoldenFiducials.CT,
         )
         golden_fiducials_b = factories.GoldenFiducialsFactory(
             phantom=phantom_a,
-            fiducials=fiducials_d,
             type=GoldenFiducials.RAW,
         )
 
