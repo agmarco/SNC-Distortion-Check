@@ -3,7 +3,7 @@ from django.conf.urls import url, include
 from . import views
 
 urlpatterns = [
-    url(r'^$', views.upload_file),
+    url(r'^$', views.upload_file, name='upload_file'),
     url(r'^configuration/$', views.configuration, name='configuration'),
 
     url(r'^phantoms/', include([
@@ -14,7 +14,7 @@ urlpatterns = [
         url(r'^(?P<phantom_pk>\d+)/gold-standards/', include([
             url(r'^upload-ct/$', views.UploadCT.as_view(), name='upload_ct'),
             url(r'^upload-raw/$', views.UploadRaw.as_view(), name='upload_raw'),
-            url(r'^(?P<gold_standard_pk>\d+)/delete/$', views.DeleteStandard.as_view(), name='delete_gold_standard'),
+            url(r'^(?P<gold_standard_pk>\d+)/delete/$', views.DeleteGoldStandard.as_view(), name='delete_gold_standard'),
             url(r'^(?P<gold_standard_pk>\d+)/activate/$', views.activate_gold_standard, name='activate_gold_standard'),
             url(r'^(?P<gold_standard_pk>\d+)/csv/$', views.gold_standard_csv, name='gold_standard_csv'),
         ])),

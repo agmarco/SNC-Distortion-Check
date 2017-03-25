@@ -32,6 +32,7 @@ class CirsDeleteView(DeleteView):
         return HttpResponseRedirect(self.get_success_url())
 
 
+@login_and_permission_required('common.configuration')
 def upload_file(request):
     if request.method == 'POST':
         form_with_data = UploadScanForm(request.POST, request.FILES)
@@ -168,7 +169,7 @@ class UploadRaw(FormView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class DeleteStandard(CirsDeleteView):
+class DeleteGoldStandard(CirsDeleteView):
     model = GoldenFiducials
     pk_url_kwarg = 'gold_standard_pk'
 
@@ -176,13 +177,13 @@ class DeleteStandard(CirsDeleteView):
         self.object = self.get_object()
         if self.object.type == GoldenFiducials.CAD or self.object.is_active:
             raise PermissionDenied
-        return super(DeleteStandard, self).delete(request, *args, **kwargs)
+        return super(DeleteGoldStandard, self).delete(request, *args, **kwargs)
 
     def get_success_url(self):
         return reverse('update_phantom', args=(self.kwargs['phantom_pk'],))
 
     def get_context_data(self, **kwargs):
-        context = super(DeleteStandard, self).get_context_data(**kwargs)
+        context = super(DeleteGoldStandard, self).get_context_data(**kwargs)
         context.update({'phantom_pk': self.kwargs['phantom_pk']})
         return context
 

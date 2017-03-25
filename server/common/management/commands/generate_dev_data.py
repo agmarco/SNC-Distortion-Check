@@ -1,6 +1,8 @@
 import os
 import zipfile
 
+import numpy as np
+
 from django.contrib.auth.models import Permission
 from django.core.management.base import BaseCommand
 from django.core.files import File
@@ -112,14 +114,19 @@ class Command(BaseCommand):
         with open(os.path.join(settings.BASE_DIR, dicom_filename), 'rb') as dicom_file:
             dicom_series.zipped_dicom_files.save(f'dicom_series_{dicom_series.pk}.zip', File(dicom_file))
 
+        fiducials_a = factories.FiducialsFactory(fiducials=np.zeros((5, 5)))
+        fiducials_b = factories.FiducialsFactory(fiducials=np.zeros((5, 5)))
+
         golden_fiducials_a = factories.GoldenFiducialsFactory(
             phantom=phantom_a,
             dicom_series=dicom_series,
             type=GoldenFiducials.CT,
+            fiducials=fiducials_a,
         )
         golden_fiducials_b = factories.GoldenFiducialsFactory(
             phantom=phantom_a,
             type=GoldenFiducials.RAW,
+            fiducials=fiducials_b,
         )
 
         sequence_a = factories.SequenceFactory(

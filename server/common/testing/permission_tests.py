@@ -1,5 +1,7 @@
 import pytest
 
+import numpy as np
+
 from django.test import Client
 from django.urls import RegexURLPattern
 from django.urls import RegexURLResolver
@@ -8,10 +10,17 @@ from django.contrib.auth.models import Permission
 
 from .. import views
 from .. import factories
-from ..models import Global
+from ..models import Global, GoldenFiducials
 from ..urls import urlpatterns
 
 VIEWS = (
+    {
+        'view': views.upload_file,
+        'url': reverse('upload_file'),
+        'permissions': ('common.configuration',),
+        'validate_institution': False,
+        'methods': ('GET', 'POST'),
+    },
     {
         'view': views.configuration,
         'url': reverse('configuration'),
@@ -39,6 +48,41 @@ VIEWS = (
         'permissions': ('common.configuration',),
         'validate_institution': True,
         'methods': ('GET', 'POST'),
+    },
+    {
+        'view': views.UploadCT,
+        'url': lambda data: reverse('upload_ct', args=(data['phantom'].pk,)),
+        'permissions': ('common.configuration',),
+        'validate_institution': True,
+        'methods': ('GET', 'POST'),
+    },
+    {
+        'view': views.UploadRaw,
+        'url': lambda data: reverse('upload_raw', args=(data['phantom'].pk,)),
+        'permissions': ('common.configuration',),
+        'validate_institution': True,
+        'methods': ('GET', 'POST'),
+    },
+    {
+        'view': views.DeleteGoldStandard,
+        'url': lambda data: reverse('delete_gold_standard', args=(data['phantom'].pk, data['gold_standard'].pk)),
+        'permissions': ('common.configuration',),
+        'validate_institution': True,
+        'methods': ('GET', 'POST'),
+    },
+    {
+        'view': views.activate_gold_standard,
+        'url': lambda data: reverse('activate_gold_standard', args=(data['phantom'].pk, data['gold_standard'].pk)),
+        'permissions': ('common.configuration',),
+        'validate_institution': True,
+        'methods': ('POST',),
+    },
+    {
+        'view': views.gold_standard_csv,
+        'url': lambda data: reverse('gold_standard_csv', args=(data['phantom'].pk, data['gold_standard'].pk)),
+        'permissions': ('common.configuration',),
+        'validate_institution': True,
+        'methods': ('GET',),
     },
     {
         'view': views.CreateMachine,
@@ -106,7 +150,7 @@ VIEWS = (
 )
 
 
-@pytest.fixture(params=(None, *(p[0] for p in Global._meta.permissions)))
+@pytest.fixture(params=(None, *(permission[0] for permission in Global._meta.permissions)))
 def permissions_data(db, request):
     group = factories.GroupFactory.create(name="Group")
     if request.param:
@@ -124,6 +168,8 @@ def permissions_data(db, request):
     phantom = factories.PhantomFactory(institution=johns_hopkins)
     machine = factories.MachineFactory(institution=johns_hopkins)
     sequence = factories.SequenceFactory(institution=johns_hopkins)
+    fiducials = factories.FiducialsFactory(fiducials=np.zeros((5, 5)))
+    gold_standard = factories.GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.RAW, fiducials=fiducials)
 
     return {
         'current_user': current_user,
@@ -131,6 +177,7 @@ def permissions_data(db, request):
         'phantom': phantom,
         'machine': machine,
         'sequence': sequence,
+        'gold_standard': gold_standard,
     }
 
 
@@ -151,6 +198,8 @@ def institution_data(db, request):
     phantom = factories.PhantomFactory(institution=johns_hopkins)
     machine = factories.MachineFactory(institution=johns_hopkins)
     sequence = factories.SequenceFactory(institution=johns_hopkins)
+    fiducials = factories.FiducialsFactory(fiducials=np.zeros((5, 5)))
+    gold_standard = factories.GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.RAW, fiducials=fiducials)
 
     return {
         'current_user': current_user,
@@ -158,6 +207,7 @@ def institution_data(db, request):
         'phantom': phantom,
         'machine': machine,
         'sequence': sequence,
+        'gold_standard': gold_standard,
         'institution': johns_hopkins,
     }
 
@@ -195,17 +245,17 @@ def test_institution(institution_data, view):
 
 
 def test_regression():
-    view_names = set(extract_view_names_from_urlpatterns(urlpatterns))
+    view_names = set(_extract_view_names_from_urlpatterns(urlpatterns))
     tested_view_names = set(view['view'].__name__ for view in VIEWS)
     diff = view_names - tested_view_names
     assert not diff, f"The following views are not tested: {diff}"
 
 
-def extract_view_names_from_urlpatterns(url_patterns):
+def _extract_view_names_from_urlpatterns(url_patterns):
     view_names = []
     for pattern in url_patterns:
         if isinstance(pattern, RegexURLPattern):
             view_names.append(pattern.callback.__name__)
         elif isinstance(pattern, RegexURLResolver):
-            view_names.extend(extract_view_names_from_urlpatterns(pattern.url_patterns))
+            view_names.extend(_extract_view_names_from_urlpatterns(pattern.url_patterns))
     return view_names
