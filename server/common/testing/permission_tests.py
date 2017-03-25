@@ -1,91 +1,112 @@
 import pytest
-from django.test import Client
 
+from django.test import Client
+from django.urls import RegexURLPattern
+from django.urls import RegexURLResolver
 from django.urls import reverse
 from django.contrib.auth.models import Permission
 
-from server.common import factories
-from .utils import assert_can_view, assert_cannot_view
+from .. import views
+from .. import factories
+from ..models import Global
+from ..urls import urlpatterns
 
-
-PERMISSIONS = (None, 'configuration', 'manage_users')
-
-# This is a map of the permissions required for access to the different views.
-VIEW_PERMISSIONS = {
-    'login': {
-        'permissions': (),
+VIEWS = (
+    {
+        'view': views.configuration,
+        'url': reverse('configuration'),
+        'permissions': ('common.configuration',),
+        'validate_institution': False,
         'methods': ('GET',),
-        'args': None,
     },
-    'configuration': {
-        'permissions': ('configuration',),
-        'methods': ('GET',),
-        'args': None,
-    },
-    'create_phantom': {
-        'permissions': ('configuration',),
+    {
+        'view': views.CreatePhantom,
+        'url': reverse('create_phantom'),
+        'permissions': ('common.configuration',),
+        'validate_institution': False,
         'methods': ('GET', 'POST'),
-        'args': None,
     },
-    'update_phantom': {
-        'permissions': ('configuration',),
+    {
+        'view': views.UpdatePhantom,
+        'url': lambda data: reverse('update_phantom', args=(data['phantom'].pk,)),
+        'permissions': ('common.configuration',),
+        'validate_institution': True,
         'methods': ('GET', 'POST'),
-        'args': lambda data: (data['phantom'].pk,),
     },
-    'delete_phantom': {
-        'permissions': ('configuration',),
+    {
+        'view': views.DeletePhantom,
+        'url': lambda data: reverse('delete_phantom', args=(data['phantom'].pk,)),
+        'permissions': ('common.configuration',),
+        'validate_institution': True,
         'methods': ('GET', 'POST'),
-        'args': lambda data: (data['phantom'].pk,),
     },
-    'create_machine': {
-        'permissions': ('configuration',),
+    {
+        'view': views.CreateMachine,
+        'url': reverse('create_machine'),
+        'permissions': ('common.configuration',),
+        'validate_institution': False,
         'methods': ('GET', 'POST'),
-        'args': None,
     },
-    'update_machine': {
-        'permissions': ('configuration',),
+    {
+        'view': views.UpdateMachine,
+        'url': lambda data: reverse('update_machine', args=(data['machine'].pk,)),
+        'permissions': ('common.configuration',),
+        'validate_institution': True,
         'methods': ('GET', 'POST'),
-        'args': lambda data: (data['machine'].pk,),
     },
-    'delete_machine': {
-        'permissions': ('configuration',),
+    {
+        'view': views.DeleteMachine,
+        'url': lambda data: reverse('delete_machine', args=(data['machine'].pk,)),
+        'permissions': ('common.configuration',),
+        'validate_institution': True,
         'methods': ('GET', 'POST'),
-        'args': lambda data: (data['machine'].pk,),
     },
-    'create_sequence': {
-        'permissions': ('configuration',),
+    {
+        'view': views.CreateSequence,
+        'url': reverse('create_sequence'),
+        'permissions': ('common.configuration',),
+        'validate_institution': False,
         'methods': ('GET', 'POST'),
-        'args': None,
     },
-    'update_sequence': {
-        'permissions': ('configuration',),
+    {
+        'view': views.UpdateSequence,
+        'url': lambda data: reverse('update_sequence', args=(data['sequence'].pk,)),
+        'permissions': ('common.configuration',),
+        'validate_institution': True,
         'methods': ('GET', 'POST'),
-        'args': lambda data: (data['sequence'].pk,),
     },
-    'delete_sequence': {
-        'permissions': ('configuration',),
+    {
+        'view': views.DeleteSequence,
+        'url': lambda data: reverse('delete_sequence', args=(data['sequence'].pk,)),
+        'permissions': ('common.configuration',),
+        'validate_institution': True,
         'methods': ('GET', 'POST'),
-        'args': lambda data: (data['sequence'].pk,),
     },
-    'create_user': {
-        'permissions': ('manage_user',),
+    {
+        'view': views.CreateUser,
+        'url': reverse('create_user'),
+        'permissions': ('common.manage_users',),
+        'validate_institution': False,
         'methods': ('GET', 'POST'),
-        'args': None,
     },
-    'update_user': {
-        'permissions': ('manage_user',),
+    {
+        'view': views.UpdateUser,
+        'url': lambda data: reverse('update_user', args=(data['user'].pk,)),
+        'permissions': ('common.manage_users',),
+        'validate_institution': True,
         'methods': ('GET', 'POST'),
-        'args': lambda data: (data['user'].pk,),
     },
-    'delete_user': {
-        'permissions': ('manage_user',),
+    {
+        'view': views.DeleteUser,
+        'url': lambda data: reverse('delete_user', args=(data['user'].pk,)),
+        'permissions': ('common.manage_users',),
+        'validate_institution': True,
         'methods': ('GET', 'POST'),
-        'args': lambda data: (data['user'].pk,),
     },
-}
+)
 
 
-@pytest.fixture(params=PERMISSIONS)
+@pytest.fixture(params=(None, *(p[0] for p in Global._meta.permissions)))
 def permissions_data(db, request):
     group = factories.GroupFactory.create(name="Group")
     if request.param:
@@ -99,17 +120,12 @@ def permissions_data(db, request):
         groups=[group],
     )
 
-    user = factories.UserFactory.create(
-        username='user_a',
-        institution=johns_hopkins,
-    )
-
+    user = factories.UserFactory.create(username='user', institution=johns_hopkins)
     phantom = factories.PhantomFactory(institution=johns_hopkins)
     machine = factories.MachineFactory(institution=johns_hopkins)
     sequence = factories.SequenceFactory(institution=johns_hopkins)
 
     return {
-        'permission': f'common.{request.param}',
         'current_user': current_user,
         'user': user,
         'phantom': phantom,
@@ -118,67 +134,78 @@ def permissions_data(db, request):
     }
 
 
-@pytest.mark.parametrize('url_name', VIEW_PERMISSIONS.keys())
-def test_permissions(permissions_data, url_name):
-    user = permissions_data['user']
-    permissions = VIEW_PERMISSIONS[url_name]['permissions']
-    methods = VIEW_PERMISSIONS[url_name]['methods']
-    args = VIEW_PERMISSIONS[url_name]['args']
-    url = reverse(url_name, args=args(permissions_data) if args else None)
+@pytest.fixture(params=(True, False))
+def institution_data(db, request):
+    johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
+    utexas = factories.InstitutionFactory.create(name="University of Texas")
 
-    client = Client()
-    client.force_login(user)
+    group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
 
-    if all(user.has_perm(permission) for permission in permissions):
-        for method in methods:
-            assert getattr(client, method.lower())(url).status_code in (200, 302)
-    else:
-        for method in methods:
-            assert getattr(client, method.lower())(url).status_code == 403
-
-
-@pytest.mark.django_db
-def test_institution_permissions():
-
-    # populate database
-    configuration_permission = Permission.objects.get(codename='configuration')
-
-    medical_physicists = factories.GroupFactory.create(name='Medical Physicist')
-    medical_physicists.permissions.add(configuration_permission)
-
-    johns_hopkins = factories.InstitutionFactory.create(name='Johns Hopkins')
-    utexas = factories.InstitutionFactory.create(name='University of Texas')
-
-    user_a = factories.UserFactory.create(
-        username="user_a",
-        institution=johns_hopkins,
-        groups=[medical_physicists],
+    current_user = factories.UserFactory.create(
+        username='username',
+        institution=johns_hopkins if request.param else utexas,
+        groups=[group],
     )
 
-    user_b = factories.UserFactory.create(
-        username="user_b",
-        institution=utexas,
-        groups=[medical_physicists],
-    )
-
+    user = factories.UserFactory.create(username='user', institution=johns_hopkins)
     phantom = factories.PhantomFactory(institution=johns_hopkins)
     machine = factories.MachineFactory(institution=johns_hopkins)
     sequence = factories.SequenceFactory(institution=johns_hopkins)
 
-    assert_can_view(user_a, (
-        reverse('update_phantom', args=(phantom.pk,)),
-        reverse('delete_phantom', args=(phantom.pk,)),
-        reverse('update_machine', args=(machine.pk,)),
-        reverse('delete_machine', args=(machine.pk,)),
-        reverse('update_sequence', args=(sequence.pk,)),
-        reverse('delete_sequence', args=(sequence.pk,)),
-    ))
+    return {
+        'current_user': current_user,
+        'user': user,
+        'phantom': phantom,
+        'machine': machine,
+        'sequence': sequence,
+        'institution': johns_hopkins,
+    }
 
-    assert_cannot_view(user_b, (
-        reverse('update_phantom', args=(phantom.pk,)),
-        reverse('delete_phantom', args=(phantom.pk,)),
-        reverse('update_machine', args=(machine.pk,)),
-        reverse('delete_machine', args=(machine.pk,)),
-        reverse('update_sequence', args=(sequence.pk,)),
-        reverse('delete_sequence', args=(sequence.pk,)),
-    ))
+
+@pytest.mark.parametrize('view', VIEWS)
+def test_permissions(permissions_data, view):
+    current_user = permissions_data['current_user']
+    url = view['url'](permissions_data) if callable(view['url']) else view['url']
+
+    client = Client()
+    client.force_login(current_user)
+
+    if not view['permissions'] or all(current_user.has_perm(permission) for permission in view['permissions']):
+        for method in view['methods']:
+            assert getattr(client, method.lower())(url).status_code in (200, 302)
+    else:
+        for method in view['methods']:
+            assert getattr(client, method.lower())(url).status_code == 403
+
+
+@pytest.mark.parametrize('view', VIEWS)
+def test_institution(institution_data, view):
+    current_user = institution_data['current_user']
+    url = view['url'](institution_data) if callable(view['url']) else view['url']
+
+    client = Client()
+    client.force_login(current_user)
+
+    if not view['validate_institution'] or current_user.institution == institution_data['institution']:
+        for method in view['methods']:
+            assert getattr(client, method.lower())(url).status_code in (200, 302)
+    else:
+        for method in view['methods']:
+            assert getattr(client, method.lower())(url).status_code == 403
+
+
+def test_regression():
+    view_names = set(extract_view_names_from_urlpatterns(urlpatterns))
+    tested_view_names = set(view['view'].__name__ for view in VIEWS)
+    diff = view_names - tested_view_names
+    assert not diff, f"The following views are not tested: {diff}"
+
+
+def extract_view_names_from_urlpatterns(url_patterns):
+    view_names = []
+    for pattern in url_patterns:
+        if isinstance(pattern, RegexURLPattern):
+            view_names.append(pattern.callback.__name__)
+        elif isinstance(pattern, RegexURLResolver):
+            view_names.extend(extract_view_names_from_urlpatterns(pattern.url_patterns))
+    return view_names

@@ -49,18 +49,18 @@ def test_phantoms():
     # check that a GoldenFiducials was created and activated
     assert phantom.goldenfiducials_set.count() == 1
     assert phantom.goldenfiducials_set.first().is_active
-    assert phantom.active_golden_fiducials.fiducials == phantom.model.cad_fiducials
+    assert phantom.active_gold_standard.fiducials == phantom.model.cad_fiducials
 
     # test deletion of an inactive GoldenFiducials
     golden_fiducials = factories.GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.RAW)
-    validate_delete_view(user, reverse('delete_golden_fiducials', args=(phantom.pk, golden_fiducials.pk)), GoldenFiducials)
+    validate_delete_view(user, reverse('delete_gold_standard', args=(phantom.pk, golden_fiducials.pk)), GoldenFiducials)
 
     # test deletion of an active GoldenFiducials, and the CAD GoldenFiducials when inactive
     golden_fiducials = factories.GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.RAW)
     golden_fiducials.activate()
 
-    assert_cannot_post(user, (reverse('delete_golden_fiducials', args=(phantom.pk, golden_fiducials.pk)),))
-    assert_cannot_post(user, (reverse('delete_golden_fiducials', args=(phantom.pk, phantom.active_golden_fiducials.pk)),))
+    assert_cannot_post(user, (reverse('delete_gold_standard', args=(phantom.pk, golden_fiducials.pk)),))
+    assert_cannot_post(user, (reverse('delete_gold_standard', args=(phantom.pk, phantom.active_gold_standard.pk)),))
 
     validate_update_view(user, reverse('update_phantom', args=(phantom.pk,)), Phantom, update_phantom_data)
     validate_delete_view(user, reverse('delete_phantom', args=(phantom.pk,)), Phantom)

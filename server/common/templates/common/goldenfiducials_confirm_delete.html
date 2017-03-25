@@ -3,7 +3,7 @@
 {% block "content" %}
   <h1>Delete Golden Fiducials</h1>
   <p>Are you sure you want to delete the Gold Standard "{{ goldenfiducials.source_summary }}"?</p>
-  <form action="{% url 'delete_golden_fiducials' phantom_pk goldenfiducials.pk %}" method="post">
+  <form action="{% url 'delete_gold_standard' phantom_pk goldenfiducials.pk %}" method="post">
     {% csrf_token %}
     <input type="submit" value="Yes">
     <a href="{% url 'update_phantom' phantom_pk %}">Cancel</a>

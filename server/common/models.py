@@ -88,7 +88,7 @@ class Phantom(CommonFieldsMixin):
         return "Phantom {} {} {}".format(self.institution, self.model, self.name)
 
     @property
-    def active_golden_fiducials(self):
+    def active_gold_standard(self):
         return self.goldenfiducials_set.get(is_active=True)
 
 
@@ -169,7 +169,7 @@ class GoldenFiducials(CommonFieldsMixin):
         return "Golden Fiducials {}".format(self.id)
 
     def activate(self):
-        current_gold_standard = self.phantom.active_golden_fiducials
+        current_gold_standard = self.phantom.active_gold_standard
         current_gold_standard.is_active = False
         current_gold_standard.save()
 

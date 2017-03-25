@@ -26,10 +26,13 @@ def validate_institution(model_class=None, pk_url_kwarg='pk'):
                     obj = instance.get_object()
                 else:
                     raise Exception("You must either specify the model_class, or implement the get_object method.")
+
                 if not hasattr(obj, 'institution'):
                     raise Exception(f"The property 'institution' was not found on the object {obj}.")
+
                 if obj.institution != request.user.institution:
                     raise PermissionDenied
+
                 return old_dispatch(instance, request, *args, **kwargs)
 
             view.dispatch = new_dispatch
@@ -41,8 +44,10 @@ def validate_institution(model_class=None, pk_url_kwarg='pk'):
                 obj = get_object_or_404(model_class, pk=kwargs[pk_url_kwarg])
                 if not hasattr(obj, 'institution'):
                     raise Exception(f"The property 'institution' was not found on the object {obj}.")
+
                 if obj.institution != request.user.institution:
                     raise PermissionDenied
+
                 return view(request, *args, **kwargs)
             return wrapper
     return decorator

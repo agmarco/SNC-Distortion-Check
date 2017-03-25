@@ -95,6 +95,7 @@ class UpdatePhantom(UpdateView):
     fields = ('name',)
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_update'
+    pk_url_kwarg = 'phantom_pk'
 
     @property
     def golden_fiducials(self):
@@ -106,21 +107,12 @@ class UpdatePhantom(UpdateView):
 class DeletePhantom(CirsDeleteView):
     model = Phantom
     success_url = reverse_lazy('configuration')
-
-
-def golden_fiducials_csv(request, phantom_pk=None, golden_fiducials_pk=None):
-    golden_fiducials = get_object_or_404(GoldenFiducials, pk=golden_fiducials_pk)
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename="{golden_fiducials.source_summary}.csv"'
-
-    writer = csv.writer(response)
-    for fiducial in golden_fiducials.fiducials.fiducials.T:
-        writer.writerow(fiducial)
-    return response
+    pk_url_kwarg = 'phantom_pk'
 
 
 @login_and_permission_required('common.configuration')
-class GoldenFiducialsCTUpload(FormView):
+@validate_institution(model_class=Phantom, pk_url_kwarg='phantom_pk')
+class UploadCT(FormView):
     form_class = UploadCTForm
     template_name = 'common/upload_ct.html'
 
@@ -136,70 +128,84 @@ class GoldenFiducialsCTUpload(FormView):
             shape=voxels.shape,
             datasets=datasets,
         )
-        process_ct_upload.delay(self.kwargs['pk'], dicom_series.pk)
+        process_ct_upload.delay(self.kwargs['phantom_pk'], dicom_series.pk)
 
-        return super(GoldenFiducialsCTUpload, self).form_valid(form)
+        return super(UploadCT, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
-        context = super(GoldenFiducialsCTUpload, self).get_context_data(**kwargs)
-        context.update({'pk': self.kwargs['pk']})
+        context = super(UploadCT, self).get_context_data(**kwargs)
+        context.update({'phantom_pk': self.kwargs['phantom_pk']})
         return context
 
     def get_success_url(self):
-        return reverse('update_phantom', args=(self.kwargs['pk'],))
+        return reverse('update_phantom', args=(self.kwargs['phantom_pk'],))
 
 
 @login_and_permission_required('common.configuration')
-class GoldenFiducialsRawUpload(FormView):
+@validate_institution(model_class=Phantom, pk_url_kwarg='phantom_pk')
+class UploadRaw(FormView):
     form_class = UploadRawForm
     template_name = 'common/upload_raw.html'
 
     def form_valid(self, form):
-        phantom = Phantom.objects.get(pk=self.kwargs['pk'])
+        phantom = Phantom.objects.get(pk=self.kwargs['phantom_pk'])
         fiducials = FiducialsFactory(fiducials=np.genfromtxt(self.request.FILES['csv'], delimiter=',').T)
         GoldenFiducialsFactory(
             phantom=phantom,
             fiducials=fiducials,
             type=GoldenFiducials.RAW,
         )
-        return super(GoldenFiducialsRawUpload, self).form_valid(form)
+        return super(UploadRaw, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
-        context = super(GoldenFiducialsRawUpload, self).get_context_data(**kwargs)
-        context.update({'pk': self.kwargs['pk']})
+        context = super(UploadRaw, self).get_context_data(**kwargs)
+        context.update({'phantom_pk': self.kwargs['phantom_pk']})
         return context
 
     def get_success_url(self):
-        return reverse('update_phantom', args=(self.kwargs['pk'],))
+        return reverse('update_phantom', args=(self.kwargs['phantom_pk'],))
 
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class DeleteGoldenFiducials(CirsDeleteView):
+class DeleteStandard(CirsDeleteView):
     model = GoldenFiducials
-    pk_url_kwarg = 'golden_fiducials_pk'
+    pk_url_kwarg = 'gold_standard_pk'
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
         if self.object.type == GoldenFiducials.CAD or self.object.is_active:
             raise PermissionDenied
-        return super(DeleteGoldenFiducials, self).delete(request, *args, **kwargs)
+        return super(DeleteStandard, self).delete(request, *args, **kwargs)
 
     def get_success_url(self):
         return reverse('update_phantom', args=(self.kwargs['phantom_pk'],))
 
     def get_context_data(self, **kwargs):
-        context = super(DeleteGoldenFiducials, self).get_context_data(**kwargs)
+        context = super(DeleteStandard, self).get_context_data(**kwargs)
         context.update({'phantom_pk': self.kwargs['phantom_pk']})
         return context
 
 
 @login_and_permission_required('common.configuration')
-@validate_institution(model_class=GoldenFiducials)
-def activate_golden_fiducials(request, phantom_pk=None, golden_fiducials_pk=None):
-    golden_fiducials = get_object_or_404(GoldenFiducials, pk=golden_fiducials_pk)
+@validate_institution(model_class=GoldenFiducials, pk_url_kwarg='gold_standard_pk')
+def activate_gold_standard(request, phantom_pk=None, gold_standard_pk=None):
+    golden_fiducials = get_object_or_404(GoldenFiducials, pk=gold_standard_pk)
     golden_fiducials.activate()
     return redirect('update_phantom', phantom_pk)
+
+
+@login_and_permission_required('common.configuration')
+@validate_institution(model_class=GoldenFiducials, pk_url_kwarg='gold_standard_pk')
+def gold_standard_csv(request, phantom_pk=None, gold_standard_pk=None):
+    golden_fiducials = get_object_or_404(GoldenFiducials, pk=gold_standard_pk)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{golden_fiducials.source_summary}.csv"'
+
+    writer = csv.writer(response)
+    for fiducial in golden_fiducials.fiducials.fiducials.T:
+        writer.writerow(fiducial)
+    return response
 
 
 @login_and_permission_required('common.configuration')

@@ -25,13 +25,13 @@ class UserFactory(factory.django.DjangoModelFactory):
 
     @factory.post_generation
     def groups(self, create, extracted, **kwargs):
-        '''
+        """
         Add groups to the user using:
 
             group = GroupFactory('admin')
             UserFactory(groups=[group])
 
-        '''
+        """
         if not create:
             return
 
@@ -45,6 +45,21 @@ class GroupFactory(factory.django.DjangoModelFactory):
         model = "auth.Group"
 
     name = factory.Sequence("group{0}".format)
+
+    @factory.post_generation
+    def permissions(self, create, extracted, **kwargs):
+        """
+        Add permissions to the group using:
+
+            permission = Permission.objects.get(codename='configuration')
+            GroupFactory(permissions=[permission])
+        """
+        if not create:
+            return
+
+        if extracted:
+            for permission in extracted:
+                self.permissions.add(permission)
 
 
 class MachineFactory(factory.django.DjangoModelFactory):
