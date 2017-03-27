@@ -1,0 +1,10 @@
+<header>
+  {% if request.user.is_authenticated %}
+    <h1>CIRS Distortion Check</h1>
+    <ul>
+      <li>Logged in as {{ request.user.username }}</li>
+      <li><a href="{% url 'configuration' %}">Configuration</a></li>
+      <li><a href="{% url 'logout' %}">Logout</a></li>
+    </ul>
+  {% endif %}
+</header>
