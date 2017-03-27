@@ -41,7 +41,7 @@ def test_regression():
     assert view_names == tested_view_names, f"The following views are not tested: {view_names - tested_view_names}"
 
 
-@pytest.mark.parametrize('view', (view for view in VIEWS if len(view['permissions'])))
+@pytest.mark.parametrize('view', (view for view in VIEWS if view['permissions']))
 def test_permissions(permissions_data, view):
     """
     For each view that requires some permission, test that a user that has the required permissions is granted access,

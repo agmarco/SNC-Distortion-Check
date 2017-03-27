@@ -12,8 +12,10 @@ from .. import factories
 def test_configuration_context():
     johns_hopkins = factories.InstitutionFactory.create(name='Johns Hopkins')
     utexas = factories.InstitutionFactory.create(name='University of Texas')
-    group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
-    current_user = factories.UserFactory.create(username="current_user", institution=johns_hopkins, groups=[group])
+    managers = factories.GroupFactory.create(name="Manager", permissions=Permission.objects.all())
+    medical_physicists = factories.GroupFactory.create(name="Medical Physicist", permissions=[Permission.objects.get(codename='configuration')])
+    manager = factories.UserFactory.create(username="manager", institution=johns_hopkins, groups=[managers])
+    medical_physicist = factories.UserFactory.create(username="medical_physicist", institution=johns_hopkins, groups=[medical_physicists])
 
     factories.PhantomFactory(institution=johns_hopkins)
     factories.PhantomFactory(institution=johns_hopkins, deleted=True)
@@ -27,14 +29,14 @@ def test_configuration_context():
     factories.SequenceFactory(institution=johns_hopkins, deleted=True)
     factories.SequenceFactory(institution=utexas)
 
-    factories.UserFactory.create(username="user_a", institution=johns_hopkins, groups=[group])
-    factories.UserFactory.create(username="user_b", institution=johns_hopkins, groups=[group], deleted=True)
-    factories.UserFactory.create(username="user_c", institution=utexas, groups=[group])
+    factories.UserFactory.create(username="user_a", institution=johns_hopkins)
+    factories.UserFactory.create(username="user_b", institution=johns_hopkins, deleted=True)
+    factories.UserFactory.create(username="user_c", institution=utexas)
 
     client = Client()
     url = reverse('configuration')
 
-    client.force_login(current_user)
+    client.force_login(manager)
     response = client.get(url)
 
     phantoms = response.context['phantoms']
@@ -43,13 +45,19 @@ def test_configuration_context():
     users = response.context['users']
 
     # only display items from the user's institution
-    assert all(phantom.institution == current_user.institution for phantom in phantoms)
-    assert all(machine.institution == current_user.institution for machine in machines)
-    assert all(sequence.institution == current_user.institution for sequence in sequences)
-    assert all(user.institution == current_user.institution for user in users)
+    assert all(phantom.institution == manager.institution for phantom in phantoms)
+    assert all(machine.institution == manager.institution for machine in machines)
+    assert all(sequence.institution == manager.institution for sequence in sequences)
+    assert all(user.institution == manager.institution for user in users)
 
     # don't display deleted items
     assert all(not phantom.deleted for phantom in phantoms)
     assert all(not machine.deleted for machine in machines)
     assert all(not sequence.deleted for sequence in sequences)
     assert all(not user.deleted for user in users)
+
+    # ensure that a medical physicist can't view users
+    client.force_login(medical_physicist)
+    response = client.get(url)
+
+    assert not response.context['users']
