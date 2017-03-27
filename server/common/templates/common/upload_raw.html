@@ -6,8 +6,9 @@
   <p>The origin of the coordinate system should be centered in the phantom.</p>
   <form action="{% url 'upload_raw' phantom_pk %}" enctype="multipart/form-data" method="post">
     {% csrf_token %}
-    {{ form.errors }}
+    {{ form.non_field_errors }}
     {% for field in form %}
+      {{ field.errors }}
       {{ field.label }} {{ field }}<br>
     {% endfor %}
     <input type="submit" value="Upload">

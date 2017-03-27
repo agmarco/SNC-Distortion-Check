@@ -6,7 +6,6 @@ from django.contrib.auth.models import Permission
 
 from server.common import factories
 from server.common.models import Phantom, GoldenFiducials
-from .utils import validate_create_view, validate_update_view, validate_delete_view
 
 
 @pytest.mark.django_db
@@ -19,7 +18,7 @@ def test_phantoms():
     client = Client()
     client.force_login(current_user)
 
-    client.post(reverse('create_phantom'), data={
+    client.post(reverse('create_phantom'), {
         'name': 'Create Phantom',
         'model': str(phantom_model.pk),
         'serial_number': '12345',

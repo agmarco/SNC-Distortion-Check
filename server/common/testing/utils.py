@@ -17,7 +17,7 @@ def validate_create_view(user, url, model_class, data=None):
 
     client = Client()
     client.force_login(user)
-    client.post(url, data=data)
+    client.post(url, data)
 
     assert model_class.objects.count() == current_count + 1
     model = model_class.objects.all().order_by('-last_modified_on').first()
@@ -32,7 +32,7 @@ def validate_update_view(user, url, model_class, data=None):
 
     client = Client()
     client.force_login(user)
-    client.post(url, data=data)
+    client.post(url, data)
 
     assert model_class.objects.count() == current_count
     model = model_class.objects.all().order_by('-last_modified_on').first()
@@ -46,7 +46,7 @@ def validate_delete_view(user, url, model_class, data=None):
 
     client = Client()
     client.force_login(user)
-    client.post(url, data=data)
+    client.post(url, data)
 
     assert model_class.objects.count() == current_count
     model = model_class.objects.all().order_by('-last_modified_on').first()

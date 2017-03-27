@@ -204,8 +204,8 @@ def gold_standard_csv(request, phantom_pk=None, gold_standard_pk=None):
     response['Content-Disposition'] = f'attachment; filename="{golden_fiducials.source_summary}.csv"'
 
     writer = csv.writer(response)
-    for fiducial in golden_fiducials.fiducials.fiducials.T:
-        writer.writerow(fiducial)
+    for row in golden_fiducials.fiducials.fiducials.T:
+        writer.writerow(row)
     return response
 
 
