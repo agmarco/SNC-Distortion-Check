@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import numpy as np
 import factory
 
 
@@ -75,6 +76,8 @@ class MachineFactory(factory.django.DjangoModelFactory):
 class FiducialsFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.Fiducials"
+
+    fiducials = np.zeros((5, 5))
 
 
 class PhantomModelFactory(factory.django.DjangoModelFactory):

@@ -1,17 +1,55 @@
-import pytest
-
-import numpy as np
-
-from django.test import Client
-from django.urls import RegexURLPattern
-from django.urls import RegexURLResolver
 from django.urls import reverse
-from django.contrib.auth.models import Permission
 
 from .. import views
 from .. import factories
-from ..models import Global, GoldenFiducials
-from ..urls import urlpatterns
+from ..models import Phantom, GoldenFiducials, Machine, Sequence, User
+
+# This is the configuration for the view tests. Each configuration dict may contain the following keys:
+# 'view': the view object.
+# 'data': a function that returns a dict containing additional data that is needed for the test.
+# 'crud': a 3-tuple containing:
+#     (1) a string representing the type of CRUD operation.
+#     (2) the model class.
+#     (3) a dict containing the POST data for the request. This can also be a function that returns a dict, in which
+#         case it will receive the data specified by the 'data' key as an argument.
+# 'url': the url for the view. This can also be a function that returns the url, in which case it will receive the data
+#     specified by the 'data' key as an argument.
+# 'permissions': a list of permissions that are required to access the view.
+# 'validate_institution': a boolean representing whether the user's institution must be validated against the view.
+# 'methods': a list of the HTTP methods that should be tested.
+
+
+class Crud:
+    CREATE = 'CREATE'
+    UPDATE = 'UPDATE'
+    DELETE = 'DELETE'
+
+
+def delete_gold_standard_data():
+    phantom = factories.PhantomFactory()
+    gold_standard = factories.GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.RAW)
+    return {
+        'phantom': phantom,
+        'gold_standard': gold_standard,
+    }
+
+
+def activate_gold_standard_data():
+    phantom = factories.PhantomFactory()
+    gold_standard = factories.GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.RAW)
+    return {
+        'phantom': phantom,
+        'gold_standard': gold_standard,
+    }
+
+
+def gold_standard_csv_data():
+    phantom = factories.PhantomFactory()
+    gold_standard = factories.GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.RAW)
+    return {
+        'phantom': phantom,
+        'gold_standard': gold_standard,
+    }
 
 VIEWS = (
     {
@@ -30,6 +68,12 @@ VIEWS = (
     },
     {
         'view': views.CreatePhantom,
+        'data': lambda: {'phantom_model': factories.PhantomModelFactory(name='CIRS 603A', model_number='603A')},
+        'crud': (Crud.CREATE, Phantom, lambda data: {
+            'name': 'Create Phantom',
+            'model': str(data['phantom_model'].pk),
+            'serial_number': '12345',
+        }),
         'url': reverse('create_phantom'),
         'permissions': ('common.configuration',),
         'validate_institution': False,
@@ -37,6 +81,8 @@ VIEWS = (
     },
     {
         'view': views.UpdatePhantom,
+        'data': lambda: {'phantom': factories.PhantomFactory()},
+        'crud': (Crud.UPDATE, Phantom, {'name': 'Update Phantom'}),
         'url': lambda data: reverse('update_phantom', args=(data['phantom'].pk,)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
@@ -44,6 +90,8 @@ VIEWS = (
     },
     {
         'view': views.DeletePhantom,
+        'data': lambda: {'phantom': factories.PhantomFactory()},
+        'crud': (Crud.DELETE, Phantom, None),
         'url': lambda data: reverse('delete_phantom', args=(data['phantom'].pk,)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
@@ -51,6 +99,7 @@ VIEWS = (
     },
     {
         'view': views.UploadCT,
+        'data': lambda: {'phantom': factories.PhantomFactory()},
         'url': lambda data: reverse('upload_ct', args=(data['phantom'].pk,)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
@@ -58,6 +107,7 @@ VIEWS = (
     },
     {
         'view': views.UploadRaw,
+        'data': lambda: {'phantom': factories.PhantomFactory()},
         'url': lambda data: reverse('upload_raw', args=(data['phantom'].pk,)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
@@ -65,6 +115,8 @@ VIEWS = (
     },
     {
         'view': views.DeleteGoldStandard,
+        'data': delete_gold_standard_data,
+        'crud': (Crud.DELETE, GoldenFiducials, None),
         'url': lambda data: reverse('delete_gold_standard', args=(data['phantom'].pk, data['gold_standard'].pk)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
@@ -72,6 +124,7 @@ VIEWS = (
     },
     {
         'view': views.activate_gold_standard,
+        'data': activate_gold_standard_data,
         'url': lambda data: reverse('activate_gold_standard', args=(data['phantom'].pk, data['gold_standard'].pk)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
@@ -79,6 +132,7 @@ VIEWS = (
     },
     {
         'view': views.gold_standard_csv,
+        'data': gold_standard_csv_data,
         'url': lambda data: reverse('gold_standard_csv', args=(data['phantom'].pk, data['gold_standard'].pk)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
@@ -86,6 +140,11 @@ VIEWS = (
     },
     {
         'view': views.CreateMachine,
+        'crud': (Crud.CREATE, Machine, {
+            'name': 'Create Machine',
+            'model': 'Create Model',
+            'manufacturer': 'Create Manufacturer',
+        }),
         'url': reverse('create_machine'),
         'permissions': ('common.configuration',),
         'validate_institution': False,
@@ -93,6 +152,12 @@ VIEWS = (
     },
     {
         'view': views.UpdateMachine,
+        'data': lambda: {'machine': factories.MachineFactory()},
+        'crud': (Crud.UPDATE, Machine, {
+            'name': 'Update Machine',
+            'model': 'Update Model',
+            'manufacturer': 'Update Manufacturer',
+        }),
         'url': lambda data: reverse('update_machine', args=(data['machine'].pk,)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
@@ -100,6 +165,8 @@ VIEWS = (
     },
     {
         'view': views.DeleteMachine,
+        'data': lambda: {'machine': factories.MachineFactory()},
+        'crud': (Crud.DELETE, Machine, None),
         'url': lambda data: reverse('delete_machine', args=(data['machine'].pk,)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
@@ -107,6 +174,10 @@ VIEWS = (
     },
     {
         'view': views.CreateSequence,
+        'crud': (Crud.CREATE, Sequence, {
+            'name': 'Create Sequence',
+            'instructions': 'Create Instructions',
+        }),
         'url': reverse('create_sequence'),
         'permissions': ('common.configuration',),
         'validate_institution': False,
@@ -114,6 +185,11 @@ VIEWS = (
     },
     {
         'view': views.UpdateSequence,
+        'data': lambda: {'sequence': factories.SequenceFactory()},
+        'crud': (Crud.UPDATE, Sequence, {
+            'name': 'Update Sequence',
+            'instructions': 'Update Instructions',
+        }),
         'url': lambda data: reverse('update_sequence', args=(data['sequence'].pk,)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
@@ -121,6 +197,8 @@ VIEWS = (
     },
     {
         'view': views.DeleteSequence,
+        'data': lambda: {'sequence': factories.SequenceFactory()},
+        'crud': (Crud.DELETE, Sequence, None),
         'url': lambda data: reverse('delete_sequence', args=(data['sequence'].pk,)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
@@ -128,6 +206,12 @@ VIEWS = (
     },
     {
         'view': views.CreateUser,
+        'crud': (Crud.CREATE, User, {
+            'username': 'create_user',
+            'first_name': 'Create First Name',
+            'last_name': 'Create Last Name',
+            'email': 'create_user@example.com',
+        }),
         'url': reverse('create_user'),
         'permissions': ('common.manage_users',),
         'validate_institution': False,
@@ -135,6 +219,13 @@ VIEWS = (
     },
     {
         'view': views.UpdateUser,
+        'data': lambda: {'user': factories.UserFactory()},
+        'crud': (Crud.UPDATE, User, {
+            'username': 'update_user',
+            'first_name': 'Update First Name',
+            'last_name': 'Update Last Name',
+            'email': 'update_user@example.com',
+        }),
         'url': lambda data: reverse('update_user', args=(data['user'].pk,)),
         'permissions': ('common.manage_users',),
         'validate_institution': True,
@@ -142,120 +233,11 @@ VIEWS = (
     },
     {
         'view': views.DeleteUser,
+        'data': lambda: {'user': factories.UserFactory()},
+        'crud': (Crud.DELETE, User, None),
         'url': lambda data: reverse('delete_user', args=(data['user'].pk,)),
         'permissions': ('common.manage_users',),
         'validate_institution': True,
         'methods': ('GET', 'POST'),
     },
 )
-
-
-@pytest.fixture(params=(None, *(permission[0] for permission in Global._meta.permissions)))
-def permissions_data(db, request):
-    group = factories.GroupFactory.create(name="Group")
-    if request.param:
-        group.permissions.add(Permission.objects.get(codename=request.param))
-
-    johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
-
-    current_user = factories.UserFactory.create(
-        username='username',
-        institution=johns_hopkins,
-        groups=[group],
-    )
-
-    user = factories.UserFactory.create(username='user', institution=johns_hopkins)
-    phantom = factories.PhantomFactory(institution=johns_hopkins)
-    machine = factories.MachineFactory(institution=johns_hopkins)
-    sequence = factories.SequenceFactory(institution=johns_hopkins)
-    fiducials = factories.FiducialsFactory(fiducials=np.zeros((5, 5)))
-    gold_standard = factories.GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.RAW, fiducials=fiducials)
-
-    return {
-        'current_user': current_user,
-        'user': user,
-        'phantom': phantom,
-        'machine': machine,
-        'sequence': sequence,
-        'gold_standard': gold_standard,
-    }
-
-
-@pytest.fixture(params=(True, False))
-def institution_data(db, request):
-    johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
-    utexas = factories.InstitutionFactory.create(name="University of Texas")
-
-    group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
-
-    current_user = factories.UserFactory.create(
-        username='username',
-        institution=johns_hopkins if request.param else utexas,
-        groups=[group],
-    )
-
-    user = factories.UserFactory.create(username='user', institution=johns_hopkins)
-    phantom = factories.PhantomFactory(institution=johns_hopkins)
-    machine = factories.MachineFactory(institution=johns_hopkins)
-    sequence = factories.SequenceFactory(institution=johns_hopkins)
-    fiducials = factories.FiducialsFactory(fiducials=np.zeros((5, 5)))
-    gold_standard = factories.GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.RAW, fiducials=fiducials)
-
-    return {
-        'current_user': current_user,
-        'user': user,
-        'phantom': phantom,
-        'machine': machine,
-        'sequence': sequence,
-        'gold_standard': gold_standard,
-        'institution': johns_hopkins,
-    }
-
-
-@pytest.mark.parametrize('view', VIEWS)
-def test_permissions(permissions_data, view):
-    current_user = permissions_data['current_user']
-    url = view['url'](permissions_data) if callable(view['url']) else view['url']
-
-    client = Client()
-    client.force_login(current_user)
-
-    if not view['permissions'] or all(current_user.has_perm(permission) for permission in view['permissions']):
-        for method in view['methods']:
-            assert getattr(client, method.lower())(url).status_code in (200, 302)
-    else:
-        for method in view['methods']:
-            assert getattr(client, method.lower())(url).status_code == 403
-
-
-@pytest.mark.parametrize('view', VIEWS)
-def test_institution(institution_data, view):
-    current_user = institution_data['current_user']
-    url = view['url'](institution_data) if callable(view['url']) else view['url']
-
-    client = Client()
-    client.force_login(current_user)
-
-    if not view['validate_institution'] or current_user.institution == institution_data['institution']:
-        for method in view['methods']:
-            assert getattr(client, method.lower())(url).status_code in (200, 302)
-    else:
-        for method in view['methods']:
-            assert getattr(client, method.lower())(url).status_code == 403
-
-
-def test_regression():
-    view_names = set(_extract_view_names_from_urlpatterns(urlpatterns))
-    tested_view_names = set(view['view'].__name__ for view in VIEWS)
-    diff = view_names - tested_view_names
-    assert not diff, f"The following views are not tested: {diff}"
-
-
-def _extract_view_names_from_urlpatterns(url_patterns):
-    view_names = []
-    for pattern in url_patterns:
-        if isinstance(pattern, RegexURLPattern):
-            view_names.append(pattern.callback.__name__)
-        elif isinstance(pattern, RegexURLResolver):
-            view_names.extend(_extract_view_names_from_urlpatterns(pattern.url_patterns))
-    return view_names
