@@ -35,6 +35,8 @@ class Institution(CommonFieldsMixin):
     name = models.CharField(max_length=255, help_text=name_ht)
     number_of_licenses_ht = 'The number of machines that the institution is allowed to add'
     number_of_licenses = models.PositiveIntegerField(default=1, help_text=number_of_licenses_ht)
+    address = models.TextField()
+    phone_number = models.CharField(max_length=255)
 
     def __str__(self):
         return "{}".format(self.name)

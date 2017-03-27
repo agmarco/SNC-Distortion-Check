@@ -4,7 +4,7 @@ from . import views
 
 urlpatterns = [
     url(r'^$', views.upload_file, name='upload_file'),
-    url(r'^configuration/$', views.configuration, name='configuration'),
+    url(r'^configuration/$', views.Configuration.as_view(), name='configuration'),
 
     url(r'^phantoms/', include([
         url(r'^add/$', views.CreatePhantom.as_view(), name='create_phantom'),
@@ -34,7 +34,6 @@ urlpatterns = [
 
     url(r'^users/', include([
         url(r'^add/$', views.CreateUser.as_view(), name='create_user'),
-        url(r'^(?P<pk>\d+)/edit/$', views.UpdateUser.as_view(), name='update_user'),
         url(r'^(?P<pk>\d+)/delete/$', views.DeleteUser.as_view(), name='delete_user'),
     ])),
 ]

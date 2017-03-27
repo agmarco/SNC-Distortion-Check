@@ -4,6 +4,11 @@
 
 {% block "content" %}
   <h1>Edit Phantom</h1>
+
+  {% if message %}
+    <p>{{ message }}</p>
+  {% endif %}
+
   <form action="{% url 'update_phantom' phantom.pk %}" method="post">
     {% csrf_token %}
     {{ form.non_field_errors }}
@@ -13,6 +18,7 @@
     {% endfor %}
     <input type="submit" value="Save Name Change">
   </form>
+
   <label>Model Number</label> {{ phantom.model }}<br>
   <label>Serial Number</label> {{ phantom.serial_number }}
   <table>

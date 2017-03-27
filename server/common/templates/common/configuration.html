@@ -5,6 +5,20 @@
 {% block "content" %}
   <h1>Configuration</h1>
 
+  {% if message %}
+    <p>{{ message }}</p>
+  {% endif %}
+
+  <form action="{% url 'configuration' %}" method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+      {{ field.errors }}
+      {{ field.label }} {{ field }}<br>
+    {% endfor %}
+    <input type="submit" value="Save">
+  </form>
+
   <h2>Phantoms</h2>
   <a href="{% url 'create_phantom' %}">Add Phantom</a>
   <table>
@@ -91,7 +105,7 @@
         <tr>
           <th>Name</th>
           <th>Email</th>
-          <th>User Type</th>
+          <th>Groups</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -99,10 +113,9 @@
         {% for user in users %}
           <tr>
             <td>{{ user.get_full_name }}</td>
-            <td>{{ user.email }}</td>
+            <td><a href="mailto:{{ user.email }}">{{ user.email }}</a></td>
             <td>{{ user.groups.all|join:", " }}</td>
             <td>
-              <a href="{% url 'update_user' user.pk %}">Edit</a>
               <a href="{% url 'delete_user' user.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>
             </td>
           </tr>

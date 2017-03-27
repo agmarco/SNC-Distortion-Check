@@ -60,7 +60,7 @@ VIEWS = (
         'methods': ('GET', 'POST'),
     },
     {
-        'view': views.configuration,
+        'view': views.Configuration,
         'url': reverse('configuration'),
         'permissions': ('common.configuration',),
         'validate_institution': False,
@@ -215,20 +215,6 @@ VIEWS = (
         'url': reverse('create_user'),
         'permissions': ('common.manage_users',),
         'validate_institution': False,
-        'methods': ('GET', 'POST'),
-    },
-    {
-        'view': views.UpdateUser,
-        'data': lambda: {'user': factories.UserFactory()},
-        'crud': (Crud.UPDATE, User, {
-            'username': 'update_user',
-            'first_name': 'Update First Name',
-            'last_name': 'Update Last Name',
-            'email': 'update_user@example.com',
-        }),
-        'url': lambda data: reverse('update_user', args=(data['user'].pk,)),
-        'permissions': ('common.manage_users',),
-        'validate_institution': True,
         'methods': ('GET', 'POST'),
     },
     {

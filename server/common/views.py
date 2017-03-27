@@ -8,13 +8,12 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse_lazy
 
 import numpy as np
 
 from process import dicom_import
 from server.common.factories import DicomSeriesFactory, FiducialsFactory, GoldenFiducialsFactory
-from .models import Scan, Phantom, Machine, Sequence, GoldenFiducials, User
+from .models import Scan, Phantom, Machine, Sequence, GoldenFiducials, User, Institution
 from .tasks import process_scan, process_ct_upload
 from .forms import UploadScanForm, UploadCTForm, UploadRawForm
 from .decorators import validate_institution, login_and_permission_required
@@ -63,24 +62,82 @@ def upload_file(request):
 
 
 @login_and_permission_required('common.configuration')
-def configuration(request):
-    institution = request.user.institution
-    manage_users = request.user.has_perm('common.manage_users')
-    return render(request, 'common/configuration.html', {
-        'phantoms': institution.phantom_set.active().order_by('-last_modified_on'),
-        'machines': institution.machine_set.active().order_by('-last_modified_on'),
-        'sequences': institution.sequence_set.active().order_by('-last_modified_on'),
-        'users': institution.user_set.active().order_by('-last_modified_on') if manage_users else [],
-        'manage_users': manage_users,
-    })
+class Configuration(UpdateView):
+    model = Institution
+    fields = ('name', 'address', 'phone_number')
+    template_name = 'common/configuration.html'
+
+    def _get_message(self):
+        action = self.request.GET.get('action')
+        message = None
+
+        if action:
+            if action == 'update_institution_success':
+                message = f"\"{self.get_object().name}\" has been updated successfully."
+            elif action == 'create_phantom_success':
+                phantom = Phantom.objects.get(pk=self.request.GET.get('pk'))
+                message = f"\"{phantom.name}\" has been created successfully."
+            elif action == 'update_phantom_success':
+                phantom = Phantom.objects.get(pk=self.request.GET.get('pk'))
+                message = f"\"{phantom.name}\" has been updated successfully."
+            elif action == 'delete_phantom_success':
+                phantom = Phantom.objects.get(pk=self.request.GET.get('pk'))
+                message = f"\"{phantom.name}\" has been deleted successfully."
+            elif action == 'create_machine_success':
+                machine = Machine.objects.get(pk=self.request.GET.get('pk'))
+                message = f"\"{machine.name}\" has been created successfully."
+            elif action == 'update_machine_success':
+                machine = Machine.objects.get(pk=self.request.GET.get('pk'))
+                message = f"\"{machine.name}\" has been updated successfully."
+            elif action == 'delete_machine_success':
+                machine = Machine.objects.get(pk=self.request.GET.get('pk'))
+                message = f"\"{machine.name}\" has been deleted successfully."
+            elif action == 'create_sequence_success':
+                sequence = Sequence.objects.get(pk=self.request.GET.get('pk'))
+                message = f"\"{sequence.name}\" has been created successfully."
+            elif action == 'update_sequence_success':
+                sequence = Sequence.objects.get(pk=self.request.GET.get('pk'))
+                message = f"\"{sequence.name}\" has been updated successfully."
+            elif action == 'delete_sequence_success':
+                sequence = Sequence.objects.get(pk=self.request.GET.get('pk'))
+                message = f"\"{sequence.name}\" has been deleted successfully."
+            elif action == 'create_user_success':
+                user = User.objects.get(pk=self.request.GET.get('pk'))
+                message = f"\"{user.get_full_name()}\" has been created successfully."
+            elif action == 'delete_user_success':
+                user = User.objects.get(pk=self.request.GET.get('pk'))
+                message = f"\"{user.get_full_name()}\" has been deleted successfully."
+        return message
+
+    def get_object(self, queryset=None):
+        return self.request.user.institution
+
+    def get_success_url(self):
+        return f"{reverse('configuration')}?action=update_institution_success"
+
+    def get_context_data(self, **kwargs):
+        context = super(Configuration, self).get_context_data(**kwargs)
+        institution = self.get_object()
+        manage_users = self.request.user.has_perm('common.manage_users')
+        context.update({
+            'phantoms': institution.phantom_set.active().order_by('-last_modified_on'),
+            'machines': institution.machine_set.active().order_by('-last_modified_on'),
+            'sequences': institution.sequence_set.active().order_by('-last_modified_on'),
+            'users': institution.user_set.active().order_by('-last_modified_on') if manage_users else [],
+            'manage_users': manage_users,
+            'message': self._get_message(),
+        })
+        return context
 
 
 @login_and_permission_required('common.configuration')
 class CreatePhantom(CreateView):
     model = Phantom
     fields = ('name', 'model', 'serial_number')
-    success_url = reverse_lazy('configuration')
     template_name_suffix = '_create'
+
+    def get_success_url(self):
+        return f"{reverse('configuration')}?action=create_phantom_success&pk={self.object.pk}"
 
     def form_valid(self, form):
         self.object = form.save(commit=False)
@@ -94,9 +151,35 @@ class CreatePhantom(CreateView):
 class UpdatePhantom(UpdateView):
     model = Phantom
     fields = ('name',)
-    success_url = reverse_lazy('configuration')
     template_name_suffix = '_update'
     pk_url_kwarg = 'phantom_pk'
+
+    def _get_message(self):
+        action = self.request.GET.get('action')
+        message = None
+
+        if action:
+            if action == 'upload_ct_success':
+                message = "Gold Standard CT has been uploaded successfully. When it is finished processing, it will appear below."
+            elif action == 'upload_raw_success':
+                message = "Gold Standard Points have been uploaded successfully."
+            elif action == 'delete_gold_standard_success':
+                gold_standard = GoldenFiducials.objects.get(pk=self.request.GET.get('pk'))
+                message = f"\"{gold_standard.source_summary}\" has been deleted successfully."
+            elif action == 'activate_gold_standard_success':
+                gold_standard = GoldenFiducials.objects.get(pk=self.request.GET.get('pk'))
+                message = f"\"{gold_standard.source_summary}\" has been activated successfully."
+        return message
+
+    def get_success_url(self):
+        return f"{reverse('configuration')}?action=update_phantom_success&pk={self.object.pk}"
+
+    def get_context_data(self, **kwargs):
+        context = super(UpdatePhantom, self).get_context_data(**kwargs)
+        context.update({
+            'message': self._get_message(),
+        })
+        return context
 
     @property
     def golden_fiducials(self):
@@ -107,8 +190,107 @@ class UpdatePhantom(UpdateView):
 @validate_institution()
 class DeletePhantom(CirsDeleteView):
     model = Phantom
-    success_url = reverse_lazy('configuration')
     pk_url_kwarg = 'phantom_pk'
+
+    def get_success_url(self):
+        return f"{reverse('configuration')}?action=delete_phantom_success&pk={self.object.pk}"
+
+
+@login_and_permission_required('common.configuration')
+class CreateMachine(CreateView):
+    model = Machine
+    fields = ('name', 'model', 'manufacturer')
+    template_name_suffix = '_create'
+
+    def get_success_url(self):
+        return f"{reverse('configuration')}?action=create_machine_success&pk={self.object.pk}"
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.institution = self.request.user.institution
+        self.object.save()
+        return super(ModelFormMixin, self).form_valid(form)
+
+
+@login_and_permission_required('common.configuration')
+@validate_institution()
+class UpdateMachine(UpdateView):
+    model = Machine
+    fields = ('name', 'model', 'manufacturer')
+    template_name_suffix = '_update'
+
+    def get_success_url(self):
+        return f"{reverse('configuration')}?action=update_machine_success&pk={self.object.pk}"
+
+
+@login_and_permission_required('common.configuration')
+@validate_institution()
+class DeleteMachine(CirsDeleteView):
+    model = Machine
+
+    def get_success_url(self):
+        return f"{reverse('configuration')}?action=delete_machine_success&pk={self.object.pk}"
+
+
+@login_and_permission_required('common.configuration')
+class CreateSequence(CreateView):
+    model = Sequence
+    fields = ('name', 'instructions')
+    template_name_suffix = '_create'
+
+    def get_success_url(self):
+        return f"{reverse('configuration')}?action=create_sequence_success&pk={self.object.pk}"
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.institution = self.request.user.institution
+        self.object.save()
+        return super(ModelFormMixin, self).form_valid(form)
+
+
+@login_and_permission_required('common.configuration')
+@validate_institution()
+class UpdateSequence(UpdateView):
+    model = Sequence
+    fields = ('name', 'instructions')
+    template_name_suffix = '_update'
+
+    def get_success_url(self):
+        return f"{reverse('configuration')}?action=update_sequence_success&pk={self.object.pk}"
+
+
+@login_and_permission_required('common.configuration')
+@validate_institution()
+class DeleteSequence(CirsDeleteView):
+    model = Sequence
+
+    def get_success_url(self):
+        return f"{reverse('configuration')}?action=delete_sequence_success&pk={self.object.pk}"
+
+
+@login_and_permission_required('common.manage_users')
+class CreateUser(CreateView):
+    model = User
+    fields = ('username', 'first_name', 'last_name', 'email')
+    template_name_suffix = '_create'
+
+    def get_success_url(self):
+        return f"{reverse('configuration')}?action=create_user_success&pk={self.object.pk}"
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.institution = self.request.user.institution
+        self.object.save()
+        return super(ModelFormMixin, self).form_valid(form)
+
+
+@login_and_permission_required('common.manage_users')
+@validate_institution()
+class DeleteUser(CirsDeleteView):
+    model = User
+
+    def get_success_url(self):
+        return f"{reverse('configuration')}?action=delete_user_success&pk={self.object.pk}"
 
 
 @login_and_permission_required('common.configuration')
@@ -139,7 +321,7 @@ class UploadCT(FormView):
         return context
 
     def get_success_url(self):
-        return reverse('update_phantom', args=(self.kwargs['phantom_pk'],))
+        return f"{reverse('update_phantom', args=(self.kwargs['phantom_pk'],))}?action=upload_ct_success"
 
 
 @login_and_permission_required('common.configuration')
@@ -158,13 +340,13 @@ class UploadRaw(FormView):
         )
         return super(UploadRaw, self).form_valid(form)
 
+    def get_success_url(self):
+        return f"{reverse('update_phantom', args=(self.kwargs['phantom_pk'],))}?action=upload_raw_success"
+
     def get_context_data(self, **kwargs):
         context = super(UploadRaw, self).get_context_data(**kwargs)
         context.update({'phantom_pk': self.kwargs['phantom_pk']})
         return context
-
-    def get_success_url(self):
-        return reverse('update_phantom', args=(self.kwargs['phantom_pk'],))
 
 
 @login_and_permission_required('common.configuration')
@@ -180,7 +362,7 @@ class DeleteGoldStandard(CirsDeleteView):
         return super(DeleteGoldStandard, self).delete(request, *args, **kwargs)
 
     def get_success_url(self):
-        return reverse('update_phantom', args=(self.kwargs['phantom_pk'],))
+        return f"{reverse('update_phantom', args=(self.kwargs['phantom_pk'],))}?action=delete_gold_standard_success&pk={self.object.pk}"
 
     def get_context_data(self, **kwargs):
         context = super(DeleteGoldStandard, self).get_context_data(**kwargs)
@@ -193,7 +375,7 @@ class DeleteGoldStandard(CirsDeleteView):
 def activate_gold_standard(request, phantom_pk=None, gold_standard_pk=None):
     golden_fiducials = get_object_or_404(GoldenFiducials, pk=gold_standard_pk)
     golden_fiducials.activate()
-    return redirect('update_phantom', phantom_pk)
+    return redirect(f"{reverse('update_phantom', args=(phantom_pk,))}?action=activate_gold_standard_success&pk={gold_standard_pk}")
 
 
 @login_and_permission_required('common.configuration')
@@ -207,93 +389,3 @@ def gold_standard_csv(request, phantom_pk=None, gold_standard_pk=None):
     for row in golden_fiducials.fiducials.fiducials.T:
         writer.writerow(row)
     return response
-
-
-@login_and_permission_required('common.configuration')
-class CreateMachine(CreateView):
-    model = Machine
-    fields = ('name', 'model', 'manufacturer')
-    success_url = reverse_lazy('configuration')
-    template_name_suffix = '_create'
-
-    def form_valid(self, form):
-        self.object = form.save(commit=False)
-        self.object.institution = self.request.user.institution
-        self.object.save()
-        return super(ModelFormMixin, self).form_valid(form)
-
-
-@login_and_permission_required('common.configuration')
-@validate_institution()
-class UpdateMachine(UpdateView):
-    model = Machine
-    fields = ('name', 'model', 'manufacturer')
-    success_url = reverse_lazy('configuration')
-    template_name_suffix = '_update'
-
-
-@login_and_permission_required('common.configuration')
-@validate_institution()
-class DeleteMachine(CirsDeleteView):
-    model = Machine
-    success_url = reverse_lazy('configuration')
-
-
-@login_and_permission_required('common.configuration')
-class CreateSequence(CreateView):
-    model = Sequence
-    fields = ('name', 'instructions')
-    success_url = reverse_lazy('configuration')
-    template_name_suffix = '_create'
-
-    def form_valid(self, form):
-        self.object = form.save(commit=False)
-        self.object.institution = self.request.user.institution
-        self.object.save()
-        return super(ModelFormMixin, self).form_valid(form)
-
-
-@login_and_permission_required('common.configuration')
-@validate_institution()
-class UpdateSequence(UpdateView):
-    model = Sequence
-    fields = ('name', 'instructions')
-    success_url = reverse_lazy('configuration')
-    template_name_suffix = '_update'
-
-
-@login_and_permission_required('common.configuration')
-@validate_institution()
-class DeleteSequence(CirsDeleteView):
-    model = Sequence
-    success_url = reverse_lazy('configuration')
-
-
-@login_and_permission_required('common.manage_users')
-class CreateUser(CreateView):
-    model = User
-    fields = ('username', 'first_name', 'last_name', 'email')
-    success_url = reverse_lazy('configuration')
-    template_name_suffix = '_create'
-
-    def form_valid(self, form):
-        self.object = form.save(commit=False)
-        self.object.institution = self.request.user.institution
-        self.object.save()
-        return super(ModelFormMixin, self).form_valid(form)
-
-
-@login_and_permission_required('common.manage_users')
-@validate_institution()
-class UpdateUser(UpdateView):
-    model = User
-    fields = ('username', 'first_name', 'last_name', 'email')
-    success_url = reverse_lazy('configuration')
-    template_name_suffix = '_update'
-
-
-@login_and_permission_required('common.manage_users')
-@validate_institution()
-class DeleteUser(CirsDeleteView):
-    model = User
-    success_url = reverse_lazy('configuration')
