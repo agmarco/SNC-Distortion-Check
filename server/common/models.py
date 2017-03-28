@@ -161,9 +161,10 @@ class GoldenFiducials(CommonFieldsMixin):
     phantom = models.ForeignKey(Phantom, models.CASCADE)
     is_active = models.BooleanField(default=False)
     dicom_series = models.ForeignKey(DicomSeries, models.CASCADE, null=True)
-    fiducials = models.ForeignKey(Fiducials, models.CASCADE)
+    fiducials = models.ForeignKey(Fiducials, models.CASCADE, null=True)
     type_ht = 'The source type for the golden fiducials  (e.g. CT Scan or CAD Model).'
     type = models.CharField(max_length=3, choices=TYPE_CHOICES, help_text=type_ht)
+    processing = models.BooleanField(default=False)
 
     def __str__(self):
         return "Golden Fiducials {}".format(self.id)

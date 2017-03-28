@@ -6,7 +6,8 @@ from ..models import Phantom, GoldenFiducials, Machine, Sequence, User
 
 # This is the configuration for the view tests. Each configuration dict may contain the following keys:
 # 'view': the view object.
-# 'data': a function that returns a dict containing additional data that is needed for the test.
+# 'data': a function that returns a dict containing additional data that is needed for the tests. It receives the
+#     current user as an argument.
 # 'crud': a 3-tuple containing:
 #     (1) a string representing the type of CRUD operation.
 #     (2) the model class.
@@ -25,8 +26,8 @@ class Crud:
     DELETE = 'DELETE'
 
 
-def delete_gold_standard_data():
-    phantom = factories.PhantomFactory()
+def delete_gold_standard_data(user):
+    phantom = factories.PhantomFactory(institution=user.institution)
     gold_standard = factories.GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.RAW)
     return {
         'phantom': phantom,
@@ -34,17 +35,17 @@ def delete_gold_standard_data():
     }
 
 
-def activate_gold_standard_data():
-    phantom = factories.PhantomFactory()
-    gold_standard = factories.GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.RAW)
+def activate_gold_standard_data(user):
+    phantom = factories.PhantomFactory(institution=user.institution)
+    gold_standard = factories.GoldenFiducialsFactory(phantom=phantom,type=GoldenFiducials.RAW)
     return {
         'phantom': phantom,
         'gold_standard': gold_standard,
     }
 
 
-def gold_standard_csv_data():
-    phantom = factories.PhantomFactory()
+def gold_standard_csv_data(user):
+    phantom = factories.PhantomFactory(institution=user.institution)
     gold_standard = factories.GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.RAW)
     return {
         'phantom': phantom,
@@ -68,7 +69,7 @@ VIEWS = (
     },
     {
         'view': views.CreatePhantom,
-        'data': lambda: {'phantom_model': factories.PhantomModelFactory(name='CIRS 603A', model_number='603A')},
+        'data': lambda user: {'phantom_model': factories.PhantomModelFactory(name='CIRS 603A',model_number='603A')},
         'crud': (Crud.CREATE, Phantom, lambda data: {
             'name': 'Create Phantom',
             'model': str(data['phantom_model'].pk),
@@ -81,7 +82,7 @@ VIEWS = (
     },
     {
         'view': views.UpdatePhantom,
-        'data': lambda: {'phantom': factories.PhantomFactory()},
+        'data': lambda user: {'phantom': factories.PhantomFactory(institution=user.institution)},
         'crud': (Crud.UPDATE, Phantom, {'name': 'Update Phantom'}),
         'url': lambda data: reverse('update_phantom', args=(data['phantom'].pk,)),
         'permissions': ('common.configuration',),
@@ -90,7 +91,7 @@ VIEWS = (
     },
     {
         'view': views.DeletePhantom,
-        'data': lambda: {'phantom': factories.PhantomFactory()},
+        'data': lambda user: {'phantom': factories.PhantomFactory(institution=user.institution)},
         'crud': (Crud.DELETE, Phantom, None),
         'url': lambda data: reverse('delete_phantom', args=(data['phantom'].pk,)),
         'permissions': ('common.configuration',),
@@ -99,7 +100,7 @@ VIEWS = (
     },
     {
         'view': views.UploadCT,
-        'data': lambda: {'phantom': factories.PhantomFactory()},
+        'data': lambda user: {'phantom': factories.PhantomFactory(institution=user.institution)},
         'url': lambda data: reverse('upload_ct', args=(data['phantom'].pk,)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
@@ -107,7 +108,7 @@ VIEWS = (
     },
     {
         'view': views.UploadRaw,
-        'data': lambda: {'phantom': factories.PhantomFactory()},
+        'data': lambda user: {'phantom': factories.PhantomFactory(institution=user.institution)},
         'url': lambda data: reverse('upload_raw', args=(data['phantom'].pk,)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
@@ -152,7 +153,7 @@ VIEWS = (
     },
     {
         'view': views.UpdateMachine,
-        'data': lambda: {'machine': factories.MachineFactory()},
+        'data': lambda user: {'machine': factories.MachineFactory(institution=user.institution)},
         'crud': (Crud.UPDATE, Machine, {
             'name': 'Update Machine',
             'model': 'Update Model',
@@ -165,7 +166,7 @@ VIEWS = (
     },
     {
         'view': views.DeleteMachine,
-        'data': lambda: {'machine': factories.MachineFactory()},
+        'data': lambda user: {'machine': factories.MachineFactory(institution=user.institution)},
         'crud': (Crud.DELETE, Machine, None),
         'url': lambda data: reverse('delete_machine', args=(data['machine'].pk,)),
         'permissions': ('common.configuration',),
@@ -185,7 +186,7 @@ VIEWS = (
     },
     {
         'view': views.UpdateSequence,
-        'data': lambda: {'sequence': factories.SequenceFactory()},
+        'data': lambda user: {'sequence': factories.SequenceFactory(institution=user.institution)},
         'crud': (Crud.UPDATE, Sequence, {
             'name': 'Update Sequence',
             'instructions': 'Update Instructions',
@@ -197,7 +198,7 @@ VIEWS = (
     },
     {
         'view': views.DeleteSequence,
-        'data': lambda: {'sequence': factories.SequenceFactory()},
+        'data': lambda user: {'sequence': factories.SequenceFactory(institution=user.institution)},
         'crud': (Crud.DELETE, Sequence, None),
         'url': lambda data: reverse('delete_sequence', args=(data['sequence'].pk,)),
         'permissions': ('common.configuration',),
@@ -219,7 +220,7 @@ VIEWS = (
     },
     {
         'view': views.UpdateUser,
-        'data': lambda: {'user': factories.UserFactory()},
+        'data': lambda user: {'user': factories.UserFactory(institution=user.institution)},
         'crud': (Crud.UPDATE, User, {
             'username': 'update_user',
             'first_name': 'Update First Name',
@@ -233,7 +234,7 @@ VIEWS = (
     },
     {
         'view': views.DeleteUser,
-        'data': lambda: {'user': factories.UserFactory()},
+        'data': lambda user: {'user': factories.UserFactory(institution=user.institution)},
         'crud': (Crud.DELETE, User, None),
         'url': lambda data: reverse('delete_user', args=(data['user'].pk,)),
         'permissions': ('common.manage_users',),
