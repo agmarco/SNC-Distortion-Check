@@ -54,6 +54,7 @@ def process_ct_upload(dicom_series_id, gold_standard_id):
 
             fiducials = Fiducials.objects.create(fiducials=points_in_patient_xyz)
             gold_standard.fiducials = fiducials
+            gold_standard.processing = False
             gold_standard.save()
     except Exception as e:
         raise e
