@@ -77,7 +77,7 @@ class FiducialsFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.Fiducials"
 
-    fiducials = np.zeros((3, 10))
+    fiducials = np.random.rand(3, 10)
 
 
 class PhantomModelFactory(factory.django.DjangoModelFactory):
