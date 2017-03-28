@@ -12,7 +12,7 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelF
 from django.shortcuts import render, redirect, get_object_or_404
 
 from process import dicom_import
-from .models import Scan, Phantom, Machine, Sequence, Fiducials, GoldenFiducials, User, DicomSeries
+from .models import Scan, Phantom, Machine, Sequence, Fiducials, GoldenFiducials, User, DicomSeries, Institution, MachineSequencePair
 from .tasks import process_scan, process_ct_upload
 from .forms import UploadScanForm, UploadCTForm, UploadRawForm
 from .decorators import validate_institution, login_and_permission_required
@@ -294,7 +294,7 @@ class UploadCT(FormView):
         )
 
         process_ct_upload.delay(dicom_series.pk, gold_standard.pk)
-		messages.success(self.request, "Your gold standard CT has been uploaded successfully. When it is finished processing, it will appear below.")
+        messages.success(self.request, "Your gold standard CT has been uploaded successfully. When it is finished processing, it will appear below.")
         return super(UploadCT, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -357,8 +357,8 @@ class DeleteGoldStandard(CirsDeleteView):
 @login_and_permission_required('common.configuration')
 @validate_institution(model_class=GoldenFiducials, pk_url_kwarg='gold_standard_pk')
 def activate_gold_standard(request, phantom_pk=None, gold_standard_pk=None):
-    golden_fiducials = get_object_or_404(GoldenFiducials, pk=gold_standard_pk)
-    golden_fiducials.activate()
+    gold_standard = get_object_or_404(GoldenFiducials, pk=gold_standard_pk)
+    gold_standard.activate()
     messages.success(request, f"\"{gold_standard.source_summary}\" has been activated successfully.")
     return redirect('update_phantom', phantom_pk)
 
@@ -366,5 +366,5 @@ def activate_gold_standard(request, phantom_pk=None, gold_standard_pk=None):
 @login_and_permission_required('common.configuration')
 @validate_institution(model_class=GoldenFiducials, pk_url_kwarg='gold_standard_pk')
 def gold_standard_csv(request, phantom_pk=None, gold_standard_pk=None):
-    golden_fiducials = get_object_or_404(GoldenFiducials, pk=gold_standard_pk)
-    return CSVResponse(golden_fiducials.fiducials.fiducials, filename=f'{golden_fiducials.source_summary}.csv')
+    gold_standard = get_object_or_404(GoldenFiducials, pk=gold_standard_pk)
+    return CSVResponse(gold_standard.fiducials.fiducials, filename=f'{gold_standard.source_summary}.csv')
