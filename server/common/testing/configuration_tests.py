@@ -1,7 +1,5 @@
 import pytest
 
-
-from django.test import Client
 from django.urls import reverse
 from django.contrib.auth.models import Permission
 
@@ -9,7 +7,7 @@ from .. import factories
 
 
 @pytest.mark.django_db
-def test_configuration_context():
+def test_configuration_context(client):
     johns_hopkins = factories.InstitutionFactory.create(name='Johns Hopkins')
     utexas = factories.InstitutionFactory.create(name='University of Texas')
     managers = factories.GroupFactory.create(name="Manager", permissions=Permission.objects.all())
@@ -33,7 +31,6 @@ def test_configuration_context():
     factories.UserFactory.create(username="user_b", institution=johns_hopkins, deleted=True)
     factories.UserFactory.create(username="user_c", institution=utexas)
 
-    client = Client()
     url = reverse('configuration')
 
     client.force_login(manager)
@@ -56,7 +53,7 @@ def test_configuration_context():
     assert all(not sequence.deleted for sequence in sequences)
     assert all(not user.deleted for user in users)
 
-    # ensure that a medical physicist can't view users
+    # check that a medical physicist can't view users
     client.force_login(medical_physicist)
     response = client.get(url)
 

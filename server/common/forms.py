@@ -1,7 +1,8 @@
-import os
 import zipfile
 
 from django import forms
+
+import numpy as np
 
 from process import dicom_import
 
@@ -33,15 +34,36 @@ class UploadCTForm(forms.Form):
         if datasets[0].Modality != 'CT':
             raise forms.ValidationError("The DICOM archive must be of modality 'CT.'")
 
+        self.cleaned_data['datasets'] = datasets
         return self.cleaned_data
 
 
 class UploadRawForm(forms.Form):
     csv = forms.FileField(label="File browser")
 
-    def clean_csv(self):
-        ext = os.path.splitext(self.cleaned_data['csv'].name)[1]
-        if ext.lower() != '.csv':
-            raise forms.ValidationError("The file must be of type CSV.")
+    @staticmethod
+    def _has_duplicates(ndarray):
 
+        # TODO
+        return False
+
+    def clean_csv(self):
+        try:
+            fiducials = np.genfromtxt(self.cleaned_data['csv'], delimiter=',').T
+        except ValueError:
+            raise forms.ValidationError("The file is not formatted properly.")
+
+        if np.isnan(fiducials).any():
+            raise forms.ValidationError("The file is not formatted properly. Some of the cells are invalid.")
+
+        if fiducials.shape[0] != 3:
+            if fiducials.shape[1] == 3:
+                raise forms.ValidationError("The file contains three rows instead of three columns.")
+            else:
+                raise forms.ValidationError("The file must have three columns (x, y, and z).")
+
+        if self._has_duplicates(fiducials):
+            raise forms.ValidationError("The file contains duplicate points.")
+
+        self.cleaned_data['fiducials'] = fiducials
         return self.cleaned_data

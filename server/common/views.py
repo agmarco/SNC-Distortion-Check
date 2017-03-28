@@ -1,6 +1,6 @@
 import csv
 import logging
-import zipfile
+from datetime import datetime
 
 from django.core import serializers
 from django.core.exceptions import PermissionDenied
@@ -11,16 +11,24 @@ from django.views.generic import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
 from django.shortcuts import render, redirect, get_object_or_404
 
-import numpy as np
-
 from process import dicom_import
-from server.common.factories import DicomSeriesFactory, FiducialsFactory, GoldenFiducialsFactory
-from .models import Scan, Phantom, Machine, Sequence, GoldenFiducials, User, Institution, MachineSequencePair
+from .models import Scan, Phantom, Machine, Sequence, Fiducials, GoldenFiducials, User, DicomSeries
 from .tasks import process_scan, process_ct_upload
 from .forms import UploadScanForm, UploadCTForm, UploadRawForm
 from .decorators import validate_institution, login_and_permission_required
 
 logger = logging.getLogger(__name__)
+
+
+class CSVResponse(HttpResponse):
+    def __init__(self, ndarray, filename=None, *args, **kwargs):
+        kwargs.setdefault('content_type', 'text/csv')
+        super(CSVResponse, self).__init__(*args, **kwargs)
+
+        self['Content-Disposition'] = f'attachment; filename="{filename or "array.csv"}"'
+        writer = csv.writer(self)
+        for row in ndarray.T:
+            writer.writerow(row)
 
 
 class CirsDeleteView(DeleteView):
@@ -267,20 +275,26 @@ class UploadCT(FormView):
     template_name = 'common/upload_ct.html'
 
     def form_valid(self, form):
-        with zipfile.ZipFile(self.request.FILES['dicom_archive'], 'r') as zip_file:
-            datasets = dicom_import.dicom_datasets_from_zip(zip_file)
-        voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
+        voxels, ijk_to_xyz = dicom_import.combine_slices(form.cleaned_data['datasets'])
 
-        dicom_series = DicomSeriesFactory(
+        dicom_series = DicomSeries.objects.create(
             zipped_dicom_files=self.request.FILES['dicom_archive'],
             voxels=voxels,
             ijk_to_xyz=ijk_to_xyz,
             shape=voxels.shape,
-            datasets=datasets,
+            series_uid=form.cleaned_data['datasets'][0].SeriesInstanceUID,
+            acquisition_date=datetime.strptime(form.cleaned_data['datasets'][0].AcquisitionDate, '%Y%m%d'),
         )
-        process_ct_upload.delay(self.kwargs['phantom_pk'], dicom_series.pk)
 
-        messages.success(self.request, "Your gold standard CT has been uploaded successfully. When it is finished processing, it will appear below.")
+        gold_standard = GoldenFiducials.objects.create(
+            phantom=Phantom.objects.get(pk=self.kwargs['phantom_pk']),
+            dicom_series=dicom_series,
+            type=GoldenFiducials.CT,
+            processing=True,
+        )
+
+        process_ct_upload.delay(dicom_series.pk, gold_standard.pk)
+		messages.success(self.request, "Your gold standard CT has been uploaded successfully. When it is finished processing, it will appear below.")
         return super(UploadCT, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -300,8 +314,8 @@ class UploadRaw(FormView):
 
     def form_valid(self, form):
         phantom = Phantom.objects.get(pk=self.kwargs['phantom_pk'])
-        fiducials = FiducialsFactory(fiducials=np.genfromtxt(self.request.FILES['csv'], delimiter=',').T)
-        GoldenFiducialsFactory(
+        fiducials = Fiducials.objects.create(fiducials=form.cleaned_data['fiducials'])
+        GoldenFiducials.objects.create(
             phantom=phantom,
             fiducials=fiducials,
             type=GoldenFiducials.RAW,
@@ -309,13 +323,13 @@ class UploadRaw(FormView):
         messages.success(self.request, "Your gold standard points have been uploaded successfully.")
         return super(UploadRaw, self).form_valid(form)
 
-    def get_success_url(self):
-        return reverse('update_phantom', args=(self.kwargs['phantom_pk'],))
-
     def get_context_data(self, **kwargs):
         context = super(UploadRaw, self).get_context_data(**kwargs)
         context.update({'phantom_pk': self.kwargs['phantom_pk']})
         return context
+
+    def get_success_url(self):
+        return reverse('update_phantom', args=(self.kwargs['phantom_pk'],))
 
 
 @login_and_permission_required('common.configuration')
@@ -343,20 +357,14 @@ class DeleteGoldStandard(CirsDeleteView):
 @login_and_permission_required('common.configuration')
 @validate_institution(model_class=GoldenFiducials, pk_url_kwarg='gold_standard_pk')
 def activate_gold_standard(request, phantom_pk=None, gold_standard_pk=None):
-    gold_standard = get_object_or_404(GoldenFiducials, pk=gold_standard_pk)
-    gold_standard.activate()
+    golden_fiducials = get_object_or_404(GoldenFiducials, pk=gold_standard_pk)
+    golden_fiducials.activate()
     messages.success(request, f"\"{gold_standard.source_summary}\" has been activated successfully.")
-    return redirect(f"{reverse('update_phantom', args=(phantom_pk,))}")
+    return redirect('update_phantom', phantom_pk)
 
 
 @login_and_permission_required('common.configuration')
 @validate_institution(model_class=GoldenFiducials, pk_url_kwarg='gold_standard_pk')
 def gold_standard_csv(request, phantom_pk=None, gold_standard_pk=None):
-    gold_standard = get_object_or_404(GoldenFiducials, pk=gold_standard_pk)
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename="{gold_standard.source_summary}.csv"'
-
-    writer = csv.writer(response)
-    for row in gold_standard.fiducials.fiducials.T:
-        writer.writerow(row)
-    return response
+    golden_fiducials = get_object_or_404(GoldenFiducials, pk=gold_standard_pk)
+    return CSVResponse(golden_fiducials.fiducials.fiducials, filename=f'{golden_fiducials.source_summary}.csv')

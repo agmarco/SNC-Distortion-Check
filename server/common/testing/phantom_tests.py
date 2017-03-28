@@ -9,15 +9,13 @@ from server.common.models import Phantom, GoldenFiducials
 
 
 @pytest.mark.django_db
-def test_phantoms():
+def test_phantoms(client):
     johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
     phantom_model = factories.PhantomModelFactory(name='CIRS 603A', model_number='603A')
     current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
 
-    client = Client()
     client.force_login(current_user)
-
     client.post(reverse('create_phantom'), {
         'name': 'Create Phantom',
         'model': str(phantom_model.pk),
@@ -38,7 +36,7 @@ def test_phantoms():
 
 
 @pytest.mark.django_db
-def test_gold_standards():
+def test_gold_standards(client):
     johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
     current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
@@ -47,7 +45,6 @@ def test_gold_standards():
     raw_gold_standard = factories.GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.RAW)
     raw_gold_standard.activate()
 
-    client = Client()
     client.force_login(current_user)
 
     # the CAD gold standard should not be deletable even when inactive:

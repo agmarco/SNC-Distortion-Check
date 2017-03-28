@@ -4,11 +4,7 @@
   <h1>Add Phantom</h1>
   <form action="{% url 'create_phantom' %}" method="post">
     {% csrf_token %}
-    {{ form.non_field_errors }}
-    {% for field in form %}
-      {{ field.errors }}
-      {{ field.label }} {{ field }}<br>
-    {% endfor %}
+    {% include 'includes/form_fields.html' %}
     <label>Gold Standard Grid Intersection Locations</label> By default, the new phantom will use gold standard grid intersection locations based on the CAD design for the particular phantom model you select. These points can be customized at any point using a gold standard CT, or a raw point upload.
     <input type="submit" value="Save">
   </form>

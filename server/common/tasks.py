@@ -8,8 +8,7 @@ from django.db import transaction
 from process.dicom_import import combine_slices, dicom_datasets_from_zip
 from process.feature_detection import FeatureDetector
 
-from .factories import FiducialsFactory, GoldenFiducialsFactory
-from .models import Scan, Phantom, GoldenFiducials, DicomSeries
+from .models import Scan, Phantom, Fiducials, GoldenFiducials, DicomSeries
 
 logger = logging.getLogger(__name__)
 
@@ -40,20 +39,23 @@ def process_scan(scan_id):
 
 
 @shared_task
-def process_ct_upload(phantom_id, dicom_series_id):
+def process_ct_upload(dicom_series_id, gold_standard_id):
     try:
         with transaction.atomic():
-            phantom = Phantom.objects.get(pk=phantom_id)
             dicom_series = DicomSeries.objects.get(pk=dicom_series_id)
+            gold_standard = GoldenFiducials.objects.get(pk=gold_standard_id)
 
-            points_in_patient_xyz = FeatureDetector(phantom.model.model_number, 'ct', dicom_series.voxels, dicom_series.ijk_to_xyz).run()
-            fiducials = FiducialsFactory(fiducials=points_in_patient_xyz)
-            GoldenFiducialsFactory(
-                phantom=phantom,
-                dicom_series=dicom_series,
-                fiducials=fiducials,
-                type=GoldenFiducials.CT,
-            )
+            points_in_patient_xyz = FeatureDetector(
+                gold_standard.phantom.model.model_number,
+                'ct',
+                dicom_series.voxels,
+                dicom_series.ijk_to_xyz
+            ).run()
+
+            fiducials = Fiducials.objects.create(fiducials=points_in_patient_xyz)
+            gold_standard.fiducials = fiducials
+            gold_standard.processing = False
+            gold_standard.save()
     except Exception as e:
         raise e
 
