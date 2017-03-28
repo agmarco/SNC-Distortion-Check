@@ -38,7 +38,11 @@ class Command(BaseCommand):
             is_superuser=True
         )
 
-        johns_hopkins = factories.InstitutionFactory.create(name='Johns Hopkins')
+        johns_hopkins = factories.InstitutionFactory.create(
+            name='Johns Hopkins',
+            address='3101 Wyman Park Dr.\nBaltimore, MD 21211',
+            phone_number='555-555-5555',
+        )
 
         manager = factories.UserFactory.create(
             username="manager",
