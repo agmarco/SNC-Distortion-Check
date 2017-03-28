@@ -19,7 +19,7 @@ export default ({
 
     output: {
         path: path.resolve('../static/common/machine_sequences'),
-        publicPath: '/dist/',
+        publicPath: 'http://0.0.0.0:8080/common/machine_sequences/',
     },
 
     devtool: 'eval',
@@ -41,15 +41,6 @@ export default ({
                     }},
                     {loader: 'ts-loader'},
                 ],
-            }, {
-                test: /\.scss$/,
-                use: ['style-loader', 'css-loader', 'sass-loader'],
-            }, {
-                test: /\.(ico|jpg|png|gif|eot|otf|webp|svg|ttf|woff|woff2)$/,
-                use: {
-                    loader: 'url-loader',
-                    options: {limit: 8192},
-                },
             },
         ],
     },

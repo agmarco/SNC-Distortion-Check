@@ -2,7 +2,6 @@ import csv
 import logging
 from datetime import datetime
 
-from django.core import serializers
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
@@ -10,11 +9,13 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
 from django.shortcuts import render, redirect, get_object_or_404
+from rest_framework.renderers import JSONRenderer
 
 from process import dicom_import
 from .models import Scan, Phantom, Machine, Sequence, Fiducials, GoldenFiducials, User, DicomSeries, Institution, MachineSequencePair
 from .tasks import process_scan, process_ct_upload
 from .forms import UploadScanForm, UploadCTForm, UploadRawForm
+from .serializers import MachineSequencePairSerializer, MachineSerializer, SequenceSerializer
 from .decorators import validate_institution, login_and_permission_required
 
 logger = logging.getLogger(__name__)
@@ -108,10 +109,14 @@ class MachineSequences(ListView):
         return MachineSequencePair.objects.filter(machine__institution=self.request.user.institution)
 
     def get_context_data(self, **kwargs):
+        machine_sequences = MachineSequencePairSerializer(self.get_queryset(), many=True)
+        machines = MachineSerializer(Machine.objects.filter(institution=self.request.user.institution), many=True)
+        sequences = SequenceSerializer(Sequence.objects.filter(institution=self.request.user.institution), many=True)
+
         return {
-            'machine_sequence_pairs': serializers.serialize('json', self.get_queryset()),
-            'machines': serializers.serialize('json', Machine.objects.filter(institution=self.request.user.institution)),
-            'sequences': serializers.serialize('json', Sequence.objects.filter(institution=self.request.user.institution)),
+            'machine_sequence_pairs': JSONRenderer().render(machine_sequences.data),
+            'machines': JSONRenderer().render(machines.data),
+            'sequences': JSONRenderer().render(sequences.data),
         }
 
 
@@ -294,7 +299,7 @@ class UploadCT(FormView):
         )
 
         process_ct_upload.delay(dicom_series.pk, gold_standard.pk)
-        messages.success(self.request, "Your gold standard CT has been uploaded successfully. When it is finished processing, it will appear below.")
+        messages.success(self.request, "Your gold standard CT has been uploaded successfully.")
         return super(UploadCT, self).form_valid(form)
 
     def get_context_data(self, **kwargs):

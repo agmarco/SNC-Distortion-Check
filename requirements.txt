@@ -16,6 +16,7 @@ dj-database-url==0.4.2
 django-dotenv==1.4.1
 django-storages==1.5.2
 django==1.10.6
+djangorestframework==3.6.2
 docutils==0.13.1          # via botocore
 first==2.0.1              # via pip-tools
 gunicorn==19.7.0

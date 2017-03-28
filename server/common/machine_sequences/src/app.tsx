@@ -1,6 +1,13 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
-import MachineSequences from './MachineSequences';
+import Root from './Root';
 
-ReactDOM.render(<MachineSequences />, document.getElementById('machine-sequences-app'));
+ReactDOM.render(<Root />, document.getElementById('machine-sequences-app'));
+
+if (module.hot) {
+    module.hot.accept('Root', () => {
+        require('Root');
+        ReactDOM.render(<Root />, document.getElementById('machine-sequences-app'));
+    });
+}

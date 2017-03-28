@@ -27,7 +27,6 @@ export default ({
         new webpack.optimize.UglifyJsPlugin({sourceMap: true}),
         new webpack.LoaderOptionsPlugin({minimize: true}),
         new webpack.DefinePlugin({'process.env': {'NODE_ENV': JSON.stringify('production')}}),
-        new ExtractTextPlugin({filename: '[name].css', allChunks: true}),
     ],
 
     module: {
@@ -40,15 +39,6 @@ export default ({
                     }},
                     {loader: 'ts-loader'},
                 ],
-            }, {
-                test: /\.scss$/,
-                use: ExtractTextPlugin.extract({use: 'css-loader!sass-loader', fallback: 'style-loader'}),
-            }, {
-                test: /\.(ico|jpg|png|gif|eot|otf|webp|svg|ttf|woff|woff2)$/,
-                use: {
-                    loader: 'url-loader',
-                    options: {limit: 8192},
-                },
             },
         ],
     },

@@ -134,11 +134,11 @@ class MachineSequencePair(CommonFieldsMixin):
 
     @property
     def latest_scan_date(self):
-        return self.latest_scan.created_on
+        return self.latest_scan.created_on if self.latest_scan else None
 
     @property
     def latest_scan_within_tolerance(self):
-        return self.latest_scan.tolerance < self.tolerance
+        return self.latest_scan.tolerance < self.tolerance if self.latest_scan else None
 
     class Meta:
         verbose_name = 'Machine-Sequence Combination'
