@@ -93,7 +93,7 @@
     </tbody>
   </table>
 
-  {% if manage_users %}
+  {% if users %}
     <h2>Users</h2>
     <a href="{% url 'create_user' %}">Add User</a>
     <table>
@@ -122,5 +122,5 @@
 {% endblock %}
 
 {% block "scripts" %}
-  <script src="{% static 'fontawesome.js' %}"></script>
+  <script src="{% static 'common/fontawesome.js' %}"></script>
 {% endblock %}

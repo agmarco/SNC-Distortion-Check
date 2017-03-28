@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import UserManager
+from django.utils.functional import cached_property
 
 from server.django_numpy.fields import NumpyTextField
 
@@ -126,6 +127,18 @@ class MachineSequencePair(CommonFieldsMixin):
 
     def __str__(self):
         return "{} : {}".format(self.machine.name, self.sequence.name)
+
+    @cached_property
+    def latest_scan(self):
+        return self.scan_set.order_by('-created_on').first()
+
+    @property
+    def latest_scan_date(self):
+        return self.latest_scan.created_on
+
+    @property
+    def latest_scan_within_tolerance(self):
+        return self.latest_scan.tolerance < self.tolerance
 
     class Meta:
         verbose_name = 'Machine-Sequence Combination'

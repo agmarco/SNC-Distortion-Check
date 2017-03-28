@@ -67,6 +67,13 @@ VIEWS = (
         'methods': ('GET',),
     },
     {
+        'view': views.MachineSequences,
+        'url': reverse('machine_sequences'),
+        'permissions': ('common.configuration',),
+        'validate_institution': False,
+        'methods': ('GET',),
+    },
+    {
         'view': views.CreatePhantom,
         'data': lambda: {'phantom_model': factories.PhantomModelFactory(name='CIRS 603A', model_number='603A')},
         'crud': (Crud.CREATE, Phantom, lambda data: {

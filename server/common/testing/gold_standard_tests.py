@@ -57,7 +57,7 @@ def test_upload_csv():
     assert phantom.goldenfiducials_set.count() == 2
 
     # check that the new gold standard contains the right fiducials
-    gold_standard = phantom.goldenfiducials_set.all().order_by('-last_modified_on').first()
+    gold_standard = phantom.goldenfiducials_set.order_by('-last_modified_on').first()
     assert np.array_equal(gold_standard.fiducials.fiducials, fiducials)
 
     # check that the generated csv contains the right fiducials:

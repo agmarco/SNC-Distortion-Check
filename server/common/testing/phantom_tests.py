@@ -23,7 +23,7 @@ def test_phantoms():
         'model': str(phantom_model.pk),
         'serial_number': '12345',
     })
-    phantom = Phantom.objects.all().order_by('-last_modified_on').first()
+    phantom = Phantom.objects.order_by('-last_modified_on').first()
 
     # check that a GoldenFiducials was created and activated
     assert phantom.goldenfiducials_set.count() == 1

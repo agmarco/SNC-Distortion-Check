@@ -60,4 +60,4 @@ def test_configuration_context():
     client.force_login(medical_physicist)
     response = client.get(url)
 
-    assert not response.context['users']
+    assert 'users' not in response.context

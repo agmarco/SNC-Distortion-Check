@@ -8,7 +8,7 @@ from django.db import transaction
 from process.dicom_import import combine_slices, dicom_datasets_from_zip
 from process.feature_detection import FeatureDetector
 
-from server.common.factories import FiducialsFactory, GoldenFiducialsFactory
+from .factories import FiducialsFactory, GoldenFiducialsFactory
 from .models import Scan, Phantom, GoldenFiducials, DicomSeries
 
 logger = logging.getLogger(__name__)

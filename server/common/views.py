@@ -2,10 +2,12 @@ import csv
 import logging
 import zipfile
 
+from django.core import serializers
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
+from django.views.generic import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
 from django.shortcuts import render, redirect, get_object_or_404
 
@@ -13,7 +15,7 @@ import numpy as np
 
 from process import dicom_import
 from server.common.factories import DicomSeriesFactory, FiducialsFactory, GoldenFiducialsFactory
-from .models import Scan, Phantom, Machine, Sequence, GoldenFiducials, User, Institution
+from .models import Scan, Phantom, Machine, Sequence, GoldenFiducials, User, Institution, MachineSequencePair
 from .tasks import process_scan, process_ct_upload
 from .forms import UploadScanForm, UploadCTForm, UploadRawForm
 from .decorators import validate_institution, login_and_permission_required
@@ -23,6 +25,10 @@ logger = logging.getLogger(__name__)
 
 class CirsDeleteView(DeleteView):
     """A view providing the ability to delete objects by setting their 'deleted' attribute."""
+
+    def __init__(self, **kwargs):
+        self.object = None
+        super(CirsDeleteView, self).__init__(**kwargs)
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -78,15 +84,27 @@ class Configuration(UpdateView):
     def get_context_data(self, **kwargs):
         context = super(Configuration, self).get_context_data(**kwargs)
         institution = self.get_object()
-        manage_users = self.request.user.has_perm('common.manage_users')
         context.update({
             'phantoms': institution.phantom_set.active().order_by('-last_modified_on'),
             'machines': institution.machine_set.active().order_by('-last_modified_on'),
             'sequences': institution.sequence_set.active().order_by('-last_modified_on'),
-            'users': institution.user_set.active().order_by('-last_modified_on') if manage_users else [],
-            'manage_users': manage_users,
         })
+        if self.request.user.has_perm('common.manage_users'):
+            context['users'] = institution.user_set.active().order_by('-last_modified_on')
         return context
+
+
+@login_and_permission_required('common.configuration')
+class MachineSequences(ListView):
+    def get_queryset(self):
+        return MachineSequencePair.objects.filter(machine__institution=self.request.user.institution)
+
+    def get_context_data(self, **kwargs):
+        return {
+            'machine_sequence_pairs': serializers.serialize('json', self.get_queryset()),
+            'machines': serializers.serialize('json', Machine.objects.filter(institution=self.request.user.institution)),
+            'sequences': serializers.serialize('json', Sequence.objects.filter(institution=self.request.user.institution)),
+        }
 
 
 @login_and_permission_required('common.configuration')

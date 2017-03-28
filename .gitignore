@@ -8,4 +8,5 @@ __pycache__
 .env
 media
 collected_static
+node_modules
 dump.rdb
