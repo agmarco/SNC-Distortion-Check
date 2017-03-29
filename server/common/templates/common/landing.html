@@ -4,16 +4,16 @@
 {% load common %}
 
 {% block "content" %}
-  <div id="machine-sequences-app"></div>
+  <div id="landing-app"></div>
 {% endblock %}
 
 {% block "scripts" %}
   <script src="{% static 'common/fontawesome.js' %}"></script>
-  <script src="{% webpack 'common/machine_sequences/vendor.js' %}"></script>
+  <script src="{% webpack 'common/landing/vendor.js' %}"></script>
   <script>
     var __MACHINE_SEQUENCE_PAIRS__ = {{ machine_sequence_pairs|safe }};
     var __MACHINES__ = {{ machines|safe }};
     var __SEQUENCES__ = {{ sequences|safe }};
   </script>
-  <script src="{% webpack 'common/machine_sequences/app.js' %}"></script>
+  <script src="{% webpack 'common/landing/app.js' %}"></script>
 {% endblock %}

@@ -65,7 +65,7 @@ def gold_standard_csv_data(user):
 
 VIEWS = (
     {
-        'view': views.Landing,
+        'view': views.landing,
         'url': reverse('landing'),
         'permissions': ('common.configuration',),
         'validate_institution': False,

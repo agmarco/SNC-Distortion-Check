@@ -3,7 +3,7 @@ from django.conf.urls import url, include
 from . import views
 
 urlpatterns = [
-    url(r'^$', views.Landing.as_view(), name='landing'),
+    url(r'^$', views.landing, name='landing'),
     url(r'^configuration/$', views.Configuration.as_view(), name='configuration'),
     url(r'^machine-sequences/(?P<pk>\d+)/$', views.MachineSequenceDetail.as_view(), name='machine_sequence_detail'),
     url(r'^upload-scan/$', views.upload_scan, name='upload_scan'),

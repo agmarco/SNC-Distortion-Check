@@ -83,7 +83,7 @@ class PhantomModel(CommonFieldsMixin):
 class Phantom(CommonFieldsMixin):
     name_ht = 'This is how the phantom will be identified within the UI'
     name = models.CharField(max_length=255, help_text=name_ht)
-    institution = models.ForeignKey(Institution, models.CASCADE)
+    institution = models.ForeignKey(Institution, models.CASCADE, null=True)
     model_ht = 'The model of phantom (e.g. the CIRS 603A head phantom)'
     model = models.ForeignKey(PhantomModel, models.CASCADE, help_text=model_ht)
     serial_number_ht = 'The Phantom\'s serial number'

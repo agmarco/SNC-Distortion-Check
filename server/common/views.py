@@ -104,23 +104,18 @@ class Configuration(UpdateView):
 
 
 @login_and_permission_required('common.configuration')
-class Landing(ListView):
-    model = MachineSequencePair
+def landing(request):
+    machine_sequence_pairs_queryset = MachineSequencePair.objects.filter(machine__institution=request.user.institution)
+    machine_sequence_pairs = MachineSequencePairSerializer(machine_sequence_pairs_queryset, many=True)
+    machines = MachineSerializer(Machine.objects.filter(institution=request.user.institution), many=True)
+    sequences = SequenceSerializer(Sequence.objects.filter(institution=request.user.institution), many=True)
 
-    def get_queryset(self):
-        return MachineSequencePair.objects.filter(machine__institution=self.request.user.institution)
-
-    def get_context_data(self, **kwargs):
-        machine_sequence_pairs = MachineSequencePairSerializer(self.get_queryset(), many=True)
-        machines = MachineSerializer(Machine.objects.filter(institution=self.request.user.institution), many=True)
-        sequences = SequenceSerializer(Sequence.objects.filter(institution=self.request.user.institution), many=True)
-
-        renderer = JSONRenderer()
-        return {
-            'machine_sequence_pairs': renderer.render(machine_sequence_pairs.data),
-            'machines': renderer.render(machines.data),
-            'sequences': renderer.render(sequences.data),
-        }
+    renderer = JSONRenderer()
+    return render(request, 'common/landing.html', {
+        'machine_sequence_pairs': renderer.render(machine_sequence_pairs.data),
+        'machines': renderer.render(machines.data),
+        'sequences': renderer.render(sequences.data),
+    })
 
 
 @login_and_permission_required('common.configuration')

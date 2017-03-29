@@ -18,8 +18,8 @@ export default ({
     },
 
     output: {
-        path: path.resolve('../static/common/machine_sequences'),
-        publicPath: 'http://0.0.0.0:8080/common/machine_sequences/',
+        path: path.resolve('../../static/common/landing'),
+        publicPath: 'http://0.0.0.0:8080/common/landing/',
     },
 
     devtool: 'eval',

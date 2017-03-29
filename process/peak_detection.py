@@ -21,7 +21,7 @@ def neighborhood_peaks(data, neighborhood):
       neighborhood).
 
     Note that the neighborhood must have the same number of dimensions as
-    "data", it must have an odd number of components along each dimension, and
+    "data", it must have an odd number of common along each dimension, and
     the neighborhood must be smaller (or equal) to the data array along each
     dimension.
     '''
@@ -34,7 +34,7 @@ def neighborhood_peaks(data, neighborhood):
     if not all(nd <= dd for nd, dd in zip(neighborhood.shape, data.shape)):
         raise ValueError("Neighborhood can not be larger than the data array")
     if not all(nd % 2 for nd in neighborhood.shape):
-        raise ValueError("Neighborhood must have an odd number of components in each dimension")
+        raise ValueError("Neighborhood must have an odd number of common in each dimension")
 
     maximums = ndimage.maximum_filter(data, footprint=neighborhood, mode='constant')
     peak_locations = maximums == data

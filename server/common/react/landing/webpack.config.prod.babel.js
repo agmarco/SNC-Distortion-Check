@@ -16,7 +16,7 @@ export default ({
     },
 
     output: {
-        path: path.resolve('../static/common/machine_sequences'),
+        path: path.resolve('../../static/common/landing'),
     },
 
     devtool: 'source-map',
@@ -45,8 +45,8 @@ export default ({
 
     resolve: {
         modules: [
-            path.join(__dirname, 'src'),
-            path.join(__dirname, 'node_modules'),
+            path.resolve('./src'),
+            path.resolve('./node_modules'),
         ],
         extensions: ['.webpack.js', '.web.js', '.js', '.jsx', '.ts', '.tsx'],
     },

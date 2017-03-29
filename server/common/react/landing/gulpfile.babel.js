@@ -11,7 +11,7 @@ const webpackStats = {
     colors: true,
 };
 
-gulp.task('default', ['prod']);
+gulp.task('default', ['dev']);
 
 gulp.task('dev', ['dev:webpack-dev-server']);
 
@@ -25,19 +25,6 @@ gulp.task('dev:webpack', (cb) => {
     });
 });
 
-gulp.task('dev:webpack-dev-server', (cb) => {
-    new WebpackDevServer(webpack(webpackDev), {
-        publicPath: webpackDev.output.publicPath,
-        contentBase: 'src',
-        hot: true,
-        stats: webpackStats,
-    }).listen(8080, '0.0.0.0', (err) => {
-        if (err) throw new gutil.PluginError('dev:webpack-dev-server', err);
-        cb();
-    });
-});
-
-
 gulp.task('dev:webpack:watch', (cb) => {
     let firstRun = true;
     webpack(webpackDev).watch(300, (err, stats) => {
@@ -47,6 +34,18 @@ gulp.task('dev:webpack:watch', (cb) => {
             firstRun = false;
             cb();
         }
+    });
+});
+
+gulp.task('dev:webpack-dev-server', (cb) => {
+    new WebpackDevServer(webpack(webpackDev), {
+        publicPath: webpackDev.output.publicPath,
+        contentBase: 'src',
+        hot: true,
+        stats: webpackStats,
+    }).listen(8080, '0.0.0.0', (err) => {
+        if (err) throw new gutil.PluginError('dev:webpack-dev-server', err);
+        cb();
     });
 });
 

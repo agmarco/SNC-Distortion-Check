@@ -16,7 +16,3 @@ interface Sequence {
     pk: number;
     name: string;
 }
-
-declare const __MACHINE_SEQUENCE_PAIRS__: MachineSequencePair[];
-declare const __MACHINES__: Machine[];
-declare const __SEQUENCES__: Sequence[];
