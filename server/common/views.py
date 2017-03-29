@@ -47,7 +47,7 @@ class CirsDeleteView(DeleteView):
 
 
 @login_and_permission_required('common.configuration')
-def upload_file(request):
+def upload_scan(request):
     if request.method == 'POST':
         form_with_data = UploadScanForm(request.POST, request.FILES)
         if form_with_data.is_valid():
@@ -104,7 +104,7 @@ class Configuration(UpdateView):
 
 
 @login_and_permission_required('common.configuration')
-class MachineSequenceList(ListView):
+class Landing(ListView):
     model = MachineSequencePair
 
     def get_queryset(self):

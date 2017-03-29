@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 
+{% load static %}
 {% load common %}
 
 {% block "content" %}
@@ -7,6 +8,7 @@
 {% endblock %}
 
 {% block "scripts" %}
+  <script src="{% static 'common/fontawesome.js' %}"></script>
   <script src="{% webpack 'common/machine_sequences/vendor.js' %}"></script>
   <script>
     var __MACHINE_SEQUENCE_PAIRS__ = {{ machine_sequence_pairs|safe }};

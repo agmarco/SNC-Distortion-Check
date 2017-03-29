@@ -65,22 +65,15 @@ def gold_standard_csv_data(user):
 
 VIEWS = (
     {
-        'view': views.upload_file,
-        'url': reverse('upload_file'),
-        'permissions': ('common.configuration',),
-        'validate_institution': False,
-        'methods': ('GET', 'POST'),
-    },
-    {
-        'view': views.Configuration,
-        'url': reverse('configuration'),
+        'view': views.Landing,
+        'url': reverse('landing'),
         'permissions': ('common.configuration',),
         'validate_institution': False,
         'methods': ('GET',),
     },
     {
-        'view': views.MachineSequenceList,
-        'url': reverse('machine_sequence_list'),
+        'view': views.Configuration,
+        'url': reverse('configuration'),
         'permissions': ('common.configuration',),
         'validate_institution': False,
         'methods': ('GET',),
@@ -92,6 +85,13 @@ VIEWS = (
         'permissions': ('common.configuration',),
         'validate_institution': True,
         'methods': ('GET',),
+    },
+    {
+        'view': views.upload_scan,
+        'url': reverse('upload_scan'),
+        'permissions': ('common.configuration',),
+        'validate_institution': False,
+        'methods': ('GET', 'POST'),
     },
     {
         'view': views.CreatePhantom,

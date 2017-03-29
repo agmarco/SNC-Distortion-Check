@@ -132,3 +132,14 @@ class GoldenFiducialsFactory(factory.django.DjangoModelFactory):
 
     phantom = factory.SubFactory(PhantomFactory)
     fiducials = factory.SubFactory(FiducialsFactory)
+
+
+class ScanFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "common.Scan"
+
+    creator = factory.SubFactory(UserFactory)
+    machine_sequence_pair = factory.SubFactory(MachineSequencePairFactory)
+    dicom_series = factory.SubFactory(DicomSeriesFactory)
+    detected_fiducials = factory.SubFactory(FiducialsFactory)
+    golden_fiducials = factory.SubFactory(GoldenFiducialsFactory)

@@ -5,8 +5,8 @@ from .models import MachineSequencePair, Machine, Sequence
 
 
 class MachineSequencePairSerializer(serializers.ModelSerializer):
-    latest_scan_date = serializers.Field()
-    latest_scan_within_tolerance = serializers.Field()
+    latest_scan_date = serializers.ReadOnlyField()
+    latest_scan_within_tolerance = serializers.ReadOnlyField()
     detail_url = serializers.SerializerMethodField()
 
     class Meta:

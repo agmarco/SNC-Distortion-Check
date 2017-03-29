@@ -1,5 +1,7 @@
 import * as React from 'react';
 
+import { format } from 'date-fns';
+
 interface MachineSequenceTableProps {
     machineSequencePairs: MachineSequencePair[];
     machines: Machine[];
@@ -51,7 +53,7 @@ export default class extends React.Component<MachineSequenceTableProps, MachineS
         return (
             <div>
                 <a href="#">Upload New Scan</a>
-                <div className="machine-sequence-filters">
+                <div>
                     Filter By
                     <select value={currentMachine} onChange={this.handleMachineChange.bind(this)}>
                         <option value="all">All Machines</option>
@@ -77,8 +79,8 @@ export default class extends React.Component<MachineSequenceTableProps, MachineS
                             <tr key={pair.pk}>
                                 <td>{machines.find((machine) => machine.pk === pair.machine).name}</td>
                                 <td>{sequences.find((sequence) => sequence.pk === pair.sequence).name}</td>
-                                <td>{pair.latest_scan_date}</td>
-                                <td>{pair.latest_scan_within_tolerance}</td>
+                                <td>{pair.latest_scan_date && format(new Date(pair.latest_scan_date), 'D MMM YYYY')}</td>
+                                <td>{pair.latest_scan_within_tolerance !== null && (pair.latest_scan_within_tolerance ? <i className="fa fa-check" aria-hidden="true" /> : <i className="fa fa-times" aria-hidden="true" />)}</td>
                                 <td><a href={pair.detail_url}>View Details</a></td>
                             </tr>
                         ))}
