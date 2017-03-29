@@ -26,9 +26,20 @@ class Crud:
     DELETE = 'DELETE'
 
 
+def machine_sequence_detail_data(user):
+    machine = factories.MachineFactory(institution=user.institution)
+    sequence = factories.SequenceFactory()
+    machine_sequence_pair = factories.MachineSequencePairFactory(machine=machine, sequence=sequence)
+    return {
+        'machine': machine,
+        'sequence': sequence,
+        'machine_sequence_pair': machine_sequence_pair,
+    }
+
+
 def delete_gold_standard_data(user):
     phantom = factories.PhantomFactory(institution=user.institution)
-    gold_standard = factories.GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.RAW)
+    gold_standard = factories.GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.CSV)
     return {
         'phantom': phantom,
         'gold_standard': gold_standard,
@@ -37,7 +48,7 @@ def delete_gold_standard_data(user):
 
 def activate_gold_standard_data(user):
     phantom = factories.PhantomFactory(institution=user.institution)
-    gold_standard = factories.GoldenFiducialsFactory(phantom=phantom,type=GoldenFiducials.RAW)
+    gold_standard = factories.GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.CSV)
     return {
         'phantom': phantom,
         'gold_standard': gold_standard,
@@ -46,7 +57,7 @@ def activate_gold_standard_data(user):
 
 def gold_standard_csv_data(user):
     phantom = factories.PhantomFactory(institution=user.institution)
-    gold_standard = factories.GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.RAW)
+    gold_standard = factories.GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.CSV)
     return {
         'phantom': phantom,
         'gold_standard': gold_standard,
@@ -69,9 +80,17 @@ VIEWS = (
     },
     {
         'view': views.MachineSequenceList,
-        'url': reverse('machine_sequences'),
+        'url': reverse('machine_sequence_list'),
         'permissions': ('common.configuration',),
         'validate_institution': False,
+        'methods': ('GET',),
+    },
+    {
+        'view': views.MachineSequenceDetail,
+        'data': machine_sequence_detail_data,
+        'url': lambda data: reverse('machine_sequence_detail', args=(data['machine_sequence_pair'].pk,)),
+        'permissions': ('common.configuration',),
+        'validate_institution': True,
         'methods': ('GET',),
     },
     {
@@ -104,47 +123,6 @@ VIEWS = (
         'permissions': ('common.configuration',),
         'validate_institution': True,
         'methods': ('GET', 'POST'),
-    },
-    {
-        'view': views.UploadCT,
-        'data': lambda user: {'phantom': factories.PhantomFactory(institution=user.institution)},
-        'url': lambda data: reverse('upload_ct', args=(data['phantom'].pk,)),
-        'permissions': ('common.configuration',),
-        'validate_institution': True,
-        'methods': ('GET', 'POST'),
-    },
-    {
-        'view': views.UploadRaw,
-        'data': lambda user: {'phantom': factories.PhantomFactory(institution=user.institution)},
-        'url': lambda data: reverse('upload_raw', args=(data['phantom'].pk,)),
-        'permissions': ('common.configuration',),
-        'validate_institution': True,
-        'methods': ('GET', 'POST'),
-    },
-    {
-        'view': views.DeleteGoldStandard,
-        'data': delete_gold_standard_data,
-        'crud': (Crud.DELETE, GoldenFiducials, None),
-        'url': lambda data: reverse('delete_gold_standard', args=(data['phantom'].pk, data['gold_standard'].pk)),
-        'permissions': ('common.configuration',),
-        'validate_institution': True,
-        'methods': ('GET', 'POST'),
-    },
-    {
-        'view': views.activate_gold_standard,
-        'data': activate_gold_standard_data,
-        'url': lambda data: reverse('activate_gold_standard', args=(data['phantom'].pk, data['gold_standard'].pk)),
-        'permissions': ('common.configuration',),
-        'validate_institution': True,
-        'methods': ('POST',),
-    },
-    {
-        'view': views.gold_standard_csv,
-        'data': gold_standard_csv_data,
-        'url': lambda data: reverse('gold_standard_csv', args=(data['phantom'].pk, data['gold_standard'].pk)),
-        'permissions': ('common.configuration',),
-        'validate_institution': True,
-        'methods': ('GET',),
     },
     {
         'view': views.CreateMachine,
@@ -233,5 +211,46 @@ VIEWS = (
         'permissions': ('common.manage_users',),
         'validate_institution': True,
         'methods': ('GET', 'POST'),
+    },
+{
+        'view': views.UploadCT,
+        'data': lambda user: {'phantom': factories.PhantomFactory(institution=user.institution)},
+        'url': lambda data: reverse('upload_ct', args=(data['phantom'].pk,)),
+        'permissions': ('common.configuration',),
+        'validate_institution': True,
+        'methods': ('GET', 'POST'),
+    },
+    {
+        'view': views.UploadRaw,
+        'data': lambda user: {'phantom': factories.PhantomFactory(institution=user.institution)},
+        'url': lambda data: reverse('upload_raw', args=(data['phantom'].pk,)),
+        'permissions': ('common.configuration',),
+        'validate_institution': True,
+        'methods': ('GET', 'POST'),
+    },
+    {
+        'view': views.DeleteGoldStandard,
+        'data': delete_gold_standard_data,
+        'crud': (Crud.DELETE, GoldenFiducials, None),
+        'url': lambda data: reverse('delete_gold_standard', args=(data['phantom'].pk, data['gold_standard'].pk)),
+        'permissions': ('common.configuration',),
+        'validate_institution': True,
+        'methods': ('GET', 'POST'),
+    },
+    {
+        'view': views.activate_gold_standard,
+        'data': activate_gold_standard_data,
+        'url': lambda data: reverse('activate_gold_standard', args=(data['phantom'].pk, data['gold_standard'].pk)),
+        'permissions': ('common.configuration',),
+        'validate_institution': True,
+        'methods': ('POST',),
+    },
+    {
+        'view': views.gold_standard_csv,
+        'data': gold_standard_csv_data,
+        'url': lambda data: reverse('gold_standard_csv', args=(data['phantom'].pk, data['gold_standard'].pk)),
+        'permissions': ('common.configuration',),
+        'validate_institution': True,
+        'methods': ('GET',),
     },
 )

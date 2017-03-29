@@ -340,7 +340,7 @@ class UploadRaw(FormView):
         GoldenFiducials.objects.create(
             phantom=phantom,
             fiducials=fiducials,
-            type=GoldenFiducials.RAW,
+            type=GoldenFiducials.CSV,
         )
         messages.success(self.request, "Your gold standard points have been uploaded successfully.")
         return super(UploadRaw, self).form_valid(form)

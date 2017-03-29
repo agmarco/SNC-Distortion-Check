@@ -1,3 +1,5 @@
+import os
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import UserManager
@@ -162,6 +164,10 @@ class DicomSeries(CommonFieldsMixin):
     def __str__(self):
         return "DICOM Series {}".format(self.series_uid)
 
+    @property
+    def filename(self):
+        return os.path.basename(self.zipped_dicom_files.name)
+
     class Meta:
         verbose_name = 'DICOM Series'
         verbose_name_plural = 'DICOM Series'
@@ -170,11 +176,11 @@ class DicomSeries(CommonFieldsMixin):
 class GoldenFiducials(CommonFieldsMixin):
     CAD = 'CAD'
     CT = 'CT'
-    RAW = 'RAW'
+    CSV = 'CSV'
     TYPE_CHOICES = (
         (CAD, 'CAD Model'),
         (CT, 'CT Scan'),
-        (RAW, 'Raw Points'),
+        (CSV, 'CSV Points'),
     )
 
     phantom = models.ForeignKey(Phantom, models.CASCADE)
@@ -200,7 +206,7 @@ class GoldenFiducials(CommonFieldsMixin):
     def source_summary(self):
         if self.type == GoldenFiducials.CT:
             return f"{self.get_type_display()} Taken on {self.dicom_series.acquisition_date.strftime('%d %B %Y')}"
-        elif self.type == GoldenFiducials.RAW:
+        elif self.type == GoldenFiducials.CSV:
             return f"{self.get_type_display()} Uploaded on {self.created_on.strftime('%d %B %Y')}"
         else:
             return self.get_type_display()

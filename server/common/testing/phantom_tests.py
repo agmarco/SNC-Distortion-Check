@@ -42,7 +42,7 @@ def test_gold_standards(client):
     current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
     phantom = factories.PhantomFactory()
     cad_gold_standard = phantom.active_gold_standard
-    raw_gold_standard = factories.GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.RAW)
+    raw_gold_standard = factories.GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.CSV)
     raw_gold_standard.activate()
 
     client.force_login(current_user)
@@ -50,5 +50,5 @@ def test_gold_standards(client):
     # the CAD gold standard should not be deletable even when inactive:
     assert client.post(reverse('delete_gold_standard', args=(phantom.pk, cad_gold_standard.pk))).status_code == 403
 
-    # the RAW gold standard should not be deletable when active:
+    # the CSV gold standard should not be deletable when active:
     assert client.post(reverse('delete_gold_standard', args=(phantom.pk, raw_gold_standard.pk))).status_code == 403

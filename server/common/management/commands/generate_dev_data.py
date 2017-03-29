@@ -79,6 +79,10 @@ class Command(BaseCommand):
             name='MRI Scanner West',
             institution=johns_hopkins,
         )
+        machine_c = factories.MachineFactory.create(
+            name='MRI Scanner North',
+            institution=johns_hopkins,
+        )
 
         phantom_model_a = factories.PhantomModelFactory(
             name='CIRS 603A',
@@ -105,6 +109,40 @@ class Command(BaseCommand):
             institution=johns_hopkins,
         )
 
+        sequence_a = factories.SequenceFactory(
+            name="T1-Weighted Abdominal",
+            institution=johns_hopkins,
+        )
+        sequence_b = factories.SequenceFactory(
+            name="T1-Weighted Neural",
+            institution=johns_hopkins,
+        )
+        sequence_c = factories.SequenceFactory(
+            name="T2-Weighted Neural",
+            institution=johns_hopkins,
+        )
+
+        machine_sequence_pair = factories.MachineSequencePairFactory(
+            machine=machine_a,
+            sequence=sequence_a,
+        )
+        machine_sequence_pair = factories.MachineSequencePairFactory(
+            machine=machine_a,
+            sequence=sequence_b,
+        )
+        machine_sequence_pair = factories.MachineSequencePairFactory(
+            machine=machine_b,
+            sequence=sequence_a,
+        )
+        machine_sequence_pair = factories.MachineSequencePairFactory(
+            machine=machine_c,
+            sequence=sequence_a,
+        )
+        machine_sequence_pair = factories.MachineSequencePairFactory(
+            machine=machine_c,
+            sequence=sequence_c,
+        )
+
         dicom_filename = 'data/dicom/001_ct_603A_E3148_ST1.25.zip'
         with zipfile.ZipFile(dicom_filename, 'r') as zip_file:
             datasets = dicom_import.dicom_datasets_from_zip(zip_file)
@@ -125,23 +163,5 @@ class Command(BaseCommand):
         )
         golden_fiducials_b = factories.GoldenFiducialsFactory(
             phantom=phantom_a,
-            type=GoldenFiducials.RAW,
-        )
-
-        sequence_a = factories.SequenceFactory(
-            name="T1-Weighted Abdominal",
-            institution=johns_hopkins,
-        )
-        sequence_b = factories.SequenceFactory(
-            name="T1-Weighted Neural",
-            institution=johns_hopkins,
-        )
-        sequence_c = factories.SequenceFactory(
-            name="T2-Weighted Neural",
-            institution=johns_hopkins,
-        )
-
-        machine_sequence_pair = factories.MachineSequencePairFactory(
-            sequence=sequence_a,
-            machine=machine_a,
+            type=GoldenFiducials.CSV,
         )
