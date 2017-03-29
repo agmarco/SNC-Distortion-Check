@@ -37,6 +37,7 @@ python-dateutil==2.6.0    # via botocore, matplotlib
 pytz==2016.10             # via celery, matplotlib
 pyyaml==3.12              # via keras
 redis==2.10.5
+requests==2.13.0
 s3transfer==0.1.10        # via boto3
 scipy==0.19.0             # via theano
 six==1.10.0               # via cycler, h5py, keras, matplotlib, packaging, pip-tools, protobuf, python-dateutil, setuptools, tensorflow, theano

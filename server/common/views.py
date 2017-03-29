@@ -119,6 +119,21 @@ def landing(request):
 
 
 @login_and_permission_required('common.configuration')
+def machine_sequences(request):
+    machine_sequence_pairs_queryset = MachineSequencePair.objects.filter(machine__institution=request.user.institution)
+    machine_sequence_pairs = MachineSequencePairSerializer(machine_sequence_pairs_queryset, many=True)
+    machines = MachineSerializer(Machine.objects.filter(institution=request.user.institution), many=True)
+    sequences = SequenceSerializer(Sequence.objects.filter(institution=request.user.institution), many=True)
+
+    renderer = JSONRenderer()
+    return render(request, 'common/machine_sequences.html', {
+        'machine_sequence_pairs': renderer.render(machine_sequence_pairs.data),
+        'machines': renderer.render(machines.data),
+        'sequences': renderer.render(sequences.data),
+    })
+
+
+@login_and_permission_required('common.configuration')
 @validate_institution()
 class MachineSequenceDetail(DetailView):
     model = MachineSequencePair

@@ -79,6 +79,13 @@ VIEWS = (
         'methods': ('GET',),
     },
     {
+        'view': views.machine_sequences,
+        'url': reverse('landing'),
+        'permissions': ('common.configuration',),
+        'validate_institution': False,
+        'methods': ('GET',),
+    },
+    {
         'view': views.MachineSequenceDetail,
         'data': machine_sequence_detail_data,
         'url': lambda data: reverse('machine_sequence_detail', args=(data['machine_sequence_pair'].pk,)),

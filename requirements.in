@@ -16,3 +16,4 @@ redis
 django-storages
 h5py
 djangorestframework
+requests
