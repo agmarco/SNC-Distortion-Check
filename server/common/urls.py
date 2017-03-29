@@ -5,7 +5,8 @@ from . import views
 urlpatterns = [
     url(r'^$', views.upload_file, name='upload_file'),
     url(r'^configuration/$', views.Configuration.as_view(), name='configuration'),
-    url(r'^machine-sequences/$', views.MachineSequences.as_view(), name='machine_sequences'),
+    url(r'^machine-sequences/$', views.MachineSequenceList.as_view(), name='machine_sequence_list'),
+    url(r'^machine-sequences/(?P<pk>\d+)/$', views.MachineSequenceDetail.as_view(), name='machine_sequence_detail'),
 
     url(r'^phantoms/', include([
         url(r'^add/$', views.CreatePhantom.as_view(), name='create_phantom'),

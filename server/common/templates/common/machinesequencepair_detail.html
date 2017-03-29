@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% load common %}
+
+{% block "content" %}
+  <div id="machine-sequence-detail-app"></div>
+{% endblock %}
+
+{% block "scripts" %}
+  <script src="{% webpack 'common/machine_sequence_detail/vendor.js' %}"></script>
+  <script>
+    var __MACHINE_SEQUENCE_PAIR__ = {{ machine_sequence_pair|safe }};
+  </script>
+  <script src="{% webpack 'common/machine_sequence_detail/app.js' %}"></script>
+{% endblock %}

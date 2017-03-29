@@ -27,7 +27,7 @@ export default class extends React.Component<MachineSequenceTableProps, {}> {
                             <td>{sequences.find((sequence) => sequence.pk === pair.sequence).name}</td>
                             <td>{pair.latest_scan_date}</td>
                             <td>{pair.latest_scan_within_tolerance}</td>
-                            <td><a href="#">View Details</a></td>
+                            <td><a href={pair.detail_url}>View Details</a></td>
                         </tr>
                     ))}
                 </tbody>

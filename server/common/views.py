@@ -6,7 +6,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
 from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework.renderers import JSONRenderer
@@ -104,19 +104,36 @@ class Configuration(UpdateView):
 
 
 @login_and_permission_required('common.configuration')
-class MachineSequences(ListView):
+class MachineSequenceList(ListView):
+    model = MachineSequencePair
+
     def get_queryset(self):
         return MachineSequencePair.objects.filter(machine__institution=self.request.user.institution)
 
     def get_context_data(self, **kwargs):
-        machine_sequences = MachineSequencePairSerializer(self.get_queryset(), many=True)
+        machine_sequence_pairs = MachineSequencePairSerializer(self.get_queryset(), many=True)
         machines = MachineSerializer(Machine.objects.filter(institution=self.request.user.institution), many=True)
         sequences = SequenceSerializer(Sequence.objects.filter(institution=self.request.user.institution), many=True)
 
+        renderer = JSONRenderer()
         return {
-            'machine_sequence_pairs': JSONRenderer().render(machine_sequences.data),
-            'machines': JSONRenderer().render(machines.data),
-            'sequences': JSONRenderer().render(sequences.data),
+            'machine_sequence_pairs': renderer.render(machine_sequence_pairs.data),
+            'machines': renderer.render(machines.data),
+            'sequences': renderer.render(sequences.data),
+        }
+
+
+@login_and_permission_required('common.configuration')
+@validate_institution()
+class MachineSequenceDetail(DetailView):
+    model = MachineSequencePair
+
+    def get_context_data(self, **kwargs):
+        machine_sequence_pair = MachineSequencePairSerializer(self.object)
+
+        renderer = JSONRenderer()
+        return {
+            'machine_sequence_pair': renderer.render(machine_sequence_pair.data),
         }
 
 

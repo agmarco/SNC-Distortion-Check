@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 
-{% load static %}
 {% load common %}
 
 {% block "content" %}
@@ -10,7 +9,6 @@
 {% block "scripts" %}
   <script src="{% webpack 'common/machine_sequences/vendor.js' %}"></script>
   <script>
-    {# TODO XSS vulnerability: https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet #}
     var __MACHINE_SEQUENCE_PAIRS__ = {{ machine_sequence_pairs|safe }};
     var __MACHINES__ = {{ machines|safe }};
     var __SEQUENCES__ = {{ sequences|safe }};

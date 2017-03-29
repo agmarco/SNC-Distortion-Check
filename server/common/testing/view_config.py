@@ -68,7 +68,7 @@ VIEWS = (
         'methods': ('GET',),
     },
     {
-        'view': views.MachineSequences,
+        'view': views.MachineSequenceList,
         'url': reverse('machine_sequences'),
         'permissions': ('common.configuration',),
         'validate_institution': False,

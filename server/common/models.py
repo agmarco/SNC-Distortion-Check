@@ -140,6 +140,10 @@ class MachineSequencePair(CommonFieldsMixin):
     def latest_scan_within_tolerance(self):
         return self.latest_scan.tolerance < self.tolerance if self.latest_scan else None
 
+    @property
+    def institution(self):
+        return self.machine.institution
+
     class Meta:
         verbose_name = 'Machine-Sequence Combination'
 
