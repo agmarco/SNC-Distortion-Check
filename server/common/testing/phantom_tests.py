@@ -16,6 +16,16 @@ def test_phantoms(client):
     current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
 
     client.force_login(current_user)
+
+    # check that a request with an invalid serial number doesn't create a new phantom
+    current_count = Phantom.objects.count()
+    client.post(reverse('create_phantom'), {
+        'name': 'Create Phantom',
+        'serial_number': 'wrong',
+    })
+    assert Phantom.objects.count() == current_count
+
+    # send a request with a valid serial number
     client.post(reverse('create_phantom'), {
         'name': 'Create Phantom',
         'serial_number': initial_phantom.serial_number,

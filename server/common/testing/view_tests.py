@@ -9,7 +9,7 @@ from django.conf import settings
 from .. import factories
 from ..urls import urlpatterns
 from .view_config import VIEWS, Crud
-from .utils import validate_create_view, validate_update_view, validate_delete_view
+from .utils import validate_create_view, validate_update_view, validate_delete_view, allowed_access, denied_access
 from .fixtures import permissions_data, institution_data
 
 
@@ -21,14 +21,6 @@ def _get_view_names_from_urlpatterns(url_patterns):
         elif isinstance(pattern, RegexURLResolver):
             view_names.extend(_get_view_names_from_urlpatterns(pattern.url_patterns))
     return view_names
-
-
-def _allowed_access(client, url, method, data):
-    return getattr(client, method.lower())(url, data).status_code in (200, 302)
-
-
-def _denied_access(client, url, method, data):
-    return getattr(client, method.lower())(url, data).status_code == 403
 
 
 def test_regression():
@@ -70,7 +62,7 @@ def test_login_required(client, view):
         if callable(method_data):
             method_data = method_data(view_data)
 
-        assert _allowed_access(client, url, method, method_data)
+        assert allowed_access(client, url, method, method_data)
 
 
 @pytest.mark.parametrize('view', (view for view in VIEWS if view['permissions']))
@@ -90,12 +82,12 @@ def test_permissions(client, permissions_data, view):
         for method, method_data in view['methods'].items():
             if callable(method_data):
                 method_data = method_data(view_data)
-            assert _allowed_access(client, url, method, method_data)
+            assert allowed_access(client, url, method, method_data)
     else:
         for method, method_data in view['methods'].items():
             if callable(method_data):
                 method_data = method_data(view_data)
-            assert _denied_access(client, url, method, method_data)
+            assert denied_access(client, url, method, method_data)
 
 
 @pytest.mark.parametrize('view', (view for view in VIEWS if view['validate_institution']))
@@ -115,14 +107,14 @@ def test_institution(client, institution_data, view):
         for method, method_data in view['methods'].items():
             if callable(method_data):
                 method_data = method_data(view_data)
-            assert _allowed_access(client, url, method, method_data)
+            assert allowed_access(client, url, method, method_data)
     else:
         current_user.institution = institution_data['institution']
         current_user.save()
         for method, method_data in view['methods'].items():
             if callable(method_data):
                 method_data = method_data(view_data)
-            assert _denied_access(client, url, method, method_data)
+            assert denied_access(client, url, method, method_data)
 
 
 @pytest.mark.parametrize('view', (view for view in VIEWS if 'crud' in view))

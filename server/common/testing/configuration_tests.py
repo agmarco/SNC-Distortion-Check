@@ -34,12 +34,12 @@ def test_configuration_context(client):
     url = reverse('configuration')
 
     client.force_login(manager)
-    response = client.get(url)
+    res = client.get(url)
 
-    phantoms = response.context['phantoms']
-    machines = response.context['machines']
-    sequences = response.context['sequences']
-    users = response.context['users']
+    phantoms = res.context['phantoms']
+    machines = res.context['machines']
+    sequences = res.context['sequences']
+    users = res.context['users']
 
     # only display items from the user's institution
     assert all(phantom.institution == manager.institution for phantom in phantoms)
@@ -55,6 +55,6 @@ def test_configuration_context(client):
 
     # check that a medical physicist can't view users
     client.force_login(medical_physicist)
-    response = client.get(url)
+    res = client.get(url)
 
-    assert 'users' not in response.context
+    assert 'users' not in res.context

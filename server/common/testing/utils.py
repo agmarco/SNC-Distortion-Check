@@ -50,3 +50,11 @@ def validate_delete_view(client, user, url, model_class, data=None):
     assert model.deleted
 
     return model
+
+
+def allowed_access(client, url, method, data):
+    return getattr(client, method.lower())(url, data).status_code in (200, 302)
+
+
+def denied_access(client, url, method, data):
+    return getattr(client, method.lower())(url, data).status_code == 403
