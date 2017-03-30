@@ -9,7 +9,7 @@ from .. import factories
 
 
 @pytest.mark.django_db
-def test_machine_sequences(client, view):
+def test_machine_sequences(client):
     johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
     utexas = factories.InstitutionFactory.create(name="University of Texas")
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
