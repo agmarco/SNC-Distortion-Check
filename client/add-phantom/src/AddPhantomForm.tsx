@@ -61,7 +61,7 @@ export default class extends React.Component<AddPhantomFormProps, AddPhantomForm
                 }).bind(this));
             });
 
-        this.setState({validating: true, promise: newPromise});
+        this.setState({validating: true, valid: false, promise: newPromise});
     }
 
     render() {
@@ -87,7 +87,7 @@ export default class extends React.Component<AddPhantomFormProps, AddPhantomForm
                     />
 
                     <label>Model Number</label>
-                    {model_number || "Searching..."}
+                    {valid ? model_number : (validating ? "Searching..." : "Invalid Serial Number")}
 
                     <label>Gold Standard Grid Intersection Locations</label>
                     By default, the new phantom will use gold standard grid intersection locations based on the CAD design for the particular phantom model you select. These points can be customized at any point using a gold standard CT, or a raw point upload.

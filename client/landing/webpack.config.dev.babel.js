@@ -8,8 +8,10 @@ export default ({
             path.resolve('./src/app.tsx'),
         ],
         'vendor': [
+            // TODO these should only be here in hot mode
             'webpack-dev-server/client?http://0.0.0.0:8080',
             'webpack/hot/only-dev-server',
+
             'react-hot-loader/patch',
             'react-hot-loader',
             'react',
