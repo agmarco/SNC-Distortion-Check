@@ -9,4 +9,5 @@ __pycache__
 media
 collected_static
 node_modules
+dist
 dump.rdb

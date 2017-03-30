@@ -7,11 +7,11 @@
 {% endblock %}
 
 {% block "scripts" %}
-  <script src="{% webpack 'common/add-phantom/vendor.js' %}"></script>
+  <script src="{% webpack 'add-phantom/vendor.js' %}"></script>
   <script>
     var __CREATE_PHANTOM_URL__ = "{% url 'create_phantom' %}";
     var __VALIDATE_SERIAL_URL__ = "{% url 'validate_serial' %}";
     var __CANCEL_URL__ = "{% url 'configuration' %}";
   </script>
-  <script src="{% webpack 'common/add-phantom/app.js' %}"></script>
+  <script src="{% webpack 'add-phantom/app.js' %}"></script>
 {% endblock %}

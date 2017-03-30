@@ -5,7 +5,6 @@ export default ({
     entry: {
         'app': [
             'babel-polyfill',
-            'isomorphic-fetch',
             path.resolve('./src/app.tsx'),
         ],
         'vendor': [
@@ -19,8 +18,8 @@ export default ({
     },
 
     output: {
-        path: path.resolve('../../static/common/add-phantom'),
-        publicPath: 'http://0.0.0.0:8080/common/add-phantom/',
+        path: path.resolve('../dist/landing'),
+        publicPath: 'http://0.0.0.0:8080/landing/',
     },
 
     devtool: 'eval',

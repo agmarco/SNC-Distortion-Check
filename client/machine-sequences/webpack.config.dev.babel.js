@@ -8,6 +8,8 @@ export default ({
             path.resolve('./src/app.tsx'),
         ],
         'vendor': [
+            'webpack-dev-server/client?http://0.0.0.0:8080',
+            'webpack/hot/only-dev-server',
             'react-hot-loader/patch',
             'react-hot-loader',
             'react',
@@ -16,17 +18,17 @@ export default ({
     },
 
     output: {
-        path: path.resolve('../../static/common/landing'),
+        path: path.resolve('../dist/machine-sequences'),
+        publicPath: 'http://0.0.0.0:8080/machine-sequences/',
     },
 
-    devtool: 'source-map',
+    devtool: 'eval',
 
     plugins: [
         new webpack.NoEmitOnErrorsPlugin(),
         new webpack.optimize.CommonsChunkPlugin({name: 'vendor', filename: '[name].js'}),
-        new webpack.optimize.UglifyJsPlugin({sourceMap: true}),
-        new webpack.LoaderOptionsPlugin({minimize: true}),
-        new webpack.DefinePlugin({'process.env': {'NODE_ENV': JSON.stringify('production')}}),
+        new webpack.NamedModulesPlugin(),
+        new webpack.HotModuleReplacementPlugin(),
     ],
 
     module: {

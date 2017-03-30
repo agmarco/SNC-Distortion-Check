@@ -2,17 +2,18 @@ import csv
 import logging
 from datetime import datetime
 
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
-from django.views.generic import ListView, DetailView
+from django.views.generic import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
 from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework.renderers import JSONRenderer
 
 from process import dicom_import
-from .models import Scan, Phantom, Machine, Sequence, Fiducials, GoldenFiducials, User, DicomSeries, Institution, MachineSequencePair
+from .models import Scan, Phantom, Machine, Sequence, Fiducials, GoldenFiducials, User, DicomSeries, Institution, \
+    MachineSequencePair
 from .tasks import process_scan, process_ct_upload
 from .forms import UploadScanForm, UploadCTForm, UploadRawForm
 from .serializers import MachineSequencePairSerializer, MachineSerializer, SequenceSerializer
@@ -147,16 +148,22 @@ class MachineSequenceDetail(DetailView):
         }
 
 
-# TODO check the serial number again
 @login_and_permission_required('common.configuration')
 class CreatePhantom(CreateView):
     model = Phantom
-    fields = ('name', 'model', 'serial_number')
+    fields = ('name', 'serial_number')
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_create'
 
     def form_valid(self, form):
         self.object = form.save(commit=False)
+
+        try:
+            self.object.model = Phantom.objects.get(institution=None, serial_number=form.cleaned_data['serial_number']).model
+        except ObjectDoesNotExist:
+            # TODO
+            pass
+
         self.object.institution = self.request.user.institution
         self.object.save()
         messages.success(self.request, f"\"{self.object.name}\" has been created successfully.")

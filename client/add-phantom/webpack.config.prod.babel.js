@@ -5,11 +5,10 @@ export default ({
     entry: {
         'app': [
             'babel-polyfill',
+            'isomorphic-fetch',
             path.resolve('./src/app.tsx'),
         ],
         'vendor': [
-            'webpack-dev-server/client?http://0.0.0.0:8080',
-            'webpack/hot/only-dev-server',
             'react-hot-loader/patch',
             'react-hot-loader',
             'react',
@@ -18,17 +17,17 @@ export default ({
     },
 
     output: {
-        path: path.resolve('../../static/common/machine-sequences'),
-        publicPath: 'http://0.0.0.0:8080/common/machine-sequences/',
+        path: path.resolve('../dist/add-phantom'),
     },
 
-    devtool: 'eval',
+    devtool: 'source-map',
 
     plugins: [
         new webpack.NoEmitOnErrorsPlugin(),
         new webpack.optimize.CommonsChunkPlugin({name: 'vendor', filename: '[name].js'}),
-        new webpack.NamedModulesPlugin(),
-        new webpack.HotModuleReplacementPlugin(),
+        new webpack.optimize.UglifyJsPlugin({sourceMap: true}),
+        new webpack.LoaderOptionsPlugin({minimize: true}),
+        new webpack.DefinePlugin({'process.env': {'NODE_ENV': JSON.stringify('production')}}),
     ],
 
     module: {

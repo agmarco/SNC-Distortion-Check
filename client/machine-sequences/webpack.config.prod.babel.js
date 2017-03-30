@@ -16,7 +16,7 @@ export default ({
     },
 
     output: {
-        path: path.resolve('../../static/common/machine-sequences'),
+        path: path.resolve('../dist/machine-sequences'),
     },
 
     devtool: 'source-map',

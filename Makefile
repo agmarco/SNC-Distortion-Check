@@ -42,6 +42,11 @@ dev: .PYTHONDEPS
 	cp .sample.env .env
 	./createdb
 	python server/manage.py generate_dev_data
+	cd client/common; yarn; yarn run start
+	cd client/landing; yarn; gulp dev:webpack
+	cd client/machine-sequences; yarn; gulp dev:webpack
+	cd client/add-phantom; yarn; gulp dev:webpack
+	python server/manage.py collectstatic --noinput
 
 freezedeps:
 	pip-compile requirements.in > requirements.txt

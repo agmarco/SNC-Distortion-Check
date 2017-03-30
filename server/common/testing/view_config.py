@@ -1,6 +1,7 @@
 from django.urls import reverse
 
 from .. import views
+from .. import api
 from .. import factories
 from ..models import Phantom, GoldenFiducials, Machine, Sequence, User
 
@@ -19,11 +20,22 @@ from ..models import Phantom, GoldenFiducials, Machine, Sequence, User
 # 'validate_institution': a boolean representing whether the user's institution must be validated against the view.
 # 'methods': a list of the HTTP methods that should be tested.
 
+# TODO need a way of specifying POST data
+
 
 class Crud:
     CREATE = 'CREATE'
     UPDATE = 'UPDATE'
     DELETE = 'DELETE'
+
+
+def create_phantom_data(user):
+    phantom_model = factories.PhantomModelFactory(name='CIRS 603A', model_number='603A')
+    phantom = factories.PhantomFactory(model=phantom_model, serial_number='A123')
+    return {
+        'phantom_model': phantom_model,
+        'phantom': phantom,
+    }
 
 
 def machine_sequence_detail_data(user):
@@ -102,11 +114,10 @@ VIEWS = (
     },
     {
         'view': views.CreatePhantom,
-        'data': lambda user: {'phantom_model': factories.PhantomModelFactory(name='CIRS 603A',model_number='603A')},
+        'data': create_phantom_data,
         'crud': (Crud.CREATE, Phantom, lambda data: {
             'name': 'Create Phantom',
-            'model': str(data['phantom_model'].pk),
-            'serial_number': '12345',
+            'serial_number': 'A123',
         }),
         'url': reverse('create_phantom'),
         'permissions': ('common.configuration',),
@@ -259,5 +270,12 @@ VIEWS = (
         'permissions': ('common.configuration',),
         'validate_institution': True,
         'methods': ('GET',),
+    },
+    {
+        'view': api.ValidateSerial,
+        'url': lambda data: reverse('validate_serial'),
+        'permissions': ('common.configuration',),
+        'validate_institution': False,
+        'methods': ('POST',),
     },
 )

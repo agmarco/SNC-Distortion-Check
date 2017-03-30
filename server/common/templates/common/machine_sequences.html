@@ -9,11 +9,11 @@
 
 {% block "scripts" %}
   <script src="{% static 'common/fontawesome.js' %}"></script>
-  <script src="{% webpack 'common/machine-sequences/vendor.js' %}"></script>
+  <script src="{% webpack 'machine-sequences/vendor.js' %}"></script>
   <script>
     var __MACHINE_SEQUENCE_PAIRS__ = {{ machine_sequence_pairs|safe }};
     var __MACHINES__ = {{ machines|safe }};
     var __SEQUENCES__ = {{ sequences|safe }};
   </script>
-  <script src="{% webpack 'common/machine-sequences/app.js' %}"></script>
+  <script src="{% webpack 'machine-sequences/app.js' %}"></script>
 {% endblock %}
