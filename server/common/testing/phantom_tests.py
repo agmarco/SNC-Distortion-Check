@@ -1,6 +1,5 @@
 import pytest
 
-from django.test import Client
 from django.urls import reverse
 from django.contrib.auth.models import Permission
 
@@ -13,13 +12,13 @@ def test_phantoms(client):
     johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
     phantom_model = factories.PhantomModelFactory(name='CIRS 603A', model_number='603A')
+    initial_phantom = factories.PhantomFactory(model=phantom_model, serial_number='A123')
     current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
 
     client.force_login(current_user)
     client.post(reverse('create_phantom'), {
         'name': 'Create Phantom',
-        'model': str(phantom_model.pk),
-        'serial_number': '12345',
+        'serial_number': initial_phantom.serial_number,
     })
     phantom = Phantom.objects.order_by('-last_modified_on').first()
 

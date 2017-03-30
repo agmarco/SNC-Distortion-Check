@@ -14,11 +14,13 @@ from ..models import Phantom, GoldenFiducials, Machine, Sequence, User
 #     (2) the model class.
 #     (3) a dict containing the POST data for the request. This can also be a function that returns a dict, in which
 #         case it will receive the data specified by the 'data' key as an argument.
-# 'url': the url for the view. This can also be a function that returns the url, in which case it will receive the data
-#     specified by the 'data' key as an argument.
+# 'url': the url for the view. This can also be a function that receives the data specified by the 'data' key and
+# returns the url.
 # 'permissions': a list of permissions that are required to access the view.
 # 'validate_institution': a boolean representing whether the user's institution must be validated against the view.
-# 'methods': a list of the HTTP methods that should be tested.
+# 'methods': a dict containing as keys the HTTP methods that should be tested, and as values the GET or POST data to
+# send with the request. The values may also be functions that receive the data specified by the 'data' key and return
+# the GET or POST data.
 
 # TODO need a way of specifying POST data
 
@@ -81,21 +83,21 @@ VIEWS = (
         'url': reverse('landing'),
         'permissions': ('common.configuration',),
         'validate_institution': False,
-        'methods': ('GET',),
+        'methods': {'GET': None},
     },
     {
         'view': views.Configuration,
         'url': reverse('configuration'),
         'permissions': ('common.configuration',),
         'validate_institution': False,
-        'methods': ('GET',),
+        'methods': {'GET': None},
     },
     {
         'view': views.machine_sequences,
         'url': reverse('landing'),
         'permissions': ('common.configuration',),
         'validate_institution': False,
-        'methods': ('GET',),
+        'methods': {'GET': None},
     },
     {
         'view': views.MachineSequenceDetail,
@@ -103,14 +105,14 @@ VIEWS = (
         'url': lambda data: reverse('machine_sequence_detail', args=(data['machine_sequence_pair'].pk,)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
-        'methods': ('GET',),
+        'methods': {'GET': None},
     },
     {
         'view': views.upload_scan,
         'url': reverse('upload_scan'),
         'permissions': ('common.configuration',),
         'validate_institution': False,
-        'methods': ('GET', 'POST'),
+        'methods': {'GET': None, 'POST': None},
     },
     {
         'view': views.CreatePhantom,
@@ -122,7 +124,7 @@ VIEWS = (
         'url': reverse('create_phantom'),
         'permissions': ('common.configuration',),
         'validate_institution': False,
-        'methods': ('GET', 'POST'),
+        'methods': {'GET': None, 'POST': None},
     },
     {
         'view': views.UpdatePhantom,
@@ -131,7 +133,7 @@ VIEWS = (
         'url': lambda data: reverse('update_phantom', args=(data['phantom'].pk,)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
-        'methods': ('GET', 'POST'),
+        'methods': {'GET': None, 'POST': None},
     },
     {
         'view': views.DeletePhantom,
@@ -140,7 +142,7 @@ VIEWS = (
         'url': lambda data: reverse('delete_phantom', args=(data['phantom'].pk,)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
-        'methods': ('GET', 'POST'),
+        'methods': {'GET': None, 'POST': None},
     },
     {
         'view': views.CreateMachine,
@@ -152,7 +154,7 @@ VIEWS = (
         'url': reverse('create_machine'),
         'permissions': ('common.configuration',),
         'validate_institution': False,
-        'methods': ('GET', 'POST'),
+        'methods': {'GET': None, 'POST': None},
     },
     {
         'view': views.UpdateMachine,
@@ -165,7 +167,7 @@ VIEWS = (
         'url': lambda data: reverse('update_machine', args=(data['machine'].pk,)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
-        'methods': ('GET', 'POST'),
+        'methods': {'GET': None, 'POST': None},
     },
     {
         'view': views.DeleteMachine,
@@ -174,7 +176,7 @@ VIEWS = (
         'url': lambda data: reverse('delete_machine', args=(data['machine'].pk,)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
-        'methods': ('GET', 'POST'),
+        'methods': {'GET': None, 'POST': None},
     },
     {
         'view': views.CreateSequence,
@@ -185,7 +187,7 @@ VIEWS = (
         'url': reverse('create_sequence'),
         'permissions': ('common.configuration',),
         'validate_institution': False,
-        'methods': ('GET', 'POST'),
+        'methods': {'GET': None, 'POST': None},
     },
     {
         'view': views.UpdateSequence,
@@ -197,7 +199,7 @@ VIEWS = (
         'url': lambda data: reverse('update_sequence', args=(data['sequence'].pk,)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
-        'methods': ('GET', 'POST'),
+        'methods': {'GET': None, 'POST': None},
     },
     {
         'view': views.DeleteSequence,
@@ -206,7 +208,7 @@ VIEWS = (
         'url': lambda data: reverse('delete_sequence', args=(data['sequence'].pk,)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
-        'methods': ('GET', 'POST'),
+        'methods': {'GET': None, 'POST': None},
     },
     {
         'view': views.CreateUser,
@@ -219,7 +221,7 @@ VIEWS = (
         'url': reverse('create_user'),
         'permissions': ('common.manage_users',),
         'validate_institution': False,
-        'methods': ('GET', 'POST'),
+        'methods': {'GET': None, 'POST': None},
     },
     {
         'view': views.DeleteUser,
@@ -228,7 +230,7 @@ VIEWS = (
         'url': lambda data: reverse('delete_user', args=(data['user'].pk,)),
         'permissions': ('common.manage_users',),
         'validate_institution': True,
-        'methods': ('GET', 'POST'),
+        'methods': {'GET': None, 'POST': None},
     },
 {
         'view': views.UploadCT,
@@ -236,7 +238,7 @@ VIEWS = (
         'url': lambda data: reverse('upload_ct', args=(data['phantom'].pk,)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
-        'methods': ('GET', 'POST'),
+        'methods': {'GET': None, 'POST': None},
     },
     {
         'view': views.UploadRaw,
@@ -244,7 +246,7 @@ VIEWS = (
         'url': lambda data: reverse('upload_raw', args=(data['phantom'].pk,)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
-        'methods': ('GET', 'POST'),
+        'methods': {'GET': None, 'POST': None},
     },
     {
         'view': views.DeleteGoldStandard,
@@ -253,7 +255,7 @@ VIEWS = (
         'url': lambda data: reverse('delete_gold_standard', args=(data['phantom'].pk, data['gold_standard'].pk)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
-        'methods': ('GET', 'POST'),
+        'methods': {'GET': None, 'POST': None},
     },
     {
         'view': views.activate_gold_standard,
@@ -261,7 +263,7 @@ VIEWS = (
         'url': lambda data: reverse('activate_gold_standard', args=(data['phantom'].pk, data['gold_standard'].pk)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
-        'methods': ('POST',),
+        'methods': {'POST': None},
     },
     {
         'view': views.gold_standard_csv,
@@ -269,13 +271,14 @@ VIEWS = (
         'url': lambda data: reverse('gold_standard_csv', args=(data['phantom'].pk, data['gold_standard'].pk)),
         'permissions': ('common.configuration',),
         'validate_institution': True,
-        'methods': ('GET',),
+        'methods': {'GET': None},
     },
     {
         'view': api.ValidateSerial,
+        'data': lambda user: {'phantom': factories.PhantomFactory(serial_number='A123')},
         'url': lambda data: reverse('validate_serial'),
         'permissions': ('common.configuration',),
         'validate_institution': False,
-        'methods': ('POST',),
+        'methods': {'POST': lambda data: {'serial_number': data['phantom'].serial_number}},
     },
 )

@@ -23,12 +23,12 @@ def _get_view_names_from_urlpatterns(url_patterns):
     return view_names
 
 
-def _allowed_access(client, method, url):
-    return getattr(client, method.lower())(url).status_code in (200, 302)
+def _allowed_access(client, url, method, data):
+    return getattr(client, method.lower())(url, data).status_code in (200, 302)
 
 
-def _denied_access(client, method, url):
-    return getattr(client, method.lower())(url).status_code == 403
+def _denied_access(client, url, method, data):
+    return getattr(client, method.lower())(url, data).status_code == 403
 
 
 def test_regression():
@@ -55,9 +55,15 @@ def test_permissions(client, permissions_data, view):
     client.force_login(current_user)
 
     if all(current_user.has_perm(permission) for permission in view['permissions']):
-        assert all(_allowed_access(client, method, url) for method in view['methods'])
+        for method, method_data in view['methods'].items():
+            if callable(method_data):
+                method_data = method_data(view_data)
+            assert _allowed_access(client, url, method, method_data)
     else:
-        assert all(_denied_access(client, method, url) for method in view['methods'])
+        for method, method_data in view['methods'].items():
+            if callable(method_data):
+                method_data = method_data(view_data)
+            assert _denied_access(client, url, method, method_data)
 
 
 @pytest.mark.parametrize('view', (view for view in VIEWS if view['validate_institution']))
@@ -74,11 +80,17 @@ def test_institution(client, institution_data, view):
     client.force_login(current_user)
 
     if current_user.institution == institution_data['institution']:
-        assert all(_allowed_access(client, method, url) for method in view['methods'])
+        for method, method_data in view['methods'].items():
+            if callable(method_data):
+                method_data = method_data(view_data)
+            assert _allowed_access(client, url, method, method_data)
     else:
         current_user.institution = institution_data['institution']
         current_user.save()
-        assert all(_denied_access(client, method, url) for method in view['methods'])
+        for method, method_data in view['methods'].items():
+            if callable(method_data):
+                method_data = method_data(view_data)
+            assert _denied_access(client, url, method, method_data)
 
 
 @pytest.mark.parametrize('view', (view for view in VIEWS if 'crud' in view))
