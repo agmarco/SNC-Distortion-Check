@@ -1,8 +1,10 @@
 import pytest
+from urllib.parse import urlparse
 
 from django.contrib.auth.models import Permission
-from django.urls import RegexURLPattern
+from django.urls import RegexURLPattern, reverse
 from django.urls import RegexURLResolver
+from django.conf import settings
 
 from .. import factories
 from ..urls import urlpatterns
@@ -10,8 +12,6 @@ from .view_config import VIEWS, Crud
 from .utils import validate_create_view, validate_update_view, validate_delete_view
 from .fixtures import permissions_data, institution_data
 
-
-# TODO check that the other HTTP methods are not allowed
 
 def _get_view_names_from_urlpatterns(url_patterns):
     view_names = []
@@ -41,7 +41,38 @@ def test_regression():
     assert view_names == tested_view_names, f"The following views are not tested: {view_names - tested_view_names}"
 
 
-# TODO test login required
+@pytest.mark.parametrize('view', (view for view in VIEWS if view['login_required']))
+@pytest.mark.django_db
+def test_login_required(client, view):
+    """
+    For each view that requires authentication, test that a user that is authenticated is granted access, and that a
+    user that is not authenticated is either denied access or redirected to the login page.
+    """
+
+    johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
+    group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
+    current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
+    view_data = view['data'](current_user) if 'data' in view else None
+    url = view['url'](view_data) if callable(view['url']) else view['url']
+
+    for method, method_data in view['methods'].items():
+        if callable(method_data):
+            method_data = method_data(view_data)
+
+        res = getattr(client, method.lower())(url, method_data)
+        if res.status_code == 302:
+            assert urlparse(res['Location']).path == reverse(settings.LOGIN_URL)
+        else:
+            assert res.status_code == 403
+
+    client.force_login(current_user)
+    for method, method_data in view['methods'].items():
+        if callable(method_data):
+            method_data = method_data(view_data)
+
+        assert _allowed_access(client, url, method, method_data)
+
+
 @pytest.mark.parametrize('view', (view for view in VIEWS if view['permissions']))
 def test_permissions(client, permissions_data, view):
     """

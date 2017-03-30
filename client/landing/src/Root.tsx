@@ -3,7 +3,7 @@ import { AppContainer } from 'react-hot-loader';
 
 import { MachineSequenceTable, MachineSequencePair, Machine, Sequence } from 'cirs-common';
 
-// TODO it would be better to put this in a globals.d.ts, but we need to import the interfaces from cirs-common, which
+// it would be better to put this in a globals.d.ts, but we need to import the interfaces from cirs-common, which
 // automatically makes the file a module
 declare const __MACHINE_SEQUENCE_PAIRS__: MachineSequencePair[];
 declare const __MACHINES__: Machine[];
