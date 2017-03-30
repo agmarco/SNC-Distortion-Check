@@ -19,7 +19,6 @@ def webpack(path):
         webpack_path = os.path.join('http://0.0.0.0:8080/', path)
 
         try:
-            # TODO head requests aren't working
             res = requests.get(webpack_path)
         except ConnectionError:
             return static(path)

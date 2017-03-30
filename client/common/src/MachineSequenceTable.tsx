@@ -15,6 +15,7 @@ interface MachineSequenceTableState {
 export default class extends React.Component<MachineSequenceTableProps, MachineSequenceTableState> {
     constructor() {
         super();
+
         this.state = {
             currentMachine: 'all',
             currentSequence: 'all',
@@ -24,16 +25,16 @@ export default class extends React.Component<MachineSequenceTableProps, MachineS
     filteredMachineSequencePairs() {
         const { machineSequencePairs } = this.props;
         const { currentMachine, currentSequence } = this.state;
+        const filters: ((pair: MachineSequencePair) => boolean)[] = [];
 
-        let filteredMachineSequencePairs = machineSequencePairs;
         if (currentMachine != 'all') {
-            filteredMachineSequencePairs = filteredMachineSequencePairs.filter((pair) => pair.machine == currentMachine);
+            filters.push((pair) => pair.machine == currentMachine);
         }
         if (currentSequence != 'all') {
-            filteredMachineSequencePairs = filteredMachineSequencePairs.filter((pair) => pair.sequence == currentSequence);
+            filters.push((pair) => pair.sequence == currentSequence);
         }
 
-        return filteredMachineSequencePairs;
+        return machineSequencePairs.filter((pair) => filters.every((filter) => filter(pair)));
     }
 
     handleMachineChange(event: React.FormEvent<HTMLInputElement>) {

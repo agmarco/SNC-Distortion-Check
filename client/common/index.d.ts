@@ -36,3 +36,5 @@ export class MachineSequenceTable extends React.Component<MachineSequenceTablePr
 }
 
 export function handleErrors(res: Response, success: () => void): void;
+
+export function encode(data: any): string;

@@ -41,6 +41,7 @@ def test_regression():
     assert view_names == tested_view_names, f"The following views are not tested: {view_names - tested_view_names}"
 
 
+# TODO test login required
 @pytest.mark.parametrize('view', (view for view in VIEWS if view['permissions']))
 def test_permissions(client, permissions_data, view):
     """

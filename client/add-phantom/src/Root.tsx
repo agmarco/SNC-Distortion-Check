@@ -10,6 +10,7 @@ export default () => (
             create_phantom_url={__CREATE_PHANTOM_URL__}
             validate_serial_url={__VALIDATE_SERIAL_URL__}
             cancel_url={__CANCEL_URL__}
+            form_errors={__FORM_ERRORS__}
             csrftoken={Cookies.get('csrftoken')}
         />
     </AppContainer>

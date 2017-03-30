@@ -3,8 +3,25 @@ import zipfile
 from django import forms
 
 import numpy as np
+from django.core.exceptions import ObjectDoesNotExist
 
 from process import dicom_import
+from .models import Phantom
+
+
+class CreatePhantomForm(forms.ModelForm):
+    class Meta:
+        model = Phantom
+        fields = ('name', 'serial_number')
+
+    def clean_serial_number(self):
+        try:
+            model = Phantom.objects.get(institution=None, serial_number=self.cleaned_data['serial_number']).model
+        except ObjectDoesNotExist:
+            raise forms.ValidationError("Invalid serial number.")
+
+        self.cleaned_data['model'] = model
+        return self.cleaned_data['serial_number']
 
 
 class UploadScanForm(forms.Form):
@@ -16,7 +33,7 @@ class UploadScanForm(forms.Form):
         except dicom_import.DicomImportException as e:
             raise forms.ValidationError(e.args[0])
 
-        return self.cleaned_data
+        return self.cleaned_data['dicom_archive']
 
 
 class UploadCTForm(forms.Form):
@@ -35,7 +52,7 @@ class UploadCTForm(forms.Form):
             raise forms.ValidationError("The DICOM archive must be of modality 'CT.'")
 
         self.cleaned_data['datasets'] = datasets
-        return self.cleaned_data
+        return self.cleaned_data['dicom_archive']
 
 
 class UploadRawForm(forms.Form):
@@ -66,4 +83,4 @@ class UploadRawForm(forms.Form):
             raise forms.ValidationError("The file contains duplicate points.")
 
         self.cleaned_data['fiducials'] = fiducials
-        return self.cleaned_data
+        return self.cleaned_data['csv']

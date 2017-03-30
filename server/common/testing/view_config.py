@@ -22,8 +22,6 @@ from ..models import Phantom, GoldenFiducials, Machine, Sequence, User
 # send with the request. The values may also be functions that receive the data specified by the 'data' key and return
 # the GET or POST data.
 
-# TODO need a way of specifying POST data
-
 
 class Crud:
     CREATE = 'CREATE'

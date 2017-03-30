@@ -1,14 +1,15 @@
 from django.core.exceptions import ObjectDoesNotExist
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .decorators import login_and_permission_required
 from .models import Phantom
+from .permissions import login_and_permission_required
 
 
-# TODO don't use the decorator here
-@login_and_permission_required('common.configuration')
 class ValidateSerial(APIView):
+    permission_classes = (login_and_permission_required('common.configuration'),)
+
     def post(self, request):
         try:
             phantom = Phantom.objects.get(institution=None, serial_number=request.data['serial_number'])

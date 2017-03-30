@@ -1,7 +1,8 @@
 import MachineSequenceTable from './MachineSequenceTable';
-import { handleErrors } from './utils';
+import { handleErrors, encode } from './utils';
 
 export {
     MachineSequenceTable,
     handleErrors,
+    encode,
 }

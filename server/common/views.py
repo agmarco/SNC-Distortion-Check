@@ -15,7 +15,7 @@ from process import dicom_import
 from .models import Scan, Phantom, Machine, Sequence, Fiducials, GoldenFiducials, User, DicomSeries, Institution, \
     MachineSequencePair
 from .tasks import process_scan, process_ct_upload
-from .forms import UploadScanForm, UploadCTForm, UploadRawForm
+from .forms import UploadScanForm, UploadCTForm, UploadRawForm, CreatePhantomForm
 from .serializers import MachineSequencePairSerializer, MachineSerializer, SequenceSerializer
 from .decorators import validate_institution, login_and_permission_required
 
@@ -78,6 +78,21 @@ def upload_scan(request):
 
 
 @login_and_permission_required('common.configuration')
+def landing(request):
+    machine_sequence_pairs_queryset = MachineSequencePair.objects.filter(machine__institution=request.user.institution)
+    machine_sequence_pairs = MachineSequencePairSerializer(machine_sequence_pairs_queryset, many=True)
+    machines = MachineSerializer(Machine.objects.filter(institution=request.user.institution), many=True)
+    sequences = SequenceSerializer(Sequence.objects.filter(institution=request.user.institution), many=True)
+
+    renderer = JSONRenderer()
+    return render(request, 'common/landing.html', {
+        'machine_sequence_pairs': renderer.render(machine_sequence_pairs.data),
+        'machines': renderer.render(machines.data),
+        'sequences': renderer.render(sequences.data),
+    })
+
+
+@login_and_permission_required('common.configuration')
 class Configuration(UpdateView):
     model = Institution
     fields = ('name', 'address', 'phone_number')
@@ -102,21 +117,6 @@ class Configuration(UpdateView):
         if self.request.user.has_perm('common.manage_users'):
             context['users'] = institution.user_set.active().order_by('-last_modified_on')
         return context
-
-
-@login_and_permission_required('common.configuration')
-def landing(request):
-    machine_sequence_pairs_queryset = MachineSequencePair.objects.filter(machine__institution=request.user.institution)
-    machine_sequence_pairs = MachineSequencePairSerializer(machine_sequence_pairs_queryset, many=True)
-    machines = MachineSerializer(Machine.objects.filter(institution=request.user.institution), many=True)
-    sequences = SequenceSerializer(Sequence.objects.filter(institution=request.user.institution), many=True)
-
-    renderer = JSONRenderer()
-    return render(request, 'common/landing.html', {
-        'machine_sequence_pairs': renderer.render(machine_sequence_pairs.data),
-        'machines': renderer.render(machines.data),
-        'sequences': renderer.render(sequences.data),
-    })
 
 
 @login_and_permission_required('common.configuration')
@@ -149,25 +149,28 @@ class MachineSequenceDetail(DetailView):
 
 
 @login_and_permission_required('common.configuration')
-class CreatePhantom(CreateView):
-    model = Phantom
-    fields = ('name', 'serial_number')
+class CreatePhantom(FormView):
+    form_class = CreatePhantomForm
     success_url = reverse_lazy('configuration')
-    template_name_suffix = '_create'
+    template_name = 'common/phantom_create.html'
+
+    def __init__(self, **kwargs):
+        self.object = None
+        super(CreatePhantom, self).__init__(**kwargs)
 
     def form_valid(self, form):
         self.object = form.save(commit=False)
-
-        try:
-            self.object.model = Phantom.objects.get(institution=None, serial_number=form.cleaned_data['serial_number']).model
-        except ObjectDoesNotExist:
-            # TODO
-            pass
-
         self.object.institution = self.request.user.institution
+        self.object.model = form.cleaned_data['model']
         self.object.save()
         messages.success(self.request, f"\"{self.object.name}\" has been created successfully.")
-        return super(ModelFormMixin, self).form_valid(form)
+        return super(CreatePhantom, self).form_valid(form)
+
+    def form_invalid(self, form):
+        renderer = JSONRenderer()
+        context = self.get_context_data(form=form)
+        context.update({'form_errors': renderer.render(form.errors)})
+        return self.render_to_response(context)
 
 
 @login_and_permission_required('common.configuration')
@@ -382,8 +385,9 @@ class DeleteGoldStandard(CirsDeleteView):
         self.object = self.get_object()
         if self.object.type == GoldenFiducials.CAD or self.object.is_active:
             raise PermissionDenied
-        messages.success(self.request, f"\"{self.object.source_summary}\" has been deleted successfully.")
-        return super(DeleteGoldStandard, self).delete(request, *args, **kwargs)
+        else:
+            messages.success(self.request, f"\"{self.object.source_summary}\" has been deleted successfully.")
+            return super(DeleteGoldStandard, self).delete(request, *args, **kwargs)
 
     def get_success_url(self):
         return reverse('update_phantom', args=(self.kwargs['phantom_pk'],))
