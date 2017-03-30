@@ -16,7 +16,9 @@ def webpack(path):
         return static(path)
     else:
         webpack_path = os.path.join('http://0.0.0.0:8080/', path)
-        if requests.head(webpack_path).status_code == 200:
+
+        # TODO head requests aren't working
+        if requests.get(webpack_path).status_code == 200:
             return webpack_path
         else:
             return static(path)

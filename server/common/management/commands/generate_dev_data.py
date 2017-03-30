@@ -109,16 +109,34 @@ class Command(BaseCommand):
         phantom_a = factories.PhantomFactory(
             name='Head Phantom 1',
             model=phantom_model_a,
-            institution=johns_hopkins,
+            serial_number='A123',
         )
         phantom_b = factories.PhantomFactory(
             name='Head Phantom 2',
             model=phantom_model_a,
-            institution=johns_hopkins,
+            serial_number='B123',
         )
         phantom_c = factories.PhantomFactory(
             name='Body Phantom',
             model=phantom_model_b,
+            serial_number='C123',
+        )
+        phantom_d = factories.PhantomFactory(
+            name='Head Phantom 1',
+            model=phantom_model_a,
+            serial_number='A123',
+            institution=johns_hopkins,
+        )
+        phantom_e = factories.PhantomFactory(
+            name='Head Phantom 2',
+            model=phantom_model_a,
+            serial_number='B123',
+            institution=johns_hopkins,
+        )
+        phantom_f = factories.PhantomFactory(
+            name='Body Phantom',
+            model=phantom_model_b,
+            serial_number='C123',
             institution=johns_hopkins,
         )
 
@@ -164,12 +182,12 @@ class Command(BaseCommand):
         dicom_series_ct = _create_dicom_series('data/dicom/001_ct_603A_E3148_ST1.25.zip')
 
         golden_fiducials_a = factories.GoldenFiducialsFactory(
-            phantom=phantom_a,
+            phantom=phantom_d,
             dicom_series=dicom_series_ct,
             type=GoldenFiducials.CT,
         )
         golden_fiducials_b = factories.GoldenFiducialsFactory(
-            phantom=phantom_a,
+            phantom=phantom_d,
             type=GoldenFiducials.CSV,
         )
 

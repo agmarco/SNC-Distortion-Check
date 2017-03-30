@@ -2,12 +2,6 @@
 # yarn lockfile v1
 
 
-"@types/date-fns@^2.6.0":
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/@types/date-fns/-/date-fns-2.6.0.tgz#b062ca46562002909be0c63a6467ed173136acc1"
-  dependencies:
-    date-fns "*"
-
 "@types/react@^15.0.14":
   version "15.0.20"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-15.0.20.tgz#3d4a05ed04a8b1847ac6c8fa6093591d3910fba5"
@@ -973,7 +967,7 @@ dashdash@^1.12.0:
   dependencies:
     assert-plus "^1.0.0"
 
-date-fns@*, date-fns@^1.28.2:
+date-fns@^1.28.2:
   version "1.28.2"
   resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-1.28.2.tgz#19e4192d68875c0bf7c9537e3f296a8ec64853ef"
 

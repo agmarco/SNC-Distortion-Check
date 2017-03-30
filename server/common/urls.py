@@ -1,9 +1,15 @@
 from django.conf.urls import url, include
 
 from . import views
+from . import api
 
 urlpatterns = [
     url(r'^$', views.landing, name='landing'),
+
+    url(r'^api/', include([
+        url(r'^validate-serial/$', api.ValidateSerial.as_view(), name='validate_serial'),
+    ])),
+
     url(r'^configuration/$', views.Configuration.as_view(), name='configuration'),
     url(r'^machine-sequences/$', views.machine_sequences, name='machine_sequences'),
     url(r'^machine-sequences/(?P<pk>\d+)/$', views.MachineSequenceDetail.as_view(), name='machine_sequence_detail'),

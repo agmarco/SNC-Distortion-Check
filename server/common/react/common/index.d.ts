@@ -34,3 +34,5 @@ export class MachineSequenceTable extends React.Component<MachineSequenceTablePr
 	componentWillMount(): void;
 	render(): JSX.Element;
 }
+
+export function handleErrors(res: Response, success: () => void): void;

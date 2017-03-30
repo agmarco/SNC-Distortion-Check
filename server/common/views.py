@@ -147,6 +147,7 @@ class MachineSequenceDetail(DetailView):
         }
 
 
+# TODO check the serial number again
 @login_and_permission_required('common.configuration')
 class CreatePhantom(CreateView):
     model = Phantom

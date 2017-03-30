@@ -11,6 +11,8 @@ from .utils import validate_create_view, validate_update_view, validate_delete_v
 from .fixtures import permissions_data, institution_data
 
 
+# TODO check that the other HTTP methods are not allowed
+
 def _get_view_names_from_urlpatterns(url_patterns):
     view_names = []
     for pattern in url_patterns:

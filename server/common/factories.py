@@ -93,7 +93,6 @@ class PhantomFactory(factory.django.DjangoModelFactory):
 
     name = factory.Sequence("Machine {0}".format)
     model = factory.SubFactory(PhantomModelFactory)
-    institution = factory.SubFactory(InstitutionFactory)
     serial_number = factory.Sequence("Serial Number {0}".format)
 
 

@@ -20,7 +20,15 @@ eval("\n\nObject.defineProperty(exports, \"__esModule\", {\n    value: true\n});
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\nexports.MachineSequenceTable = undefined;\n\nvar _MachineSequenceTable = __webpack_require__(\"./node_modules/cirs-common/lib/MachineSequenceTable.js\");\n\nvar _MachineSequenceTable2 = _interopRequireDefault(_MachineSequenceTable);\n\nfunction _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }\n\nexports.MachineSequenceTable = _MachineSequenceTable2.default;\n//# sourceMappingURL=index.js.map\n\n//////////////////\n// WEBPACK FOOTER\n// ./~/cirs-common/lib/index.js\n// module id = ./node_modules/cirs-common/lib/index.js\n// module chunks = 0\n\n//# sourceURL=webpack:///./~/cirs-common/lib/index.js?");
+eval("\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\nexports.handleErrors = exports.MachineSequenceTable = undefined;\n\nvar _MachineSequenceTable = __webpack_require__(\"./node_modules/cirs-common/lib/MachineSequenceTable.js\");\n\nvar _MachineSequenceTable2 = _interopRequireDefault(_MachineSequenceTable);\n\nvar _utils = __webpack_require__(\"./node_modules/cirs-common/lib/utils.js\");\n\nfunction _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }\n\nexports.MachineSequenceTable = _MachineSequenceTable2.default;\nexports.handleErrors = _utils.handleErrors;\n//# sourceMappingURL=index.js.map\n\n//////////////////\n// WEBPACK FOOTER\n// ./~/cirs-common/lib/index.js\n// module id = ./node_modules/cirs-common/lib/index.js\n// module chunks = 0\n\n//# sourceURL=webpack:///./~/cirs-common/lib/index.js?");
+
+/***/ }),
+
+/***/ "./node_modules/cirs-common/lib/utils.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+eval("\n\nObject.defineProperty(exports, \"__esModule\", {\n    value: true\n});\nvar handleErrors = exports.handleErrors = function handleErrors(res, success) {\n    if (res.ok) {\n        success();\n    } else {\n        throw new Error(res.statusText);\n    }\n};\n//# sourceMappingURL=utils.js.map\n\n//////////////////\n// WEBPACK FOOTER\n// ./~/cirs-common/lib/utils.js\n// module id = ./node_modules/cirs-common/lib/utils.js\n// module chunks = 0\n\n//# sourceURL=webpack:///./~/cirs-common/lib/utils.js?");
 
 /***/ }),
 
