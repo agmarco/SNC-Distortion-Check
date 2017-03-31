@@ -14,6 +14,7 @@
     var __MACHINE_SEQUENCE_PAIRS__ = {{ machine_sequence_pairs|safe }};
     var __MACHINES__ = {{ machines|safe }};
     var __SEQUENCES__ = {{ sequences|safe }};
+    var __UPLOAD_SCAN_URL__ = {% url 'upload_scan' %};
   </script>
   <script src="{% webpack 'landing/app.js' %}"></script>
 {% endblock %}

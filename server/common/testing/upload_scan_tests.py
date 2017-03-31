@@ -57,10 +57,10 @@ def test_upload_scan_context(client):
         machine = Machine.objects.get(pk=machine_data['pk'])
         assert machine.institution == current_user.institution
 
-    for machine_data in machines:
-        sequence = Sequence.objects.get(pk=machine_data['pk'])
+    for sequence_data in sequences:
+        sequence = Sequence.objects.get(pk=sequence_data['pk'])
         assert sequence.institution == current_user.institution
 
-    for machine_data in machines:
-        phantom = Phantom.objects.get(pk=machine_data['pk'])
+    for phantom_data in phantoms:
+        phantom = Phantom.objects.get(pk=phantom_data['pk'])
         assert phantom.institution == current_user.institution

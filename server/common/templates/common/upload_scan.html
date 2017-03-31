@@ -12,6 +12,9 @@
     var __MACHINES__ = {{ machines|safe }};
     var __SEQUENCES__ = {{ sequences|safe }};
     var __PHANTOMS__ = {{ phantoms|safe }};
+    var __UPLOAD_SCAN_URL__ = {% url 'upload_scan' %};
+    var __CANCEL_URL__ = {% url 'machine_sequences' %};
+    var __FORM_ERRORS__ = {% if form_errors %}{{ form_errors|safe }}{% else %}null{% endif %};
   </script>
   <script src="{% webpack 'upload-scan/app.js' %}"></script>
 {% endblock %}

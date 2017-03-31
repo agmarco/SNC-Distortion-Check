@@ -88,7 +88,7 @@ export default class extends React.Component<AddPhantomFormProps, AddPhantomForm
                     <div>
                         {this.fieldErrors('name')}
                         <label htmlFor="add-phantom-name">Name</label>
-                        <input type="text" id="add-phantom-name" name="name" maxLength={255} />
+                        <input type="text" id="add-phantom-name" name="name" maxLength={255} required />
                     </div>
 
                     <div>
@@ -100,6 +100,7 @@ export default class extends React.Component<AddPhantomFormProps, AddPhantomForm
                             name="serial_number"
                             maxLength={255}
                             onChange={this.handleSerialChange.bind(this)}
+                            required
                         />
                     </div>
 

@@ -2,7 +2,7 @@ import csv
 import logging
 from datetime import datetime
 
-from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
+from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
@@ -12,11 +12,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework.renderers import JSONRenderer
 
 from process import dicom_import
-from .models import Scan, Phantom, Machine, Sequence, Fiducials, GoldenFiducials, User, DicomSeries, Institution, \
-    MachineSequencePair
+from .models import Scan, Phantom, Machine, Sequence, Fiducials, GoldenFiducials, User, DicomSeries, Institution, MachineSequencePair
 from .tasks import process_scan, process_ct_upload
 from .forms import UploadScanForm, UploadCTForm, UploadRawForm, CreatePhantomForm
-from .serializers import MachineSequencePairSerializer, MachineSerializer, SequenceSerializer
+from .serializers import MachineSequencePairSerializer, MachineSerializer, SequenceSerializer, PhantomSerializer
 from .decorators import validate_institution, login_and_permission_required
 
 logger = logging.getLogger(__name__)
@@ -119,33 +118,34 @@ class MachineSequenceDetail(DetailView):
 
 
 @login_and_permission_required('common.configuration')
-def upload_scan(request):
-    if request.method == 'POST':
-        form_with_data = UploadScanForm(request.POST, request.FILES)
-        if form_with_data.is_valid():
-            scan = Scan(dicom_archive=request.FILES['dicom_archive'])
-            logger.info("Starting to save")
-            scan.processing = True
-            scan.save()
-            logger.info("Done saving")
-            process_scan.delay(scan.pk)
+class UploadScan(FormView):
+    form_class = UploadScanForm
+    template_name = 'common/upload_scan.html'
 
-            message = 'Upload was successful'
-            form = UploadScanForm()
-        else:
-            message = 'Error uploading'
-            form = form_with_data
-    else:
-        message = 'Upload a Scan!'
-        form = UploadScanForm()
+    def get_success_url(self):
+        pass
 
-    scans = Scan.objects.all()
+    def get_context_data(self, **kwargs):
+        machines = MachineSerializer(Machine.objects.filter(institution=self.request.user.institution), many=True)
+        sequences = SequenceSerializer(Sequence.objects.filter(institution=self.request.user.institution), many=True)
+        phantoms = PhantomSerializer(Phantom.objects.filter(institution=self.request.user.institution), many=True)
 
-    return render(request, 'common/upload_scan.html', {
-        'form': form,
-        'message': message,
-        'scans': scans,
-    })
+        renderer = JSONRenderer()
+        return {
+            'machines': renderer.render(machines.data),
+            'sequences': renderer.render(sequences.data),
+            'phantoms': renderer.render(phantoms.data),
+        }
+
+    def form_valid(self, form):
+        scan = Scan(dicom_archive=self.request.FILES['dicom_archive'])
+        logger.info("Starting to save")
+        scan.processing = True
+        scan.save()
+        logger.info("Done saving")
+        process_scan.delay(scan.pk)
+        messages.success(self.request, "Upload was successful.")
+        return super(UploadScan, self).form_valid(form)
 
 
 @login_and_permission_required('common.configuration')

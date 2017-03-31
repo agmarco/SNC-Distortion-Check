@@ -46,7 +46,8 @@ export default ({
     resolve: {
         modules: [
             path.resolve('./src'),
-            path.resolve('./node_modules'),
+            path.resolve('../'),
+            path.resolve('../node_modules'),
         ],
         extensions: ['.webpack.js', '.web.js', '.js', '.jsx', '.ts', '.tsx'],
     },

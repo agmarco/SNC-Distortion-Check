@@ -111,7 +111,7 @@ VIEWS = (
         'methods': {'GET': None},
     },
     {
-        'view': views.upload_scan,
+        'view': views.UploadScan,
         'url': reverse('upload_scan'),
         'login_required': True,
         'permissions': ('common.configuration',),

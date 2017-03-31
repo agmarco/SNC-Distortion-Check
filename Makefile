@@ -38,14 +38,23 @@ tmp/%-distortion.mat: tmp/%-voxels.mat tmp/%-matched-points.mat .PYTHONDEPS
 
 .PHONY: clean cleandev dev freezedeps
 
-dev: .PYTHONDEPS
-	cp .sample.env .env
-	./createdb
-	python server/manage.py generate_dev_data
+clientdev:
 	cd client/landing; yarn; gulp dev:webpack
 	cd client/machine-sequences; yarn; gulp dev:webpack
 	cd client/add-phantom; yarn; gulp dev:webpack
 	cd client/upload-scan; yarn; gulp dev:webpack
+
+client:
+	cd client/landing; yarn; gulp prod
+	cd client/machine-sequences; yarn; gulp prod
+	cd client/add-phantom; yarn; gulp prod
+	cd client/upload-scan; yarn; gulp prod
+
+dev: .PYTHONDEPS
+	cp .sample.env .env
+	./createdb
+	python server/manage.py generate_dev_data
+	make clientdev
 	python server/manage.py collectstatic --noinput
 
 freezedeps:

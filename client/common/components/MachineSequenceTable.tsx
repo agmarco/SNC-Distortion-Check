@@ -7,11 +7,12 @@ interface MachineSequenceTableProps {
     machineSequencePairs: MachineSequencePairDTO[];
     machines: MachineDTO[];
     sequences: SequenceDTO[];
+    upload_scan_url: string;
 }
 
 interface MachineSequenceTableState {
-    currentMachine: string|number;
-    currentSequence: string|number;
+    currentMachinePk: string|number;
+    currentSequencePk: string|number;
 }
 
 export default class extends React.Component<MachineSequenceTableProps, MachineSequenceTableState> {
@@ -19,49 +20,49 @@ export default class extends React.Component<MachineSequenceTableProps, MachineS
         super();
 
         this.state = {
-            currentMachine: 'all',
-            currentSequence: 'all',
+            currentMachinePk: 'all',
+            currentSequencePk: 'all',
         }
     }
 
     filteredMachineSequencePairs() {
         const { machineSequencePairs } = this.props;
-        const { currentMachine, currentSequence } = this.state;
+        const { currentMachinePk, currentSequencePk } = this.state;
         const filters: ((pair: MachineSequencePairDTO) => boolean)[] = [];
 
-        if (currentMachine != 'all') {
-            filters.push((pair) => pair.machine == currentMachine);
+        if (currentMachinePk != 'all') {
+            filters.push((pair) => pair.machine === currentMachinePk);
         }
-        if (currentSequence != 'all') {
-            filters.push((pair) => pair.sequence == currentSequence);
+        if (currentSequencePk != 'all') {
+            filters.push((pair) => pair.sequence === currentSequencePk);
         }
 
         return machineSequencePairs.filter((pair) => filters.every((filter) => filter(pair)));
     }
 
     handleMachineChange(event: React.FormEvent<HTMLInputElement>) {
-        this.setState({currentMachine: (event.target as any).value});
+        this.setState({currentMachinePk: Number((event.target as any).value)});
     }
 
     handleSequenceChange(event: React.FormEvent<HTMLInputElement>) {
-        this.setState({currentSequence: (event.target as any).value});
+        this.setState({currentSequencePk: Number((event.target as any).value)});
     }
 
     render() {
-        const { machines, sequences } = this.props;
-        const { currentMachine, currentSequence } = this.state;
+        const { machines, sequences, upload_scan_url } = this.props;
+        const { currentMachinePk, currentSequencePk } = this.state;
         const filteredMachineSequencePairs = this.filteredMachineSequencePairs();
 
         return (
             <div>
-                <a href="#">Upload New Scan</a>
+                <a href={upload_scan_url}>Upload New Scan</a>
                 <div>
                     Filter By
-                    <select value={currentMachine} onChange={this.handleMachineChange.bind(this)}>
+                    <select value={currentMachinePk} onChange={this.handleMachineChange.bind(this)}>
                         <option value="all">All Machines</option>
                         {machines.map((machine) => <option value={machine.pk} key={machine.pk}>{machine.name}</option>)}
                     </select>
-                    <select value={currentSequence} onChange={this.handleSequenceChange.bind(this)}>
+                    <select value={currentSequencePk} onChange={this.handleSequenceChange.bind(this)}>
                         <option value="all">All Sequences</option>
                         {sequences.map((sequence) => <option value={sequence.pk} key={sequence.pk}>{sequence.name}</option>)}
                     </select>
