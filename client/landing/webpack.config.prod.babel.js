@@ -35,7 +35,7 @@ export default ({
                 test: /\.tsx?$/,
                 use: [
                     {loader: 'babel-loader', options: {
-                        presets: [['es2015', {modules: false}], 'stage-0', 'react'],
+                        presets: [['es2015', {modules: false}], 'react'],
                     }},
                     {loader: 'ts-loader'},
                 ],
@@ -46,7 +46,8 @@ export default ({
     resolve: {
         modules: [
             path.resolve('./src'),
-            path.resolve('./node_modules'),
+            path.resolve('../'),
+            path.resolve('../node_modules'),
         ],
         extensions: ['.webpack.js', '.web.js', '.js', '.jsx', '.ts', '.tsx'],
     },
