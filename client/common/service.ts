@@ -1,4 +1,4 @@
-interface MachineSequencePair {
+export interface MachineSequencePairDTO {
     pk: number;
     machine: number;
     sequence: number;
@@ -7,12 +7,12 @@ interface MachineSequencePair {
     detail_url: string;
 }
 
-interface Machine {
+export interface MachineDTO {
     pk: number;
     name: string;
 }
 
-interface Sequence {
+export interface SequenceDTO {
     pk: number;
     name: string;
 }

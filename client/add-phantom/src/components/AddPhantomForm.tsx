@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as Bluebird from 'bluebird';
 
-import { handleErrors, encode } from 'cirs-common';
+import { handleErrors, encode } from 'common/utils';
 
 interface AddPhantomFormProps {
     create_phantom_url: string;

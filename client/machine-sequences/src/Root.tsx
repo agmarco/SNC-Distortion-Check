@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { AppContainer } from 'react-hot-loader';
 
-import { MachineSequenceTable, MachineSequencePair, Machine, Sequence } from 'cirs-common';
+import { MachineSequenceTable } from 'common/components';
+import { MachineSequencePairDTO, MachineDTO, SequenceDTO } from 'common/service';
 
-declare const __MACHINE_SEQUENCE_PAIRS__: MachineSequencePair[];
-declare const __MACHINES__: Machine[];
-declare const __SEQUENCES__: Sequence[];
+declare const __MACHINE_SEQUENCE_PAIRS__: MachineSequencePairDTO[];
+declare const __MACHINES__: MachineDTO[];
+declare const __SEQUENCES__: SequenceDTO[];
 
 export default () => (
     <AppContainer>

@@ -1,10 +1,12 @@
 import * as React from 'react';
 import { format } from 'date-fns';
 
+import { MachineSequencePairDTO, MachineDTO, SequenceDTO } from '../service';
+
 interface MachineSequenceTableProps {
-    machineSequencePairs: MachineSequencePair[];
-    machines: Machine[];
-    sequences: Sequence[];
+    machineSequencePairs: MachineSequencePairDTO[];
+    machines: MachineDTO[];
+    sequences: SequenceDTO[];
 }
 
 interface MachineSequenceTableState {
@@ -25,7 +27,7 @@ export default class extends React.Component<MachineSequenceTableProps, MachineS
     filteredMachineSequencePairs() {
         const { machineSequencePairs } = this.props;
         const { currentMachine, currentSequence } = this.state;
-        const filters: ((pair: MachineSequencePair) => boolean)[] = [];
+        const filters: ((pair: MachineSequencePairDTO) => boolean)[] = [];
 
         if (currentMachine != 'all') {
             filters.push((pair) => pair.machine == currentMachine);
