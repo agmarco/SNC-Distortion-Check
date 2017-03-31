@@ -46,6 +46,7 @@ dev: .PYTHONDEPS
 	cd client/landing; yarn; gulp dev:webpack
 	cd client/machine-sequences; yarn; gulp dev:webpack
 	cd client/add-phantom; yarn; gulp dev:webpack
+	cd client/upload-scan; yarn; gulp dev:webpack
 	python server/manage.py collectstatic --noinput
 
 freezedeps:

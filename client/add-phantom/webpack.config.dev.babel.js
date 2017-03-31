@@ -27,7 +27,6 @@ export default (options) => {
             new webpack.NoEmitOnErrorsPlugin(),
             new webpack.optimize.CommonsChunkPlugin({name: 'vendor', filename: '[name].js'}),
             new webpack.NamedModulesPlugin(),
-            new webpack.HotModuleReplacementPlugin(),
         ],
 
         module: {
@@ -59,7 +58,8 @@ export default (options) => {
         config.entry.vendor.unshift(
             'webpack-dev-server/client?http://0.0.0.0:8080',
             'webpack/hot/only-dev-server',
-        )
+        );
+        config.plugins.push(new webpack.HotModuleReplacementPlugin());
     }
 
     return config;

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% load common %}
+
+{% block "content" %}
+  <div id="upload-scan-app"></div>
+{% endblock %}
+
+{% block "scripts" %}
+  <script src="{% webpack 'upload-scan/vendor.js' %}"></script>
+  <script>
+    var __MACHINES__ = {{ machines|safe }};
+    var __SEQUENCES__ = {{ sequences|safe }};
+    var __PHANTOMS__ = {{ phantoms|safe }};
+  </script>
+  <script src="{% webpack 'upload-scan/app.js' %}"></script>
+{% endblock %}

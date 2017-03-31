@@ -1,17 +1,19 @@
 import * as React from 'react';
 import { AppContainer } from 'react-hot-loader';
-import { MachineSequenceTable, MachineSequencePair, Machine, Sequence } from 'cirs-common';
+import { Machine, Sequence, Phantom } from 'cirs-common';
 
-declare const __MACHINE_SEQUENCE_PAIRS__: MachineSequencePair[];
+import UploadScanForm from './UploadScanForm';
+
 declare const __MACHINES__: Machine[];
 declare const __SEQUENCES__: Sequence[];
+declare const __PHANTOMS__: Phantom[];
 
 export default () => (
     <AppContainer>
-        <MachineSequenceTable
-            machineSequencePairs={__MACHINE_SEQUENCE_PAIRS__}
+        <UploadScanForm
             machines={__MACHINES__}
             sequences={__SEQUENCES__}
+            phantoms={__PHANTOMS__}
         />
     </AppContainer>
 );

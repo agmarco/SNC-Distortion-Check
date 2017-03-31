@@ -9,7 +9,7 @@ from .. import factories
 
 
 @pytest.mark.django_db
-def test_machine_sequences(client):
+def test_machine_sequences_context(client):
     johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
     utexas = factories.InstitutionFactory.create(name="University of Texas")
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
@@ -49,11 +49,11 @@ def test_machine_sequences(client):
     res = client.get(reverse('landing'))
     machine_sequence_pairs = json.loads(res.context['machine_sequence_pairs'])
     for pair_data in machine_sequence_pairs:
-        pair = MachineSequencePair.objects.get(pk=pair_data['pk'])
-        assert pair.institution == current_user.institution
+        obj = MachineSequencePair.objects.get(pk=pair_data['pk'])
+        assert obj.institution == current_user.institution
 
     res = client.get(reverse('machine_sequences'))
     machine_sequence_pairs = json.loads(res.context['machine_sequence_pairs'])
     for pair_data in machine_sequence_pairs:
-        pair = MachineSequencePair.objects.get(pk=pair_data['pk'])
-        assert pair.institution == current_user.institution
+        obj = MachineSequencePair.objects.get(pk=pair_data['pk'])
+        assert obj.institution == current_user.institution

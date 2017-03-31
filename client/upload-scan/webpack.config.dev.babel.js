@@ -17,8 +17,8 @@ export default (options) => {
         },
 
         output: {
-            path: path.resolve('../dist/landing'),
-            publicPath: 'http://0.0.0.0:8080/landing/',
+            path: path.resolve('../dist/upload-scan'),
+            publicPath: 'http://0.0.0.0:8080/upload-scan/',
         },
 
         devtool: 'eval',

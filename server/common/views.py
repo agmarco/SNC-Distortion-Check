@@ -48,36 +48,6 @@ class CirsDeleteView(DeleteView):
 
 
 @login_and_permission_required('common.configuration')
-def upload_scan(request):
-    if request.method == 'POST':
-        form_with_data = UploadScanForm(request.POST, request.FILES)
-        if form_with_data.is_valid():
-            scan = Scan(dicom_archive=request.FILES['dicom_archive'])
-            logger.info("Starting to save")
-            scan.processing = True
-            scan.save()
-            logger.info("Done saving")
-            process_scan.delay(scan.pk)
-
-            message = 'Upload was successful'
-            form = UploadScanForm()
-        else:
-            message = 'Error uploading'
-            form = form_with_data
-    else:
-        message = 'Upload a Scan!'
-        form = UploadScanForm()
-
-    scans = Scan.objects.all()
-
-    return render(request, 'common/scan_upload.html', {
-        'form': form,
-        'message': message,
-        'scans': scans,
-    })
-
-
-@login_and_permission_required('common.configuration')
 def landing(request):
     machine_sequence_pairs_queryset = MachineSequencePair.objects.filter(machine__institution=request.user.institution)
     machine_sequence_pairs = MachineSequencePairSerializer(machine_sequence_pairs_queryset, many=True)
@@ -146,6 +116,36 @@ class MachineSequenceDetail(DetailView):
         return {
             'machine_sequence_pair': renderer.render(machine_sequence_pair.data),
         }
+
+
+@login_and_permission_required('common.configuration')
+def upload_scan(request):
+    if request.method == 'POST':
+        form_with_data = UploadScanForm(request.POST, request.FILES)
+        if form_with_data.is_valid():
+            scan = Scan(dicom_archive=request.FILES['dicom_archive'])
+            logger.info("Starting to save")
+            scan.processing = True
+            scan.save()
+            logger.info("Done saving")
+            process_scan.delay(scan.pk)
+
+            message = 'Upload was successful'
+            form = UploadScanForm()
+        else:
+            message = 'Error uploading'
+            form = form_with_data
+    else:
+        message = 'Upload a Scan!'
+        form = UploadScanForm()
+
+    scans = Scan.objects.all()
+
+    return render(request, 'common/upload_scan.html', {
+        'form': form,
+        'message': message,
+        'scans': scans,
+    })
 
 
 @login_and_permission_required('common.configuration')

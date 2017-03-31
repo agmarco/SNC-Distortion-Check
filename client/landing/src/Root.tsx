@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { AppContainer } from 'react-hot-loader';
-
 import { MachineSequenceTable, MachineSequencePair, Machine, Sequence } from 'cirs-common';
 
 // it would be better to put this in a globals.d.ts, but we need to import the interfaces from cirs-common, which
