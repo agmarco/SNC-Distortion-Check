@@ -4,18 +4,18 @@ import { AppContainer } from 'react-hot-loader';
 
 import AddPhantomForm from './components/AddPhantomForm';
 
-declare const __CREATE_PHANTOM_URL__: string;
-declare const __VALIDATE_SERIAL_URL__: string;
-declare const __CANCEL_URL__: string;
-declare const __FORM_ERRORS__: {[field: string]: string[]};
+declare const CREATE_PHANTOM_URL: string;
+declare const VALIDATE_SERIAL_URL: string;
+declare const CANCEL_URL: string;
+declare const FORM_ERRORS: {[field: string]: string[]};
 
 export default () => (
     <AppContainer>
         <AddPhantomForm
-            create_phantom_url={__CREATE_PHANTOM_URL__}
-            validate_serial_url={__VALIDATE_SERIAL_URL__}
-            cancel_url={__CANCEL_URL__}
-            form_errors={__FORM_ERRORS__}
+            create_phantom_url={CREATE_PHANTOM_URL}
+            validate_serial_url={VALIDATE_SERIAL_URL}
+            cancel_url={CANCEL_URL}
+            form_errors={FORM_ERRORS}
             csrftoken={Cookies.get('csrftoken')}
         />
     </AppContainer>

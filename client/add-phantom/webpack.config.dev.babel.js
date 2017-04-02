@@ -36,9 +36,11 @@ export default (options) => {
                     test: /\.tsx?$/,
                     use: [
                         {
-                            loader: 'babel-loader', options: {
-                            presets: [['es2015', {modules: false}], 'react'],
-                        }
+                            loader: 'babel-loader',
+                            options: {
+                                presets: [['es2015', {modules: false}], 'react'],
+                                plugins: ['react-hot-loader/babel'],
+                            },
                         },
                         {loader: 'ts-loader'},
                     ],

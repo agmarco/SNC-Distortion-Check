@@ -1,24 +1,27 @@
 import * as React from 'react';
 import { format } from 'date-fns';
-
+import uniqBy from 'lodash/uniqBy';
 import { MachineSequencePairDTO, MachineDTO, SequenceDTO } from '../service';
+import BoolIcon from './BoolIcon';
 
 interface MachineSequenceTableProps {
     machineSequencePairs: MachineSequencePairDTO[];
-    machines: MachineDTO[];
-    sequences: SequenceDTO[];
 }
 
 interface MachineSequenceTableState {
+    machines: MachineDTO[];
+    sequences: SequenceDTO[];
     currentMachine: string|number;
     currentSequence: string|number;
 }
 
 export default class extends React.Component<MachineSequenceTableProps, MachineSequenceTableState> {
-    constructor() {
+    constructor(props: MachineSequenceTableProps) {
         super();
 
         this.state = {
+            machines: uniqBy(props.machineSequencePairs, (pair) => pair.machine.pk).map((pair) => pair.machine),
+            sequences: uniqBy(props.machineSequencePairs, (pair) => pair.sequence.pk).map((pair) => pair.sequence),
             currentMachine: 'all',
             currentSequence: 'all',
         }
@@ -30,10 +33,10 @@ export default class extends React.Component<MachineSequenceTableProps, MachineS
         const filters: ((pair: MachineSequencePairDTO) => boolean)[] = [];
 
         if (currentMachine != 'all') {
-            filters.push((pair) => pair.machine == currentMachine);
+            filters.push((pair) => pair.machine.pk == currentMachine);
         }
         if (currentSequence != 'all') {
-            filters.push((pair) => pair.sequence == currentSequence);
+            filters.push((pair) => pair.sequence.pk == currentSequence);
         }
 
         return machineSequencePairs.filter((pair) => filters.every((filter) => filter(pair)));
@@ -48,8 +51,7 @@ export default class extends React.Component<MachineSequenceTableProps, MachineS
     }
 
     render() {
-        const { machines, sequences } = this.props;
-        const { currentMachine, currentSequence } = this.state;
+        const { machines, sequences, currentMachine, currentSequence } = this.state;
         const filteredMachineSequencePairs = this.filteredMachineSequencePairs();
 
         return (
@@ -79,10 +81,10 @@ export default class extends React.Component<MachineSequenceTableProps, MachineS
                     <tbody>
                         {filteredMachineSequencePairs.map((pair) => (
                             <tr key={pair.pk}>
-                                <td>{machines.find((machine) => machine.pk === pair.machine).name}</td>
-                                <td>{sequences.find((sequence) => sequence.pk === pair.sequence).name}</td>
-                                <td>{pair.latest_scan_date && format(new Date(pair.latest_scan_date), 'D MMM YYYY')}</td>
-                                <td>{pair.latest_scan_within_tolerance !== null && (pair.latest_scan_within_tolerance ? <i className="fa fa-check" aria-hidden="true" /> : <i className="fa fa-times" aria-hidden="true" />)}</td>
+                                <td>{pair.machine.name}</td>
+                                <td>{pair.sequence.name}</td>
+                                <td>{pair.latest_scan_date && format(new Date(pair.latest_scan_date), 'MMMM D, YYYY')}</td>
+                                <td>{pair.latest_scan_within_tolerance !== null && <BoolIcon value={pair.latest_scan_within_tolerance} />}</td>
                                 <td><a href={pair.detail_url}>View Details</a></td>
                             </tr>
                         ))}

@@ -11,9 +11,7 @@
   <script src="{% static 'common/fontawesome.js' %}"></script>
   <script src="{% webpack 'landing/vendor.js' %}"></script>
   <script>
-    var __MACHINE_SEQUENCE_PAIRS__ = {{ machine_sequence_pairs|safe }};
-    var __MACHINES__ = {{ machines|safe }};
-    var __SEQUENCES__ = {{ sequences|safe }};
+    var MACHINE_SEQUENCE_PAIRS = {{ machine_sequence_pairs|safe }};
   </script>
   <script src="{% webpack 'landing/app.js' %}"></script>
 {% endblock %}
