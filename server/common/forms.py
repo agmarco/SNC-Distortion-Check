@@ -9,6 +9,7 @@ from process import dicom_import
 from .models import Phantom
 
 
+# TODO copy fiducials from model
 class CreatePhantomForm(forms.ModelForm):
     class Meta:
         model = Phantom
