@@ -27,7 +27,7 @@
     {% for golden_fiducials in view.golden_fiducials %}
       <tr>
         <td>{% if golden_fiducials.is_active %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>
-        <td>{{ golden_fiducials.created_on|date:"j M Y" }}</td>
+        <td>{{ golden_fiducials.created_on|date }}</td>
         <td>{{ golden_fiducials.type }}</td>
         <td>{% if golden_fiducials.type == 'CT' %}{{ golden_fiducials.dicom_series.filename }}{% endif %}</td>
         <td>{% if golden_fiducials.type == 'CT' %}<a href="{{ golden_fiducials.dicom_series.zipped_dicom_files.url }}">Download Images</a>{% endif %}</td>

@@ -11,10 +11,8 @@
   <script src="{% static 'common/fontawesome.js' %}"></script>
   <script src="{% webpack 'machine-sequences/vendor.js' %}"></script>
   <script>
-    var __MACHINE_SEQUENCE_PAIRS__ = {{ machine_sequence_pairs|safe }};
-    var __MACHINES__ = {{ machines|safe }};
-    var __SEQUENCES__ = {{ sequences|safe }};
-    var __UPLOAD_SCAN_URL__ = {% url 'upload_scan' %};
+    var MACHINE_SEQUENCE_PAIRS = {{ machine_sequence_pairs|safe }};
+    var UPLOAD_SCAN_URL = {% url 'upload_scan' %};
   </script>
   <script src="{% webpack 'machine-sequences/app.js' %}"></script>
 {% endblock %}

@@ -4,7 +4,21 @@ from rest_framework import serializers
 from .models import MachineSequencePair, Machine, Sequence, Phantom
 
 
+class MachineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Machine
+        fields = ('pk', 'name', 'model', 'manufacturer')
+
+
+class SequenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sequence
+        fields = ('pk', 'name', 'instructions')
+
+
 class MachineSequencePairSerializer(serializers.ModelSerializer):
+    machine = MachineSerializer()
+    sequence = SequenceSerializer()
     latest_scan_date = serializers.ReadOnlyField()
     latest_scan_within_tolerance = serializers.ReadOnlyField()
     detail_url = serializers.SerializerMethodField()
@@ -23,19 +37,7 @@ class MachineSequencePairSerializer(serializers.ModelSerializer):
     def get_detail_url(self, obj):
         return reverse('machine_sequence_detail', args=(obj.pk,))
 
-
-class MachineSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Machine
-        fields = ('pk', 'name', 'model', 'manufacturer')
-
-
-class SequenceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Sequence
-        fields = ('pk', 'name', 'instructions')
-
-
+        
 class PhantomSerializer(serializers.ModelSerializer):
     model_number = serializers.SerializerMethodField()
     gold_standard_grid_locations = serializers.SerializerMethodField()
