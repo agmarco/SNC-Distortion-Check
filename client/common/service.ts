@@ -27,3 +27,11 @@ export interface PhantomDTO {
     serial_number: string;
     gold_standard_grid_locations: string;
 }
+
+export interface ScanDTO {
+    pk: number;
+    acquisition_date: string;
+    phantom_summary: string;
+    processing: boolean;
+    errors: string;
+}

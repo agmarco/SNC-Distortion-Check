@@ -15,7 +15,7 @@ from process import dicom_import
 from .models import Scan, Phantom, Machine, Sequence, Fiducials, GoldenFiducials, User, DicomSeries, Institution, MachineSequencePair
 from .tasks import process_scan, process_ct_upload
 from .forms import UploadScanForm, UploadCTForm, UploadRawForm, CreatePhantomForm
-from .serializers import MachineSequencePairSerializer, MachineSerializer, SequenceSerializer, PhantomSerializer
+from .serializers import MachineSequencePairSerializer, MachineSerializer, SequenceSerializer, PhantomSerializer, ScanSerializer
 from .decorators import validate_institution, login_and_permission_required
 
 logger = logging.getLogger(__name__)
@@ -102,13 +102,16 @@ class MachineSequenceDetail(DetailView):
 
     def get_context_data(self, **kwargs):
         machine_sequence_pair = MachineSequencePairSerializer(self.object)
+        scans = ScanSerializer(Scan.objects.filter(machine_sequence_pair=self.object).order_by('-last_modified_on'), many=True)
 
         renderer = JSONRenderer()
         return {
             'machine_sequence_pair': renderer.render(machine_sequence_pair.data),
+            'scans': renderer.render(scans.data)
         }
 
 
+# TODO handle prepoulated machine and sequence
 @login_and_permission_required('common.configuration')
 class UploadScan(FormView):
     form_class = UploadScanForm

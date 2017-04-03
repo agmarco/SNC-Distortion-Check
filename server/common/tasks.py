@@ -20,7 +20,7 @@ def process_scan(scan_pk):
     try:
         with transaction.atomic():
             points_in_patient_xyz = FeatureDetector(
-                scan.golden_fiducials.phantom.model.model_number,
+                scan.phantom.model.model_number,
                 'mri',
                 scan.dicom_series.voxels,
                 scan.dicom_series.ijk_to_xyz

@@ -1,19 +1,21 @@
 import * as React from 'react';
-import { AppContainer } from 'react-hot-loader';
 
-import { MachineSequencePairDTO } from 'common/service';
+import { MachineSequencePairDTO, ScanDTO } from 'common/service';
 import ScanTable from './components/ScanTable';
 
 declare const MACHINE_SEQUENCE_PAIR: MachineSequencePairDTO;
+declare const SCANS: ScanDTO[];
+declare const UPLOAD_SCAN_URL: string;
 
 // TODO all tables should have the action links split into multiple columns
 // TODO golden fiducials processing row
-// TODO where should AppContainer go?
 
 export default () => (
-    <AppContainer>
+    <div>
+        <h1>{MACHINE_SEQUENCE_PAIR.machine.name} &mdash; {MACHINE_SEQUENCE_PAIR.sequence.name} Distortion</h1>
         <ScanTable
-            machineSequencePair={MACHINE_SEQUENCE_PAIR}
+            scans={SCANS}
+            upload_scan_url={UPLOAD_SCAN_URL}
         />
-    </AppContainer>
+    </div>
 );

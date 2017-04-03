@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { format } from 'date-fns';
 import uniqBy from 'lodash/uniqBy';
+
 import { MachineSequencePairDTO, MachineDTO, SequenceDTO } from '../service';
 import BoolIcon from './BoolIcon';
 

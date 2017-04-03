@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import serializers
 
-from .models import MachineSequencePair, Machine, Sequence, Phantom
+from .models import MachineSequencePair, Machine, Sequence, Phantom, Scan
 
 
 class MachineSerializer(serializers.ModelSerializer):
@@ -51,3 +51,18 @@ class PhantomSerializer(serializers.ModelSerializer):
 
     def get_gold_standard_grid_locations(self, obj):
         return obj.active_gold_standard.source_summary
+
+
+class ScanSerializer(serializers.ModelSerializer):
+    acquisition_date = serializers.SerializerMethodField()
+    phantom_summary = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Scan
+        fields = ('pk', 'acquisition_date', 'phantom_summary', 'processing', 'errors')
+
+    def get_acquisition_date(self, obj):
+        return obj.dicom_series.acquisition_date
+
+    def get_phantom_summary(self, obj):
+        return f"{obj.phantom.model.model_number} — {obj.phantom.serial_number}"

@@ -237,6 +237,10 @@ class Scan(CommonFieldsMixin):
     def __str__(self):
         return f"Scan {self.pk}"
 
+    @property
+    def phantom(self):
+        return self.golden_fiducials.phantom
+
 
 # This table creates permissions that are not associated with a model.
 class Global(models.Model):

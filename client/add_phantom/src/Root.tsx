@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as Cookies from 'js-cookie';
-import { AppContainer } from 'react-hot-loader';
 
 import AddPhantomForm from './components/AddPhantomForm';
 
@@ -10,13 +9,11 @@ declare const CANCEL_URL: string;
 declare const FORM_ERRORS: {[field: string]: string[]};
 
 export default () => (
-    <AppContainer>
-        <AddPhantomForm
-            create_phantom_url={CREATE_PHANTOM_URL}
-            validate_serial_url={VALIDATE_SERIAL_URL}
-            cancel_url={CANCEL_URL}
-            form_errors={FORM_ERRORS}
-            csrftoken={Cookies.get('csrftoken')}
-        />
-    </AppContainer>
+    <AddPhantomForm
+        create_phantom_url={CREATE_PHANTOM_URL}
+        validate_serial_url={VALIDATE_SERIAL_URL}
+        cancel_url={CANCEL_URL}
+        form_errors={FORM_ERRORS}
+        csrftoken={Cookies.get('csrftoken')}
+    />
 );
