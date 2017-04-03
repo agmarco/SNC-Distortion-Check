@@ -16,7 +16,7 @@ export default ({
     },
 
     output: {
-        path: path.resolve('../dist/upload-scan'),
+        path: path.resolve('../dist/machine_sequences'),
     },
 
     devtool: 'source-map',
@@ -34,9 +34,13 @@ export default ({
             {
                 test: /\.tsx?$/,
                 use: [
-                    {loader: 'babel-loader', options: {
-                        presets: [['es2015', {modules: false}], 'stage-0', 'react'],
-                    }},
+                    {
+                        loader: 'babel-loader',
+                        options: {
+                            presets: [['es2015', {modules: false}], 'react'],
+                            plugins: ['react-hot-loader/babel'],
+                        },
+                    },
                     {loader: 'ts-loader'},
                 ],
             },

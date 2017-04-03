@@ -40,15 +40,16 @@ tmp/%-distortion.mat: tmp/%-voxels.mat tmp/%-matched-points.mat .PYTHONDEPS
 
 clientdev:
 	cd client/landing; yarn; gulp dev:webpack
-	cd client/machine-sequences; yarn; gulp dev:webpack
-	cd client/add-phantom; yarn; gulp dev:webpack
-	cd client/upload-scan; yarn; gulp dev:webpack
+	cd client/machine_sequences; yarn; gulp dev:webpack
+	cd client/machine_sequence_detail; yarn; gulp dev:webpack
+	cd client/add_phantom; yarn; gulp dev:webpack
+	cd client/upload_scan; yarn; gulp dev:webpack
 
 client:
 	cd client/landing; yarn; gulp prod
-	cd client/machine-sequences; yarn; gulp prod
-	cd client/add-phantom; yarn; gulp prod
-	cd client/upload-scan; yarn; gulp prod
+	cd client/machine_sequences; yarn; gulp prod
+	cd client/add_phantom; yarn; gulp prod
+	cd client/upload_scan; yarn; gulp prod
 
 dev: .PYTHONDEPS
 	cp .sample.env .env

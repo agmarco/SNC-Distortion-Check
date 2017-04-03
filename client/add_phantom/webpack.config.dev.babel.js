@@ -17,8 +17,8 @@ export default (options) => {
         },
 
         output: {
-            path: path.resolve('../dist/add-phantom'),
-            publicPath: 'http://0.0.0.0:8080/add-phantom/',
+            path: path.resolve('../dist/add_phantom'),
+            publicPath: 'http://0.0.0.0:8080/add_phantom/',
         },
 
         devtool: 'eval',

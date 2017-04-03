@@ -17,8 +17,8 @@ export default (options) => {
         },
 
         output: {
-            path: path.resolve('../dist/machine-sequences'),
-            publicPath: 'http://0.0.0.0:8080/machine-sequences/',
+            path: path.resolve('../dist/machine_sequence_detail'),
+            publicPath: 'http://0.0.0.0:8080/machine_sequence_detail/',
         },
 
         devtool: 'eval',

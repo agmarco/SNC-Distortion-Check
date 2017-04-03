@@ -5,6 +5,7 @@ export default ({
     entry: {
         'app': [
             'babel-polyfill',
+            'isomorphic-fetch',
             path.resolve('./src/app.tsx'),
         ],
         'vendor': [
@@ -16,7 +17,7 @@ export default ({
     },
 
     output: {
-        path: path.resolve('../dist/machine-sequences'),
+        path: path.resolve('../dist/add_phantom'),
     },
 
     devtool: 'source-map',

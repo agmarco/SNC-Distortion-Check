@@ -111,7 +111,7 @@ class MachineSequencePairFactory(factory.django.DjangoModelFactory):
 
     machine = factory.SubFactory(MachineFactory)
     sequence = factory.SubFactory(SequenceFactory)
-    tolerance = 3.5
+    tolerance = 3
 
 
 class DicomSeriesFactory(factory.django.DjangoModelFactory):

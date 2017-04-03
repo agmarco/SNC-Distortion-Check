@@ -2,7 +2,7 @@ import csv
 import logging
 from datetime import datetime
 
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
@@ -114,9 +114,6 @@ class UploadScan(FormView):
     form_class = UploadScanForm
     template_name = 'common/upload_scan.html'
 
-    def get_success_url(self):
-        pass
-
     def get_context_data(self, **kwargs):
         machines = MachineSerializer(Machine.objects.filter(institution=self.request.user.institution), many=True)
         sequences = SequenceSerializer(Sequence.objects.filter(institution=self.request.user.institution), many=True)
@@ -130,14 +127,43 @@ class UploadScan(FormView):
         }
 
     def form_valid(self, form):
-        scan = Scan(dicom_archive=self.request.FILES['dicom_archive'])
-        logger.info("Starting to save")
-        scan.processing = True
-        scan.save()
-        logger.info("Done saving")
+        machine = Machine.objects.get(pk=form.cleaned_data['machine'])
+        sequence = Sequence.objects.get(pk=form.cleaned_data['sequence'])
+        phantom = Phantom.objects.get(pk=form.cleaned_data['phantom'])
+
+        try:
+            machine_sequence_pair = MachineSequencePair.objects.get(machine=machine, sequence=sequence)
+        except ObjectDoesNotExist:
+            machine_sequence_pair = MachineSequencePair.objects.create(machine=machine, sequence=sequence, tolerance=3)
+
+        voxels, ijk_to_xyz = dicom_import.combine_slices(form.cleaned_data['datasets'])
+        dicom_series = DicomSeries.objects.create(
+            zipped_dicom_files=self.request.FILES['dicom_archive'],
+            voxels=voxels,
+            ijk_to_xyz=ijk_to_xyz,
+            shape=voxels.shape,
+            series_uid=form.cleaned_data['datasets'][0].SeriesInstanceUID,
+            acquisition_date=datetime.strptime(form.cleaned_data['datasets'][0].AcquisitionDate, '%Y%m%d'),
+        )
+
+        scan = Scan.objects.create(
+            creator=self.request.user,
+            machine_sequence_pair=machine_sequence_pair,
+            dicom_series=dicom_series,
+            golden_fiducials=phantom.active_gold_standard,
+            notes=form.cleaned_data['notes'],
+            processing=True,
+        )
+
         process_scan.delay(scan.pk)
-        messages.success(self.request, "Upload was successful.")
-        return super(UploadScan, self).form_valid(form)
+        messages.success(self.request, "Your scan has been uploaded successfully and is processing.")
+        return redirect('machine_sequence_detail', machine_sequence_pair.pk)
+
+    def form_invalid(self, form):
+        renderer = JSONRenderer()
+        context = self.get_context_data(form=form)
+        context.update({'form_errors': renderer.render(form.errors)})
+        return self.render_to_response(context)
 
 
 @login_and_permission_required('common.configuration')
@@ -311,7 +337,6 @@ class UploadCT(FormView):
 
     def form_valid(self, form):
         voxels, ijk_to_xyz = dicom_import.combine_slices(form.cleaned_data['datasets'])
-
         dicom_series = DicomSeries.objects.create(
             zipped_dicom_files=self.request.FILES['dicom_archive'],
             voxels=voxels,
@@ -329,7 +354,7 @@ class UploadCT(FormView):
         )
 
         process_ct_upload.delay(dicom_series.pk, gold_standard.pk)
-        messages.success(self.request, "Your gold standard CT has been uploaded successfully.")
+        messages.success(self.request, "Your gold standard CT has been uploaded successfully and is processing.")
         return super(UploadCT, self).form_valid(form)
 
     def get_context_data(self, **kwargs):

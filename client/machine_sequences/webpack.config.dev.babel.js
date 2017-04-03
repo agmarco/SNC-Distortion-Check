@@ -17,8 +17,8 @@ export default (options) => {
         },
 
         output: {
-            path: path.resolve('../dist/upload-scan'),
-            publicPath: 'http://0.0.0.0:8080/upload-scan/',
+            path: path.resolve('../dist/machine_sequences'),
+            publicPath: 'http://0.0.0.0:8080/machine_sequences/',
         },
 
         devtool: 'eval',
@@ -35,9 +35,11 @@ export default (options) => {
                     test: /\.tsx?$/,
                     use: [
                         {
-                            loader: 'babel-loader', options: {
-                            presets: [['es2015', {modules: false}], 'react'],
-                        }
+                            loader: 'babel-loader',
+                            options: {
+                                presets: [['es2015', {modules: false}], 'react'],
+                                plugins: ['react-hot-loader/babel'],
+                            },
                         },
                         {loader: 'ts-loader'},
                     ],

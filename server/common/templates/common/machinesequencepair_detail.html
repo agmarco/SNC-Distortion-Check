@@ -7,9 +7,9 @@
 {% endblock %}
 
 {% block "scripts" %}
-  <script src="{% webpack 'common/machine_sequence_detail/vendor.js' %}"></script>
+  <script src="{% webpack 'machine_sequence_detail/vendor.js' %}"></script>
   <script>
-    var __MACHINE_SEQUENCE_PAIR__ = {{ machine_sequence_pair|safe }};
+    var MACHINE_SEQUENCE_PAIR = {{ machine_sequence_pair|safe }};
   </script>
-  <script src="{% webpack 'common/machine_sequence_detail/app.js' %}"></script>
+  <script src="{% webpack 'machine_sequence_detail/app.js' %}"></script>
 {% endblock %}

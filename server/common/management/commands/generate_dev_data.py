@@ -156,27 +156,27 @@ class Command(BaseCommand):
         machine_sequence_pair_a = factories.MachineSequencePairFactory(
             machine=machine_a,
             sequence=sequence_a,
-            tolerance=1.75,
+            tolerance=3,
         )
         machine_sequence_pair_b = factories.MachineSequencePairFactory(
             machine=machine_a,
             sequence=sequence_b,
-            tolerance=1.75,
+            tolerance=3,
         )
         machine_sequence_pair_c = factories.MachineSequencePairFactory(
             machine=machine_b,
             sequence=sequence_a,
-            tolerance=1.75,
+            tolerance=3,
         )
         machine_sequence_pair_d = factories.MachineSequencePairFactory(
             machine=machine_c,
             sequence=sequence_a,
-            tolerance=1.75,
+            tolerance=3,
         )
         machine_sequence_pair_e = factories.MachineSequencePairFactory(
             machine=machine_c,
             sequence=sequence_c,
-            tolerance=1.75,
+            tolerance=3,
         )
 
         dicom_series_ct = _create_dicom_series('data/dicom/001_ct_603A_E3148_ST1.25.zip')
@@ -197,10 +197,10 @@ class Command(BaseCommand):
         scan_a = factories.ScanFactory(
             machine_sequence_pair=machine_sequence_pair_a,
             dicom_series=dicom_series_mri_a,
-            tolerance=1.65
+            tolerance=2
         )
         scan_b = factories.ScanFactory(
             machine_sequence_pair=machine_sequence_pair_b,
             dicom_series=dicom_series_mri_b,
-            tolerance=1.85
+            tolerance=4
         )

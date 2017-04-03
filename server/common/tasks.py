@@ -14,21 +14,19 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task
-def process_scan(scan_id):
-    scan = Scan.objects.get(pk=scan_id)
+def process_scan(scan_pk):
+    scan = Scan.objects.get(pk=scan_pk)
 
     try:
         with transaction.atomic():
-            scan.errors = None
-            phantom_name = '603A'
-            modality = 'mri'
+            points_in_patient_xyz = FeatureDetector(
+                scan.golden_fiducials.phantom.model.model_number,
+                'mri',
+                scan.dicom_series.voxels,
+                scan.dicom_series.ijk_to_xyz
+            ).run()
 
-            with zipfile.ZipFile(scan.dicom_archive, 'r') as zip_file:
-                datasets = dicom_datasets_from_zip(zip_file)
-            voxels, ijk_to_xyz = combine_slices(datasets)
-
-            points_in_patient_xyz = FeatureDetector(phantom_name, modality, voxels, ijk_to_xyz).run()
-            scan.result = "Success, found {} points".format(points_in_patient_xyz.shape[1])
+            scan.result = f"Success, found {points_in_patient_xyz.shape[1]} points"
             scan.processing = False
             scan.save()
     except Exception as e:
@@ -39,11 +37,11 @@ def process_scan(scan_id):
 
 
 @shared_task
-def process_ct_upload(dicom_series_id, gold_standard_id):
+def process_ct_upload(dicom_series_pk, gold_standard_pk):
     try:
         with transaction.atomic():
-            dicom_series = DicomSeries.objects.get(pk=dicom_series_id)
-            gold_standard = GoldenFiducials.objects.get(pk=gold_standard_id)
+            dicom_series = DicomSeries.objects.get(pk=dicom_series_pk)
+            gold_standard = GoldenFiducials.objects.get(pk=gold_standard_pk)
 
             points_in_patient_xyz = FeatureDetector(
                 gold_standard.phantom.model.model_number,

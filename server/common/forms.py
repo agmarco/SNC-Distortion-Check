@@ -9,7 +9,6 @@ from process import dicom_import
 from .models import Phantom
 
 
-# TODO copy fiducials from model
 class CreatePhantomForm(forms.ModelForm):
     class Meta:
         model = Phantom
@@ -26,19 +25,11 @@ class CreatePhantomForm(forms.ModelForm):
 
 
 class UploadScanForm(forms.Form):
-    dicom_archive = forms.FileField()
-
-    def clean_dicom_archive(self):
-        try:
-            dicom_import.combined_series_from_zip(self.cleaned_data['dicom_archive'])
-        except dicom_import.DicomImportException as e:
-            raise forms.ValidationError(e.args[0])
-
-        return self.cleaned_data['dicom_archive']
-
-
-class UploadCTForm(forms.Form):
-    dicom_archive = forms.FileField(label="File browser")
+    machine = forms.IntegerField()
+    sequence = forms.IntegerField()
+    phantom = forms.IntegerField()
+    dicom_archive = forms.FileField(label="MRI Scan Files")
+    notes = forms.CharField()
 
     def clean_dicom_archive(self):
         try:
@@ -49,15 +40,38 @@ class UploadCTForm(forms.Form):
         with zipfile.ZipFile(self.cleaned_data['dicom_archive'], 'r') as zip_file:
             datasets = dicom_import.dicom_datasets_from_zip(zip_file)
 
-        if datasets[0].Modality != 'CT':
-            raise forms.ValidationError("The DICOM archive must be of modality 'CT.'")
+        if datasets[0].Modality.upper() != 'MRI':
+            # some of the MRI archives do not have a modality of "MRI"
+            #raise forms.ValidationError("The DICOM archive must be of modality 'MRI.'")
+            pass
+
+        self.cleaned_data['datasets'] = datasets
+        return self.cleaned_data['dicom_archive']
+
+
+class UploadCTForm(forms.Form):
+    dicom_archive = forms.FileField(label="File Browser")
+
+    def clean_dicom_archive(self):
+        try:
+            dicom_import.combined_series_from_zip(self.cleaned_data['dicom_archive'])
+        except dicom_import.DicomImportException as e:
+            raise forms.ValidationError(e.args[0])
+
+        with zipfile.ZipFile(self.cleaned_data['dicom_archive'], 'r') as zip_file:
+            datasets = dicom_import.dicom_datasets_from_zip(zip_file)
+
+        if datasets[0].Modality.upper() != 'CT':
+            # some of the CT archives do not have a modality of "CT"
+            #raise forms.ValidationError("The DICOM archive must be of modality 'CT.'")
+            pass
 
         self.cleaned_data['datasets'] = datasets
         return self.cleaned_data['dicom_archive']
 
 
 class UploadRawForm(forms.Form):
-    csv = forms.FileField(label="File browser")
+    csv = forms.FileField(label="File Browser")
 
     @staticmethod
     def _has_duplicates(ndarray):

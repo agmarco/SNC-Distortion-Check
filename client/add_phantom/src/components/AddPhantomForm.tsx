@@ -70,7 +70,7 @@ export default class extends React.Component<AddPhantomFormProps, AddPhantomForm
 
         return form_errors && form_errors[field] && (
             <ul>
-                {form_errors[field].map((error) => <li>{error}</li>)}
+                {form_errors[field].map((error, i) => <li key={i}>{error}</li>)}
             </ul>
         );
     }

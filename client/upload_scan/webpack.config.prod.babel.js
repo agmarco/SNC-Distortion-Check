@@ -5,7 +5,6 @@ export default ({
     entry: {
         'app': [
             'babel-polyfill',
-            'isomorphic-fetch',
             path.resolve('./src/app.tsx'),
         ],
         'vendor': [
@@ -17,7 +16,7 @@ export default ({
     },
 
     output: {
-        path: path.resolve('../dist/add-phantom'),
+        path: path.resolve('../dist/upload_scan'),
     },
 
     devtool: 'source-map',
@@ -35,13 +34,9 @@ export default ({
             {
                 test: /\.tsx?$/,
                 use: [
-                    {
-                        loader: 'babel-loader',
-                        options: {
-                            presets: [['es2015', {modules: false}], 'react'],
-                            plugins: ['react-hot-loader/babel'],
-                        },
-                    },
+                    {loader: 'babel-loader', options: {
+                        presets: [['es2015', {modules: false}], 'stage-0', 'react'],
+                    }},
                     {loader: 'ts-loader'},
                 ],
             },

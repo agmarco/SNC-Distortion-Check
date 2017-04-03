@@ -140,7 +140,7 @@ class MachineSequencePair(CommonFieldsMixin):
 
     @property
     def latest_scan_within_tolerance(self):
-        return self.latest_scan.tolerance < self.tolerance if self.latest_scan else None
+        return self.latest_scan.tolerance < self.tolerance if self.latest_scan and self.latest_scan.tolerance else None
 
     @property
     def institution(self):
@@ -224,17 +224,18 @@ class Scan(CommonFieldsMixin):
     creator = models.ForeignKey(User, models.SET_NULL, null=True)
     machine_sequence_pair = models.ForeignKey(MachineSequencePair, models.CASCADE)
     dicom_series = models.ForeignKey(DicomSeries, models.CASCADE)
-    detected_fiducials = models.ForeignKey(Fiducials, models.CASCADE)
+    detected_fiducials = models.ForeignKey(Fiducials, models.CASCADE, null=True)
     golden_fiducials = models.ForeignKey(GoldenFiducials, models.CASCADE)
+    notes = models.TextField(blank=True)
 
     # TODO: figure out how to store results
     result = models.TextField(null=True)
     processing = models.BooleanField(default=False)
     errors = models.TextField(null=True)
-    tolerance = models.FloatField()
+    tolerance = models.FloatField(null=True)
 
     def __str__(self):
-        return "Scan {}".format(self.id)
+        return f"Scan {self.pk}"
 
 
 # This table creates permissions that are not associated with a model.
