@@ -59,5 +59,5 @@ def test_gold_standards(client):
     # the CAD gold standard should not be deletable even when inactive:
     assert client.post(reverse('delete_gold_standard', args=(phantom.pk, cad_gold_standard.pk))).status_code == 403
 
-    # others gold standards should not be deletable when active:
+    # other gold standards should not be deletable when active:
     assert client.post(reverse('delete_gold_standard', args=(phantom.pk, raw_gold_standard.pk))).status_code == 403
