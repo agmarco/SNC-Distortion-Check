@@ -35,4 +35,5 @@ export interface ScanDTO {
     acquisition_date: string;
     passed: boolean;
     errors_url: string;
+    delete_url: string;
 }

@@ -174,11 +174,13 @@ class Command(BaseCommand):
         dicom_series_mri_b = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/007_mri_603A_UVA_Sagittal_XUCWOCNR.zip')
 
         scan_a = factories.ScanFactory(
+            creator=manager,
             machine_sequence_pair=machine_sequence_pair_a,
             dicom_series=dicom_series_mri_a,
             tolerance=2
         )
         scan_b = factories.ScanFactory(
+            creator=manager,
             machine_sequence_pair=machine_sequence_pair_b,
             dicom_series=dicom_series_mri_b,
             tolerance=4

@@ -29,7 +29,7 @@ class UploadScanForm(forms.Form):
     sequence = forms.IntegerField()
     phantom = forms.IntegerField()
     dicom_archive = forms.FileField(label="MRI Scan Files")
-    notes = forms.CharField()
+    notes = forms.CharField(required=False)
 
     def clean_dicom_archive(self):
         try:

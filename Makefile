@@ -44,19 +44,20 @@ clientdev:
 	cd client/machine_sequence_detail; yarn; gulp dev:webpack
 	cd client/add_phantom; yarn; gulp dev:webpack
 	cd client/upload_scan; yarn; gulp dev:webpack
+	python server/manage.py collectstatic --noinput
 
 client:
 	cd client/landing; yarn; gulp prod
 	cd client/machine_sequences; yarn; gulp prod
 	cd client/add_phantom; yarn; gulp prod
 	cd client/upload_scan; yarn; gulp prod
+	python server/manage.py collectstatic --noinput
 
 dev: .PYTHONDEPS
 	cp .sample.env .env
 	./createdb
 	python server/manage.py generate_dev_data
 	make clientdev
-	python server/manage.py collectstatic --noinput
 
 freezedeps:
 	pip-compile requirements.in > requirements.txt

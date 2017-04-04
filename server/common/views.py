@@ -48,7 +48,7 @@ class CirsDeleteView(DeleteView):
 
 @login_and_permission_required('common.configuration')
 def landing(request):
-    machine_sequence_pairs_queryset = MachineSequencePair.objects.filter(machine__institution=request.user.institution)
+    machine_sequence_pairs_queryset = MachineSequencePair.objects.filter(machine__institution=request.user.institution).active().order_by('-last_modified_on')
     machine_sequence_pairs = MachineSequencePairSerializer(machine_sequence_pairs_queryset, many=True)
 
     renderer = JSONRenderer()
@@ -86,7 +86,7 @@ class Configuration(UpdateView):
 
 @login_and_permission_required('common.configuration')
 def machine_sequences(request):
-    machine_sequence_pairs_queryset = MachineSequencePair.objects.filter(machine__institution=request.user.institution)
+    machine_sequence_pairs_queryset = MachineSequencePair.objects.filter(machine__institution=request.user.institution).active().order_by('-last_modified_on')
     machine_sequence_pairs = MachineSequencePairSerializer(machine_sequence_pairs_queryset, many=True)
 
     renderer = JSONRenderer()
@@ -102,7 +102,7 @@ class MachineSequenceDetail(DetailView):
 
     def get_context_data(self, **kwargs):
         machine_sequence_pair = MachineSequencePairSerializer(self.object)
-        scans = ScanSerializer(Scan.objects.filter(machine_sequence_pair=self.object).order_by('-last_modified_on'), many=True)
+        scans = ScanSerializer(Scan.objects.filter(machine_sequence_pair=self.object).active().order_by('-last_modified_on'), many=True)
 
         renderer = JSONRenderer()
         return {
@@ -171,9 +171,23 @@ class UploadScan(FormView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class UploadScanErrors(DetailView):
+class ScanErrors(DetailView):
     model = Scan
-    template_name = 'common/upload_scan_errors.html'
+    template_name = 'common/scan_errors.html'
+
+
+@login_and_permission_required('common.configuration')
+@validate_institution()
+class DeleteScan(CirsDeleteView):
+    model = Scan
+
+    def delete(self, request, *args, **kwargs):
+        response = super(DeleteScan, self).delete(request, *args, **kwargs)
+        messages.success(self.request, f"Scan for phantom \"{self.object.golden_fiducials.phantom.model.model_number} — {self.object.golden_fiducials.phantom.serial_number}\", captured on {self.object.dicom_series.acquisition_date}, has been deleted successfully.")
+        return response
+
+    def get_success_url(self):
+        return reverse('machine_sequence_detail', args=(self.object.machine_sequence_pair.pk,))
 
 
 @login_and_permission_required('common.configuration')

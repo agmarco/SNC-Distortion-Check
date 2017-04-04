@@ -43,6 +43,12 @@ def test_machine_sequences_context(client):
         sequence=sequence_b,
         tolerance=1.75,
     )
+    factories.MachineSequencePairFactory(
+        machine=machine_a,
+        sequence=sequence_a,
+        tolerance=1.75,
+        deleted=True,
+    )
 
     client.force_login(current_user)
 
@@ -51,12 +57,14 @@ def test_machine_sequences_context(client):
     for pair_data in machine_sequence_pairs:
         pair = MachineSequencePair.objects.get(pk=pair_data['pk'])
         assert pair.institution == current_user.institution
+        assert not pair.deleted
 
     res = client.get(reverse('machine_sequences'))
     machine_sequence_pairs = json.loads(res.context['machine_sequence_pairs'])
     for pair_data in machine_sequence_pairs:
         pair = MachineSequencePair.objects.get(pk=pair_data['pk'])
         assert pair.institution == current_user.institution
+        assert not pair.deleted
 
 
 @pytest.mark.django_db
@@ -87,6 +95,13 @@ def test_machine_sequence_detail_context(client):
         dicom_series=dicom_series,
         tolerance=2,
     )
+    factories.ScanFactory(
+        creator=current_user,
+        machine_sequence_pair=machine_sequence_pair_a,
+        dicom_series=dicom_series,
+        tolerance=2,
+        deleted=True
+    )
 
     client.force_login(current_user)
 
@@ -95,3 +110,4 @@ def test_machine_sequence_detail_context(client):
     for scan_data in scans:
         scan = Scan.objects.get(pk=scan_data['pk'])
         assert scan.machine_sequence_pair == machine_sequence_pair_a
+        assert not scan.deleted

@@ -28,6 +28,7 @@ export default class extends React.Component<UploadScanFormProps, UploadScanForm
             currentPhantomPk: '',
         };
     }
+
     fieldErrors(field: string) {
         const { form_errors } = this.props;
 
@@ -142,6 +143,8 @@ export default class extends React.Component<UploadScanFormProps, UploadScanForm
                     </div>
 
                     <div>
+                        {this.fieldErrors('notes')}
+
                         <label htmlFor="upload-scan-notes">Notes</label>
                         <textarea cols={40} rows={10} id="upload-scan-notes" name="notes" />
                     </div>

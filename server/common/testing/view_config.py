@@ -77,7 +77,27 @@ def gold_standard_csv_data(user):
     }
 
 
-def upload_scan_errors_data(user):
+def scan_errors_data(user):
+    machine = factories.MachineFactory(institution=user.institution)
+    sequence = factories.SequenceFactory(institution=user.institution)
+    machine_sequence_pair = factories.MachineSequencePairFactory(machine=machine, sequence=sequence)
+    dicom_series = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
+    scan = factories.ScanFactory(
+        creator=user,
+        machine_sequence_pair=machine_sequence_pair,
+        dicom_series=dicom_series,
+        tolerance=2,
+    )
+    return {
+        'machine': machine,
+        'sequence': sequence,
+        'machine_sequence_pair': machine_sequence_pair,
+        'dicom_series': dicom_series,
+        'scan': scan,
+    }
+
+
+def delete_scan_data(user):
     machine = factories.MachineFactory(institution=user.institution)
     sequence = factories.SequenceFactory(institution=user.institution)
     machine_sequence_pair = factories.MachineSequencePairFactory(machine=machine, sequence=sequence)
@@ -139,9 +159,18 @@ VIEWS = (
         'methods': {'GET': None, 'POST': None},
     },
     {
-        'view': views.UploadScanErrors,
-        'data': upload_scan_errors_data,
-        'url': lambda data: reverse('upload_scan_errors', args=(data['scan'].pk,)),
+        'view': views.DeleteScan,
+        'data': delete_scan_data,
+        'url': lambda data: reverse('delete_scan', args=(data['scan'].pk,)),
+        'login_required': True,
+        'permissions': ('common.configuration',),
+        'validate_institution': True,
+        'methods': {'GET': None, 'POST': None},
+    },
+    {
+        'view': views.ScanErrors,
+        'data': scan_errors_data,
+        'url': lambda data: reverse('scan_errors', args=(data['scan'].pk,)),
         'login_required': True,
         'permissions': ('common.configuration',),
         'validate_institution': True,
