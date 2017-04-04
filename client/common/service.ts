@@ -30,8 +30,9 @@ export interface PhantomDTO {
 
 export interface ScanDTO {
     pk: number;
-    acquisition_date: string;
     phantom: PhantomDTO;
     processing: boolean;
-    errors: string;
+    acquisition_date: string;
+    passed: boolean;
+    errors_url: string;
 }

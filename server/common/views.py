@@ -170,6 +170,13 @@ class UploadScan(FormView):
 
 
 @login_and_permission_required('common.configuration')
+@validate_institution()
+class UploadScanErrors(DetailView):
+    model = Scan
+    template_name = 'common/upload_scan_errors.html'
+
+
+@login_and_permission_required('common.configuration')
 class CreatePhantom(FormView):
     form_class = CreatePhantomForm
     success_url = reverse_lazy('configuration')

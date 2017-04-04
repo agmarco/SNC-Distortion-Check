@@ -54,12 +54,20 @@ class PhantomSerializer(serializers.ModelSerializer):
 
 
 class ScanSerializer(serializers.ModelSerializer):
-    acquisition_date = serializers.SerializerMethodField()
     phantom = PhantomSerializer()
+    acquisition_date = serializers.SerializerMethodField()
+    passed = serializers.SerializerMethodField()
+    errors_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Scan
-        fields = ('pk', 'acquisition_date', 'phantom', 'processing', 'errors')
+        fields = ('pk', 'phantom', 'processing', 'acquisition_date', 'passed', 'errors_url')
 
     def get_acquisition_date(self, obj):
         return obj.dicom_series.acquisition_date
+
+    def get_passed(self, obj):
+        return not obj.errors
+
+    def get_errors_url(self, obj):
+        return reverse('upload_scan_errors', args=(obj.pk,))

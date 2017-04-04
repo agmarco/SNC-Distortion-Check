@@ -109,8 +109,12 @@ def test_institution(client, institution_data, view):
                 method_data = method_data(view_data)
             assert allowed_access(client, url, method, method_data)
     else:
-        current_user.institution = institution_data['institution']
-        current_user.save()
+        new_user = factories.UserFactory.create(
+            username='new_user',
+            institution=institution_data['institution'],
+            groups=current_user.groups.all(),
+        )
+        client.force_login(new_user)
         for method, method_data in view['methods'].items():
             if callable(method_data):
                 method_data = method_data(view_data)

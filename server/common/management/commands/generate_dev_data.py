@@ -1,29 +1,8 @@
-import os
-import zipfile
-
 from django.contrib.auth.models import Permission
 from django.core.management.base import BaseCommand
-from django.core.files import File
-from django.conf import settings
 
-from process import dicom_import
 from server.common import factories
 from server.common.models import GoldenFiducials
-
-
-def _create_dicom_series(filename):
-    with zipfile.ZipFile(filename, 'r') as zip_file:
-        datasets = dicom_import.dicom_datasets_from_zip(zip_file)
-    voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
-    dicom_series = factories.DicomSeriesFactory(
-        voxels=voxels,
-        ijk_to_xyz=ijk_to_xyz,
-        shape=voxels.shape,
-        datasets=datasets,
-    )
-    with open(os.path.join(settings.BASE_DIR, filename), 'rb') as dicom_file:
-        dicom_series.zipped_dicom_files.save(f'dicom_series_{dicom_series.pk}.zip', File(dicom_file))
-    return dicom_series
 
 
 class Command(BaseCommand):
@@ -179,7 +158,7 @@ class Command(BaseCommand):
             tolerance=3,
         )
 
-        dicom_series_ct = _create_dicom_series('data/dicom/001_ct_603A_E3148_ST1.25.zip')
+        dicom_series_ct = factories.create_dicom_series('data/dicom/001_ct_603A_E3148_ST1.25.zip')
 
         golden_fiducials_a = factories.GoldenFiducialsFactory(
             phantom=phantom_d,
@@ -191,8 +170,8 @@ class Command(BaseCommand):
             type=GoldenFiducials.CSV,
         )
 
-        dicom_series_mri_a = _create_dicom_series('data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
-        dicom_series_mri_b = _create_dicom_series('data/dicom/007_mri_603A_UVA_Sagittal_XUCWOCNR.zip')
+        dicom_series_mri_a = factories.create_dicom_series('data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
+        dicom_series_mri_b = factories.create_dicom_series('data/dicom/007_mri_603A_UVA_Sagittal_XUCWOCNR.zip')
 
         scan_a = factories.ScanFactory(
             machine_sequence_pair=machine_sequence_pair_a,

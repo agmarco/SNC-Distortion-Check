@@ -13,6 +13,7 @@ urlpatterns = [
     url(r'^machine-sequences/$', views.machine_sequences, name='machine_sequences'),
     url(r'^machine-sequences/(?P<pk>\d+)/$', views.MachineSequenceDetail.as_view(), name='machine_sequence_detail'),
     url(r'^upload-scan/$', views.UploadScan.as_view(), name='upload_scan'),
+    url(r'^upload-scan/(?P<pk>\d+)/error/$', views.UploadScanErrors.as_view(), name='upload_scan_errors'),
 
     url(r'^phantoms/', include([
         url(r'^add/$', views.CreatePhantom.as_view(), name='create_phantom'),

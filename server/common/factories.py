@@ -1,7 +1,29 @@
+import os
+import zipfile
 from datetime import datetime
 
+from django.core.files import File
+from django.conf import settings
 import numpy as np
 import factory
+
+from process import dicom_import
+
+
+# TODO this takes too long - use fake data instead
+def create_dicom_series(filename):
+    with zipfile.ZipFile(filename, 'r') as zip_file:
+        datasets = dicom_import.dicom_datasets_from_zip(zip_file)
+    voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
+    dicom_series = DicomSeriesFactory(
+        voxels=voxels,
+        ijk_to_xyz=ijk_to_xyz,
+        shape=voxels.shape,
+        datasets=datasets,
+    )
+    with open(os.path.join(settings.BASE_DIR, filename), 'rb') as dicom_file:
+        dicom_series.zipped_dicom_files.save(f'dicom_series_{dicom_series.pk}.zip', File(dicom_file))
+    return dicom_series
 
 
 class InstitutionFactory(factory.django.DjangoModelFactory):

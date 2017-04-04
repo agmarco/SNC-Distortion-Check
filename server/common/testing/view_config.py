@@ -76,6 +76,26 @@ def gold_standard_csv_data(user):
         'gold_standard': gold_standard,
     }
 
+
+def upload_scan_errors_data(user):
+    machine = factories.MachineFactory(institution=user.institution)
+    sequence = factories.SequenceFactory()
+    machine_sequence_pair = factories.MachineSequencePairFactory(machine=machine, sequence=sequence)
+    dicom_series = factories.create_dicom_series('data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
+    scan = factories.ScanFactory(
+        creator=user,
+        machine_sequence_pair=machine_sequence_pair,
+        dicom_series=dicom_series,
+        tolerance=2,
+    )
+    return {
+        'machine': machine,
+        'sequence': sequence,
+        'machine_sequence_pair': machine_sequence_pair,
+        'dicom_series': dicom_series,
+        'scan': scan,
+    }
+
 VIEWS = (
     {
         'view': views.landing,
@@ -91,7 +111,7 @@ VIEWS = (
         'login_required': True,
         'permissions': ('common.configuration',),
         'validate_institution': False,
-        'methods': {'GET': None},
+        'methods': {'GET': None, 'POST': None},
     },
     {
         'view': views.machine_sequences,
@@ -117,6 +137,15 @@ VIEWS = (
         'permissions': ('common.configuration',),
         'validate_institution': False,
         'methods': {'GET': None, 'POST': None},
+    },
+    {
+        'view': views.UploadScanErrors,
+        'data': upload_scan_errors_data,
+        'url': lambda data: reverse('upload_scan_errors', args=(data['scan'].pk,)),
+        'login_required': True,
+        'permissions': ('common.configuration',),
+        'validate_institution': True,
+        'methods': {'GET': None},
     },
     {
         'view': views.CreatePhantom,
