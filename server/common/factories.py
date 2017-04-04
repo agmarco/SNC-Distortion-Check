@@ -1,29 +1,8 @@
-import os
+import datetime
 import zipfile
-from datetime import datetime
 
-from django.core.files import File
-from django.conf import settings
 import numpy as np
 import factory
-
-from process import dicom_import
-
-
-# TODO this takes too long - use fake data instead
-def create_dicom_series(filename):
-    with zipfile.ZipFile(filename, 'r') as zip_file:
-        datasets = dicom_import.dicom_datasets_from_zip(zip_file)
-    voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
-    dicom_series = DicomSeriesFactory(
-        voxels=voxels,
-        ijk_to_xyz=ijk_to_xyz,
-        shape=voxels.shape,
-        datasets=datasets,
-    )
-    with open(os.path.join(settings.BASE_DIR, filename), 'rb') as dicom_file:
-        dicom_series.zipped_dicom_files.save(f'dicom_series_{dicom_series.pk}.zip', File(dicom_file))
-    return dicom_series
 
 
 class InstitutionFactory(factory.django.DjangoModelFactory):
@@ -140,11 +119,11 @@ class DicomSeriesFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.DicomSeries"
 
-    series_uid = factory.LazyAttribute(lambda obj: obj.datasets[0].SeriesInstanceUID)
-    acquisition_date = factory.LazyAttribute(lambda obj: datetime.strptime(obj.datasets[0].AcquisitionDate, '%Y%m%d'))
-
-    class Params:
-        datasets = None
+    voxels = np.random.rand(10, 10, 10)
+    ijk_to_xyz = np.random.rand(4, 4)
+    shape = np.array([10, 10, 10])
+    series_uid = '1.2.392.200193.3.1626980217.161129.153348.41538611151089740341'
+    acquisition_date = datetime.date(2016, 11, 2)
 
 
 class GoldenFiducialsFactory(factory.django.DjangoModelFactory):

@@ -158,7 +158,7 @@ class Command(BaseCommand):
             tolerance=3,
         )
 
-        dicom_series_ct = factories.create_dicom_series('data/dicom/001_ct_603A_E3148_ST1.25.zip')
+        dicom_series_ct = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/001_ct_603A_E3148_ST1.25.zip')
 
         golden_fiducials_a = factories.GoldenFiducialsFactory(
             phantom=phantom_d,
@@ -170,8 +170,8 @@ class Command(BaseCommand):
             type=GoldenFiducials.CSV,
         )
 
-        dicom_series_mri_a = factories.create_dicom_series('data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
-        dicom_series_mri_b = factories.create_dicom_series('data/dicom/007_mri_603A_UVA_Sagittal_XUCWOCNR.zip')
+        dicom_series_mri_a = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
+        dicom_series_mri_b = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/007_mri_603A_UVA_Sagittal_XUCWOCNR.zip')
 
         scan_a = factories.ScanFactory(
             machine_sequence_pair=machine_sequence_pair_a,

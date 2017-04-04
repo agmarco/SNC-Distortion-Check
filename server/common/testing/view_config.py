@@ -79,9 +79,9 @@ def gold_standard_csv_data(user):
 
 def upload_scan_errors_data(user):
     machine = factories.MachineFactory(institution=user.institution)
-    sequence = factories.SequenceFactory()
+    sequence = factories.SequenceFactory(institution=user.institution)
     machine_sequence_pair = factories.MachineSequencePairFactory(machine=machine, sequence=sequence)
-    dicom_series = factories.create_dicom_series('data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
+    dicom_series = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
     scan = factories.ScanFactory(
         creator=user,
         machine_sequence_pair=machine_sequence_pair,
