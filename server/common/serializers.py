@@ -55,14 +55,25 @@ class PhantomSerializer(serializers.ModelSerializer):
 
 class ScanSerializer(serializers.ModelSerializer):
     phantom = PhantomSerializer()
+    passed = serializers.ReadOnlyField()
     acquisition_date = serializers.SerializerMethodField()
     errors_url = serializers.SerializerMethodField()
     delete_url = serializers.SerializerMethodField()
-    passed = serializers.ReadOnlyField()
+    zipped_dicom_files_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Scan
-        fields = ('pk', 'phantom', 'processing', 'errors', 'acquisition_date', 'errors_url', 'delete_url', 'passed')
+        fields = (
+            'pk',
+            'phantom',
+            'processing',
+            'errors',
+            'passed',
+            'acquisition_date',
+            'errors_url',
+            'delete_url',
+            'zipped_dicom_files_url'
+        )
 
     def get_acquisition_date(self, obj):
         return obj.dicom_series.acquisition_date
@@ -72,3 +83,6 @@ class ScanSerializer(serializers.ModelSerializer):
 
     def get_delete_url(self, obj):
         return reverse('delete_scan', args=(obj.pk,))
+
+    def get_zipped_dicom_files_url(self, obj):
+        return obj.dicom_series.zipped_dicom_files.url

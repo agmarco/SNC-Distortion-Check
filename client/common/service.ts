@@ -33,8 +33,9 @@ export interface ScanDTO {
     phantom: PhantomDTO;
     processing: boolean;
     errors: string;
+    passed: boolean;
     acquisition_date: string;
     errors_url: string;
     delete_url: string;
-    passed: boolean;
+    zipped_dicom_files_url: string;
 }

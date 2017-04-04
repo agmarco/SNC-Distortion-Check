@@ -75,7 +75,7 @@ export default class extends React.Component<ScanTableProps, ScanTableState> {
                                 scan.errors ? <td colSpan={6}>There was an error while processing the data (<a href={scan.errors_url}>view details</a>)</td> : [
                                     <td key={0}><a href="#"><i className="fa fa-refresh" aria-hidden="true" /></a></td>,
                                     <td key={1}><a href="#">DICOM Overlay</a></td>,
-                                    <td key={2}><a href="#">Raw Data</a></td>,
+                                    <td key={2}><a href={scan.zipped_dicom_files_url}>Raw Data</a></td>,
                                     <td key={3}><a href="#">Executive Report</a></td>,
                                     <td key={4}><a href="#">Full Report</a></td>,
                                     <td key={5}><a href={scan.delete_url}><i className="fa fa-trash-o" aria-hidden="true" /></a></td>,
