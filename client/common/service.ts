@@ -38,11 +38,5 @@ export interface ScanDTO {
     errors_url: string;
     delete_url: string;
     zipped_dicom_files_url: string;
-    distortion: {
-        min: number;
-        max: number;
-        median: number;
-        lower_quartile: number;
-        upper_quartile: number;
-    };
+    distortion: number[];
 }

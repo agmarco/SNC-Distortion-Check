@@ -92,10 +92,6 @@ class ScanSerializer(serializers.ModelSerializer):
         return scan.dicom_series.zipped_dicom_files.url
 
     def get_distortion(self, scan):
-        return {
-            'min': scan.distortion.min(),
-            'max': scan.distortion.max(),
-            'median': np.median(scan.distortion),
-            'lower_quartile': np.percentile(scan.distortion, 25),
-            'upper_quartile': np.percentile(scan.distortion, 75),
-        }
+
+        # DRF doesn't automatically decode the field, but this does
+        return scan.distortion
