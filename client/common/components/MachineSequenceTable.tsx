@@ -87,7 +87,7 @@ export default class extends React.Component<MachineSequenceTableProps, MachineS
                                 <td>{pair.machine.name}</td>
                                 <td>{pair.sequence.name}</td>
                                 <td>{pair.latest_scan_date && format(new Date(pair.latest_scan_date), 'MMMM D, YYYY')}</td>
-                                <td>{pair.latest_scan_within_tolerance !== null && <BoolIcon value={pair.latest_scan_within_tolerance} />}</td>
+                                <td>{pair.latest_scan_passed !== null && <BoolIcon value={pair.latest_scan_passed} />}</td>
                                 <td><a href={pair.detail_url}>View Details</a></td>
                             </tr>
                         ))}

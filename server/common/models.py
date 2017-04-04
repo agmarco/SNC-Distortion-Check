@@ -139,8 +139,8 @@ class MachineSequencePair(CommonFieldsMixin):
         return self.latest_scan.created_on if self.latest_scan else None
 
     @property
-    def latest_scan_within_tolerance(self):
-        return self.latest_scan.tolerance < self.tolerance if self.latest_scan and self.latest_scan.tolerance else None
+    def latest_scan_passed(self):
+        return self.latest_scan.passed if self.latest_scan else None
 
     @property
     def institution(self):
@@ -244,6 +244,11 @@ class Scan(CommonFieldsMixin):
     @property
     def institution(self):
         return self.creator.institution
+
+    @property
+    def passed(self):
+        """Return True if the tolerance is below the threshold for the machine sequence pair."""
+        return self.tolerance < self.machine_sequence_pair.tolerance if self.tolerance else None
 
 
 # This table creates permissions that are not associated with a model.

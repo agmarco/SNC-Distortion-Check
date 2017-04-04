@@ -16,7 +16,7 @@ export interface MachineSequencePairDTO {
     machine: MachineDTO;
     sequence: SequenceDTO;
     latest_scan_date: string;
-    latest_scan_within_tolerance: boolean;
+    latest_scan_passed: boolean;
     detail_url: string;
 }
 
@@ -32,8 +32,9 @@ export interface ScanDTO {
     pk: number;
     phantom: PhantomDTO;
     processing: boolean;
+    errors: string;
     acquisition_date: string;
-    passed: boolean;
     errors_url: string;
     delete_url: string;
+    passed: boolean;
 }

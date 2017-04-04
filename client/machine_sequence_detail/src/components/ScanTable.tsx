@@ -68,11 +68,11 @@ export default class extends React.Component<ScanTableProps, ScanTableState> {
                     </thead>
                     <tbody>
                         {filteredScans.map((scan) => <tr key={scan.pk}>
-                            <td>{!scan.processing && <BoolIcon value={scan.passed} />}</td>
+                            <td>{!scan.processing && !scan.errors && <BoolIcon value={scan.passed} />}</td>
                             <td>{format(scan.acquisition_date, 'MMMM D, YYYY')}</td>
                             <td>{scan.phantom.model_number} &mdash; {scan.phantom.serial_number}</td>
                             {scan.processing ? <td colSpan={6}>The Data is Still being Processed...</td> : (
-                                !scan.passed ? <td colSpan={6}>There was an error while processing the data (<a href={scan.errors_url}>view details</a>)</td> : [
+                                scan.errors ? <td colSpan={6}>There was an error while processing the data (<a href={scan.errors_url}>view details</a>)</td> : [
                                     <td key={0}><a href="#"><i className="fa fa-refresh" aria-hidden="true" /></a></td>,
                                     <td key={1}><a href="#">DICOM Overlay</a></td>,
                                     <td key={2}><a href="#">Raw Data</a></td>,

@@ -14,8 +14,8 @@ interface AddPhantomFormProps {
 interface AddPhantomFormState {
     validating: boolean;
     valid: boolean;
-    model_number: string;
-    promise: Bluebird<any>;
+    model_number: string | null;
+    promise: Bluebird<any> | null;
 }
 
 export default class extends React.Component<AddPhantomFormProps, AddPhantomFormState> {

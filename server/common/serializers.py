@@ -20,7 +20,7 @@ class MachineSequencePairSerializer(serializers.ModelSerializer):
     machine = MachineSerializer()
     sequence = SequenceSerializer()
     latest_scan_date = serializers.ReadOnlyField()
-    latest_scan_within_tolerance = serializers.ReadOnlyField()
+    latest_scan_passed = serializers.ReadOnlyField()
     detail_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -30,7 +30,7 @@ class MachineSequencePairSerializer(serializers.ModelSerializer):
             'machine',
             'sequence',
             'latest_scan_date',
-            'latest_scan_within_tolerance',
+            'latest_scan_passed',
             'detail_url',
         )
 
@@ -56,19 +56,16 @@ class PhantomSerializer(serializers.ModelSerializer):
 class ScanSerializer(serializers.ModelSerializer):
     phantom = PhantomSerializer()
     acquisition_date = serializers.SerializerMethodField()
-    passed = serializers.SerializerMethodField()
     errors_url = serializers.SerializerMethodField()
     delete_url = serializers.SerializerMethodField()
+    passed = serializers.ReadOnlyField()
 
     class Meta:
         model = Scan
-        fields = ('pk', 'phantom', 'processing', 'acquisition_date', 'passed', 'errors_url', 'delete_url')
+        fields = ('pk', 'phantom', 'processing', 'errors', 'acquisition_date', 'errors_url', 'delete_url', 'passed')
 
     def get_acquisition_date(self, obj):
         return obj.dicom_series.acquisition_date
-
-    def get_passed(self, obj):
-        return not obj.errors
 
     def get_errors_url(self, obj):
         return reverse('scan_errors', args=(obj.pk,))
