@@ -55,14 +55,11 @@ class PhantomSerializer(serializers.ModelSerializer):
 
 class ScanSerializer(serializers.ModelSerializer):
     acquisition_date = serializers.SerializerMethodField()
-    phantom_summary = serializers.SerializerMethodField()
+    phantom = PhantomSerializer()
 
     class Meta:
         model = Scan
-        fields = ('pk', 'acquisition_date', 'phantom_summary', 'processing', 'errors')
+        fields = ('pk', 'acquisition_date', 'phantom', 'processing', 'errors')
 
     def get_acquisition_date(self, obj):
         return obj.dicom_series.acquisition_date
-
-    def get_phantom_summary(self, obj):
-        return f"{obj.phantom.model.model_number} — {obj.phantom.serial_number}"

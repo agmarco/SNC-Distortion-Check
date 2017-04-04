@@ -30,17 +30,21 @@
         <td>{{ golden_fiducials.created_on|date }}</td>
         <td>{{ golden_fiducials.type }}</td>
         <td>{% if golden_fiducials.type == 'CT' %}{{ golden_fiducials.dicom_series.filename }}{% endif %}</td>
-        <td>{% if golden_fiducials.type == 'CT' %}<a href="{{ golden_fiducials.dicom_series.zipped_dicom_files.url }}">Download Images</a>{% endif %}</td>
-        <td><a href="{% url 'gold_standard_csv' phantom.pk golden_fiducials.pk %}">Download Points</a></td>
-        <td>
-          {% if not golden_fiducials.is_active %}
-            <form action="{% url 'activate_gold_standard' phantom.pk golden_fiducials.pk %}" method="post">
-              {% csrf_token %}
-              <input type="submit" value="Set Active" />
-            </form>
-          {% endif %}
-        </td>
-        <td>{% if not golden_fiducials.is_active and not golden_fiducials.type == 'CAD' %}<a href="{% url 'delete_gold_standard' phantom.pk golden_fiducials.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>{% endif %}</td>
+        {% if golden_fiducials.processing %}
+          <td colspan="4">The Data is Still being Processed...</td>
+        {% else %}
+          <td>{% if golden_fiducials.type == 'CT' %}<a href="{{ golden_fiducials.dicom_series.zipped_dicom_files.url }}">Download Images</a>{% endif %}</td>
+          <td><a href="{% url 'gold_standard_csv' phantom.pk golden_fiducials.pk %}">Download Points</a></td>
+          <td>
+            {% if not golden_fiducials.is_active %}
+              <form action="{% url 'activate_gold_standard' phantom.pk golden_fiducials.pk %}" method="post">
+                {% csrf_token %}
+                <input type="submit" value="Set Active" />
+              </form>
+            {% endif %}
+          </td>
+          <td>{% if not golden_fiducials.is_active and not golden_fiducials.type == 'CAD' %}<a href="{% url 'delete_gold_standard' phantom.pk golden_fiducials.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>{% endif %}</td>
+        {% endif %}
       </tr>
     {% endfor %}
   </tbody>
