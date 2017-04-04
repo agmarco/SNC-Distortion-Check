@@ -220,19 +220,18 @@ class GoldenFiducials(CommonFieldsMixin):
         verbose_name_plural = 'Golden Fiducials'
 
 
+# TODO add help text
 class Scan(CommonFieldsMixin):
     creator = models.ForeignKey(User, models.SET_NULL, null=True)
     machine_sequence_pair = models.ForeignKey(MachineSequencePair, models.CASCADE)
     dicom_series = models.ForeignKey(DicomSeries, models.CASCADE)
     detected_fiducials = models.ForeignKey(Fiducials, models.CASCADE, null=True)
     golden_fiducials = models.ForeignKey(GoldenFiducials, models.CASCADE)
+    distortion = NumpyTextField(null=True)
     notes = models.TextField(blank=True)
-
-    # TODO: figure out how to store results
-    result = models.TextField(null=True)
     processing = models.BooleanField(default=False)
     errors = models.TextField(null=True)
-    tolerance = models.FloatField(null=True)
+    tolerance = models.FloatField()
 
     def __str__(self):
         return f"Scan {self.pk}"
@@ -247,8 +246,8 @@ class Scan(CommonFieldsMixin):
 
     @property
     def passed(self):
-        """Return True if the tolerance is below the threshold for the machine sequence pair."""
-        return self.tolerance < self.machine_sequence_pair.tolerance if self.tolerance else None
+        """Return True if the max distortion is below the threshold."""
+        return self.distortion.max() < self.tolerance if self.distortion is not None else None
 
 
 # This table creates permissions that are not associated with a model.

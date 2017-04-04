@@ -155,6 +155,7 @@ class UploadScan(FormView):
             dicom_series=dicom_series,
             golden_fiducials=phantom.active_gold_standard,
             notes=form.cleaned_data['notes'],
+            tolerance=machine_sequence_pair.tolerance,
             processing=True,
         )
 

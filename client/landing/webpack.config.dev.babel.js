@@ -1,6 +1,8 @@
 import * as path from 'path';
 import * as webpack from 'webpack';
 
+// TODO add eslint, tslint
+
 export default (options) => {
     const config = {
         entry: {
