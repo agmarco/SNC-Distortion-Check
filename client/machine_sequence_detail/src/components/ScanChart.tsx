@@ -1,25 +1,17 @@
 import * as React from 'react';
-import 'd3';
 
-import '../box';
 import { MachineSequencePairDTO, ScanDTO } from 'common/service';
 import ScanChartData from './ScanChartData';
 import ScanChartTolerance from './ScanChartTolerance';
 import ScanChartAxes from './ScanChartAxes';
-import './ScanChart.scss';
 
-declare const d3: any;
+import './ScanChart.scss';
 
 interface ChartData {
     [index: number]: number;
     length: number;
     quartiles: number[];
     passed: boolean;
-}
-
-export interface ScanChartProps {
-    machineSequencePair: MachineSequencePairDTO;
-    scans: ScanDTO[];
 }
 
 export interface ScanChartSettings {
@@ -35,13 +27,16 @@ export interface ScanChartSettings {
     yScale: any;
 }
 
+export interface ScanChartProps {
+    machineSequencePair: MachineSequencePairDTO;
+    scans: ScanDTO[];
+}
+
 export default class extends React.Component<ScanChartProps, {}> {
-    svg: SVGElement;
-    g: SVGGElement;
 
+    // Returns a function to compute the interquartile range.
+    // Higher values of k will produce fewer outliers.
     iqr(k: number) {
-
-        // Returns a function to compute the interquartile range.
         return (d: ChartData, i: number) => {
             let q1 = d.quartiles[0];
             let q3 = d.quartiles[2];
@@ -59,11 +54,14 @@ export default class extends React.Component<ScanChartProps, {}> {
         const allDataPoints = Array.prototype.concat.apply([], scans.map((scan) => scan.distortion));
 
         const labels = true;
-        const margin = {top: 20, right: 20, bottom: 60, left: 60};
+        const margin = {top: 0, right: 0, bottom: 60, left: 60};
+
         const width = 800 - margin.left - margin.right;
         const height = 400 - margin.top - margin.bottom;
+
         const min = 0;
-        const max = 1.05*Math.max(machineSequencePair.tolerance, Math.max.apply(null, allDataPoints));
+        const max = 1.05*Math.max.apply(null, [machineSequencePair.tolerance, ...allDataPoints]);
+
         const data = scans.map((scan) => {
             const array = [scan.acquisition_date, scan.distortion] as any;
             array.passed = scan.passed;
@@ -98,33 +96,17 @@ export default class extends React.Component<ScanChartProps, {}> {
         }
     }
 
-    renderPlot() {
-        const { width, height, margin } = this.settings();
-        
-        let svg = d3.select(this.svg);
-        let g = d3.select(this.g);
-
-        svg.attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-            .attr("class", "box");
-
-        g.attr("transform", "translate(" + margin.left + ", 0)");
-    }
-
-    componentDidMount() {
-        this.renderPlot();
-    }
-
-    componentDidUpdate() {
-        this.renderPlot();
-    }
-
     render() {
         const settings = this.settings();
+        const { width, height, margin } = settings;
 
         return (
-            <svg ref={(svg) => this.svg = svg}>
-                <g ref={(g) => this.g = g}>
+            <svg
+                width={width + margin.left + margin.right}
+                height={height + margin.top + margin.bottom}
+                className="box"
+            >
+                <g transform={`translate(${margin.left}, 0)`}>
                     <ScanChartData {...this.props} {...settings} />
                     <ScanChartTolerance {...this.props} {...settings} />
                     <ScanChartAxes {...this.props} {...settings} />

@@ -1,69 +1,86 @@
 import * as React from 'react';
-import 'd3';
 
 import { ScanChartProps, ScanChartSettings } from './ScanChart';
 
-declare const d3: any;
-
 export default class extends React.Component<ScanChartProps & ScanChartSettings, {}> {
-    g: SVGGElement;
+    xAxis: SVGGElement;
+    yAxis: SVGGElement;
 
-    renderPlot() {
-        const { xScale, yScale, margin, height, width, min, max } = this.props;
-        let g = d3.select(this.g);
+    componentDidMount() {
+        this.renderAxes();
+    }
 
-        let xAxis = d3.svg.axis()
+    componentDidUpdate() {
+        this.renderAxes();
+    }
+
+    renderAxes() {
+        const { xScale, yScale, width, min, max } = this.props;
+
+        d3.select(this.xAxis).call(d3.svg.axis()
             .scale(xScale)
             .orient("bottom")
             .innerTickSize(0)
             .outerTickSize(0)
-            .tickPadding(10);
+            .tickPadding(10)
+        );
 
-        let yAxis = d3.svg.axis()
+        d3.select(this.yAxis).call(d3.svg.axis()
             .scale(yScale)
             .orient("left")
             .tickValues(d3.range(min, max, 0.5))
             .innerTickSize(-width)
             .outerTickSize(0)
-            .tickPadding(10);
-
-        g.append("g")
-            .attr("class", "x axis")
-            .attr("transform", "translate(0," + (height + margin.top) + ")")
-            .call(xAxis)
-            .append("text")
-            .attr("x", (width / 2) )
-            .attr("y", margin.bottom - 16)
-            .attr("dy", ".71em")
-            .style("text-anchor", "middle")
-            .style("alignment-baseline", "baseline")
-            .style("font-size", "16px")
-            .text("Scans");
-
-        g.append("g")
-            .attr("class", "y axis")
-            .call(yAxis)
-            .append("text")
-            .attr("transform", "rotate(-90)")
-            .attr("x", -(height / 2) )
-            .attr("y", -margin.left)
-            .attr("dy", ".71em")
-            .style("text-anchor", "middle")
-            .style("font-size", "16px")
-            .text("Distortion (mm)");
+            .tickPadding(10)
+        );
     }
 
-    componentDidMount() {
-        this.renderPlot();
+    renderXAxis() {
+        const { width, height, margin } = this.props;
+
+        const xAxisProps = {
+            className: "x axis",
+            transform: `translate(0, ${height + margin.top})`,
+        };
+
+        const xLabelProps = {
+            className: "x-label",
+            x: width / 2,
+            y: margin.bottom - 12, // 12 is the font size - text is anchored relative to its top
+            dy: ".71em",
+        };
+
+        return <g ref={(g) => this.xAxis = g} {...xAxisProps}>
+            <text {...xLabelProps}>Scans</text>
+        </g>
     }
 
-    componentDidUpdate() {
-        this.renderPlot();
+    renderYAxis() {
+        const { height, margin } = this.props;
+
+        const yAxisProps = {
+            className: "y axis",
+        };
+
+        const yLabelProps = {
+            className: "y-label",
+            x: -height / 2,
+            y: -margin.left,
+            dy: ".71em",
+            transform: "rotate(-90)",
+        };
+
+        return <g ref={(g) => this.yAxis = g} {...yAxisProps}>
+            <text {...yLabelProps}>Distortion (mm)</text>
+        </g>
     }
 
     render() {
         return (
-            <g ref={(g) => this.g = g} />
+            <g>
+                {this.renderXAxis()}
+                {this.renderYAxis()}
+            </g>
         );
     }
 }

@@ -167,11 +167,12 @@ class Command(BaseCommand):
         )
 
         dicom_series_mri_a = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
-        dicom_series_mri_b = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/007_mri_603A_UVA_Sagittal_XUCWOCNR.zip')
-        dicom_series_mri_c = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/008_mri_603A_UVA_Axial_UI2TFUGF_Prisma.zip')
-        dicom_series_mri_d = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/009_mri_603A_UVE_Sagittal_TR21FUGF_Prisma.zip')
-        dicom_series_mri_e = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/010_mri_604_LFV-Phantom_E2632-1.zip')
-        dicom_series_mri_f = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/011_mri_603A_arterial_TOF_3d_motsa_ND.zip')
+        dicom_series_mri_b = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
+        dicom_series_mri_c = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
+        dicom_series_mri_d = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
+        dicom_series_mri_e = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
+        dicom_series_mri_f = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
+        dicom_series_mri_g = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
 
         scan_a = factories.ScanFactory(
             creator=manager,
@@ -205,6 +206,12 @@ class Command(BaseCommand):
         )
         scan_f = factories.ScanFactory(
             creator=manager,
-            machine_sequence_pair=machine_sequence_pair_b,
+            machine_sequence_pair=machine_sequence_pair_a,
             dicom_series=dicom_series_mri_f,
+            tolerance=2.25,
+        )
+        scan_g = factories.ScanFactory(
+            creator=manager,
+            machine_sequence_pair=machine_sequence_pair_a,
+            dicom_series=dicom_series_mri_g,
         )

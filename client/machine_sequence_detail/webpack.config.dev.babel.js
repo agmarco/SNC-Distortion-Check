@@ -7,12 +7,14 @@ export default (options) => {
             app: [
                 'babel-polyfill',
                 'react-hot-loader/patch',
+                path.resolve('./src/box.js'),
                 path.resolve('./src/app.tsx'),
             ],
             vendor: [
                 'react-hot-loader',
                 'react',
                 'react-dom',
+                'd3',
             ],
         },
 
