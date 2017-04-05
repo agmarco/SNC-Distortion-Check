@@ -111,7 +111,7 @@ class MachineSequenceDetail(DetailView):
         }
 
 
-# TODO handle prepoulated machine and sequence
+# TODO handle prepopulated machine and sequence
 @login_and_permission_required('common.configuration')
 class UploadScan(FormView):
     form_class = UploadScanForm

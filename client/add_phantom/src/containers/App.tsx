@@ -10,10 +10,10 @@ declare const FORM_ERRORS: {[field: string]: string[]};
 
 export default () => (
     <AddPhantomForm
-        create_phantom_url={CREATE_PHANTOM_URL}
-        validate_serial_url={VALIDATE_SERIAL_URL}
-        cancel_url={CANCEL_URL}
-        form_errors={FORM_ERRORS}
+        createPhantomUrl={CREATE_PHANTOM_URL}
+        validateSerialUrl={VALIDATE_SERIAL_URL}
+        cancelUrl={CANCEL_URL}
+        formErrors={FORM_ERRORS}
         csrftoken={Cookies.get('csrftoken')}
     />
 );

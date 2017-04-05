@@ -7,7 +7,7 @@ import BoolIcon from './BoolIcon';
 
 interface MachineSequenceTableProps {
     machineSequencePairs: MachineSequencePairDTO[];
-    upload_scan_url: string; // TODO camelCase
+    uploadScanUrl: string;
 }
 
 interface MachineSequenceTableState {
@@ -53,13 +53,13 @@ export default class extends React.Component<MachineSequenceTableProps, MachineS
     }
 
     render() {
-        const { upload_scan_url } = this.props;
+        const { uploadScanUrl } = this.props;
         const { machines, sequences, currentMachinePk, currentSequencePk } = this.state;
         const filteredMachineSequencePairs = this.filteredMachineSequencePairs();
 
         return (
             <div>
-                <a href={upload_scan_url}>Upload New Scan</a>
+                <a href={uploadScanUrl}>Upload New Scan</a>
                 <div>
                     Filter By
                     <select value={currentMachinePk} onChange={this.handleMachineChange.bind(this)}>

@@ -4,17 +4,17 @@ import * as Bluebird from 'bluebird';
 import { handleErrors, encode } from 'common/utils';
 
 interface AddPhantomFormProps {
-    create_phantom_url: string;
-    validate_serial_url: string;
-    cancel_url: string;
-    form_errors: {[field: string]: string[]};
+    createPhantomUrl: string;
+    validateSerialUrl: string;
+    cancelUrl: string;
+    formErrors: {[field: string]: string[]};
     csrftoken: string;
 }
 
 interface AddPhantomFormState {
     validating: boolean;
     valid: boolean;
-    model_number: string | null;
+    modelNumber: string | null;
     promise: Bluebird<any> | null;
 }
 
@@ -26,13 +26,13 @@ export default class extends React.Component<AddPhantomFormProps, AddPhantomForm
         this.state = {
             validating: false,
             valid: false,
-            model_number: null,
+            modelNumber: null,
             promise: null,
         };
     }
 
     handleSerialChange(event: React.FormEvent<HTMLInputElement>) {
-        const { validate_serial_url, csrftoken } = this.props;
+        const { validateSerialUrl, csrftoken } = this.props;
         const { promise } = this.state;
 
         if (promise) {
@@ -40,7 +40,7 @@ export default class extends React.Component<AddPhantomFormProps, AddPhantomForm
         }
 
         // validate the serial number
-        const newPromise = Bluebird.resolve(fetch(validate_serial_url, {
+        const newPromise = Bluebird.resolve(fetch(validateSerialUrl, {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: {
@@ -66,23 +66,23 @@ export default class extends React.Component<AddPhantomFormProps, AddPhantomForm
     }
 
     fieldErrors(field: string) {
-        const { form_errors } = this.props;
+        const { formErrors } = this.props;
 
-        return form_errors && form_errors[field] && (
+        return formErrors && formErrors[field] && (
             <ul>
-                {form_errors[field].map((error, i) => <li key={i}>{error}</li>)}
+                {formErrors[field].map((error, i) => <li key={i}>{error}</li>)}
             </ul>
         );
     }
 
     render() {
-        const { create_phantom_url, cancel_url, csrftoken } = this.props;
-        const { validating, valid, model_number } = this.state;
+        const { createPhantomUrl, cancelUrl, csrftoken } = this.props;
+        const { validating, valid, modelNumber } = this.state;
 
         return (
             <div>
                 <h1>Add Phantom</h1>
-                <form action={create_phantom_url} method="post">
+                <form action={createPhantomUrl} method="post">
                     <input type="hidden" name="csrfmiddlewaretoken" value={csrftoken} />
 
                     <div>
@@ -106,7 +106,7 @@ export default class extends React.Component<AddPhantomFormProps, AddPhantomForm
 
                     <div>
                         <label>Model Number</label>
-                        {valid ? model_number : (validating ? "Searching..." : "Invalid Serial Number")}
+                        {valid ? modelNumber : (validating ? "Searching..." : "Invalid Serial Number")}
                     </div>
 
                     <div>
@@ -114,7 +114,7 @@ export default class extends React.Component<AddPhantomFormProps, AddPhantomForm
                         By default, the new phantom will use gold standard grid intersection locations based on the CAD design for the particular phantom model you select. These points can be customized at any point using a gold standard CT, or a raw point upload.
                     </div>
 
-                    <a href={cancel_url}>Cancel</a>
+                    <a href={cancelUrl}>Cancel</a>
                     <input type="submit" value="Add Phantom" disabled={validating || !valid} />
                 </form>
             </div>

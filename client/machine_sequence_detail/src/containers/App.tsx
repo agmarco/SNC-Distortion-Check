@@ -19,7 +19,7 @@ export default () => (
         <h2>Scans</h2>
         <ScanTable
             scans={SCANS}
-            upload_scan_url={UPLOAD_SCAN_URL}
+            uploadScanUrl={UPLOAD_SCAN_URL}
         />
     </div>
 );

@@ -6,9 +6,9 @@ interface UploadScanFormProps {
     machines: MachineDTO[];
     sequences: SequenceDTO[];
     phantoms: PhantomDTO[];
-    upload_scan_url: string;
-    cancel_url: string;
-    form_errors: {[field: string]: string[]};
+    uploadScanUrl: string;
+    cancelUrl: string;
+    formErrors: {[field: string]: string[]};
     csrftoken: string;
 }
 
@@ -30,11 +30,11 @@ export default class extends React.Component<UploadScanFormProps, UploadScanForm
     }
 
     fieldErrors(field: string) {
-        const { form_errors } = this.props;
+        const { formErrors } = this.props;
 
-        return form_errors && form_errors[field] && (
+        return formErrors && formErrors[field] && (
             <ul>
-                {form_errors[field].map((error, i) => <li key={i}>{error}</li>)}
+                {formErrors[field].map((error, i) => <li key={i}>{error}</li>)}
             </ul>
         );
     }
@@ -52,7 +52,7 @@ export default class extends React.Component<UploadScanFormProps, UploadScanForm
     }
 
     render() {
-        const { machines, sequences, phantoms, upload_scan_url, cancel_url, csrftoken } = this.props;
+        const { machines, sequences, phantoms, uploadScanUrl, cancelUrl, csrftoken } = this.props;
         const { currentMachinePk, currentSequencePk, currentPhantomPk } = this.state;
 
         const currentMachine = currentMachinePk ? machines.find((machine) => machine.pk === currentMachinePk) : null;
@@ -62,7 +62,7 @@ export default class extends React.Component<UploadScanFormProps, UploadScanForm
         return (
             <div>
                 <h1>Upload Scan</h1>
-                <form action={upload_scan_url} encType="multipart/form-data" method="post">
+                <form action={uploadScanUrl} encType="multipart/form-data" method="post">
                     <input type="hidden" name="csrfmiddlewaretoken" value={csrftoken} />
 
                     <div>
@@ -149,7 +149,7 @@ export default class extends React.Component<UploadScanFormProps, UploadScanForm
                         <textarea cols={40} rows={10} id="upload-scan-notes" name="notes" />
                     </div>
 
-                    <a href={cancel_url}>Cancel</a>
+                    <a href={cancelUrl}>Cancel</a>
                     <input type="submit" value="Process Scan" />
                 </form>
             </div>

@@ -9,6 +9,6 @@ declare const UPLOAD_SCAN_URL: string;
 export default () => (
     <MachineSequenceTable
         machineSequencePairs={MACHINE_SEQUENCE_PAIRS}
-        upload_scan_url={UPLOAD_SCAN_URL}
+        uploadScanUrl={UPLOAD_SCAN_URL}
     />
 );

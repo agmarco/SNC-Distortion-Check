@@ -7,7 +7,7 @@ import { BoolIcon } from 'common/components'
 
 interface ScanTableProps {
     scans: ScanDTO[];
-    upload_scan_url: string;
+    uploadScanUrl: string;
 }
 
 interface ScanTableState {
@@ -42,13 +42,13 @@ export default class extends React.Component<ScanTableProps, ScanTableState> {
     }
 
     render() {
-        const { upload_scan_url } = this.props;
+        const { uploadScanUrl } = this.props;
         const { phantoms, currentPhantomPk } = this.state;
         const filteredScans = this.filteredScans();
 
         return (
             <div>
-                <a href={upload_scan_url}>Upload New Scan</a>
+                <a href={uploadScanUrl}>Upload New Scan</a>
                 <div>
                     Filter By
                     <select value={currentPhantomPk} onChange={this.handlePhantomChange.bind(this)}>

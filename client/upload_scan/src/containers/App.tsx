@@ -16,9 +16,9 @@ export default () => (
         machines={MACHINES}
         sequences={SEQUENCES}
         phantoms={PHANTOMS}
-        upload_scan_url={UPLOAD_SCAN_URL}
-        cancel_url={CANCEL_URL}
-        form_errors={FORM_ERRORS}
+        uploadScanUrl={UPLOAD_SCAN_URL}
+        cancelUrl={CANCEL_URL}
+        formErrors={FORM_ERRORS}
         csrftoken={Cookies.get('csrftoken')}
     />
 );
