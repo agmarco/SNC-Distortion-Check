@@ -2,13 +2,22 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { AppContainer } from 'react-hot-loader';
 
-import Root from './Root';
+import App from './containers/App';
 
-ReactDOM.render(<Root />, document.getElementById('add-phantom-app'));
+const render = (Component: React.ComponentClass<any> | React.StatelessComponent<any>) => {
+    ReactDOM.render(
+        <AppContainer>
+            <Component />
+        </AppContainer>,
+        document.getElementById('add-phantom-app'),
+    );
+};
 
+render(App);
+
+// Hot Module Replacement API
 if (module.hot) {
-    module.hot.accept('Root', () => {
-        require('Root');
-        ReactDOM.render(<AppContainer><Root /></AppContainer>, document.getElementById('add-phantom-app'));
+    module.hot.accept('./containers/App', () => {
+        render(App);
     });
 }

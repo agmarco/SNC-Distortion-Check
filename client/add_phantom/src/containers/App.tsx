@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as Cookies from 'js-cookie';
 
-import AddPhantomForm from './components/AddPhantomForm';
+import AddPhantomForm from 'components/AddPhantomForm';
 
 declare const CREATE_PHANTOM_URL: string;
 declare const VALIDATE_SERIAL_URL: string;

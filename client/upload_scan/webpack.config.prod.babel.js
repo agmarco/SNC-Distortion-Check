@@ -3,12 +3,12 @@ import * as webpack from 'webpack';
 
 export default ({
     entry: {
-        'app': [
+        app: [
             'babel-polyfill',
+            'react-hot-loader/patch',
             path.resolve('./src/app.tsx'),
         ],
-        'vendor': [
-            'react-hot-loader/patch',
+        vendor: [
             'react-hot-loader',
             'react',
             'react-dom',
@@ -33,12 +33,7 @@ export default ({
         rules: [
             {
                 test: /\.tsx?$/,
-                use: [
-                    {loader: 'babel-loader', options: {
-                        presets: [['es2015', {modules: false}], 'stage-0', 'react'],
-                    }},
-                    {loader: 'ts-loader'},
-                ],
+                use: ['babel-loader', 'ts-loader'],
             }, {
                 test: /\.scss$/,
                 use: ['style-loader', 'css-loader', 'sass-loader'],

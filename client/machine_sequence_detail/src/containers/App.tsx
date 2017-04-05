@@ -1,8 +1,8 @@
 import * as React from 'react';
 
 import { MachineSequencePairDTO, ScanDTO } from 'common/service';
-import ScanChart from './components/ScanChart';
-import ScanTable from './components/ScanTable';
+import ScanChart from 'components/ScanChart';
+import ScanTable from 'components/ScanTable';
 
 declare const MACHINE_SEQUENCE_PAIR: MachineSequencePairDTO;
 declare const SCANS: ScanDTO[];
