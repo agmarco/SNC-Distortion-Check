@@ -14,13 +14,13 @@ export default class extends React.Component<ScanChartProps & ScanChartSettings,
     }
 
     renderPlot() {
-        const { data, chart, xScale, margin } = this.props;
+        const { data, chart, xScale } = this.props;
 
         // draw the boxplots
         d3.select(this.g).selectAll(".box")
             .data(data)
             .enter().append("g")
-            .attr("transform", (d: any) => `translate(${xScale(d[0])}, ${margin.top})`)
+            .attr("transform", (d: any) => `translate(${xScale(d[0])}, 0)`)
             .attr("class", (d: any) => d.passed ? "passed" : "failed")
             .call(chart.width(xScale.rangeBand()));
     }

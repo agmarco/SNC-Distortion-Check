@@ -40,13 +40,13 @@ export default class extends React.Component<ScanChartProps & ScanChartSettings,
 
         const xAxisProps = {
             className: "x axis",
-            transform: `translate(0, ${height + margin.top})`,
+            transform: `translate(0, ${height})`,
         };
 
         const xLabelProps = {
             className: "x-label",
             x: width / 2,
-            y: margin.bottom - 12, // 12 is the font size - text is anchored relative to its top
+            y: margin.bottom - 16, // 16 is the font size - text is anchored relative to its top
             dy: ".71em",
         };
 

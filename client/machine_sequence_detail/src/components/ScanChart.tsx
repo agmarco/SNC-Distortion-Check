@@ -75,12 +75,12 @@ export default class extends React.Component<ScanChartProps, {}> {
             .showLabels(labels);
 
         const xScale = d3.scale.ordinal()
-            .domain(data.map(function(d) { return d[0] }))
-            .rangeRoundBands([0 , width], 0.7, 0.3);
+            .domain(data.map((d) => d[0]))
+            .rangeRoundBands([0, width], 0.7, 0.3);
 
         const yScale = d3.scale.linear()
             .domain([min, max])
-            .range([height + margin.top, margin.top]);
+            .range([height, 0]);
 
         return {
             labels,
@@ -106,7 +106,7 @@ export default class extends React.Component<ScanChartProps, {}> {
                 height={height + margin.top + margin.bottom}
                 className="box"
             >
-                <g transform={`translate(${margin.left}, 0)`}>
+                <g transform={`translate(${margin.left}, ${margin.top})`}>
                     <ScanChartData {...this.props} {...settings} />
                     <ScanChartTolerance {...this.props} {...settings} />
                     <ScanChartAxes {...this.props} {...settings} />
