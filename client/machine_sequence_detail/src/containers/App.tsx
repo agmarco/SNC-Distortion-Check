@@ -11,10 +11,12 @@ declare const UPLOAD_SCAN_URL: string;
 export default () => (
     <div>
         <h1>{MACHINE_SEQUENCE_PAIR.machine.name} &mdash; {MACHINE_SEQUENCE_PAIR.sequence.name} Distortion</h1>
+        <h2>Performance over Time</h2>
         <ScanChart
             machineSequencePair={MACHINE_SEQUENCE_PAIR}
             scans={SCANS}
         />
+        <h2>Scans</h2>
         <ScanTable
             scans={SCANS}
             upload_scan_url={UPLOAD_SCAN_URL}

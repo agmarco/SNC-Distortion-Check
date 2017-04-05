@@ -1,0 +1,44 @@
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.box {
+  font: 10px sans-serif;
+
+  line, rect, circle {
+    fill: none;
+    stroke-width: 1px;
+  }
+
+  .passed {
+    line, rect, circle {
+      stroke: #090;
+    }
+  }
+
+  .failed {
+    line, rect, circle {
+      stroke: #900;
+    }
+  }
+
+  .outlier {
+    fill: none;
+    stroke: #000;
+  }
+}
+
+.axis {
+  font: 12px sans-serif;
+
+  path, line {
+    fill: none;
+    stroke: #000;
+  }
+}
+
+.x.axis path {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}

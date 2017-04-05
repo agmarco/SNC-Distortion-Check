@@ -115,6 +115,16 @@ class MachineSequencePairFactory(factory.django.DjangoModelFactory):
     tolerance = 3
 
 
+def _get_acquisition_date_generator():
+    start = datetime.date(2016, 11, 2)
+    count = 0
+    while True:
+        yield start + datetime.timedelta(days=count)
+        count += 1
+
+_get_acquisition_date = _get_acquisition_date_generator()
+
+
 class DicomSeriesFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.DicomSeries"
@@ -123,7 +133,7 @@ class DicomSeriesFactory(factory.django.DjangoModelFactory):
     ijk_to_xyz = np.random.rand(4, 4)
     shape = np.array([10, 10, 10])
     series_uid = '1.2.392.200193.3.1626980217.161129.153348.41538611151089740341'
-    acquisition_date = datetime.date(2016, 11, 2)
+    acquisition_date = factory.LazyAttribute(lambda dicom_series: next(_get_acquisition_date))
 
 
 class GoldenFiducialsFactory(factory.django.DjangoModelFactory):

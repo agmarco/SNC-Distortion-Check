@@ -48,7 +48,6 @@ export default class extends React.Component<ScanTableProps, ScanTableState> {
 
         return (
             <div>
-                <h2>Scans</h2>
                 <a href={upload_scan_url}>Upload New Scan</a>
                 <div>
                     Filter By

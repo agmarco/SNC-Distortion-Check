@@ -1,142 +1,135 @@
 import * as React from 'react';
 import 'd3';
-import './box';
-import './box.scss';
 
+import '../box';
 import { MachineSequencePairDTO, ScanDTO } from 'common/service';
+import ScanChartData from './ScanChartData';
+import ScanChartTolerance from './ScanChartTolerance';
+import ScanChartAxes from './ScanChartAxes';
+import './ScanChart.scss';
 
 declare const d3: any;
 
-interface ScanChartProps {
+interface ChartData {
+    [index: number]: number;
+    length: number;
+    quartiles: number[];
+    passed: boolean;
+}
+
+export interface ScanChartProps {
     machineSequencePair: MachineSequencePairDTO;
     scans: ScanDTO[];
 }
 
-export default class extends React.Component<ScanChartProps, {}> {
-    svg: any;
+export interface ScanChartSettings {
+    labels: boolean;
+    margin: {top: number; right: number; bottom: number; left: number};
+    width: number;
+    height: number;
+    min: number;
+    max: number;
+    data: ChartData[];
+    chart: any;
+    xScale: any;
+    yScale: any;
+}
 
-    renderPlot() {
-        const { machineSequencePair, scans } = this.props;
+export default class extends React.Component<ScanChartProps, {}> {
+    svg: SVGElement;
+    g: SVGGElement;
+
+    iqr(k: number) {
 
         // Returns a function to compute the interquartile range.
-        function iqr(k: any) {
-            return function (d: any, i: number) {
-                var q1 = d.quartiles[0],
-                    q3 = d.quartiles[2],
-                    iqr = (q3 - q1) * k,
-                    i = -1,
-                    j = d.length;
-                while (d[++i] < q1 - iqr);
-                while (d[--j] > q3 + iqr);
-                return [i, j];
-            };
-        }
+        return (d: ChartData, i: number) => {
+            let q1 = d.quartiles[0];
+            let q3 = d.quartiles[2];
+            let iqr = (q3 - q1) * k;
+            i = -1;
+            let j = d.length;
+            while (d[++i] < q1 - iqr) { }
+            while (d[--j] > q3 + iqr) { }
+            return [i, j];
+        };
+    }
 
-        var labels = true; // show the text labels beside individual boxplots?
+    settings() {
+        const { machineSequencePair, scans } = this.props;
+        const allDataPoints = Array.prototype.concat.apply([], scans.map((scan) => scan.distortion));
 
-        var margin = {top: 20, right: 20, bottom: 60, left: 60};
-        var  width = 800 - margin.left - margin.right;
-        var height = 400 - margin.top - margin.bottom;
+        const labels = true;
+        const margin = {top: 20, right: 20, bottom: 60, left: 60};
+        const width = 800 - margin.left - margin.right;
+        const height = 400 - margin.top - margin.bottom;
+        const min = 0;
+        const max = 1.05*Math.max(machineSequencePair.tolerance, Math.max.apply(null, allDataPoints));
+        const data = scans.map((scan) => {
+            const array = [scan.acquisition_date, scan.distortion] as any;
+            array.passed = scan.passed;
+            return array;
+        });
 
-        var allDataPoints = Array.prototype.concat.apply([], scans.map((scan) => scan.distortion));
-        var min = 0,
-            max = 1.05*Math.max(machineSequencePair.tolerance, Math.max.apply(null, allDataPoints));
-
-        var data = scans.map((scan, i) => [scan.acquisition_date + ' ' + i, scan.distortion]);
-
-        var chart = d3.box()
-            .whiskers(iqr(Infinity)) // 1.5
+        const chart = d3.box()
+            .whiskers(this.iqr(Infinity)) // 1.5
             .height(height)
             .domain([min, max])
             .showLabels(labels);
 
-        var svg = d3.select(this.svg);
-
-        var g = svg.attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-            .attr("class", "box")
-            .append("g")
-            .attr("transform", "translate(" + margin.left + ", 0)");
-
-        // the x-axis
-        var x = d3.scale.ordinal()
-            .domain( data.map(function(d) { return d[0] } ) )
+        const xScale = d3.scale.ordinal()
+            .domain(data.map(function(d) { return d[0] }))
             .rangeRoundBands([0 , width], 0.7, 0.3);
 
-        var xAxis = d3.svg.axis()
-            .scale(x)
-            .orient("bottom")
-            .innerTickSize(0)
-            .outerTickSize(0)
-            .tickPadding(10);
-
-        // the y-axis
-        var y = d3.scale.linear()
+        const yScale = d3.scale.linear()
             .domain([min, max])
             .range([height + margin.top, margin.top]);
 
-        var yAxis = d3.svg.axis()
-            .scale(y)
-            .orient("left")
-            .tickValues(d3.range(min, max, 0.5))
-            .innerTickSize(-width)
-            .outerTickSize(0)
-            .tickPadding(10);
+        return {
+            labels,
+            margin,
+            width,
+            height,
+            min,
+            max,
+            data,
+            chart,
+            xScale,
+            yScale,
+        }
+    }
 
-        // draw the boxplots
-        g.selectAll(".box")
-            .data(data)
-            .enter().append("g")
-            .attr("transform", function(d: any) { return "translate(" +  x(d[0])  + "," + margin.top + ")"; } )
-            .call(chart.width(x.rangeBand()));
+    renderPlot() {
+        const { width, height, margin } = this.settings();
+        
+        let svg = d3.select(this.svg);
+        let g = d3.select(this.g);
 
-        // draw tolerance line
-        g.append("line")
-            .style("stroke", "red")
-            .style("stroke-dasharray", "5, 5")
-            .attr("x1", 0)
-            .attr("y1", height - (machineSequencePair.tolerance / max * height) + margin.top) // TODO
-            .attr("x2", width)
-            .attr("y2", height - (machineSequencePair.tolerance / max * height) + margin.top);
+        svg.attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .attr("class", "box");
 
-        // draw x axis
-        g.append("g")
-            .attr("class", "x axis")
-            .attr("transform", "translate(0," + (height + margin.top) + ")")
-            .call(xAxis)
-            .append("text")
-            .attr("x", (width / 2) )
-            .attr("y", margin.bottom - 16) // TODO
-            .attr("dy", ".71em")
-            .style("text-anchor", "middle")
-            .style("alignment-baseline", "baseline")
-            .style("font-size", "16px")
-            .text("Scans");
-
-        // draw y axis
-        g.append("g")
-            .attr("class", "y axis")
-            .call(yAxis)
-            .append("text")
-            .attr("transform", "rotate(-90)")
-            .attr("x", -(height / 2) )
-            .attr("y", -margin.left)
-            .attr("dy", ".71em")
-            .style("text-anchor", "middle")
-            .style("font-size", "16px")
-            .text("Distortion (mm)");
+        g.attr("transform", "translate(" + margin.left + ", 0)");
     }
 
     componentDidMount() {
         this.renderPlot();
     }
 
+    componentDidUpdate() {
+        this.renderPlot();
+    }
+
     render() {
+        const settings = this.settings();
+
         return (
-            <div>
-                <h2>Performance over Time</h2>
-                <svg ref={(svg) => this.svg = svg} />
-            </div>
+            <svg ref={(svg) => this.svg = svg}>
+                <g ref={(g) => this.g = g}>
+                    <ScanChartData {...this.props} {...settings} />
+                    <ScanChartTolerance {...this.props} {...settings} />
+                    <ScanChartAxes {...this.props} {...settings} />
+                </g>
+            </svg>
         );
     }
 }
