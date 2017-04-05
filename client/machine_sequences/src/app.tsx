@@ -1,23 +1,13 @@
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
-import { AppContainer } from 'react-hot-loader';
 
+import { renderApp } from 'common/utils';
 import App from './containers/App';
 
-const render = (Component: React.ComponentClass<any> | React.StatelessComponent<any>) => {
-    ReactDOM.render(
-        <AppContainer>
-            <Component />
-        </AppContainer>,
-        document.getElementById('machine-sequences-app'),
-    );
-};
-
-render(App);
+renderApp(App, 'machine-sequences-app');
 
 // Hot Module Replacement API
 if (module.hot) {
     module.hot.accept('./containers/App', () => {
-        render(App);
+        renderApp(App, 'machine-sequences-app');
     });
 }
