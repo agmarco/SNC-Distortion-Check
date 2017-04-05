@@ -34,6 +34,7 @@ class MachineSequencePairSerializer(serializers.ModelSerializer):
             'latest_scan_date',
             'latest_scan_passed',
             'detail_url',
+            'tolerance',
         )
 
     def get_detail_url(self, pair):

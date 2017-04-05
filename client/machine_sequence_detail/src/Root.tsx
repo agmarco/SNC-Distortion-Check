@@ -12,6 +12,7 @@ export default () => (
     <div>
         <h1>{MACHINE_SEQUENCE_PAIR.machine.name} &mdash; {MACHINE_SEQUENCE_PAIR.sequence.name} Distortion</h1>
         <ScanChart
+            machineSequencePair={MACHINE_SEQUENCE_PAIR}
             scans={SCANS}
         />
         <ScanTable

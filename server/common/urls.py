@@ -47,3 +47,5 @@ urlpatterns = [
         url(r'^(?P<pk>\d+)/delete/$', views.DeleteUser.as_view(), name='delete_user'),
     ])),
 ]
+
+# TODO check the "next" query param when logging in

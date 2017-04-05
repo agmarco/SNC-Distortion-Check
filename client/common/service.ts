@@ -18,6 +18,7 @@ export interface MachineSequencePairDTO {
     latest_scan_date: string;
     latest_scan_passed: boolean;
     detail_url: string;
+    tolerance: number;
 }
 
 export interface PhantomDTO {

@@ -6,6 +6,8 @@ import Root from './Root';
 
 ReactDOM.render(<Root />, document.getElementById('machine-sequence-detail-app'));
 
+// TODO HMR only works first time
+
 if (module.hot) {
     module.hot.accept('Root', () => {
         require('Root');

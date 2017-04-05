@@ -28,7 +28,7 @@ def process_scan(scan_pk):
             ).run()
 
             # TODO run the distortion algorithm
-            scan.distortion = np.random.normal(1, 0.5, (10,))
+            scan.distortion = np.array(list(max(0, x) for x in np.random.normal(1, 0.5, (10,))))
 
             scan.processing = False
             scan.save()

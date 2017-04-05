@@ -7,7 +7,7 @@ import BoolIcon from './BoolIcon';
 
 interface MachineSequenceTableProps {
     machineSequencePairs: MachineSequencePairDTO[];
-    upload_scan_url: string;
+    upload_scan_url: string; // TODO camelCase
 }
 
 interface MachineSequenceTableState {

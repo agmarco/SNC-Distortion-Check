@@ -135,6 +135,7 @@ class Command(BaseCommand):
         machine_sequence_pair_a = factories.MachineSequencePairFactory(
             machine=machine_a,
             sequence=sequence_a,
+            tolerance=2.25
         )
         machine_sequence_pair_b = factories.MachineSequencePairFactory(
             machine=machine_a,
