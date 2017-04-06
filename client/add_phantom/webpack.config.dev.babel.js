@@ -33,7 +33,12 @@ export default (env) => {
             rules: [
                 {
                     test: /\.tsx?$/,
+                    enforce: 'pre',
+                    loader: 'tslint-loader',
+                }, {
+                    test: /\.tsx?$/,
                     use: ['babel-loader', 'ts-loader'],
+                    exclude: /node_modules/,
                 }, {
                     test: /\.scss$/,
                     use: ['style-loader', 'css-loader', 'sass-loader'],

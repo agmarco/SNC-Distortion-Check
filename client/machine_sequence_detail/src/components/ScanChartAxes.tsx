@@ -1,8 +1,8 @@
 import * as React from 'react';
 
-import { ScanChartProps, ScanChartSettings } from './ScanChart';
+import { IScanChartProps, IScanChartSettings } from './ScanChart';
 
-export default class extends React.Component<ScanChartProps & ScanChartSettings, {}> {
+export default class extends React.Component<IScanChartProps & IScanChartSettings, {}> {
     xAxis: SVGGElement;
     yAxis: SVGGElement;
 
@@ -22,8 +22,7 @@ export default class extends React.Component<ScanChartProps & ScanChartSettings,
             .orient("bottom")
             .innerTickSize(0)
             .outerTickSize(0)
-            .tickPadding(10)
-        );
+            .tickPadding(10));
 
         d3.select(this.yAxis).call(d3.svg.axis()
             .scale(yScale)
@@ -31,8 +30,7 @@ export default class extends React.Component<ScanChartProps & ScanChartSettings,
             .tickValues(d3.range(min, max, 0.5))
             .innerTickSize(-width)
             .outerTickSize(0)
-            .tickPadding(10)
-        );
+            .tickPadding(10));
     }
 
     renderXAxis() {
@@ -50,9 +48,11 @@ export default class extends React.Component<ScanChartProps & ScanChartSettings,
             dy: ".71em",
         };
 
-        return <g ref={(g) => this.xAxis = g} {...xAxisProps}>
-            <text {...xLabelProps}>Scans</text>
-        </g>
+        return (
+            <g ref={(g) => this.xAxis = g} {...xAxisProps}>
+                <text {...xLabelProps}>Scans</text>
+            </g>
+        );
     }
 
     renderYAxis() {
@@ -70,9 +70,11 @@ export default class extends React.Component<ScanChartProps & ScanChartSettings,
             transform: "rotate(-90)",
         };
 
-        return <g ref={(g) => this.yAxis = g} {...yAxisProps}>
-            <text {...yLabelProps}>Distortion (mm)</text>
-        </g>
+        return (
+            <g ref={(g) => this.yAxis = g} {...yAxisProps}>
+                <text {...yLabelProps}>Distortion (mm)</text>
+            </g>
+        );
     }
 
     render() {

@@ -2,23 +2,23 @@ import * as React from 'react';
 import { format } from 'date-fns';
 import uniqBy from 'lodash/uniqBy';
 
-import { MachineSequencePairDTO, MachineDTO, SequenceDTO } from '../service';
+import { IMachineSequencePairDTO, IMachineDTO, ISequenceDTO } from '../service';
 import BoolIcon from './BoolIcon';
 
-interface MachineSequenceTableProps {
-    machineSequencePairs: MachineSequencePairDTO[];
+interface IMachineSequenceTableProps {
+    machineSequencePairs: IMachineSequencePairDTO[];
     uploadScanUrl: string;
 }
 
-interface MachineSequenceTableState {
-    machines: MachineDTO[];
-    sequences: SequenceDTO[];
+interface IMachineSequenceTableState {
+    machines: IMachineDTO[];
+    sequences: ISequenceDTO[];
     currentMachinePk: string;
     currentSequencePk: string;
 }
 
-export default class extends React.Component<MachineSequenceTableProps, MachineSequenceTableState> {
-    constructor(props: MachineSequenceTableProps) {
+export default class extends React.Component<IMachineSequenceTableProps, IMachineSequenceTableState> {
+    constructor(props: IMachineSequenceTableProps) {
         super();
 
         this.state = {
@@ -26,19 +26,19 @@ export default class extends React.Component<MachineSequenceTableProps, MachineS
             sequences: uniqBy(props.machineSequencePairs, (pair) => pair.sequence.pk).map((pair) => pair.sequence),
             currentMachinePk: 'all',
             currentSequencePk: 'all',
-        }
+        };
     }
 
     filteredMachineSequencePairs() {
         const { machineSequencePairs } = this.props;
         const { currentMachinePk, currentSequencePk } = this.state;
-        const filters: ((pair: MachineSequencePairDTO) => boolean)[] = [];
+        const filters: Array<(pair: IMachineSequencePairDTO) => boolean> = [];
 
         if (currentMachinePk !== 'all') {
-            filters.push((pair) => pair.machine.pk.toString() == currentMachinePk);
+            filters.push((pair) => pair.machine.pk.toString() === currentMachinePk);
         }
         if (currentSequencePk !== 'all') {
-            filters.push((pair) => pair.sequence.pk.toString() == currentSequencePk);
+            filters.push((pair) => pair.sequence.pk.toString() === currentSequencePk);
         }
 
         return machineSequencePairs.filter((pair) => filters.every((filter) => filter(pair)));
@@ -64,11 +64,15 @@ export default class extends React.Component<MachineSequenceTableProps, MachineS
                     Filter By
                     <select value={currentMachinePk} onChange={this.handleMachineChange.bind(this)}>
                         <option value="all">All Machines</option>
-                        {machines.map((machine) => <option value={machine.pk} key={machine.pk}>{machine.name}</option>)}
+                        {machines.map((machine) => (
+                            <option value={machine.pk} key={machine.pk}>{machine.name}</option>
+                        ))}
                     </select>
                     <select value={currentSequencePk} onChange={this.handleSequenceChange.bind(this)}>
                         <option value="all">All Sequences</option>
-                        {sequences.map((sequence) => <option value={sequence.pk} key={sequence.pk}>{sequence.name}</option>)}
+                        {sequences.map((sequence) => (
+                            <option value={sequence.pk} key={sequence.pk}>{sequence.name}</option>
+                        ))}
                     </select>
                 </div>
                 <table>
@@ -86,8 +90,12 @@ export default class extends React.Component<MachineSequenceTableProps, MachineS
                             <tr key={pair.pk}>
                                 <td>{pair.machine.name}</td>
                                 <td>{pair.sequence.name}</td>
-                                <td>{pair.latest_scan_date && format(new Date(pair.latest_scan_date), 'MMMM D, YYYY')}</td>
-                                <td>{pair.latest_scan_passed !== null && <BoolIcon value={pair.latest_scan_passed} />}</td>
+                                <td>
+                                    {pair.latest_scan_date && format(new Date(pair.latest_scan_date), 'MMMM D, YYYY')}
+                                </td>
+                                <td>
+                                    {pair.latest_scan_passed !== null && <BoolIcon value={pair.latest_scan_passed} />}
+                                </td>
                                 <td><a href={pair.detail_url}>View Details</a></td>
                             </tr>
                         ))}

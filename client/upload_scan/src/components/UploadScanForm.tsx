@@ -1,24 +1,24 @@
 import * as React from 'react';
 
-import { MachineDTO, SequenceDTO, PhantomDTO} from 'common/service';
+import { IMachineDTO, ISequenceDTO, IPhantomDTO} from 'common/service';
 
-interface UploadScanFormProps {
-    machines: MachineDTO[];
-    sequences: SequenceDTO[];
-    phantoms: PhantomDTO[];
+interface IUploadScanFormProps {
+    machines: IMachineDTO[];
+    sequences: ISequenceDTO[];
+    phantoms: IPhantomDTO[];
     uploadScanUrl: string;
     cancelUrl: string;
     formErrors: {[field: string]: string[]};
     csrftoken: string;
 }
 
-interface UploadScanFormState {
+interface IUploadScanFormState {
     currentMachinePk: string|number;
     currentSequencePk: string|number;
     currentPhantomPk: string|number;
 }
 
-export default class extends React.Component<UploadScanFormProps, UploadScanFormState> {
+export default class extends React.Component<IUploadScanFormProps, IUploadScanFormState> {
     constructor() {
         super();
 
@@ -40,24 +40,24 @@ export default class extends React.Component<UploadScanFormProps, UploadScanForm
     }
 
     handleMachineChange(event: React.FormEvent<HTMLInputElement>) {
-        this.setState({currentMachinePk: Number((event.target as any).value)})
+        this.setState({currentMachinePk: Number((event.target as any).value)});
     }
 
     handleSequenceChange(event: React.FormEvent<HTMLInputElement>) {
-        this.setState({currentSequencePk: Number((event.target as any).value)})
+        this.setState({currentSequencePk: Number((event.target as any).value)});
     }
 
     handlePhantomChange(event: React.FormEvent<HTMLInputElement>) {
-        this.setState({currentPhantomPk: Number((event.target as any).value)})
+        this.setState({currentPhantomPk: Number((event.target as any).value)});
     }
 
     render() {
         const { machines, sequences, phantoms, uploadScanUrl, cancelUrl, csrftoken } = this.props;
         const { currentMachinePk, currentSequencePk, currentPhantomPk } = this.state;
 
-        const currentMachine = currentMachinePk ? machines.find((machine) => machine.pk === currentMachinePk) : null;
-        const currentSequence = currentSequencePk ? sequences.find((sequence) => sequence.pk === currentSequencePk) : null;
-        const currentPhantom = currentPhantomPk ? phantoms.find((phantom) => phantom.pk === currentPhantomPk) : null;
+        const currentMachine = currentMachinePk && machines.find((machine) => machine.pk === currentMachinePk);
+        const currentSequence = currentSequencePk && sequences.find((sequence) => sequence.pk === currentSequencePk);
+        const currentPhantom = currentPhantomPk && phantoms.find((phantom) => phantom.pk === currentPhantomPk);
 
         return (
             <div>
@@ -69,9 +69,17 @@ export default class extends React.Component<UploadScanFormProps, UploadScanForm
                         {this.fieldErrors('machine')}
 
                         <label htmlFor="upload-scan-machine">Machine</label>
-                        <select id="upload-scan-machine" name="machine" value={currentMachinePk} onChange={this.handleMachineChange.bind(this)} required>
+                        <select
+                            id="upload-scan-machine"
+                            name="machine"
+                            value={currentMachinePk}
+                            onChange={this.handleMachineChange.bind(this)}
+                            required
+                        >
                             <option value="" disabled />
-                            {machines.map((machine) => <option value={machine.pk} key={machine.pk}>{machine.name}</option>)}
+                            {machines.map((machine) => (
+                                <option value={machine.pk} key={machine.pk}>{machine.name}</option>
+                            ))}
                         </select>
 
                         {currentMachine && (
@@ -92,9 +100,17 @@ export default class extends React.Component<UploadScanFormProps, UploadScanForm
                         {this.fieldErrors('sequence')}
 
                         <label htmlFor="upload-scan-sequence">Sequence</label>
-                        <select id="upload-scan-sequence" name="sequence" value={currentSequencePk} onChange={this.handleSequenceChange.bind(this)} required>
+                        <select
+                            id="upload-scan-sequence"
+                            name="sequence"
+                            value={currentSequencePk}
+                            onChange={this.handleSequenceChange.bind(this)}
+                            required
+                        >
                             <option value="" disabled />
-                            {sequences.map((sequence) => <option value={sequence.pk} key={sequence.pk}>{sequence.name}</option>)}
+                            {sequences.map((sequence) => (
+                                <option value={sequence.pk} key={sequence.pk}>{sequence.name}</option>
+                            ))}
                         </select>
 
                         {currentSequence && (
@@ -111,9 +127,17 @@ export default class extends React.Component<UploadScanFormProps, UploadScanForm
                         {this.fieldErrors('phantom')}
 
                         <label htmlFor="upload-scan-phantom">Phantom</label>
-                        <select id="upload-scan-phantom" name="phantom" value={currentPhantomPk} onChange={this.handlePhantomChange.bind(this)} required>
+                        <select
+                            id="upload-scan-phantom"
+                            name="phantom"
+                            value={currentPhantomPk}
+                            onChange={this.handlePhantomChange.bind(this)}
+                            required
+                        >
                             <option value="" disabled />
-                            {phantoms.map((phantom) => <option value={phantom.pk} key={phantom.pk}>{phantom.name}</option>)}
+                            {phantoms.map((phantom) => (
+                                <option value={phantom.pk} key={phantom.pk}>{phantom.name}</option>
+                            ))}
                         </select>
 
                         {currentPhantom && (
@@ -139,7 +163,8 @@ export default class extends React.Component<UploadScanFormProps, UploadScanForm
 
                         <label htmlFor="upload-scan-dicom-archive">MRI Scan Files</label>
                         <input id="upload-scan-dicom-archive" name="dicom_archive" type="file" required />
-                        Please upload a zip-file containing the MRI DICOM files of a scan of the specified phatom, on the specified machine, using the specified sequence.
+                        Please upload a zip-file containing the MRI DICOM files of a scan of the specified phatom, on
+                        the specified machine, using the specified sequence.
                     </div>
 
                     <div>

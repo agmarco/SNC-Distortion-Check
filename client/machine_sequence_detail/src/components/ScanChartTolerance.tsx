@@ -1,8 +1,8 @@
 import * as React from 'react';
 
-import { ScanChartProps, ScanChartSettings } from './ScanChart';
+import { IScanChartProps, IScanChartSettings } from './ScanChart';
 
-export default class extends React.Component<ScanChartProps & ScanChartSettings, {}> {
+export default class extends React.Component<IScanChartProps & IScanChartSettings, {}> {
     render() {
         const { width, machineSequencePair, yScale } = this.props;
 

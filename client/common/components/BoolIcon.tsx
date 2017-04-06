@@ -1,7 +1,13 @@
 import * as React from 'react';
 
-interface BoolIconProps {
+interface IBoolIconProps {
     value: boolean;
 }
 
-export default ({ value }: BoolIconProps) => value ? <i className="fa fa-check" aria-hidden="true" /> : <i className="fa fa-times" aria-hidden="true" />
+export default ({ value }: IBoolIconProps) => {
+    if (value) {
+        return <i className="fa fa-check" aria-hidden="true" />;
+    } else {
+        return <i className="fa fa-times" aria-hidden="true" />;
+    }
+};

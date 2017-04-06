@@ -3,7 +3,7 @@ import * as Bluebird from 'bluebird';
 
 import { handleErrors, encode } from 'common/utils';
 
-interface AddPhantomFormProps {
+interface IAddPhantomFormProps {
     createPhantomUrl: string;
     validateSerialUrl: string;
     cancelUrl: string;
@@ -11,14 +11,14 @@ interface AddPhantomFormProps {
     csrftoken: string;
 }
 
-interface AddPhantomFormState {
+interface IAddPhantomFormState {
     validating: boolean;
     valid: boolean;
     modelNumber: string | null;
     promise: Bluebird<any> | null;
 }
 
-export default class extends React.Component<AddPhantomFormProps, AddPhantomFormState> {
+export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFormState> {
     constructor() {
         super();
 
@@ -58,7 +58,7 @@ export default class extends React.Component<AddPhantomFormProps, AddPhantomForm
                         promise: null,
                         valid,
                         model_number,
-                    })
+                    });
                 }).bind(this));
             });
 
@@ -111,7 +111,9 @@ export default class extends React.Component<AddPhantomFormProps, AddPhantomForm
 
                     <div>
                         <label>Gold Standard Grid Intersection Locations</label>
-                        By default, the new phantom will use gold standard grid intersection locations based on the CAD design for the particular phantom model you select. These points can be customized at any point using a gold standard CT, or a raw point upload.
+                        By default, the new phantom will use gold standard grid intersection locations based on the CAD
+                        design for the particular phantom model you select. These points can be customized at any point
+                        using a gold standard CT, or a raw point upload.
                     </div>
 
                     <a href={cancelUrl}>Cancel</a>

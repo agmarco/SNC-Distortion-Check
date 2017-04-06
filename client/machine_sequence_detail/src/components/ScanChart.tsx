@@ -1,50 +1,54 @@
 import * as React from 'react';
 
-import { MachineSequencePairDTO, ScanDTO } from 'common/service';
+import { IMachineSequencePairDTO, IScanDTO } from 'common/service';
 import ScanChartData from './ScanChartData';
 import ScanChartTolerance from './ScanChartTolerance';
 import ScanChartAxes from './ScanChartAxes';
 
 import './ScanChart.scss';
 
-interface ChartData {
+interface IChartData {
     [index: number]: number;
     length: number;
     quartiles: number[];
     passed: boolean;
 }
 
-export interface ScanChartSettings {
+export interface IScanChartSettings {
     labels: boolean;
     margin: {top: number; right: number; bottom: number; left: number};
     width: number;
     height: number;
     min: number;
     max: number;
-    data: ChartData[];
+    data: IChartData[];
     chart: any;
     xScale: any;
     yScale: any;
 }
 
-export interface ScanChartProps {
-    machineSequencePair: MachineSequencePairDTO;
-    scans: ScanDTO[];
+export interface IScanChartProps {
+    machineSequencePair: IMachineSequencePairDTO;
+    scans: IScanDTO[];
 }
 
-export default class extends React.Component<ScanChartProps, {}> {
+export default class extends React.Component<IScanChartProps, {}> {
 
     // Returns a function to compute the interquartile range.
     // Higher values of k will produce fewer outliers.
     iqr(k: number) {
-        return (d: ChartData, i: number) => {
+        return (d: IChartData, i: number) => {
             let q1 = d.quartiles[0];
             let q3 = d.quartiles[2];
             let iqr = (q3 - q1) * k;
-            i = -1;
-            let j = d.length;
-            while (d[++i] < q1 - iqr) { }
-            while (d[--j] > q3 + iqr) { }
+            i = 0;
+            let j = d.length - 1;
+            while (d[i] < q1 - iqr) {
+                i++;
+            }
+            while (d[j] > q3 + iqr) {
+                j--;
+            }
             return [i, j];
         };
     }
@@ -60,7 +64,7 @@ export default class extends React.Component<ScanChartProps, {}> {
         const height = 400 - margin.top - margin.bottom;
 
         const min = 0;
-        const max = 1.05*Math.max.apply(null, [machineSequencePair.tolerance, ...allDataPoints]);
+        const max = 1.05 * Math.max.apply(null, [machineSequencePair.tolerance, ...allDataPoints]);
 
         const data = scans.map((scan) => {
             const array = [scan.acquisition_date, scan.distortion] as any;
@@ -93,7 +97,7 @@ export default class extends React.Component<ScanChartProps, {}> {
             chart,
             xScale,
             yScale,
-        }
+        };
     }
 
     render() {

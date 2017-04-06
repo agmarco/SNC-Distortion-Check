@@ -1,12 +1,12 @@
 import * as React from 'react';
 import * as Cookies from 'js-cookie';
 
-import { MachineDTO, SequenceDTO, PhantomDTO } from 'common/service';
+import { IMachineDTO, ISequenceDTO, IPhantomDTO } from 'common/service';
 import UploadScanForm from 'components/UploadScanForm';
 
-declare const MACHINES: MachineDTO[];
-declare const SEQUENCES: SequenceDTO[];
-declare const PHANTOMS: PhantomDTO[];
+declare const MACHINES: IMachineDTO[];
+declare const SEQUENCES: ISequenceDTO[];
+declare const PHANTOMS: IPhantomDTO[];
 declare const UPLOAD_SCAN_URL: string;
 declare const CANCEL_URL: string;
 declare const FORM_ERRORS: {[field: string]: string[]};

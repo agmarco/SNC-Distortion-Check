@@ -1,11 +1,11 @@
 import * as React from 'react';
 
-import { MachineSequencePairDTO, ScanDTO } from 'common/service';
+import { IMachineSequencePairDTO, IScanDTO } from 'common/service';
 import ScanChart from 'components/ScanChart';
 import ScanTable from 'components/ScanTable';
 
-declare const MACHINE_SEQUENCE_PAIR: MachineSequencePairDTO;
-declare const SCANS: ScanDTO[];
+declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDTO;
+declare const SCANS: IScanDTO[];
 declare const UPLOAD_SCAN_URL: string;
 
 export default () => (
