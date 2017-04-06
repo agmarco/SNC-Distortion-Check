@@ -9,6 +9,7 @@
 
 {% block "scripts" %}
   <script src="{% static 'common/fontawesome.js' %}"></script>
+  <script>{% manifest 'landing' %}</script>
   <script src="{% webpack 'landing/vendor.js' %}"></script>
   <script>
     var MACHINE_SEQUENCE_PAIRS = {{ machine_sequence_pairs|safe }};

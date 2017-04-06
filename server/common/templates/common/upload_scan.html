@@ -7,6 +7,7 @@
 {% endblock %}
 
 {% block "scripts" %}
+  <script>{% manifest 'upload_scan' %}</script>
   <script src="{% webpack 'upload_scan/vendor.js' %}"></script>
   <script>
     var MACHINES = {{ machines|safe }};

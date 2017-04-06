@@ -7,6 +7,7 @@
 {% endblock %}
 
 {% block "scripts" %}
+  <script>{% manifest 'add_phantom' %}</script>
   <script src="{% webpack 'add_phantom/vendor.js' %}"></script>
   <script>
     var CREATE_PHANTOM_URL = "{% url 'create_phantom' %}";

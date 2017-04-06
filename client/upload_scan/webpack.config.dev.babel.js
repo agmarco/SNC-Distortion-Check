@@ -1,13 +1,13 @@
 import * as path from 'path';
 import * as webpack from 'webpack';
 
-export default (options) => {
+export default (env) => {
     const config = {
         entry: {
             app: [
                 'babel-polyfill',
                 'react-hot-loader/patch',
-                path.resolve('./src/app.tsx'),
+                path.join(__dirname, 'src/app.tsx'),
             ],
             vendor: [
                 'react-hot-loader',
@@ -17,15 +17,16 @@ export default (options) => {
         },
 
         output: {
-            path: path.resolve('../dist/upload_scan'),
+            path: path.join(__dirname, '../dist/upload_scan'),
             publicPath: 'http://0.0.0.0:8080/upload_scan/',
+            filename: '[name].js',
         },
 
-        devtool: 'eval',
+        devtool: 'cheap-eval-source-map',
 
         plugins: [
             new webpack.NoEmitOnErrorsPlugin(),
-            new webpack.optimize.CommonsChunkPlugin({name: 'vendor', filename: '[name].js'}),
+            new webpack.optimize.CommonsChunkPlugin({name: 'vendor'}),
         ],
 
         module: {
@@ -42,18 +43,27 @@ export default (options) => {
 
         resolve: {
             modules: [
-                path.resolve('./src'),
-                path.resolve('../'),
-                path.resolve('../node_modules'),
+                path.join(__dirname, 'src'),
+                path.join(__dirname, '..'),
+                path.join(__dirname, '../node_modules'),
             ],
             extensions: ['.webpack.js', '.web.js', '.js', '.jsx', '.ts', '.tsx'],
         },
+
+        devServer: {
+            hotOnly: env === 'hot',
+            contentBase: path.join(__dirname, '../dist/upload_scan'),
+            publicPath: 'http://0.0.0.0:8080/upload_scan/',
+            compress: true,
+            host: '0.0.0.0',
+            port: 8080,
+            stats: {chunks: false},
+        },
     };
 
-    if (options.hot) {
+    if (env === 'hot') {
         config.entry.app.unshift(
             'webpack-dev-server/client?http://0.0.0.0:8080',
-            'webpack/hot/only-dev-server',
         );
         config.plugins.push(
             new webpack.HotModuleReplacementPlugin(),

@@ -20,8 +20,6 @@
     "babel-preset-react": "^6.23.0",
     "chunk-manifest-webpack-plugin": "^1.0.0",
     "css-loader": "^0.28.0",
-    "gulp": "^3.9.1",
-    "gulp-util": "^3.0.8",
     "node-sass": "^4.5.2",
     "sass-loader": "^6.0.3",
     "style-loader": "^0.16.1",
@@ -44,8 +42,20 @@
     "webpack": "^2.2.1"
   },
   "scripts": {
-    "machine_sequence_detail:dev": "cd machine_sequence_detail; webpack --config webpack.config.dev.babel.js --env dev",
-    "machine_sequence_detail:hot": "cd machine_sequence_detail; webpack-dev-server --config webpack.config.dev.babel.js --env hot",
-    "machine_sequence_detail:prod": "cd machine_sequence_detail; webpack --config webpack.config.prod.babel.js --env prod"
+    "landing:dev": "cd landing; webpack --env dev",
+    "landing:hot": "cd landing; webpack-dev-server --env hot",
+    "landing:prod": "cd landing; webpack --env prod",
+    "machine_sequences:dev": "cd machine_sequences; webpack --env dev",
+    "machine_sequences:hot": "cd machine_sequences; webpack-dev-server --env hot",
+    "machine_sequences:prod": "cd machine_sequences; webpack --env prod",
+    "machine_sequence_detail:dev": "cd machine_sequence_detail; webpack --env dev",
+    "machine_sequence_detail:hot": "cd machine_sequence_detail; webpack-dev-server --env hot",
+    "machine_sequence_detail:prod": "cd machine_sequence_detail; webpack --env prod",
+    "add_phantom:dev": "cd add_phantom; webpack --env dev",
+    "add_phantom:hot": "cd add_phantom; webpack-dev-server --env hot",
+    "add_phantom:prod": "cd add_phantom; webpack --env prod",
+    "upload_scan:dev": "cd upload_scan; webpack --env dev",
+    "upload_scan:hot": "cd upload_scan; webpack-dev-server --env hot",
+    "upload_scan:prod": "cd upload_scan; webpack --env prod"
   }
 }
