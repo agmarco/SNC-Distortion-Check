@@ -12,41 +12,47 @@ register = template.Library()
 
 
 @register.simple_tag
-def webpack(path):
+def webpack(app, bundle):
     """Use the webpack dev server in development, and staticfiles in production."""
 
-    if not settings.DEBUG:
-
-        # load the correct file from the manifest.json
-        dirname, basename = os.path.split(path)
-        with open(os.path.join(settings.BASE_DIR, 'client/dist', dirname, 'manifest.json')) as manifest_file:
-            manifest = json.load(manifest_file)
-            filename = manifest[basename]
-        return static(os.path.join(dirname, filename))
-
-    else:
-        webpack_path = os.path.join('http://0.0.0.0:8080/', path)
+    if settings.DEBUG:
+        webpack_path = os.path.join('http://0.0.0.0:8080/', app, f'{bundle}.js')
+        static_path = static(os.path.join(app, f'{bundle}.js'))
 
         try:
             res = requests.get(webpack_path)
         except ConnectionError:
-            return static(path)
+            return static_path
 
         if res.status_code == 200:
             return webpack_path
         else:
-            return static(path)
+            return static_path
+
+    else:
+
+        # load the correct file from the manifest.json
+        with open(os.path.join(settings.BASE_DIR, 'client/dist', app, 'manifest.json')) as manifest_file:
+            manifest = json.load(manifest_file)
+            filename = manifest[f'{bundle}.js']
+        return static(os.path.join(app, filename))
+
+
 
 
 @register.simple_tag
-def manifest(dirname):
+def manifest(app):
     """Add the webpack chunk manifest to the global scope."""
 
-    with open(os.path.join(settings.BASE_DIR, 'client/dist', dirname, 'chunk-manifest.json')) as manifest_file:
-        manifest = json.load(manifest_file)
+    if settings.DEBUG:
+        return ''
 
-    return mark_safe(f"""
-    //<![CDATA[
-        window.webpackManifest = {json.dumps(manifest)};
-    //]]>
-    """) if not settings.DEBUG else ''
+    else:
+        with open(os.path.join(settings.BASE_DIR, 'client/dist', app, 'chunk-manifest.json')) as manifest_file:
+            manifest = json.load(manifest_file)
+
+        return mark_safe(f"""
+        //<![CDATA[
+            window.webpackManifest = {json.dumps(manifest)};
+        //]]>
+        """)

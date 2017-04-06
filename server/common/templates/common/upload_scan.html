@@ -8,7 +8,7 @@
 
 {% block "scripts" %}
   <script>{% manifest 'upload_scan' %}</script>
-  <script src="{% webpack 'upload_scan/vendor.js' %}"></script>
+  <script src="{% webpack 'upload_scan' 'vendor' %}"></script>
   <script>
     var MACHINES = {{ machines|safe }};
     var SEQUENCES = {{ sequences|safe }};
@@ -17,5 +17,5 @@
     var CANCEL_URL = {% url 'machine_sequences' %};
     var FORM_ERRORS = {% if form_errors %}{{ form_errors|safe }}{% else %}null{% endif %};
   </script>
-  <script src="{% webpack 'upload_scan/app.js' %}"></script>
+  <script src="{% webpack 'upload_scan' 'app' %}"></script>
 {% endblock %}

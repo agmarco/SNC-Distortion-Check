@@ -8,12 +8,12 @@
 
 {% block "scripts" %}
   <script>{% manifest 'add_phantom' %}</script>
-  <script src="{% webpack 'add_phantom/vendor.js' %}"></script>
+  <script src="{% webpack 'add_phantom' 'vendor' %}"></script>
   <script>
     var CREATE_PHANTOM_URL = "{% url 'create_phantom' %}";
     var VALIDATE_SERIAL_URL = "{% url 'validate_serial' %}";
     var CANCEL_URL = "{% url 'configuration' %}";
     var FORM_ERRORS = {% if form_errors %}{{ form_errors|safe }}{% else %}null{% endif %};
   </script>
-  <script src="{% webpack 'add_phantom/app.js' %}"></script>
+  <script src="{% webpack 'add_phantom' 'app' %}"></script>
 {% endblock %}

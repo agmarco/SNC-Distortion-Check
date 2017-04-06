@@ -10,10 +10,10 @@
 {% block "scripts" %}
   <script src="{% static 'common/fontawesome.js' %}"></script>
   <script>{% manifest 'machine_sequences' %}</script>
-  <script src="{% webpack 'machine_sequences/vendor.js' %}"></script>
+  <script src="{% webpack 'machine_sequences' 'vendor' %}"></script>
   <script>
     var MACHINE_SEQUENCE_PAIRS = {{ machine_sequence_pairs|safe }};
     var UPLOAD_SCAN_URL = {% url 'upload_scan' %};
   </script>
-  <script src="{% webpack 'machine_sequences/app.js' %}"></script>
+   <script src="{% webpack 'machine_sequences' 'app' %}"></script>
 {% endblock %}
