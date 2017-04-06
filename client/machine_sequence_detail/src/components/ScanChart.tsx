@@ -17,6 +17,7 @@ interface IChartData {
 export interface IScanChartSettings {
     labels: boolean;
     margin: {top: number; right: number; bottom: number; left: number};
+    clipWidth: number;
     width: number;
     height: number;
     min: number;
@@ -33,6 +34,8 @@ export interface IScanChartProps {
 }
 
 export default class extends React.Component<IScanChartProps, {}> {
+    svg: SVGElement;
+    g: any;
 
     // Returns a function to compute the interquartile range.
     // Higher values of k will produce fewer outliers.
@@ -60,11 +63,13 @@ export default class extends React.Component<IScanChartProps, {}> {
         const labels = true;
         const margin = {top: 0, right: 0, bottom: 60, left: 60};
 
-        const width = 800 - margin.left - margin.right;
+        const clipWidth = 800 - margin.left - margin.right;
         const height = 400 - margin.top - margin.bottom;
 
         const min = 0;
         const max = 1.05 * Math.max.apply(null, [machineSequencePair.tolerance, ...allDataPoints]);
+
+        const width = scans.length * 80;
 
         const data = scans.map((scan) => {
             const array = [scan.acquisition_date, scan.distortion] as any;
@@ -89,6 +94,7 @@ export default class extends React.Component<IScanChartProps, {}> {
         return {
             labels,
             margin,
+            clipWidth,
             width,
             height,
             min,
@@ -100,20 +106,42 @@ export default class extends React.Component<IScanChartProps, {}> {
         };
     }
 
+    renderPlot() {
+        const { xScale, width, height, data } = this.settings();
+
+        const zoom = d3.behavior.zoom()
+            .on('zoom', () => {
+                d3.select(this.g).attr('transform', `translate(${d3.event.translate[0]}, 0)`);
+            });
+
+        d3.select(this.svg).call(zoom);
+    }
+
+    componentDidMount() {
+        this.renderPlot();
+    }
+
+    componentDidUpdate() {
+        this.renderPlot();
+    }
+
     render() {
         const settings = this.settings();
-        const { width, height, margin } = settings;
+        const { clipWidth, height, width, margin } = settings;
 
         return (
             <svg
-                width={width + margin.left + margin.right}
+                width={clipWidth + margin.left + margin.right}
                 height={height + margin.top + margin.bottom}
                 className="box"
+                ref={(svg) => this.svg = svg}
             >
                 <g transform={`translate(${margin.left}, ${margin.top})`}>
-                    <ScanChartData {...this.props} {...settings} />
-                    <ScanChartTolerance {...this.props} {...settings} />
-                    <ScanChartAxes {...this.props} {...settings} />
+                    <g width={width} ref={(g) => this.g = g}>
+                        <ScanChartData {...this.props} {...settings} />
+                        <ScanChartTolerance {...this.props} {...settings} />
+                        <ScanChartAxes {...this.props} {...settings} />
+                    </g>
                 </g>
             </svg>
         );
