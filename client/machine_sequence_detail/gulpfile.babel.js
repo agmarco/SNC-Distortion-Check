@@ -38,7 +38,7 @@ gulp.task('dev:webpack:watch', (cb) => {
 });
 
 gulp.task('dev:webpack-dev-server', (cb) => {
-    const webpackDev = webpackDevFactory({hot: true});
+    const webpackDev = webpackDevFactory("hot");
     new WebpackDevServer(webpack(webpackDev), {
         publicPath: webpackDev.output.publicPath,
         contentBase: 'src',
