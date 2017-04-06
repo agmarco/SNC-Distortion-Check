@@ -4,6 +4,7 @@ body {
 
 .box {
   font: 10px sans-serif;
+  cursor: all-scroll;
 
   line, rect, circle {
     fill: none;
@@ -26,40 +27,35 @@ body {
     fill: none;
     stroke: #000;
   }
-}
 
-.axis {
-  font: 12px sans-serif;
+  .axis {
+    font: 12px sans-serif;
 
-  path, line {
+    path, line {
+      fill: none;
+      stroke: #000;
+    }
+  }
+
+  .x.axis path {
     fill: none;
     stroke: #000;
+    shape-rendering: crispEdges;
   }
-}
 
-.x.axis path {
-  fill: none;
-  stroke: #000;
-  shape-rendering: crispEdges;
-}
+  .tolerance {
+    stroke: #900;
+    stroke-dasharray: 5, 5;
+  }
 
-.tolerance {
-  stroke: #900;
-  stroke-dasharray: 5, 5;
-}
+  .x-label {
+    text-anchor: middle;
+    alignment-baseline: baseline;
+    font-size: 16px;
+  }
 
-.x-label {
-  text-anchor: middle;
-  alignment-baseline: baseline;
-  font-size: 16px;
-}
-
-.y-label {
-  text-anchor: middle;
-  font-size: 16px;
-}
-
-.overlay {
-  stroke-width: 0px;
-  fill-opacity: 0;
+  .y-label {
+    text-anchor: middle;
+    font-size: 16px;
+  }
 }

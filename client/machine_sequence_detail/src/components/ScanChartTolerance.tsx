@@ -1,17 +1,19 @@
 import * as React from 'react';
 
-import { IScanChartProps, IScanChartSettings } from './ScanChart';
+import { IScanChartProps, IScanChartSettings, IZoomable } from './ScanChart';
 
-export default class extends React.Component<IScanChartProps & IScanChartSettings, {}> {
+interface IScanChartToleranceProps extends IScanChartProps, IScanChartSettings, IZoomable {}
+
+export default class extends React.Component<IScanChartToleranceProps, {}> {
     render() {
-        const { width, machineSequencePair, yScale } = this.props;
+        const { clipWidth, machineSequencePair, yScale, margin } = this.props;
 
         return (
             <line
                 className="tolerance"
                 x1={0}
                 y1={yScale(machineSequencePair.tolerance)}
-                x2={width}
+                x2={clipWidth + margin.right}
                 y2={yScale(machineSequencePair.tolerance)}
             />
         );

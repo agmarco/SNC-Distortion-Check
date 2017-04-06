@@ -7,11 +7,19 @@ import ScanChartAxes from './ScanChartAxes';
 
 import './ScanChart.scss';
 
-interface IChartData {
+interface IScanData {
     [index: number]: number;
     length: number;
     quartiles: number[];
     passed: boolean;
+}
+
+interface IZoomHandler {
+    (tx: number): void;
+}
+
+export interface IZoomable {
+    registerZoomHandler: (handler: IZoomHandler) => void;
 }
 
 export interface IScanChartSettings {
@@ -22,7 +30,7 @@ export interface IScanChartSettings {
     height: number;
     min: number;
     max: number;
-    data: IChartData[];
+    data: IScanData[];
     chart: any;
     xScale: any;
     yScale: any;
@@ -35,12 +43,18 @@ export interface IScanChartProps {
 
 export default class extends React.Component<IScanChartProps, {}> {
     svg: SVGElement;
-    g: any;
+    settings: IScanChartSettings;
+    zoomHandlers: IZoomHandler[] = [];
+
+    constructor(props: IScanChartProps) {
+        super();
+        this.settings = this.getSettings(props);
+    }
 
     // Returns a function to compute the interquartile range.
     // Higher values of k will produce fewer outliers.
     iqr(k: number) {
-        return (d: IChartData, i: number) => {
+        return (d: IScanData, i: number) => {
             let q1 = d.quartiles[0];
             let q3 = d.quartiles[2];
             let iqr = (q3 - q1) * k;
@@ -56,12 +70,12 @@ export default class extends React.Component<IScanChartProps, {}> {
         };
     }
 
-    settings() {
-        const { machineSequencePair, scans } = this.props;
+    getSettings(props: IScanChartProps) {
+        const { machineSequencePair, scans } = props;
         const allDataPoints = Array.prototype.concat.apply([], scans.map((scan) => scan.distortion));
 
         const labels = true;
-        const margin = {top: 0, right: 0, bottom: 60, left: 60};
+        const margin = {top: 10, right: 10, bottom: 60, left: 60};
 
         const clipWidth = 800 - margin.left - margin.right;
         const height = 400 - margin.top - margin.bottom;
@@ -69,7 +83,7 @@ export default class extends React.Component<IScanChartProps, {}> {
         const min = 0;
         const max = 1.05 * Math.max.apply(null, [machineSequencePair.tolerance, ...allDataPoints]);
 
-        const width = scans.length * 80;
+        const width = Math.max(scans.length * 80, clipWidth);
 
         const data = scans.map((scan) => {
             const array = [scan.acquisition_date, scan.distortion] as any;
@@ -107,14 +121,23 @@ export default class extends React.Component<IScanChartProps, {}> {
     }
 
     renderPlot() {
-        const { xScale, width, height, data } = this.settings();
+        const { xScale, clipWidth, width, height, data } = this.settings;
 
         const zoom = d3.behavior.zoom()
             .on('zoom', () => {
-                d3.select(this.g).attr('transform', `translate(${d3.event.translate[0]}, 0)`);
+                let [tx] = zoom.translate();
+                tx = Math.min(Math.max(tx, 0), width - clipWidth);
+
+                for (let handler of this.zoomHandlers) {
+                    handler(tx);
+                }
             });
 
         d3.select(this.svg).call(zoom);
+    }
+
+    registerZoomHandler(handler: IZoomHandler) {
+        this.zoomHandlers.push(handler);
     }
 
     componentDidMount() {
@@ -126,8 +149,7 @@ export default class extends React.Component<IScanChartProps, {}> {
     }
 
     render() {
-        const settings = this.settings();
-        const { clipWidth, height, width, margin } = settings;
+        const { clipWidth, height, margin } = this.settings;
 
         return (
             <svg
@@ -136,12 +158,29 @@ export default class extends React.Component<IScanChartProps, {}> {
                 className="box"
                 ref={(svg) => this.svg = svg}
             >
+                <defs>
+                    <clipPath id="clip-path">
+                        <rect width={clipWidth} height={height} />
+                    </clipPath>
+                </defs>
                 <g transform={`translate(${margin.left}, ${margin.top})`}>
-                    <g width={width} ref={(g) => this.g = g}>
-                        <ScanChartData {...this.props} {...settings} />
-                        <ScanChartTolerance {...this.props} {...settings} />
-                        <ScanChartAxes {...this.props} {...settings} />
+                    <g clipPath="url(#clip-path)">
+                        <ScanChartData
+                            {...this.props}
+                            {...this.settings}
+                            registerZoomHandler={this.registerZoomHandler.bind(this)}
+                        />
+                        <ScanChartTolerance
+                            {...this.props}
+                            {...this.settings}
+                            registerZoomHandler={this.registerZoomHandler.bind(this)}
+                        />
                     </g>
+                    <ScanChartAxes
+                        {...this.props}
+                        {...this.settings}
+                        registerZoomHandler={this.registerZoomHandler.bind(this)}
+                    />
                 </g>
             </svg>
         );

@@ -1,10 +1,21 @@
 import * as React from 'react';
 
-import { IScanChartProps, IScanChartSettings } from './ScanChart';
+import { IScanChartProps, IScanChartSettings, IZoomable } from './ScanChart';
 
-export default class extends React.Component<IScanChartProps & IScanChartSettings, {}> {
+interface IScanChartAxesProps extends IScanChartProps, IScanChartSettings, IZoomable {}
+
+export default class extends React.Component<IScanChartAxesProps, {}> {
     xAxis: SVGGElement;
     yAxis: SVGGElement;
+
+    constructor(props: IScanChartAxesProps) {
+        super();
+        const { registerZoomHandler, height, clipWidth, width } = props;
+
+        registerZoomHandler((tx: number) => {
+            d3.select(this.xAxis).attr('transform', `translate(${clipWidth - width + tx}, ${height})`);
+        });
+    }
 
     componentDidMount() {
         this.renderAxes();
@@ -34,22 +45,23 @@ export default class extends React.Component<IScanChartProps & IScanChartSetting
     }
 
     renderXAxis() {
-        const { width, height, margin } = this.props;
+        const { clipWidth, width, height, margin } = this.props;
 
         const xAxisProps = {
             className: "x axis",
-            transform: `translate(0, ${height})`,
+            transform: `translate(${clipWidth - width}, ${height})`,
         };
 
         const xLabelProps = {
             className: "x-label",
-            x: width / 2,
-            y: margin.bottom - 16, // 16 is the font size - text is anchored relative to its top
+            x: clipWidth / 2,
+            y: height + margin.bottom - 16, // 16 is the font size - text is anchored relative to its top
             dy: ".71em",
         };
 
         return (
-            <g ref={(g) => this.xAxis = g} {...xAxisProps}>
+            <g>
+                <g ref={(g) => this.xAxis = g}{...xAxisProps} />
                 <text {...xLabelProps}>Scans</text>
             </g>
         );
@@ -71,7 +83,8 @@ export default class extends React.Component<IScanChartProps & IScanChartSetting
         };
 
         return (
-            <g ref={(g) => this.yAxis = g} {...yAxisProps}>
+            <g>
+                <g ref={(g) => this.yAxis = g} {...yAxisProps} />
                 <text {...yLabelProps}>Distortion (mm)</text>
             </g>
         );
