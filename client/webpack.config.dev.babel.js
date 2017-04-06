@@ -5,37 +5,17 @@ export default (env) => {
     const config = {
         entry: {
             vendor: [
+                'babel-polyfill',
+                'react-hot-loader/patch',
                 'react-hot-loader',
                 'react',
                 'react-dom',
             ],
-            landing: [
-                'babel-polyfill',
-                'react-hot-loader/patch',
-                path.join(__dirname, 'src/landing/app.tsx'),
-            ],
-            machine_sequences: [
-                'babel-polyfill',
-                'react-hot-loader/patch',
-                path.join(__dirname, 'src/machine_sequences/app.tsx'),
-            ],
-            machine_sequence_detail: [
-                'babel-polyfill',
-                'react-hot-loader/patch',
-                'd3',
-                path.join(__dirname, 'src/machine_sequence_detail/box.js'),
-                path.join(__dirname, 'src/machine_sequence_detail/app.tsx'),
-            ],
-            add_phantom: [
-                'babel-polyfill',
-                'react-hot-loader/patch',
-                path.join(__dirname, 'src/add_phantom/app.tsx'),
-            ],
-            upload_scan: [
-                'babel-polyfill',
-                'react-hot-loader/patch',
-                path.join(__dirname, 'src/upload_scan/app.tsx'),
-            ],
+            landing: [path.join(__dirname, 'src/landing/app.tsx')],
+            machine_sequences: [path.join(__dirname, 'src/machine_sequences/app.tsx')],
+            machine_sequence_detail: [path.join(__dirname, 'src/machine_sequence_detail/app.tsx')],
+            add_phantom: [path.join(__dirname, 'src/add_phantom/app.tsx')],
+            upload_scan: [path.join(__dirname, 'src/upload_scan/app.tsx')],
         },
 
         output: {
@@ -57,6 +37,7 @@ export default (env) => {
                     test: /\.tsx?$/,
                     enforce: 'pre',
                     loader: 'tslint-loader',
+                    exclude: /node_modules/,
                 }, {
                     test: /\.tsx?$/,
                     use: ['babel-loader', 'ts-loader'],
@@ -88,9 +69,9 @@ export default (env) => {
     };
 
     if (env === 'hot') {
-        config.entry.vendor.unshift(
-            'webpack-dev-server/client?http://0.0.0.0:8080',
-        );
+        for (let bundle of Object.values(config.entry)) {
+            bundle.unshift(`webpack-dev-server/client?${config.devServer.publicPath}`);
+        }
         config.plugins.push(
             new webpack.HotModuleReplacementPlugin(),
             new webpack.NamedModulesPlugin(),

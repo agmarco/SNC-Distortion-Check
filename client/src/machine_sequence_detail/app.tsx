@@ -1,7 +1,9 @@
 import * as React from 'react';
+import 'd3';
 
 import { renderApp } from 'common/utils';
 import App from './containers/App';
+import './box.js';
 
 renderApp(App, 'machine-sequence-detail-app');
 
