@@ -45,20 +45,8 @@
     "webpack": "^2.2.1"
   },
   "scripts": {
-    "landing:dev": "cd landing; webpack --env dev",
-    "landing:hot": "cd landing; webpack-dev-server --env hot",
-    "landing:prod": "cd landing; webpack --env prod",
-    "machine_sequences:dev": "cd machine_sequences; webpack --env dev",
-    "machine_sequences:hot": "cd machine_sequences; webpack-dev-server --env hot",
-    "machine_sequences:prod": "cd machine_sequences; webpack --env prod",
-    "machine_sequence_detail:dev": "cd machine_sequence_detail; webpack --env dev",
-    "machine_sequence_detail:hot": "cd machine_sequence_detail; webpack-dev-server --env hot",
-    "machine_sequence_detail:prod": "cd machine_sequence_detail; webpack --env prod",
-    "add_phantom:dev": "cd add_phantom; webpack --env dev",
-    "add_phantom:hot": "cd add_phantom; webpack-dev-server --env hot",
-    "add_phantom:prod": "cd add_phantom; webpack --env prod",
-    "upload_scan:dev": "cd upload_scan; webpack --env dev",
-    "upload_scan:hot": "cd upload_scan; webpack-dev-server --env hot",
-    "upload_scan:prod": "cd upload_scan; webpack --env prod"
+    "webpack:dev": "webpack --env dev",
+    "webpack:hot": "webpack-dev-server --env hot",
+    "webpack:prod": "webpack --env prod"
   }
 }

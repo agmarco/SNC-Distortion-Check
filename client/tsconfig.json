@@ -9,9 +9,10 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "allowJs": true
   },
   "include": [
-    "../typings/**/*"
+    "typings/**/*"
   ]
 }

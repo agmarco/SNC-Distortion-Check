@@ -4,21 +4,43 @@ import * as webpack from 'webpack';
 export default (env) => {
     const config = {
         entry: {
-            app: [
-                'babel-polyfill',
-                'react-hot-loader/patch',
-                path.join(__dirname, 'src/app.tsx'),
-            ],
             vendor: [
                 'react-hot-loader',
                 'react',
                 'react-dom',
             ],
+            landing: [
+                'babel-polyfill',
+                'react-hot-loader/patch',
+                path.join(__dirname, 'src/landing/app.tsx'),
+            ],
+            machine_sequences: [
+                'babel-polyfill',
+                'react-hot-loader/patch',
+                path.join(__dirname, 'src/machine_sequences/app.tsx'),
+            ],
+            machine_sequence_detail: [
+                'babel-polyfill',
+                'react-hot-loader/patch',
+                'd3',
+                path.join(__dirname, 'src/machine_sequence_detail/box.js'),
+                path.join(__dirname, 'src/machine_sequence_detail/app.tsx'),
+            ],
+            add_phantom: [
+                'babel-polyfill',
+                'react-hot-loader/patch',
+                path.join(__dirname, 'src/add_phantom/app.tsx'),
+            ],
+            upload_scan: [
+                'babel-polyfill',
+                'react-hot-loader/patch',
+                path.join(__dirname, 'src/upload_scan/app.tsx'),
+            ],
         },
 
         output: {
-            path: path.join(__dirname, '../dist/machine_sequences'),
-            publicPath: 'http://0.0.0.0:8080/machine_sequences/',
+            path: path.join(__dirname, 'dist'),
+            publicPath: 'http://0.0.0.0:8080/',
             filename: '[name].js',
         },
 
@@ -49,16 +71,15 @@ export default (env) => {
         resolve: {
             modules: [
                 path.join(__dirname, 'src'),
-                path.join(__dirname, '..'),
-                path.join(__dirname, '../node_modules'),
+                path.join(__dirname, 'node_modules'),
             ],
             extensions: ['.webpack.js', '.web.js', '.js', '.jsx', '.ts', '.tsx'],
         },
 
         devServer: {
             hotOnly: env === 'hot',
-            contentBase: path.join(__dirname, '../dist/machine_sequences'),
-            publicPath: 'http://0.0.0.0:8080/machine_sequences/',
+            contentBase: path.join(__dirname, 'dist'),
+            publicPath: 'http://0.0.0.0:8080/',
             compress: true,
             host: '0.0.0.0',
             port: 8080,
@@ -67,7 +88,7 @@ export default (env) => {
     };
 
     if (env === 'hot') {
-        config.entry.app.unshift(
+        config.entry.vendor.unshift(
             'webpack-dev-server/client?http://0.0.0.0:8080',
         );
         config.plugins.push(

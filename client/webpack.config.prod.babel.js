@@ -6,20 +6,42 @@ import WebpackChunkHash from 'webpack-chunk-hash';
 
 export default (env) => ({
     entry: {
-        app: [
-            'babel-polyfill',
-            'react-hot-loader/patch',
-            path.join(__dirname, 'src/app.tsx'),
-        ],
         vendor: [
             'react-hot-loader',
             'react',
             'react-dom',
         ],
+        landing: [
+            'babel-polyfill',
+            'react-hot-loader/patch',
+            path.join(__dirname, 'src/landing/app.tsx'),
+        ],
+        machine_sequences: [
+            'babel-polyfill',
+            'react-hot-loader/patch',
+            path.join(__dirname, 'src/machine_sequences/app.tsx'),
+        ],
+        machine_sequence_detail: [
+            'babel-polyfill',
+            'react-hot-loader/patch',
+            'd3',
+            path.join(__dirname, 'src/machine_sequence_detail/box.js'),
+            path.join(__dirname, 'src/machine_sequence_detail/app.tsx'),
+        ],
+        add_phantom: [
+            'babel-polyfill',
+            'react-hot-loader/patch',
+            path.join(__dirname, 'src/add_phantom/app.tsx'),
+        ],
+        upload_scan: [
+            'babel-polyfill',
+            'react-hot-loader/patch',
+            path.join(__dirname, 'src/upload_scan/app.tsx'),
+        ],
     },
 
     output: {
-        path: path.join(__dirname, '../dist/add_phantom'),
+        path: path.join(__dirname, 'dist'),
         filename: '[name].[chunkhash].js',
         chunkFilename: '[name].[chunkhash].js',
     },
@@ -68,8 +90,7 @@ export default (env) => ({
     resolve: {
         modules: [
             path.join(__dirname, 'src'),
-            path.join(__dirname, '..'),
-            path.join(__dirname, '../node_modules'),
+            path.join(__dirname, 'node_modules'),
         ],
         extensions: ['.webpack.js', '.web.js', '.js', '.jsx', '.ts', '.tsx'],
     },

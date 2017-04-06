@@ -9,11 +9,11 @@
 
 {% block "scripts" %}
   <script src="{% static 'common/fontawesome.js' %}"></script>
-  <script>{% manifest 'landing' %}</script>
-  <script src="{% webpack 'landing' 'vendor' %}"></script>
+  <script>{% manifest %}</script>
+  <script src="{% webpack 'vendor' %}"></script>
   <script>
     var MACHINE_SEQUENCE_PAIRS = {{ machine_sequence_pairs|safe }};
     var UPLOAD_SCAN_URL = {% url 'upload_scan' %};
   </script>
-  <script src="{% webpack 'landing' 'app' %}"></script>
+  <script src="{% webpack 'landing' %}"></script>
 {% endblock %}

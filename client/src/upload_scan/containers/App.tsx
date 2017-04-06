@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as Cookies from 'js-cookie';
 
 import { IMachineDTO, ISequenceDTO, IPhantomDTO } from 'common/service';
-import UploadScanForm from 'components/UploadScanForm';
+import UploadScanForm from '../components/UploadScanForm';
 
 declare const MACHINES: IMachineDTO[];
 declare const SEQUENCES: ISequenceDTO[];
