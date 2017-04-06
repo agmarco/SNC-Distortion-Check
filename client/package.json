@@ -46,6 +46,6 @@
   "scripts": {
     "machine_sequence_detail:dev": "cd machine_sequence_detail; webpack --config webpack.config.dev.babel.js --env dev",
     "machine_sequence_detail:hot": "cd machine_sequence_detail; webpack-dev-server --config webpack.config.dev.babel.js --env hot",
-    "machine_sequence_detail:prod": "cd machine_sequence_detail; webpack -p --config webpack.config.prod.babel.js --env prod"
+    "machine_sequence_detail:prod": "cd machine_sequence_detail; webpack --config webpack.config.prod.babel.js --env prod"
   }
 }

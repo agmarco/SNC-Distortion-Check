@@ -4,17 +4,19 @@ import ManifestPlugin from 'webpack-manifest-plugin';
 import ChunkManifestPlugin from 'chunk-manifest-webpack-plugin';
 import WebpackChunkHash from 'webpack-chunk-hash';
 
-export default ({
+export default (env) => ({
     entry: {
         app: [
             'babel-polyfill',
             'react-hot-loader/patch',
+            path.join(__dirname, 'src/box.js'),
             path.join(__dirname, 'src/app.tsx'),
         ],
         vendor: [
             'react-hot-loader',
             'react',
             'react-dom',
+            'd3',
         ],
     },
 
@@ -29,12 +31,14 @@ export default ({
     plugins: [
         new webpack.NoEmitOnErrorsPlugin(),
         new webpack.LoaderOptionsPlugin({minimize: true, debug: false}),
-        new webpack.optimize.UglifyJsPlugin({
-            beautify: false,
-            mangle: {screw_ie8: true, keep_fnames: true},
-            compress: {screw_ie8: true},
-            comments: false
-        }),
+        // TODO throwing error
+        //new webpack.optimize.UglifyJsPlugin({
+        //    sourceMap: true,
+        //    beautify: false,
+        //    mangle: {screw_ie8: true, keep_fnames: true},
+        //    compress: {screw_ie8: true},
+        //    comments: false,
+        //}),
         new webpack.HashedModuleIdsPlugin(),
         new webpack.optimize.CommonsChunkPlugin({
             name: ['vendor', 'manifest'],
@@ -46,6 +50,9 @@ export default ({
             manifestVariable: 'webpackManifest',
         }),
         new WebpackChunkHash(),
+        new webpack.DefinePlugin({
+            'process.env.NODE_ENV': JSON.stringify('production'),
+        })
     ],
 
     module: {

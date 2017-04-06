@@ -53,7 +53,7 @@ export default (env) => {
         },
 
         devServer: {
-            hot: env === 'hot',
+            hotOnly: env === 'hot',
             contentBase: path.join(__dirname, '../dist/machine_sequence_detail'),
             publicPath: 'http://0.0.0.0:8080/machine_sequence_detail/',
             compress: true,
@@ -66,7 +66,6 @@ export default (env) => {
     if (env === 'hot') {
         config.entry.app.unshift(
             'webpack-dev-server/client?http://0.0.0.0:8080',
-            'webpack/hot/only-dev-server',
         );
         config.plugins.push(
             new webpack.HotModuleReplacementPlugin(),
