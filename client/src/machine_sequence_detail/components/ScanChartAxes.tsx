@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { IScanChartProps, IScanChartSettings, IZoomable } from './ScanChart';
+import { IScanChartProps, IScanChartSettings, IZoomable, IScanData } from './ScanChart';
 
 interface IScanChartAxesProps extends IScanChartProps, IScanChartSettings, IZoomable {}
 
@@ -26,14 +26,18 @@ export default class extends React.Component<IScanChartAxesProps, {}> {
     }
 
     renderAxes() {
-        const { xScale, yScale, clipWidth, yMin, yMax } = this.props;
+        const { xScale, yScale, clipWidth, yMin, yMax, data } = this.props;
 
         d3.select(this.xAxis).call(d3.svg.axis()
             .scale(xScale)
             .orient("bottom")
             .innerTickSize(0)
             .outerTickSize(0)
-            .tickPadding(10));
+            .tickPadding(10)
+            .tickFormat((pk: number) => {
+                const scanData = data.find((d: IScanData) => d[0] === pk);
+                return scanData ? scanData.label : pk;
+            }));
 
         d3.select(this.yAxis).call(d3.svg.axis()
             .scale(yScale)

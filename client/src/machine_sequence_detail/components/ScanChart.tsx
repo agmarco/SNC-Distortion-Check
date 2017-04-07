@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { format } from 'date-fns';
 
 import { IMachineSequencePairDTO, IScanDTO } from 'common/service';
 import ScanChartData from './ScanChartData';
@@ -7,15 +8,16 @@ import ScanChartAxes from './ScanChartAxes';
 
 import './ScanChart.scss';
 
-interface IScanData {
+interface IZoomHandler {
+    (dx: number): void;
+}
+
+export interface IScanData {
     [index: number]: number;
     length: number;
     quartiles: number[];
     passed: boolean;
-}
-
-interface IZoomHandler {
-    (dx: number): void;
+    label: string;
 }
 
 export interface IZoomable {
@@ -83,11 +85,12 @@ export default class extends React.Component<IScanChartProps, {}> {
         const yMin = 0;
         const yMax = 1.05 * Math.max.apply(null, [machineSequencePair.tolerance, ...allDataPoints]);
 
-        const width = Math.max(scans.length * 80, clipWidth);
+        const width = Math.max(scans.length * 100, clipWidth);
 
         const data = scans.map((scan) => {
-            const array = [scan.acquisition_date, scan.distortion] as any;
+            const array = [scan.pk, scan.distortion] as any;
             array.passed = scan.passed;
+            array.label = format(scan.acquisition_date, 'D MMM YYYY');
             return array;
         });
 
