@@ -15,7 +15,7 @@ interface IScanData {
 }
 
 interface IZoomHandler {
-    (tx: number): void;
+    (dx: number): void;
 }
 
 export interface IZoomable {
@@ -28,8 +28,8 @@ export interface IScanChartSettings {
     clipWidth: number;
     width: number;
     height: number;
-    min: number;
-    max: number;
+    yMin: number;
+    yMax: number;
     data: IScanData[];
     chart: any;
     xScale: any;
@@ -80,8 +80,8 @@ export default class extends React.Component<IScanChartProps, {}> {
         const clipWidth = 800 - margin.left - margin.right;
         const height = 400 - margin.top - margin.bottom;
 
-        const min = 0;
-        const max = 1.05 * Math.max.apply(null, [machineSequencePair.tolerance, ...allDataPoints]);
+        const yMin = 0;
+        const yMax = 1.05 * Math.max.apply(null, [machineSequencePair.tolerance, ...allDataPoints]);
 
         const width = Math.max(scans.length * 80, clipWidth);
 
@@ -94,7 +94,7 @@ export default class extends React.Component<IScanChartProps, {}> {
         const chart = d3.box()
             .whiskers(this.iqr(Infinity)) // 1.5
             .height(height)
-            .domain([min, max])
+            .domain([yMin, yMax])
             .showLabels(labels);
 
         const xScale = d3.scale.ordinal()
@@ -102,7 +102,7 @@ export default class extends React.Component<IScanChartProps, {}> {
             .rangeRoundBands([0, width], 0.7, 0.3);
 
         const yScale = d3.scale.linear()
-            .domain([min, max])
+            .domain([yMin, yMax])
             .range([height, 0]);
 
         return {
@@ -111,8 +111,8 @@ export default class extends React.Component<IScanChartProps, {}> {
             clipWidth,
             width,
             height,
-            min,
-            max,
+            yMin,
+            yMax,
             data,
             chart,
             xScale,
@@ -121,15 +121,18 @@ export default class extends React.Component<IScanChartProps, {}> {
     }
 
     renderPlot() {
-        const { xScale, clipWidth, width, height, data } = this.settings;
+        const { clipWidth, width } = this.settings;
 
         const zoom = d3.behavior.zoom()
             .on('zoom', () => {
-                let [tx] = zoom.translate();
-                tx = Math.min(Math.max(tx, 0), width - clipWidth);
+
+                // TODO mouse scroll doesn't work properly
+                let [dx] = zoom.translate();
+                dx = Math.min(Math.max(dx, 0), width - clipWidth);
+                zoom.translate([dx, 0]);
 
                 for (let handler of this.zoomHandlers) {
-                    handler(tx);
+                    handler(dx);
                 }
             });
 
@@ -160,7 +163,7 @@ export default class extends React.Component<IScanChartProps, {}> {
             >
                 <defs>
                     <clipPath id="clip-path">
-                        <rect width={clipWidth} height={height} />
+                        <rect width={clipWidth} height={height + margin.top + margin.bottom} />
                     </clipPath>
                 </defs>
                 <g transform={`translate(${margin.left}, ${margin.top})`}>

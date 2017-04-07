@@ -11,8 +11,8 @@ export default class extends React.Component<IScanChartDataProps, {}> {
         super();
         const { registerZoomHandler, clipWidth, width } = props;
 
-        registerZoomHandler((tx: number) => {
-            d3.select(this.g).attr('transform', `translate(${clipWidth - width + tx}, 0)`);
+        registerZoomHandler((dx: number) => {
+            d3.select(this.g).attr('transform', `translate(${clipWidth - width + dx}, 0)`);
         });
     }
 

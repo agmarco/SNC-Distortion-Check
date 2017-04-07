@@ -12,8 +12,8 @@ export default class extends React.Component<IScanChartAxesProps, {}> {
         super();
         const { registerZoomHandler, height, clipWidth, width } = props;
 
-        registerZoomHandler((tx: number) => {
-            d3.select(this.xAxis).attr('transform', `translate(${clipWidth - width + tx}, ${height})`);
+        registerZoomHandler((dx: number) => {
+            d3.select(this.xAxis).attr('transform', `translate(${clipWidth - width + dx}, ${height})`);
         });
     }
 
@@ -26,7 +26,7 @@ export default class extends React.Component<IScanChartAxesProps, {}> {
     }
 
     renderAxes() {
-        const { xScale, yScale, width, min, max } = this.props;
+        const { xScale, yScale, clipWidth, yMin, yMax } = this.props;
 
         d3.select(this.xAxis).call(d3.svg.axis()
             .scale(xScale)
@@ -38,8 +38,8 @@ export default class extends React.Component<IScanChartAxesProps, {}> {
         d3.select(this.yAxis).call(d3.svg.axis()
             .scale(yScale)
             .orient("left")
-            .tickValues(d3.range(min, max, 0.5))
-            .innerTickSize(-width)
+            .tickValues(d3.range(yMin, yMax, 0.5))
+            .innerTickSize(-clipWidth)
             .outerTickSize(0)
             .tickPadding(10));
     }
@@ -61,7 +61,9 @@ export default class extends React.Component<IScanChartAxesProps, {}> {
 
         return (
             <g>
-                <g ref={(g) => this.xAxis = g}{...xAxisProps} />
+                <g clipPath="url(#clip-path)">
+                    <g ref={(g) => this.xAxis = g}{...xAxisProps} />
+                </g>
                 <text {...xLabelProps}>Scans</text>
             </g>
         );

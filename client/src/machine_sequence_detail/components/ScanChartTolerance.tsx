@@ -13,7 +13,7 @@ export default class extends React.Component<IScanChartToleranceProps, {}> {
                 className="tolerance"
                 x1={0}
                 y1={yScale(machineSequencePair.tolerance)}
-                x2={clipWidth + margin.right}
+                x2={clipWidth}
                 y2={yScale(machineSequencePair.tolerance)}
             />
         );
