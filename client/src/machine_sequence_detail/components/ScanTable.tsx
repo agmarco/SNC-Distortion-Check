@@ -12,7 +12,7 @@ interface IScanTableProps {
 
 interface IScanTableState {
     phantoms: IPhantomDTO[];
-    currentPhantomPk: string;
+    phantomFilterValue: string;
 }
 
 export default class extends React.Component<IScanTableProps, IScanTableState> {
@@ -21,29 +21,29 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
 
         this.state = {
             phantoms: uniqBy(props.scans, (scan) => scan.phantom.pk).map((scan) => scan.phantom),
-            currentPhantomPk: 'all',
+            phantomFilterValue: 'all',
         };
     }
 
     filteredScans() {
         const { scans } = this.props;
-        const { currentPhantomPk } = this.state;
+        const { phantomFilterValue } = this.state;
         const filters: Array<(scan: IScanDTO) => boolean> = [];
 
-        if (currentPhantomPk !== 'all') {
-            filters.push((scan) => scan.phantom.pk.toString() === currentPhantomPk);
+        if (phantomFilterValue !== 'all') {
+            filters.push((scan) => scan.phantom.pk.toString() === phantomFilterValue);
         }
 
         return scans.filter((pair) => filters.every((filter) => filter(pair)));
     }
 
     handlePhantomChange(event: React.FormEvent<HTMLInputElement>) {
-        this.setState({currentPhantomPk: (event.target as any).value});
+        this.setState({phantomFilterValue: (event.target as any).value});
     }
 
     render() {
         const { uploadScanUrl } = this.props;
-        const { phantoms, currentPhantomPk } = this.state;
+        const { phantoms, phantomFilterValue } = this.state;
         const filteredScans = this.filteredScans();
 
         return (
@@ -51,7 +51,7 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
                 <a href={uploadScanUrl}>Upload New Scan</a>
                 <div>
                     Filter By
-                    <select value={currentPhantomPk} onChange={this.handlePhantomChange.bind(this)}>
+                    <select value={phantomFilterValue} onChange={this.handlePhantomChange.bind(this)}>
                         <option value="all">All Phantoms</option>
                         {phantoms.map((phantom) => (
                             <option value={phantom.pk} key={phantom.pk}>

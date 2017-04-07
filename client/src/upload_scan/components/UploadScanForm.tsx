@@ -23,8 +23,8 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
         super();
 
         this.state = {
-            currentMachinePk: '',
-            currentSequencePk: '',
+            machineFilterValue: '',
+            sequenceFilterValue: '',
             currentPhantomPk: '',
         };
     }
@@ -40,11 +40,11 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
     }
 
     handleMachineChange(event: React.FormEvent<HTMLInputElement>) {
-        this.setState({currentMachinePk: Number((event.target as any).value)});
+        this.setState({machineFilterValue: Number((event.target as any).value)});
     }
 
     handleSequenceChange(event: React.FormEvent<HTMLInputElement>) {
-        this.setState({currentSequencePk: Number((event.target as any).value)});
+        this.setState({sequenceFilterValue: Number((event.target as any).value)});
     }
 
     handlePhantomChange(event: React.FormEvent<HTMLInputElement>) {
