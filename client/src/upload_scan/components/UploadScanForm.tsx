@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { IMachineDTO, ISequenceDTO, IPhantomDTO} from 'common/service';
+import { IMachineDTO, ISequenceDTO, IPhantomDTO } from 'common/service';
 
 interface IUploadScanFormProps {
     machines: IMachineDTO[];
@@ -13,9 +13,9 @@ interface IUploadScanFormProps {
 }
 
 interface IUploadScanFormState {
-    currentMachinePk: string|number;
-    currentSequencePk: string|number;
-    currentPhantomPk: string|number;
+    machineFilterValue: string|number;
+    sequenceFilterValue: string|number;
+    phantomFilterValue: string|number;
 }
 
 export default class extends React.Component<IUploadScanFormProps, IUploadScanFormState> {
@@ -25,7 +25,7 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
         this.state = {
             machineFilterValue: '',
             sequenceFilterValue: '',
-            currentPhantomPk: '',
+            phantomFilterValue: '',
         };
     }
 
@@ -48,16 +48,18 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
     }
 
     handlePhantomChange(event: React.FormEvent<HTMLInputElement>) {
-        this.setState({currentPhantomPk: Number((event.target as any).value)});
+        this.setState({phantomFilterValue: Number((event.target as any).value)});
     }
 
     render() {
         const { machines, sequences, phantoms, uploadScanUrl, cancelUrl, csrftoken } = this.props;
-        const { currentMachinePk, currentSequencePk, currentPhantomPk } = this.state;
+        const { machineFilterValue, sequenceFilterValue, phantomFilterValue } = this.state;
 
-        const currentMachine = currentMachinePk && machines.find((machine) => machine.pk === currentMachinePk);
-        const currentSequence = currentSequencePk && sequences.find((sequence) => sequence.pk === currentSequencePk);
-        const currentPhantom = currentPhantomPk && phantoms.find((phantom) => phantom.pk === currentPhantomPk);
+        const currentMachine = machineFilterValue && machines.find((machine) => machine.pk === machineFilterValue);
+        const currentSequence = sequenceFilterValue && sequences.find((sequence) => {
+            return sequence.pk === sequenceFilterValue;
+        });
+        const currentPhantom = phantomFilterValue && phantoms.find((phantom) => phantom.pk === phantomFilterValue);
 
         return (
             <div>
@@ -72,7 +74,7 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                         <select
                             id="upload-scan-machine"
                             name="machine"
-                            value={currentMachinePk}
+                            value={machineFilterValue}
                             onChange={this.handleMachineChange.bind(this)}
                             required
                         >
@@ -103,7 +105,7 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                         <select
                             id="upload-scan-sequence"
                             name="sequence"
-                            value={currentSequencePk}
+                            value={sequenceFilterValue}
                             onChange={this.handleSequenceChange.bind(this)}
                             required
                         >
@@ -130,7 +132,7 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                         <select
                             id="upload-scan-phantom"
                             name="phantom"
-                            value={currentPhantomPk}
+                            value={phantomFilterValue}
                             onChange={this.handlePhantomChange.bind(this)}
                             required
                         >

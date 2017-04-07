@@ -126,14 +126,24 @@ export default class extends React.Component<IScanChartProps, {}> {
     renderPlot() {
         const { clipWidth, width } = this.settings;
 
+        let dx = 0;
+
         const zoom = d3.behavior.zoom()
             .on('zoom', () => {
+                if (d3.event.sourceEvent.type === "wheel") {
 
-                // TODO mouse scroll doesn't work properly
-                let [dx] = zoom.translate();
+                    // d3.event.translate is wrong because it's expecting this event to zoom.
+                    // Instead, keep a reference to the current x translation, and add the
+                    // extent of the vertical wheel scroll.
+                    dx += d3.event.sourceEvent.deltaY;
+                } else if (d3.event.sourceEvent.type === "mousemove") {
+                    dx = d3.event.translate[0];
+                }
+
+                // Don't let the user scroll beyond the bounds of the chart.
                 dx = Math.min(Math.max(dx, 0), width - clipWidth);
-                zoom.translate([dx, 0]);
 
+                zoom.translate([dx, 0]);
                 for (let handler of this.zoomHandlers) {
                     handler(dx);
                 }
