@@ -187,6 +187,7 @@ export default class extends React.Component<IScanChartProps, {}> {
                         {...this.settings}
                         registerZoomHandler={this.registerZoomHandler.bind(this)}
                     />
+                    <rect width={clipWidth} height={height} className="border" />
                 </g>
             </svg>
         );
