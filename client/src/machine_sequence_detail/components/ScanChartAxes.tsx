@@ -10,10 +10,10 @@ export default class extends React.Component<IScanChartAxesProps, {}> {
 
     constructor(props: IScanChartAxesProps) {
         super();
-        const { registerZoomHandler, height, clipWidth, width } = props;
+        const { registerZoomHandler, clipHeight, clipWidth, width } = props;
 
         registerZoomHandler((dx: number) => {
-            d3.select(this.xAxis).attr('transform', `translate(${clipWidth - width + dx}, ${height})`);
+            d3.select(this.xAxis).attr('transform', `translate(${clipWidth - width + dx}, ${clipHeight})`);
         });
     }
 
@@ -49,17 +49,17 @@ export default class extends React.Component<IScanChartAxesProps, {}> {
     }
 
     renderXAxis() {
-        const { clipWidth, width, height, margin } = this.props;
+        const { clipWidth, width, clipHeight, margin } = this.props;
 
         const xAxisProps = {
             className: "x axis",
-            transform: `translate(${clipWidth - width}, ${height})`,
+            transform: `translate(${clipWidth - width}, ${clipHeight})`,
         };
 
         const xLabelProps = {
             className: "x-label",
             x: clipWidth / 2,
-            y: height + margin.bottom - 16, // 16 is the font size - text is anchored relative to its top
+            y: clipHeight + margin.bottom - 16, // 16 is the font size - text is anchored relative to its top
             dy: ".71em",
         };
 
@@ -74,7 +74,7 @@ export default class extends React.Component<IScanChartAxesProps, {}> {
     }
 
     renderYAxis() {
-        const { height, margin } = this.props;
+        const { clipHeight, margin } = this.props;
 
         const yAxisProps = {
             className: "y axis",
@@ -82,7 +82,7 @@ export default class extends React.Component<IScanChartAxesProps, {}> {
 
         const yLabelProps = {
             className: "y-label",
-            x: -height / 2,
+            x: -clipHeight / 2,
             y: -margin.left,
             dy: ".71em",
             transform: "rotate(-90)",

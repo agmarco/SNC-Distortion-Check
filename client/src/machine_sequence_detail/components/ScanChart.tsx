@@ -28,14 +28,14 @@ export interface IScanChartSettings {
     labels: boolean;
     margin: {top: number; right: number; bottom: number; left: number};
     clipWidth: number;
+    clipHeight: number;
     width: number;
-    height: number;
     yMin: number;
     yMax: number;
-    data: IScanData[];
-    chart: any;
     xScale: any;
     yScale: any;
+    chart: any;
+    data: IScanData[];
 }
 
 export interface IScanChartProps {
@@ -80,12 +80,12 @@ export default class extends React.Component<IScanChartProps, {}> {
         const margin = {top: 10, right: 10, bottom: 60, left: 60};
 
         const clipWidth = 800 - margin.left - margin.right;
-        const height = 400 - margin.top - margin.bottom;
+        const clipHeight = 400 - margin.top - margin.bottom;
+
+        const width = Math.max(scans.length * 100, clipWidth);
 
         const yMin = 0;
         const yMax = 1.05 * Math.max.apply(null, [machineSequencePair.tolerance, ...allDataPoints]);
-
-        const width = Math.max(scans.length * 100, clipWidth);
 
         const data = scans.map((scan) => {
             const array = [scan.pk, scan.distortion] as any;
@@ -96,7 +96,7 @@ export default class extends React.Component<IScanChartProps, {}> {
 
         const chart = d3.box()
             .whiskers(this.iqr(Infinity)) // 1.5
-            .height(height)
+            .height(clipHeight)
             .domain([yMin, yMax])
             .showLabels(labels);
 
@@ -106,14 +106,14 @@ export default class extends React.Component<IScanChartProps, {}> {
 
         const yScale = d3.scale.linear()
             .domain([yMin, yMax])
-            .range([height, 0]);
+            .range([clipHeight, 0]);
 
         return {
             labels,
             margin,
             clipWidth,
             width,
-            height,
+            clipHeight,
             yMin,
             yMax,
             data,
@@ -155,18 +155,18 @@ export default class extends React.Component<IScanChartProps, {}> {
     }
 
     render() {
-        const { clipWidth, height, margin } = this.settings;
+        const { clipWidth, clipHeight, margin } = this.settings;
 
         return (
             <svg
                 width={clipWidth + margin.left + margin.right}
-                height={height + margin.top + margin.bottom}
+                height={clipHeight + margin.top + margin.bottom}
                 className="box"
                 ref={(svg) => this.svg = svg}
             >
                 <defs>
                     <clipPath id="clip-path">
-                        <rect width={clipWidth} height={height + margin.top + margin.bottom} />
+                        <rect width={clipWidth} height={clipHeight + margin.top + margin.bottom} />
                     </clipPath>
                 </defs>
                 <g transform={`translate(${margin.left}, ${margin.top})`}>
