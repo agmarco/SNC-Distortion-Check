@@ -8,11 +8,11 @@
   <form action="{% url 'configuration' %}" method="post">
     {% csrf_token %}
     {% include 'includes/form_fields.html' %}
-    <input type="submit" value="Save Institution Info">
+    <input type="submit" value="Save Institution Info" class="btn tertiary">
   </form>
 
   <h2>Phantoms</h2>
-  <a href="{% url 'create_phantom' %}">Add Phantom</a>
+  <a href="{% url 'create_phantom' %}" class="btn secondary">Add Phantom</a>
   <table class="cirs-table">
     <thead>
       <tr>
@@ -38,7 +38,7 @@
   </table>
 
   <h2>MRI Scanners</h2>
-  <a href="{% url 'create_machine' %}">Add Machine</a>
+  <a href="{% url 'create_machine' %}" class="btn secondary">Add Machine</a>
   <table class="cirs-table">
     <thead>
       <tr>
@@ -62,7 +62,7 @@
   </table>
 
   <h2>MRI Sequences</h2>
-  <a href="{% url 'create_sequence' %}">Add Sequence</a>
+  <a href="{% url 'create_sequence' %}" class="btn secondary">Add Sequence</a>
   <table class="cirs-table">
     <thead>
       <tr>
@@ -85,7 +85,7 @@
 
   {% if users %}
     <h2>Users</h2>
-    <a href="{% url 'create_user' %}">Add User</a>
+    <a href="{% url 'create_user' %}" class="btn secondary">Add User</a>
     <table class="cirs-table">
       <thead>
         <tr>

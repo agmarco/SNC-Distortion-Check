@@ -1,6 +1,7 @@
 import * as path from 'path';
 import * as webpack from 'webpack';
 import ExtractTextPlugin from 'extract-text-webpack-plugin';
+import StyleLintPlugin from 'stylelint-webpack-plugin';
 
 export default (env) => {
     const config = {
@@ -32,6 +33,7 @@ export default (env) => {
             new webpack.NoEmitOnErrorsPlugin(),
             new webpack.optimize.CommonsChunkPlugin({name: 'vendor'}),
             new ExtractTextPlugin({filename: '[name].css', allChunks: true}),
+            new StyleLintPlugin(),
         ],
 
         module: {

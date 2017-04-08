@@ -1,5 +1,17 @@
-$footer-height: 48px;
+$max-site-width: 1000px;
+$header-height: 54px;
+$footer-height: 37px;
 $primary-color: rgb(14, 106, 174);
 $secondary-color: rgb(150, 7, 47);
+$tertiary-color: rgb(77, 132, 167);
 $success-color: rgb(121, 190, 58);
 $error-color: rgb(189, 57, 50);
+
+// TODO assign-inputs
+$all-buttons: (
+  'button',
+  'input[type="button"]',
+  'input[type="reset"]',
+  'input[type="submit"]',
+  '.btn'
+);

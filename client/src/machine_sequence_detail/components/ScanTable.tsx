@@ -12,7 +12,7 @@ interface IScanTableProps {
 
 interface IScanTableState {
     phantoms: IPhantomDTO[];
-    phantomFilterValue: string;
+    phantomFilterValue: 'all' | number;
 }
 
 export default class extends React.Component<IScanTableProps, IScanTableState> {
@@ -31,14 +31,14 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
         const filters: Array<(scan: IScanDTO) => boolean> = [];
 
         if (phantomFilterValue !== 'all') {
-            filters.push((scan) => scan.phantom.pk.toString() === phantomFilterValue);
+            filters.push((scan) => scan.phantom.pk === phantomFilterValue);
         }
 
         return scans.filter((pair) => filters.every((filter) => filter(pair)));
     }
 
     handlePhantomChange(event: React.FormEvent<HTMLInputElement>) {
-        this.setState({phantomFilterValue: (event.target as any).value});
+        this.setState({phantomFilterValue: Number((event.target as any).value)});
     }
 
     render() {
@@ -48,7 +48,7 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
 
         return (
             <div>
-                <a href={uploadScanUrl}>Upload New Scan</a>
+                <a href={uploadScanUrl} className="btn secondary">Upload New Scan</a>
                 <div>
                     Filter By
                     <select value={phantomFilterValue} onChange={this.handlePhantomChange.bind(this)}>

@@ -51,3 +51,9 @@ You can run the celery task runner and the web server using:
 Run tests using
 
     pytest
+
+## Hot Module Replacement
+
+To enable hot module replacement, cd into the `client` directory and do:
+
+    yarn webpack:hot

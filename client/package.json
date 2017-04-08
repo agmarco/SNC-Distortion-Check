@@ -24,6 +24,8 @@
     "node-sass": "^4.5.2",
     "sass-loader": "^6.0.3",
     "style-loader": "^0.16.1",
+    "stylelint-config-standard": "^16.0.0",
+    "stylelint-webpack-plugin": "^0.7.0",
     "ts-loader": "^2.0.1",
     "tslint": "^4",
     "tslint-loader": "^3.4.3",
@@ -35,6 +37,7 @@
   },
   "dependencies": {
     "bluebird": "^3.5.0",
+    "bourbon": "^4.3.4",
     "d3": "^3",
     "date-fns": "^1.28.2",
     "isomorphic-fetch": "^2.2.1",

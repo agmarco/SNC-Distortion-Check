@@ -6,6 +6,7 @@
   <form action="{% url 'upload_ct' phantom_pk %}" enctype="multipart/form-data" method="post">
     {% csrf_token %}
     {% include 'includes/form_fields.html' %}
-    <input type="submit" value="Upload">
+    <a href="{% url 'update_phantom' phantom_pk %}" class="btn tertiary">Cancel</a>
+    <input type="submit" value="Upload CT" class="btn secondary">
   </form>
 {% endblock %}

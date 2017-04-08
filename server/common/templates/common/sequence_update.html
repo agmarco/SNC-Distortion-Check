@@ -5,6 +5,7 @@
   <form action="{% url 'update_sequence' sequence.pk %}" method="post">
     {% csrf_token %}
     {% include 'includes/form_fields.html' %}
-    <input type="submit" value="Save">
+    <a href="{% url 'configuration' %}" class="btn tertiary">Cancel</a>
+    <input type="submit" value="Save Changes" class="btn secondary">
   </form>
 {% endblock %}

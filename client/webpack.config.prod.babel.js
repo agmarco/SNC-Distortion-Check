@@ -32,16 +32,9 @@ export default (env) => ({
 
     plugins: [
         new webpack.NoEmitOnErrorsPlugin(),
-        new webpack.LoaderOptionsPlugin({minimize: true, debug: false}),
-        // TODO throwing error
-        //new webpack.optimize.UglifyJsPlugin({
-        //    sourceMap: true,
-        //    beautify: false,
-        //    mangle: {screw_ie8: true, keep_fnames: true},
-        //    compress: {screw_ie8: true},
-        //    comments: false,
-        //}),
         new webpack.HashedModuleIdsPlugin(),
+        new webpack.LoaderOptionsPlugin({minimize: true}),
+        new webpack.optimize.UglifyJsPlugin({sourceMap: true}),
         new webpack.optimize.CommonsChunkPlugin({
             name: ['vendor', 'manifest'],
             minChunks: Infinity,
@@ -55,7 +48,10 @@ export default (env) => ({
         new webpack.DefinePlugin({
             'process.env.NODE_ENV': JSON.stringify('production'),
         }),
-        new ExtractTextPlugin({filename: '[name].[chunkhash].css', allChunks: true}),
+        new ExtractTextPlugin({
+            filename: '[name].[chunkhash].css',
+            allChunks: true,
+        }),
     ],
 
     module: {

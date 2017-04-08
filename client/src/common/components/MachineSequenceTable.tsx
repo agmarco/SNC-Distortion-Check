@@ -13,8 +13,8 @@ interface IMachineSequenceTableProps {
 interface IMachineSequenceTableState {
     machines: IMachineDTO[];
     sequences: ISequenceDTO[];
-    machineFilterValue: string;
-    sequenceFilterValue: string;
+    machineFilterValue: 'all' | number;
+    sequenceFilterValue: 'all' | number;
 }
 
 export default class extends React.Component<IMachineSequenceTableProps, IMachineSequenceTableState> {
@@ -35,21 +35,21 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
         const filters: Array<(pair: IMachineSequencePairDTO) => boolean> = [];
 
         if (machineFilterValue !== 'all') {
-            filters.push((pair) => pair.machine.pk.toString() === machineFilterValue);
+            filters.push((pair) => pair.machine.pk === machineFilterValue);
         }
         if (sequenceFilterValue !== 'all') {
-            filters.push((pair) => pair.sequence.pk.toString() === sequenceFilterValue);
+            filters.push((pair) => pair.sequence.pk === sequenceFilterValue);
         }
 
         return machineSequencePairs.filter((pair) => filters.every((filter) => filter(pair)));
     }
 
     handleMachineChange(event: React.FormEvent<HTMLInputElement>) {
-        this.setState({machineFilterValue: (event.target as any).value});
+        this.setState({machineFilterValue: Number((event.target as any).value)});
     }
 
     handleSequenceChange(event: React.FormEvent<HTMLInputElement>) {
-        this.setState({sequenceFilterValue: (event.target as any).value});
+        this.setState({sequenceFilterValue: Number((event.target as any).value)});
     }
 
     render() {
@@ -59,7 +59,7 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
 
         return (
             <div>
-                <a href={uploadScanUrl} className="new-scan">Upload New Scan</a>
+                <a href={uploadScanUrl} className="btn secondary">Upload New Scan</a>
                 <div className="machine-sequences-filters">
                     Filter By
                     <select value={machineFilterValue} onChange={this.handleMachineChange.bind(this)}>

@@ -52,6 +52,8 @@ freezedeps:
 clean:
 	git clean -fqx tmp
 	git clean -fqx .hdattarchive
+	rm -r collected_static
+	rm -r client/dist
 
 cleandev:
 	./dropdb

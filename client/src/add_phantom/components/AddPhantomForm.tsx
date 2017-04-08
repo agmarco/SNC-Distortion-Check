@@ -56,8 +56,8 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
                     this.setState({
                         validating: false,
                         promise: null,
+                        modelNumber: model_number,
                         valid,
-                        model_number,
                     });
                 }).bind(this));
             });
@@ -115,8 +115,13 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
                         using a gold standard CT, or a raw point upload.
                     </div>
 
-                    <a href={cancelUrl}>Cancel</a>
-                    <input type="submit" value="Add Phantom" disabled={validating || !valid} />
+                    <a href={cancelUrl} className="btn tertiary">Cancel</a>
+                    <input
+                        type="submit"
+                        value="Add Phantom"
+                        disabled={validating || !valid}
+                        className="btn secondary"
+                    />
                 </form>
             </div>
         );

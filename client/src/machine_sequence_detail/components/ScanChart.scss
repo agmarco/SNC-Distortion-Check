@@ -8,19 +8,25 @@ body {
   font: 10px sans-serif;
   cursor: all-scroll;
 
-  line, rect, circle {
+  line,
+  rect,
+  circle {
     fill: none;
     stroke-width: 1px;
   }
 
   .passed {
-    line, rect, circle {
+    line,
+    rect,
+    circle {
       stroke: $success-color;
     }
   }
 
   .failed {
-    line, rect, circle {
+    line,
+    rect,
+    circle {
       stroke: $error-color;
     }
   }
@@ -33,7 +39,8 @@ body {
   .axis {
     font: 12px sans-serif;
 
-    path, line {
+    path,
+    line {
       fill: none;
       stroke: #000;
     }

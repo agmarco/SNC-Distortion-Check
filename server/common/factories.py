@@ -86,6 +86,7 @@ class PhantomModelFactory(factory.django.DjangoModelFactory):
         model = "common.PhantomModel"
 
     cad_fiducials = factory.SubFactory(FiducialsFactory)
+    model_number = '603A'
 
 
 class PhantomFactory(factory.django.DjangoModelFactory):
@@ -94,7 +95,7 @@ class PhantomFactory(factory.django.DjangoModelFactory):
 
     name = factory.Sequence("Machine {0}".format)
     model = factory.SubFactory(PhantomModelFactory)
-    serial_number = factory.Sequence("Serial Number {0}".format)
+    serial_number = factory.Sequence("SN{0}".format)
 
 
 class SequenceFactory(factory.django.DjangoModelFactory):

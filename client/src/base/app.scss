@@ -1,5 +1,7 @@
 @import '~normalize.css/normalize';
+@import '~bourbon/app/assets/stylesheets/bourbon';
 @import 'variables';
+@import 'bitters/base';
 
 html {
   height: 100%;
@@ -9,7 +11,8 @@ body {
   margin: 0;
   font-family: sans-serif;
   position: relative;
-  min-height: 100%;
+  min-height: calc(100% - #{$header-height} - #{$footer-height} - 16px);
+  padding-top: $header-height + 16px;
   padding-bottom: $footer-height;
 }
 
@@ -21,14 +24,36 @@ a {
   }
 }
 
-header {
+.container {
+  max-width: $max-site-width;
+  margin: 0 auto;
+  overflow: auto;
+}
+
+#site-header {
   background-color: $primary-color;
   color: white;
   overflow: auto;
-  position: relative;
+  height: $header-height;
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1000;
+
+  .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+  }
 
   h1 {
-    margin: 16px;
+    margin: 0;
+
+    a:hover {
+      text-decoration: none;
+    }
   }
 
   a {
@@ -37,11 +62,8 @@ header {
 
   ul {
     list-style-type: none;
+    margin: 0;
     padding: 0;
-    position: absolute;
-    top: 0;
-    right: 0;
-    margin: 25px 16px;
 
     li {
       display: inline-block;
@@ -50,7 +72,7 @@ header {
   }
 }
 
-footer {
+#site-footer {
   background-color: $primary-color;
   height: $footer-height;
   color: white;
@@ -61,13 +83,19 @@ footer {
   left: 0;
   font-size: 14px;
 
+  .container {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+  }
+
   a {
     color: white;
   }
 
   ul {
+    margin: 0;
     padding: 0;
-    margin: 16px;
 
     li {
       display: inline-block;
@@ -77,16 +105,12 @@ footer {
 }
 
 .cirs-table {
-  border-collapse: collapse;
-  width: 100%;
-
   tr.a {
     background-color: rgb(241, 241, 241);
   }
 
-  th, td {
-    text-align: left;
-    padding: 8px 16px;
+  th {
+    color: rgb(146, 146, 146);
   }
 }
 
@@ -94,7 +118,38 @@ footer {
   &.fa-check {
     color: $success-color;
   }
+
   &.fa-times {
     color: $error-color;
+  }
+}
+
+#{$all-buttons} {
+  &:hover {
+    text-decoration: none;
+  }
+
+  &.primary {
+    background-color: $primary-color;
+
+    &:hover {
+      background-color: darken($primary-color, 5%);
+    }
+  }
+
+  &.secondary {
+    background-color: $secondary-color;
+
+    &:hover {
+      background-color: darken($secondary-color, 5%);
+    }
+  }
+
+  &.tertiary {
+    background-color: $tertiary-color;
+
+    &:hover {
+      background-color: darken($tertiary-color, 5%);
+    }
   }
 }

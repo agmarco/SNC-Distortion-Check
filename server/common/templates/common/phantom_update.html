@@ -8,7 +8,7 @@
   <form action="{% url 'update_phantom' phantom.pk %}" method="post">
     {% csrf_token %}
     {% include 'includes/form_fields.html' %}
-    <input type="submit" value="Save Name Change">
+    <input type="submit" value="Save Name Change" class="btn tertiary">
   </form>
 
   <label>Model Number</label> {{ phantom.model }}<br>
@@ -49,8 +49,8 @@
     {% endfor %}
   </tbody>
   </table>
-  <a href="{% url 'upload_ct' phantom.pk %}">Upload Gold Standard CT</a>
-  <a href="{% url 'upload_raw' phantom.pk %}">Upload Raw Points</a>
+  <a href="{% url 'upload_ct' phantom.pk %}" class="btn tertiary">Upload Gold Standard CT</a>
+  <a href="{% url 'upload_raw' phantom.pk %}" class="btn tertiary">Upload Raw Points</a>
 {% endblock %}
 
 {% block "scripts" %}

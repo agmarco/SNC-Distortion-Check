@@ -13,9 +13,9 @@ interface IUploadScanFormProps {
 }
 
 interface IUploadScanFormState {
-    machineFilterValue: string|number;
-    sequenceFilterValue: string|number;
-    phantomFilterValue: string|number;
+    machineFilterValue: '' | number;
+    sequenceFilterValue: '' | number;
+    phantomFilterValue: '' | number;
 }
 
 export default class extends React.Component<IUploadScanFormProps, IUploadScanFormState> {
@@ -55,11 +55,15 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
         const { machines, sequences, phantoms, uploadScanUrl, cancelUrl, csrftoken } = this.props;
         const { machineFilterValue, sequenceFilterValue, phantomFilterValue } = this.state;
 
-        const currentMachine = machineFilterValue && machines.find((machine) => machine.pk === machineFilterValue);
-        const currentSequence = sequenceFilterValue && sequences.find((sequence) => {
-            return sequence.pk === sequenceFilterValue;
-        });
-        const currentPhantom = phantomFilterValue && phantoms.find((phantom) => phantom.pk === phantomFilterValue);
+        const currentMachine = machineFilterValue && (
+            machines.find((machine) => machine.pk === machineFilterValue)
+        );
+        const currentSequence = sequenceFilterValue && (
+            sequences.find((sequence) => sequence.pk === sequenceFilterValue)
+        );
+        const currentPhantom = phantomFilterValue && (
+            phantoms.find((phantom) => phantom.pk === phantomFilterValue)
+        );
 
         return (
             <div>
@@ -175,8 +179,8 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                         <textarea cols={40} rows={10} id="upload-scan-notes" name="notes" />
                     </div>
 
-                    <a href={cancelUrl}>Cancel</a>
-                    <input type="submit" value="Process Scan" />
+                    <a href={cancelUrl} className="btn tertiary">Cancel</a>
+                    <input type="submit" value="Process Scan" className="btn secondary" />
                 </form>
             </div>
         );
