@@ -81,7 +81,6 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
 
         return (
             <div>
-                <h1>Add Phantom</h1>
                 <form action={createPhantomUrl} method="post">
                     <input type="hidden" name="csrfmiddlewaretoken" value={csrftoken} />
 

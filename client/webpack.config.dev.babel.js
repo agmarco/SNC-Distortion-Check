@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as webpack from 'webpack';
+import ExtractTextPlugin from 'extract-text-webpack-plugin';
 
 export default (env) => {
     const config = {
@@ -16,6 +17,7 @@ export default (env) => {
             machine_sequence_detail: [path.join(__dirname, 'src/machine_sequence_detail/app.tsx')],
             add_phantom: [path.join(__dirname, 'src/add_phantom/app.tsx')],
             upload_scan: [path.join(__dirname, 'src/upload_scan/app.tsx')],
+            base: [path.join(__dirname, 'src/base/app.scss')],
         },
 
         output: {
@@ -29,6 +31,7 @@ export default (env) => {
         plugins: [
             new webpack.NoEmitOnErrorsPlugin(),
             new webpack.optimize.CommonsChunkPlugin({name: 'vendor'}),
+            new ExtractTextPlugin({filename: '[name].css', allChunks: true}),
         ],
 
         module: {
@@ -44,7 +47,10 @@ export default (env) => {
                     exclude: /node_modules/,
                 }, {
                     test: /\.scss$/,
-                    use: ['style-loader', 'css-loader', 'sass-loader'],
+                    use: ExtractTextPlugin.extract({
+                        fallback: 'style-loader',
+                        use: ['css-loader', 'sass-loader'],
+                    }),
                 },
             ],
         },

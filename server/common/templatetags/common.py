@@ -16,8 +16,8 @@ def webpack(bundle):
     """Use the webpack dev server in development, and staticfiles in production."""
 
     if settings.DEBUG:
-        webpack_path = os.path.join('http://0.0.0.0:8080/', f'{bundle}.js')
-        static_path = static(f'{bundle}.js')
+        webpack_path = os.path.join('http://0.0.0.0:8080/', bundle)
+        static_path = static(bundle)
 
         try:
             res = requests.get(webpack_path)
@@ -34,7 +34,7 @@ def webpack(bundle):
         # load the correct file from the manifest.json
         with open(os.path.join(settings.BASE_DIR, 'client/dist/manifest.json')) as manifest_file:
             manifest = json.load(manifest_file)
-            filename = manifest[f'{bundle}.js']
+            filename = manifest[bundle]
         return static(filename)
 
 

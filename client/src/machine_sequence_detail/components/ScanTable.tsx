@@ -60,7 +60,7 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
                         ))}
                     </select>
                 </div>
-                <table>
+                <table className="cirs-table">
                     <thead>
                         <tr>
                             <th>Passed</th>
@@ -70,8 +70,8 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredScans.map((scan) => (
-                            <tr key={scan.pk}>
+                        {filteredScans.map((scan, i) => (
+                            <tr key={scan.pk} className={i % 2 === 0 ? 'a' : 'b'}>
                                 <td>{!scan.processing && !scan.errors && <BoolIcon value={scan.passed} />}</td>
                                 <td>{format(scan.acquisition_date, 'MMMM D, YYYY')}</td>
                                 <td>{scan.phantom.model_number} &mdash; {scan.phantom.serial_number}</td>

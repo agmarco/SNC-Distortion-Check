@@ -59,8 +59,8 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
 
         return (
             <div>
-                <a href={uploadScanUrl}>Upload New Scan</a>
-                <div>
+                <a href={uploadScanUrl} className="new-scan">Upload New Scan</a>
+                <div className="machine-sequences-filters">
                     Filter By
                     <select value={machineFilterValue} onChange={this.handleMachineChange.bind(this)}>
                         <option value="all">All Machines</option>
@@ -75,7 +75,7 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
                         ))}
                     </select>
                 </div>
-                <table>
+                <table className="cirs-table">
                     <thead>
                         <tr>
                             <th>Machine</th>
@@ -86,8 +86,8 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredMachineSequencePairs.map((pair) => (
-                            <tr key={pair.pk}>
+                        {filteredMachineSequencePairs.map((pair, i) => (
+                            <tr key={pair.pk} className={i % 2 === 0 ? 'a' : 'b'}>
                                 <td>{pair.machine.name}</td>
                                 <td>{pair.sequence.name}</td>
                                 <td>

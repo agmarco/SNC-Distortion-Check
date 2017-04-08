@@ -12,13 +12,16 @@ declare const CANCEL_URL: string;
 declare const FORM_ERRORS: {[field: string]: string[]};
 
 export default () => (
-    <UploadScanForm
-        machines={MACHINES}
-        sequences={SEQUENCES}
-        phantoms={PHANTOMS}
-        uploadScanUrl={UPLOAD_SCAN_URL}
-        cancelUrl={CANCEL_URL}
-        formErrors={FORM_ERRORS}
-        csrftoken={Cookies.get('csrftoken')}
-    />
+    <div>
+        <h1>Upload Scan</h1>
+        <UploadScanForm
+            machines={MACHINES}
+            sequences={SEQUENCES}
+            phantoms={PHANTOMS}
+            uploadScanUrl={UPLOAD_SCAN_URL}
+            cancelUrl={CANCEL_URL}
+            formErrors={FORM_ERRORS}
+            csrftoken={Cookies.get('csrftoken')}
+        />
+    </div>
 );

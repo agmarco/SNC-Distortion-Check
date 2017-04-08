@@ -9,11 +9,14 @@ declare const CANCEL_URL: string;
 declare const FORM_ERRORS: {[field: string]: string[]};
 
 export default () => (
-    <AddPhantomForm
-        createPhantomUrl={CREATE_PHANTOM_URL}
-        validateSerialUrl={VALIDATE_SERIAL_URL}
-        cancelUrl={CANCEL_URL}
-        formErrors={FORM_ERRORS}
-        csrftoken={Cookies.get('csrftoken')}
-    />
+    <div>
+        <h1>Add Phantom</h1>
+        <AddPhantomForm
+            createPhantomUrl={CREATE_PHANTOM_URL}
+            validateSerialUrl={VALIDATE_SERIAL_URL}
+            cancelUrl={CANCEL_URL}
+            formErrors={FORM_ERRORS}
+            csrftoken={Cookies.get('csrftoken')}
+        />
+    </div>
 );

@@ -3,6 +3,7 @@ import * as webpack from 'webpack';
 import ManifestPlugin from 'webpack-manifest-plugin';
 import ChunkManifestPlugin from 'chunk-manifest-webpack-plugin';
 import WebpackChunkHash from 'webpack-chunk-hash';
+import ExtractTextPlugin from 'extract-text-webpack-plugin';
 
 export default (env) => ({
     entry: {
@@ -13,11 +14,12 @@ export default (env) => ({
             'react',
             'react-dom',
         ],
-        landing: path.join(__dirname, 'src/landing/app.tsx'),
-        machine_sequences: path.join(__dirname, 'src/machine_sequences/app.tsx'),
-        machine_sequence_detail: path.join(__dirname, 'src/machine_sequence_detail/app.tsx'),
-        add_phantom: path.join(__dirname, 'src/add_phantom/app.tsx'),
-        upload_scan: path.join(__dirname, 'src/upload_scan/app.tsx'),
+        landing: [path.join(__dirname, 'src/landing/app.tsx')],
+        machine_sequences: [path.join(__dirname, 'src/machine_sequences/app.tsx')],
+        machine_sequence_detail: [path.join(__dirname, 'src/machine_sequence_detail/app.tsx')],
+        add_phantom: [path.join(__dirname, 'src/add_phantom/app.tsx')],
+        upload_scan: [path.join(__dirname, 'src/upload_scan/app.tsx')],
+        base: [path.join(__dirname, 'src/base/app.scss')],
     },
 
     output: {
@@ -52,7 +54,8 @@ export default (env) => ({
         new WebpackChunkHash(),
         new webpack.DefinePlugin({
             'process.env.NODE_ENV': JSON.stringify('production'),
-        })
+        }),
+        new ExtractTextPlugin({filename: '[name].[chunkhash].css', allChunks: true}),
     ],
 
     module: {
@@ -63,7 +66,10 @@ export default (env) => ({
                 exclude: /node_modules/,
             }, {
                 test: /\.scss$/,
-                use: ['style-loader', 'css-loader', 'sass-loader'],
+                use: ExtractTextPlugin.extract({
+                    fallback: 'style-loader',
+                    use: ['css-loader', 'sass-loader']
+                }),
             },
         ],
     },

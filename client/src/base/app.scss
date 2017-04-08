@@ -1,0 +1,100 @@
+@import '~normalize.css/normalize';
+@import 'variables';
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: sans-serif;
+  position: relative;
+  min-height: 100%;
+  padding-bottom: $footer-height;
+}
+
+a {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+header {
+  background-color: $primary-color;
+  color: white;
+  overflow: auto;
+  position: relative;
+
+  h1 {
+    margin: 16px;
+  }
+
+  a {
+    color: white;
+  }
+
+  ul {
+    list-style-type: none;
+    padding: 0;
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 25px 16px;
+
+    li {
+      display: inline-block;
+      margin-left: 16px;
+    }
+  }
+}
+
+footer {
+  background-color: $primary-color;
+  height: $footer-height;
+  color: white;
+  overflow: auto;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  font-size: 14px;
+
+  a {
+    color: white;
+  }
+
+  ul {
+    padding: 0;
+    margin: 16px;
+
+    li {
+      display: inline-block;
+      margin-right: 16px;
+    }
+  }
+}
+
+.cirs-table {
+  border-collapse: collapse;
+  width: 100%;
+
+  tr.a {
+    background-color: rgb(241, 241, 241);
+  }
+
+  th, td {
+    text-align: left;
+    padding: 8px 16px;
+  }
+}
+
+.fa {
+  &.fa-check {
+    color: $success-color;
+  }
+  &.fa-times {
+    color: $error-color;
+  }
+}

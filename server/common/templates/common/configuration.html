@@ -13,7 +13,7 @@
 
   <h2>Phantoms</h2>
   <a href="{% url 'create_phantom' %}">Add Phantom</a>
-  <table>
+  <table class="cirs-table">
     <thead>
       <tr>
         <th>Name</th>
@@ -25,7 +25,7 @@
     </thead>
     <tbody>
       {% for phantom in phantoms %}
-        <tr>
+        <tr class="{% if forloop.counter0|divisibleby:2 %}a{% else %}b{% endif %}">
           <td>{{ phantom.name }}</td>
           <td>{{ phantom.model }}</td>
           <td>{{ phantom.serial_number }}</td>
@@ -39,7 +39,7 @@
 
   <h2>MRI Scanners</h2>
   <a href="{% url 'create_machine' %}">Add Machine</a>
-  <table>
+  <table class="cirs-table">
     <thead>
       <tr>
         <th>Name</th>
@@ -50,7 +50,7 @@
     </thead>
     <tbody>
       {% for machine in machines %}
-        <tr>
+        <tr class="{% if forloop.counter0|divisibleby:2 %}a{% else %}b{% endif %}">
           <td>{{ machine.name }}</td>
           <td>{{ machine.model }}</td>
           <td>{{ machine.manufacturer }}</td>
@@ -63,7 +63,7 @@
 
   <h2>MRI Sequences</h2>
   <a href="{% url 'create_sequence' %}">Add Sequence</a>
-  <table>
+  <table class="cirs-table">
     <thead>
       <tr>
         <th>Name</th>
@@ -73,7 +73,7 @@
     </thead>
     <tbody>
       {% for sequence in sequences %}
-        <tr>
+        <tr class="{% if forloop.counter0|divisibleby:2 %}a{% else %}b{% endif %}">
           <td>{{ sequence.name }}</td>
           <td>{{ sequence.instructions }}</td>
           <td><a href="{% url 'update_sequence' sequence.pk %}">Edit</a></td>
@@ -86,7 +86,7 @@
   {% if users %}
     <h2>Users</h2>
     <a href="{% url 'create_user' %}">Add User</a>
-    <table>
+    <table class="cirs-table">
       <thead>
         <tr>
           <th>Name</th>
@@ -97,7 +97,7 @@
       </thead>
       <tbody>
         {% for user in users %}
-          <tr>
+          <tr class="{% if forloop.counter0|divisibleby:2 %}a{% else %}b{% endif %}">
             <td>{{ user.get_full_name }}</td>
             <td><a href="mailto:{{ user.email }}">{{ user.email }}</a></td>
             <td>{{ user.groups.all|join:", " }}</td>

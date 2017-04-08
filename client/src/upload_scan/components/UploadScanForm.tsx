@@ -63,7 +63,6 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
 
         return (
             <div>
-                <h1>Upload Scan</h1>
                 <form action={uploadScanUrl} encType="multipart/form-data" method="post">
                     <input type="hidden" name="csrfmiddlewaretoken" value={csrftoken} />
 

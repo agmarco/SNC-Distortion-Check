@@ -12,9 +12,7 @@ interface IZoomHandler {
     (dx: number): void;
 }
 
-export interface IScanData {
-    [index: number]: number;
-    length: number;
+export interface IScanData extends Array<number> {
     quartiles: number[];
     passed: boolean;
     label: string;
@@ -130,13 +128,13 @@ export default class extends React.Component<IScanChartProps, {}> {
 
         const zoom = d3.behavior.zoom()
             .on('zoom', () => {
-                if (d3.event.sourceEvent.type === "wheel") {
+                if (d3.event.sourceEvent.type === 'wheel') {
 
                     // d3.event.translate is wrong because it's expecting this event to zoom.
                     // Instead, keep a reference to the current x translation, and add the
                     // extent of the vertical wheel scroll.
                     dx += d3.event.sourceEvent.deltaY;
-                } else if (d3.event.sourceEvent.type === "mousemove") {
+                } else if (d3.event.sourceEvent.type === 'mousemove') {
                     dx = d3.event.translate[0];
                 }
 

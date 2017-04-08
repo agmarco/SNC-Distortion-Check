@@ -3,6 +3,10 @@
 {% load static %}
 {% load common %}
 
+{% block styles %}
+  <link rel="stylesheet" href="{% webpack 'machine_sequences.css' %}">
+{% endblock %}
+
 {% block "content" %}
   <div id="machine-sequences-app"></div>
 {% endblock %}
@@ -10,10 +14,10 @@
 {% block "scripts" %}
   <script src="{% static 'common/fontawesome.js' %}"></script>
   <script>{% manifest %}</script>
-  <script src="{% webpack 'vendor' %}"></script>
+  <script src="{% webpack 'vendor.js' %}"></script>
   <script>
     var MACHINE_SEQUENCE_PAIRS = {{ machine_sequence_pairs|safe }};
     var UPLOAD_SCAN_URL = {% url 'upload_scan' %};
   </script>
-   <script src="{% webpack 'machine_sequences' %}"></script>
+   <script src="{% webpack 'machine_sequences.js' %}"></script>
 {% endblock %}
