@@ -8,18 +8,20 @@ import ScanChartAxes from './ScanChartAxes';
 
 import './ScanChart.scss';
 
-interface IZoomHandler {
-    (dx: number): void;
+export interface IScrollable {
+    scroll: {
+        start: number;
+        dx: number;
+        clipPathId: string;
+    };
 }
 
-export interface IScanData extends Array<number> {
+type ScanTuple = [number, number[]]; // [pk, distortion]
+
+export interface IScanData extends ScanTuple {
     quartiles: number[];
     passed: boolean;
     label: string;
-}
-
-export interface IZoomable {
-    registerZoomHandler: (handler: IZoomHandler) => void;
 }
 
 export interface IScanChartSettings {
@@ -41,14 +43,18 @@ export interface IScanChartProps {
     scans: IScanDTO[];
 }
 
-export default class extends React.Component<IScanChartProps, {}> {
+interface IScanChartState {
+    scrollX: number;
+}
+
+export default class extends React.Component<IScanChartProps, IScanChartState> {
     svg: SVGElement;
     settings: IScanChartSettings;
-    zoomHandlers: IZoomHandler[] = [];
 
     constructor(props: IScanChartProps) {
         super();
         this.settings = this.getSettings(props);
+        this.state = {scrollX: 0};
     }
 
     // Returns a function to compute the interquartile range.
@@ -72,18 +78,17 @@ export default class extends React.Component<IScanChartProps, {}> {
 
     getSettings(props: IScanChartProps) {
         const { machineSequencePair, scans } = props;
-        const allDataPoints = Array.prototype.concat.apply([], scans.map((scan) => scan.distortion));
 
         const labels = true;
         const margin = {top: 10, right: 10, bottom: 60, left: 60};
 
         const clipWidth = 800 - margin.left - margin.right;
+        const width = Math.max(scans.length * 100, clipWidth);
         const height = 400 - margin.top - margin.bottom;
 
+        const maxDistortion = Math.max(...scans.map((scan) => Math.max(...scan.distortion)));
         const yMin = 0;
-        const yMax = 1.05 * Math.max.apply(null, [machineSequencePair.tolerance, ...allDataPoints]);
-
-        const width = Math.max(scans.length * 100, clipWidth);
+        const yMax = 1.05 * Math.max(machineSequencePair.tolerance, maxDistortion);
 
         const data = scans.map((scan) => {
             const array = [scan.pk, scan.distortion] as any;
@@ -121,49 +126,50 @@ export default class extends React.Component<IScanChartProps, {}> {
         };
     }
 
-    renderPlot() {
+    scrollChart() {
         const { clipWidth, width } = this.settings;
+        const { scrollX } = this.state;
 
-        let dx = 0;
-
-        const zoom = d3.behavior.zoom()
+        const scroll = d3.behavior.zoom()
             .on('zoom', () => {
+                let newScrollX = scrollX;
+
                 if (d3.event.sourceEvent.type === 'wheel') {
 
                     // d3.event.translate is wrong because it's expecting this event to zoom.
                     // Instead, keep a reference to the current x translation, and add the
                     // extent of the vertical wheel scroll.
-                    dx += d3.event.sourceEvent.deltaY;
+                    newScrollX += d3.event.sourceEvent.deltaY;
                 } else if (d3.event.sourceEvent.type === 'mousemove') {
-                    dx = d3.event.translate[0];
+                    newScrollX += d3.event.translate[0];
                 }
 
                 // Don't let the user scroll beyond the bounds of the chart.
-                dx = Math.min(Math.max(dx, 0), width - clipWidth);
-
-                zoom.translate([dx, 0]);
-                for (let handler of this.zoomHandlers) {
-                    handler(dx);
-                }
+                newScrollX = Math.min(Math.max(newScrollX, 0), width - clipWidth);
+                scroll.translate([newScrollX, 0]);
+                this.setState({scrollX: newScrollX});
             });
 
-        d3.select(this.svg).call(zoom);
-    }
-
-    registerZoomHandler(handler: IZoomHandler) {
-        this.zoomHandlers.push(handler);
+        d3.select(this.svg).call(scroll);
     }
 
     componentDidMount() {
-        this.renderPlot();
+        this.scrollChart();
     }
 
     componentDidUpdate() {
-        this.renderPlot();
+        this.scrollChart();
     }
 
     render() {
-        const { clipWidth, height, margin } = this.settings;
+        const { clipWidth, width, height, margin } = this.settings;
+        const { scrollX } = this.state;
+        const clipPathId = 'clip-path';
+        const scroll = {
+            start: clipWidth - width,
+            dx: scrollX,
+            clipPathId,
+        };
 
         return (
             <svg
@@ -173,28 +179,14 @@ export default class extends React.Component<IScanChartProps, {}> {
                 ref={(svg) => this.svg = svg}
             >
                 <defs>
-                    <clipPath id="clip-path">
+                    <clipPath id={clipPathId}>
                         <rect width={clipWidth} height={height + margin.top + margin.bottom} />
                     </clipPath>
                 </defs>
                 <g transform={`translate(${margin.left}, ${margin.top})`}>
-                    <g clipPath="url(#clip-path)">
-                        <ScanChartData
-                            {...this.props}
-                            {...this.settings}
-                            registerZoomHandler={this.registerZoomHandler.bind(this)}
-                        />
-                        <ScanChartTolerance
-                            {...this.props}
-                            {...this.settings}
-                            registerZoomHandler={this.registerZoomHandler.bind(this)}
-                        />
-                    </g>
-                    <ScanChartAxes
-                        {...this.props}
-                        {...this.settings}
-                        registerZoomHandler={this.registerZoomHandler.bind(this)}
-                    />
+                    <ScanChartData {...this.props} {...this.settings} scroll={scroll} />
+                    <ScanChartTolerance{...this.props} {...this.settings} scroll={scroll} />
+                    <ScanChartAxes{...this.props} {...this.settings} scroll={scroll} />
                     <rect width={clipWidth} height={height} className="border" />
                 </g>
             </svg>

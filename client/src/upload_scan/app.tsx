@@ -1,5 +1,3 @@
-import * as React from 'react';
-
 import { renderApp } from 'common/utils';
 import App from './containers/App';
 

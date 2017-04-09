@@ -1,12 +1,12 @@
 import * as React from 'react';
 
-import { IScanChartProps, IScanChartSettings, IZoomable } from './ScanChart';
+import { IScanChartProps, IScanChartSettings, IScrollable } from './ScanChart';
 
-interface IScanChartToleranceProps extends IScanChartProps, IScanChartSettings, IZoomable {}
+interface IScanChartToleranceProps extends IScanChartProps, IScanChartSettings, IScrollable {}
 
 export default class extends React.Component<IScanChartToleranceProps, {}> {
     render() {
-        const { clipWidth, machineSequencePair, yScale, margin } = this.props;
+        const { clipWidth, machineSequencePair, yScale } = this.props;
 
         return (
             <line

@@ -1,20 +1,12 @@
 import * as React from 'react';
 
-import { IScanChartProps, IScanChartSettings, IZoomable } from './ScanChart';
+import { IScanChartProps, IScanChartSettings, IScrollable } from './ScanChart';
+import Scrollable from './Scrollable';
 
-interface IScanChartDataProps extends IScanChartProps, IScanChartSettings, IZoomable {}
+interface IScanChartDataProps extends IScanChartProps, IScanChartSettings, IScrollable {}
 
 export default class extends React.Component<IScanChartDataProps, {}> {
     g: SVGGElement;
-
-    constructor(props: IScanChartDataProps) {
-        super();
-        const { registerZoomHandler, clipWidth, width } = props;
-
-        registerZoomHandler((dx: number) => {
-            d3.select(this.g).attr('transform', `translate(${clipWidth - width + dx}, 0)`);
-        });
-    }
 
     componentDidMount() {
         this.renderPlot();
@@ -37,13 +29,13 @@ export default class extends React.Component<IScanChartDataProps, {}> {
     }
 
     render() {
-        const { clipWidth, width } = this.props;
+        const { scroll } = this.props;
 
         return (
-            <g
-                ref={(g) => this.g = g}
-                transform={`translate(${clipWidth - width}, 0)`}
-            />
+
+            <Scrollable {...scroll}>
+                <g ref={(g) => this.g = g} />
+            </Scrollable>
         );
     }
 }

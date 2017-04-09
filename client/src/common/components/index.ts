@@ -5,3 +5,5 @@ export {
     MachineSequenceTable,
     BoolIcon,
 }
+
+// TODO CSRFToken component

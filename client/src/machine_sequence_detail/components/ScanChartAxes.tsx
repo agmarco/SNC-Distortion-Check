@@ -1,21 +1,13 @@
 import * as React from 'react';
 
-import { IScanChartProps, IScanChartSettings, IZoomable, IScanData } from './ScanChart';
+import { IScanChartProps, IScanChartSettings, IScanData, IScrollable } from './ScanChart';
+import Scrollable from './Scrollable';
 
-interface IScanChartAxesProps extends IScanChartProps, IScanChartSettings, IZoomable {}
+interface IScanChartAxesProps extends IScanChartProps, IScanChartSettings, IScrollable {}
 
 export default class extends React.Component<IScanChartAxesProps, {}> {
     xAxis: SVGGElement;
     yAxis: SVGGElement;
-
-    constructor(props: IScanChartAxesProps) {
-        super();
-        const { registerZoomHandler, height, clipWidth, width } = props;
-
-        registerZoomHandler((dx: number) => {
-            d3.select(this.xAxis).attr('transform', `translate(${clipWidth - width + dx}, ${height})`);
-        });
-    }
 
     componentDidMount() {
         this.renderAxes();
@@ -49,11 +41,11 @@ export default class extends React.Component<IScanChartAxesProps, {}> {
     }
 
     renderXAxis() {
-        const { clipWidth, width, height, margin } = this.props;
+        const { clipWidth, height, margin, scroll } = this.props;
 
         const xAxisProps = {
             className: "x axis",
-            transform: `translate(${clipWidth - width}, ${height})`,
+            transform: `translate(0, ${height})`,
         };
 
         const xLabelProps = {
@@ -65,9 +57,9 @@ export default class extends React.Component<IScanChartAxesProps, {}> {
 
         return (
             <g>
-                <g clipPath="url(#clip-path)">
-                    <g ref={(g) => this.xAxis = g}{...xAxisProps} />
-                </g>
+                <Scrollable {...scroll}>
+                    <g ref={(g) => this.xAxis = g} {...xAxisProps} />
+                </Scrollable>
                 <text {...xLabelProps}>Scans</text>
             </g>
         );

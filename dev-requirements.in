@@ -6,3 +6,4 @@ nbstripout
 honcho
 gitpython
 factory_boy
+pylint
