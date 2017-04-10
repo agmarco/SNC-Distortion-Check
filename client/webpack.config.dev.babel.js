@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as webpack from 'webpack';
+import ExtractTextPlugin from 'extract-text-webpack-plugin';
 import StyleLintPlugin from 'stylelint-webpack-plugin';
 
 export default (env) => {
@@ -30,7 +31,11 @@ export default (env) => {
 
         plugins: [
             new webpack.NoEmitOnErrorsPlugin(),
-            new webpack.optimize.CommonsChunkPlugin({name: 'vendor'}),
+            new webpack.optimize.CommonsChunkPlugin({
+                name: 'vendor',
+                minChunks: Infinity,
+            }),
+            new ExtractTextPlugin('[name].css'),
             new StyleLintPlugin(),
         ],
 
@@ -38,16 +43,19 @@ export default (env) => {
             rules: [
                 {
                     test: /\.tsx?$/,
+                    exclude: /node_modules/,
                     enforce: 'pre',
                     loader: 'tslint-loader',
-                    exclude: /node_modules/,
                 }, {
                     test: /\.tsx?$/,
-                    use: ['babel-loader', 'ts-loader'],
                     exclude: /node_modules/,
+                    use: ['babel-loader', 'ts-loader'],
                 }, {
                     test: /\.scss$/,
-                    use: ['style-loader', 'css-loader', 'sass-loader'],
+                    use: ExtractTextPlugin.extract({
+                        fallback: 'style-loader',
+                        use: ['css-loader', 'sass-loader'],
+                    }),
                 },
             ],
         },

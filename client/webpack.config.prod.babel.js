@@ -48,23 +48,20 @@ export default (env) => ({
         new webpack.DefinePlugin({
             'process.env.NODE_ENV': JSON.stringify('production'),
         }),
-        new ExtractTextPlugin({
-            filename: '[name].[chunkhash].css',
-            allChunks: true,
-        }),
+        new ExtractTextPlugin('[name].[contenthash].css'),
     ],
 
     module: {
         rules: [
             {
                 test: /\.tsx?$/,
-                use: ['babel-loader', 'ts-loader'],
                 exclude: /node_modules/,
+                use: ['babel-loader', 'ts-loader'],
             }, {
                 test: /\.scss$/,
                 use: ExtractTextPlugin.extract({
                     fallback: 'style-loader',
-                    use: ['css-loader', 'sass-loader']
+                    use: ['css-loader', 'sass-loader'],
                 }),
             },
         ],

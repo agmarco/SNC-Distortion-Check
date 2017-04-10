@@ -66,6 +66,7 @@
   },
   "scripts": {
     "webpack:dev": "webpack --env dev",
+    "webpack:watch": "webpack --env dev --watch",
     "webpack:hot": "webpack-dev-server --env hot",
     "webpack:prod": "webpack --env prod"
   }
