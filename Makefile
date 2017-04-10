@@ -38,8 +38,8 @@ tmp/%-report.pdf: tmp/%-matched-points.mat .PYTHONDEPS
 tmp/%-distortion.mat: tmp/%-voxels.mat tmp/%-matched-points.mat .PYTHONDEPS
 	./process/interpolate $< $(word 2,$^) $@
 
-.env:
-	cp .sample.env $@
+.env: .sample.env
+	cp $< $@
 
 
 .PHONY: clean cleandev dev freezedeps static
@@ -48,7 +48,7 @@ dev: .PYTHONDEPS .JSDEPS static | .env
 	./createdb
 	python server/manage.py generate_dev_data
 
-static: .PYTHONDEPS .JSDEPS
+static: .PYTHONDEPS .JSDEPS | .env
 	cd client; yarn webpack:dev
 	python server/manage.py collectstatic --noinput
 
