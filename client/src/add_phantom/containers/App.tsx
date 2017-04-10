@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as Cookies from 'js-cookie';
 
 import AddPhantomForm from '../components/AddPhantomForm';
 
@@ -16,7 +15,6 @@ export default () => (
             validateSerialUrl={VALIDATE_SERIAL_URL}
             cancelUrl={CANCEL_URL}
             formErrors={FORM_ERRORS}
-            csrftoken={Cookies.get('csrftoken')}
         />
     </div>
 );

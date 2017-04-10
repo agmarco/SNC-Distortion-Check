@@ -38,7 +38,8 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
     }
 
     handlePhantomChange(event: React.FormEvent<HTMLInputElement>) {
-        this.setState({phantomFilterValue: Number((event.target as any).value)});
+        const value = (event.target as any).value;
+        this.setState({phantomFilterValue: value === 'all' ? value : Number(value)});
     }
 
     render() {

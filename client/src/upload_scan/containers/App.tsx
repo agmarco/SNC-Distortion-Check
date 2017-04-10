@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as Cookies from 'js-cookie';
 
 import { IMachineDTO, ISequenceDTO, IPhantomDTO } from 'common/service';
 import UploadScanForm from '../components/UploadScanForm';
@@ -21,7 +20,6 @@ export default () => (
             uploadScanUrl={UPLOAD_SCAN_URL}
             cancelUrl={CANCEL_URL}
             formErrors={FORM_ERRORS}
-            csrftoken={Cookies.get('csrftoken')}
         />
     </div>
 );

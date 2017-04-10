@@ -4,6 +4,8 @@ import { renderApp } from 'common/utils';
 import App from './containers/App';
 import './box.js';
 
+import 'base/app.scss';
+
 renderApp(App, 'machine-sequence-detail-app');
 
 // Hot Module Replacement API

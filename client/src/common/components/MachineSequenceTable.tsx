@@ -5,6 +5,8 @@ import uniqBy from 'lodash/uniqBy';
 import { IMachineSequencePairDTO, IMachineDTO, ISequenceDTO } from '../service';
 import BoolIcon from './BoolIcon';
 
+import './MachineSequenceTable.scss';
+
 interface IMachineSequenceTableProps {
     machineSequencePairs: IMachineSequencePairDTO[];
     uploadScanUrl: string;
@@ -45,11 +47,13 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
     }
 
     handleMachineChange(event: React.FormEvent<HTMLInputElement>) {
-        this.setState({machineFilterValue: Number((event.target as any).value)});
+        const value = (event.target as any).value;
+        this.setState({machineFilterValue: value === 'all' ? value : Number(value)});
     }
 
     handleSequenceChange(event: React.FormEvent<HTMLInputElement>) {
-        this.setState({sequenceFilterValue: Number((event.target as any).value)});
+        const value = (event.target as any).value;
+        this.setState({sequenceFilterValue: value === 'all' ? value : Number(value)});
     }
 
     render() {
@@ -59,9 +63,9 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
 
         return (
             <div>
-                <a href={uploadScanUrl} className="btn secondary">Upload New Scan</a>
+                <a href={uploadScanUrl} className="btn secondary new-scan">Upload New Scan</a>
                 <div className="machine-sequences-filters">
-                    Filter By
+                    <span>Filter By</span>
                     <select value={machineFilterValue} onChange={this.handleMachineChange.bind(this)}>
                         <option value="all">All Machines</option>
                         {machines.map((machine) => (

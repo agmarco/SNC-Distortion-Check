@@ -11,8 +11,8 @@ body {
   margin: 0;
   font-family: sans-serif;
   position: relative;
-  min-height: calc(100% - #{$header-height} - #{$footer-height} - 16px);
-  padding-top: $header-height + 16px;
+  min-height: calc(100% - #{$header-height} - #{$footer-height});
+  padding-top: $header-height;
   padding-bottom: $footer-height;
 }
 
@@ -30,6 +30,13 @@ a {
   overflow: auto;
 }
 
+#site-content {
+  .container {
+    position: relative;
+    padding-top: $small-spacing;
+  }
+}
+
 #site-header {
   background-color: $primary-color;
   color: white;
@@ -45,11 +52,11 @@ a {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 16px;
+    padding: 8px 0;
   }
 
   h1 {
-    margin: 0;
+    margin: 0 $small-spacing;
 
     a:hover {
       text-decoration: none;
@@ -62,12 +69,12 @@ a {
 
   ul {
     list-style-type: none;
-    margin: 0;
+    margin: 0 $small-spacing;
     padding: 0;
 
     li {
       display: inline-block;
-      margin-left: 16px;
+      margin-left: $small-spacing;
     }
   }
 }
@@ -110,6 +117,7 @@ a {
   }
 
   th {
+    font-weight: normal;
     color: rgb(146, 146, 146);
   }
 }
@@ -117,10 +125,12 @@ a {
 .fa {
   &.fa-check {
     color: $success-color;
+    font-weight: bold;
   }
 
   &.fa-times {
     color: $error-color;
+    font-weight: bold;
   }
 }
 

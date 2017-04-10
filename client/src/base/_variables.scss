@@ -1,3 +1,5 @@
+@import '~bourbon/app/assets/stylesheets/bourbon';
+
 $max-site-width: 1000px;
 $header-height: 54px;
 $footer-height: 37px;
@@ -7,11 +9,4 @@ $tertiary-color: rgb(77, 132, 167);
 $success-color: rgb(121, 190, 58);
 $error-color: rgb(189, 57, 50);
 
-// TODO assign-inputs
-$all-buttons: (
-  'button',
-  'input[type="button"]',
-  'input[type="reset"]',
-  'input[type="submit"]',
-  '.btn'
-);
+$all-buttons: append($all-buttons, '.btn');

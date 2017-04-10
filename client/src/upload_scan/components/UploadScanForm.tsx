@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import { IMachineDTO, ISequenceDTO, IPhantomDTO } from 'common/service';
+import { CSRFToken } from 'common/components';
 
 interface IUploadScanFormProps {
     machines: IMachineDTO[];
@@ -9,7 +10,6 @@ interface IUploadScanFormProps {
     uploadScanUrl: string;
     cancelUrl: string;
     formErrors: {[field: string]: string[]};
-    csrftoken: string;
 }
 
 interface IUploadScanFormState {
@@ -40,19 +40,22 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
     }
 
     handleMachineChange(event: React.FormEvent<HTMLInputElement>) {
-        this.setState({machineFilterValue: Number((event.target as any).value)});
+        const value = (event.target as any).value;
+        this.setState({machineFilterValue: value === '' ? value : Number(value)});
     }
 
     handleSequenceChange(event: React.FormEvent<HTMLInputElement>) {
-        this.setState({sequenceFilterValue: Number((event.target as any).value)});
+        const value = (event.target as any).value;
+        this.setState({sequenceFilterValue: value === '' ? value : Number(value)});
     }
 
     handlePhantomChange(event: React.FormEvent<HTMLInputElement>) {
-        this.setState({phantomFilterValue: Number((event.target as any).value)});
+        const value = (event.target as any).value;
+        this.setState({phantomFilterValue: value === '' ? value : Number(value)});
     }
 
     render() {
-        const { machines, sequences, phantoms, uploadScanUrl, cancelUrl, csrftoken } = this.props;
+        const { machines, sequences, phantoms, uploadScanUrl, cancelUrl } = this.props;
         const { machineFilterValue, sequenceFilterValue, phantomFilterValue } = this.state;
 
         const currentMachine = machineFilterValue && (
@@ -68,7 +71,7 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
         return (
             <div>
                 <form action={uploadScanUrl} encType="multipart/form-data" method="post">
-                    <input type="hidden" name="csrfmiddlewaretoken" value={csrftoken} />
+                    <CSRFToken />
 
                     <div>
                         {this.fieldErrors('machine')}

@@ -1,14 +1,15 @@
 import * as React from 'react';
+import * as Cookies from 'js-cookie';
 import * as Bluebird from 'bluebird';
 
 import { handleErrors, encode } from 'common/utils';
+import { CSRFToken } from 'common/components';
 
 interface IAddPhantomFormProps {
     createPhantomUrl: string;
     validateSerialUrl: string;
     cancelUrl: string;
     formErrors: {[field: string]: string[]};
-    csrftoken: string;
 }
 
 interface IAddPhantomFormState {
@@ -32,7 +33,7 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
     }
 
     handleSerialChange(event: React.FormEvent<HTMLInputElement>) {
-        const { validateSerialUrl, csrftoken } = this.props;
+        const { validateSerialUrl } = this.props;
         const { promise } = this.state;
 
         if (promise) {
@@ -45,7 +46,7 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
                 credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': csrftoken,
+                    'X-CSRFToken': Cookies.get('csrftoken'),
                 },
                 body: encode({serial_number: (event.target as any).value}),
             }))
@@ -76,13 +77,13 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
     }
 
     render() {
-        const { createPhantomUrl, cancelUrl, csrftoken } = this.props;
+        const { createPhantomUrl, cancelUrl } = this.props;
         const { validating, valid, modelNumber } = this.state;
 
         return (
             <div>
                 <form action={createPhantomUrl} method="post">
-                    <input type="hidden" name="csrfmiddlewaretoken" value={csrftoken} />
+                    <CSRFToken />
 
                     <div>
                         {this.fieldErrors('name')}

@@ -1,0 +1,21 @@
+@import '~bourbon/app/assets/stylesheets/bourbon';
+@import '../../base/bitters/variables';
+
+.machine-sequences-filters {
+  margin-left: $small-spacing;
+  display: flex;
+
+  & > * {
+    margin-right: $small-spacing;
+  }
+
+  select {
+    width: 200px;
+  }
+}
+
+.new-scan {
+  position: absolute;
+  top: $small-spacing;
+  right: $small-spacing;
+}

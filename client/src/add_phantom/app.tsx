@@ -1,6 +1,8 @@
 import { renderApp } from 'common/utils';
 import App from './containers/App';
 
+import 'base/app.scss';
+
 renderApp(App, 'add-phantom-app');
 
 // Hot Module Replacement API
