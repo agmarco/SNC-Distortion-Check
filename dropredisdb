@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e
+
+source .env
+# TODO: make this work; at the moment it doesn't do anything, eventually we
+# will want to: 
+# 1. check that a redis database matching $REDIS_URL exists
+# 2. if so, flush it

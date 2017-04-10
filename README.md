@@ -13,10 +13,10 @@ You can install all of these using homebrew pretty easily on mac.
 
 ## Everything
 
-Use this command to clean everything, install a new dev setup, run all the
-tests, and then start all the processes:
+Use this command to install a new dev setup, run all the tests, and then start
+all the processes:
 
-    make cleandev && make dev && pytest && honcho start
+    make dev && pytest && honcho start
 
 ## Installation
 
