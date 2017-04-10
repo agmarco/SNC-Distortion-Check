@@ -55,6 +55,7 @@ clean:
 	rm -r collected_static
 	rm -r client/dist
 
-cleandev:
-	./dropdb
+cleandev: clean
+	./droppostgresdb || echo 'Unable to drop Postgres DB'
+	./dropredisdb || echo 'Unable to drop Redis DB'
 	git clean -fqx
