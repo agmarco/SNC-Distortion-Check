@@ -2,7 +2,7 @@
 import argparse
 
 from process import file_io
-from slicer import show_slices
+from process.slicer import show_slices
 
 
 if __name__ == '__main__':

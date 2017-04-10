@@ -3,12 +3,13 @@ import argparse
 
 from process import file_io
 from process.feature_detection import FeatureDetector
-
-
+from process.slicer import show_slices, PointsSlicer, render_points, render_cursor, render_legend
+from matplotlib import pyplot as plt
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('voxels', help='Input path to read voxels-file')
     parser.add_argument('points', help='Output path to write points-file')
+    parser.add_argument('--plot', action='store_true', help='Plot the result overlaid')
     args = parser.parse_args()
 
     voxel_data = file_io.load_voxels(args.voxels)
@@ -17,6 +18,13 @@ if __name__ == '__main__':
     phantom_name = voxel_data['phantom_name']
     modality = voxel_data['modality']
 
-    points_in_patient_xyz = FeatureDetector(phantom_name, modality, voxels, ijk_to_xyz).run()
+    points_in_patient_xyz, false_positives_points_xyz = FeatureDetector(phantom_name, modality, voxels, ijk_to_xyz).run(return_false_positives=True)
+    if args.plot:
+        slicer = PointsSlicer(voxels, ijk_to_xyz, {'points': points_in_patient_xyz})
+        slicer.add_renderer(render_points)
+        slicer.add_renderer(render_cursor)
+        slicer.add_renderer(render_legend)
+        slicer.draw()
+        plt.show()
 
     file_io.save_points(args.points, {'points': points_in_patient_xyz})
