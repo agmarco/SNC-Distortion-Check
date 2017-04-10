@@ -18,6 +18,10 @@ unregistered-points: $(patsubst data/dicom/%.zip,tmp/%-unregistered-points.mat,$
 	nbstripout --install --attributes .gitattributes
 	touch $@
 
+.JSDEPS: client/yarn.lock
+	npm install yarn
+	cd client; yarn
+	touch $@
 
 tmp/%-voxels.mat: data/dicom/%.zip .PYTHONDEPS
 	./process/dicom2voxels $< $@
@@ -31,18 +35,21 @@ tmp/%-matched-points.mat: tmp/%-voxels.mat tmp/%-unregistered-points.mat .PYTHON
 tmp/%-report.pdf: tmp/%-matched-points.mat .PYTHONDEPS
 	./process/report $< $@
 
-
 tmp/%-distortion.mat: tmp/%-voxels.mat tmp/%-matched-points.mat .PYTHONDEPS
 	./process/interpolate $< $(word 2,$^) $@
 
+.env:
+	cp .sample.env $@
 
-.PHONY: clean cleandev dev freezedeps
 
-dev: .PYTHONDEPS
-	cp .sample.env .env
+.PHONY: clean cleandev dev freezedeps static
+
+dev: .PYTHONDEPS .JSDEPS static | .env
 	./createdb
 	python server/manage.py generate_dev_data
-	cd client; yarn; yarn webpack:dev
+
+static: .PYTHONDEPS .JSDEPS
+	cd client; yarn webpack:dev
 	python server/manage.py collectstatic --noinput
 
 freezedeps:
@@ -52,8 +59,8 @@ freezedeps:
 clean:
 	git clean -fqx tmp
 	git clean -fqx .hdattarchive
-	rm -r collected_static
-	rm -r client/dist
+	rm -fr collected_static
+	rm -fr client/dist
 
 cleandev: clean
 	./droppostgresdb || echo 'Unable to drop Postgres DB'
