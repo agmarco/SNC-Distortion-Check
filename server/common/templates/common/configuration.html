@@ -1,111 +1,124 @@
 {% extends "base.html" %}
 
 {% load static %}
+{% load common %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{% webpack 'configuration.css' %}">
+{% endblock %}
 
 {% block "content" %}
   <h1>Configuration</h1>
 
-  <form action="{% url 'configuration' %}" method="post">
+  <form action="{% url 'configuration' %}" method="post" class="institution-form">
     {% csrf_token %}
     {% include 'includes/form_fields.html' %}
     <input type="submit" value="Save Institution Info" class="btn tertiary">
   </form>
 
-  <h2>Phantoms</h2>
-  <a href="{% url 'create_phantom' %}" class="btn secondary">Add Phantom</a>
-  <table class="cirs-table">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Model Number</th>
-        <th>Serial Number</th>
-        <th>Gold Standard Grid Intersection Locations</th>
-        <th colspan="2">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for phantom in phantoms %}
-        <tr class="{% if forloop.counter0|divisibleby:2 %}a{% else %}b{% endif %}">
-          <td>{{ phantom.name }}</td>
-          <td>{{ phantom.model }}</td>
-          <td>{{ phantom.serial_number }}</td>
-          <td>{{ phantom.active_gold_standard.source_summary }}</td>
-          <td><a href="{% url 'update_phantom' phantom.pk %}">Edit</a></td>
-          <td><a href="{% url 'delete_phantom' phantom.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a></td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <h2>MRI Scanners</h2>
-  <a href="{% url 'create_machine' %}" class="btn secondary">Add Machine</a>
-  <table class="cirs-table">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Model</th>
-        <th>Vendor</th>
-        <th colspan="2">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for machine in machines %}
-        <tr class="{% if forloop.counter0|divisibleby:2 %}a{% else %}b{% endif %}">
-          <td>{{ machine.name }}</td>
-          <td>{{ machine.model }}</td>
-          <td>{{ machine.manufacturer }}</td>
-          <td><a href="{% url 'update_machine' machine.pk %}">Edit</a></td>
-          <td><a href="{% url 'delete_machine' machine.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a></td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <h2>MRI Sequences</h2>
-  <a href="{% url 'create_sequence' %}" class="btn secondary">Add Sequence</a>
-  <table class="cirs-table">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Instructions</th>
-        <th colspan="2">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for sequence in sequences %}
-        <tr class="{% if forloop.counter0|divisibleby:2 %}a{% else %}b{% endif %}">
-          <td>{{ sequence.name }}</td>
-          <td>{{ sequence.instructions }}</td>
-          <td><a href="{% url 'update_sequence' sequence.pk %}">Edit</a></td>
-          <td><a href="{% url 'delete_sequence' sequence.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a></td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  {% if users %}
-    <h2>Users</h2>
-    <a href="{% url 'create_user' %}" class="btn secondary">Add User</a>
+  <div class="phantoms">
+    <h2>Phantoms</h2>
+    <a href="{% url 'create_phantom' %}" class="btn secondary">Add Phantom</a>
     <table class="cirs-table">
       <thead>
         <tr>
           <th>Name</th>
-          <th>Email</th>
-          <th>Groups</th>
-          <th>Actions</th>
+          <th>Model Number</th>
+          <th>Serial Number</th>
+          <th>Gold Standard Grid Intersection Locations</th>
+          <th colspan="2">Actions</th>
         </tr>
       </thead>
       <tbody>
-        {% for user in users %}
+        {% for phantom in phantoms %}
           <tr class="{% if forloop.counter0|divisibleby:2 %}a{% else %}b{% endif %}">
-            <td>{{ user.get_full_name }}</td>
-            <td><a href="mailto:{{ user.email }}">{{ user.email }}</a></td>
-            <td>{{ user.groups.all|join:", " }}</td>
-            <td><a href="{% url 'delete_user' user.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a></td>
+            <td>{{ phantom.name }}</td>
+            <td>{{ phantom.model }}</td>
+            <td>{{ phantom.serial_number }}</td>
+            <td>{{ phantom.active_gold_standard.source_summary }}</td>
+            <td><a href="{% url 'update_phantom' phantom.pk %}">Edit</a></td>
+            <td><a href="{% url 'delete_phantom' phantom.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a></td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
+  </div>
+
+  <div class="machines">
+    <h2>MRI Scanners</h2>
+    <a href="{% url 'create_machine' %}" class="btn secondary">Add Machine</a>
+    <table class="cirs-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Model</th>
+          <th>Vendor</th>
+          <th colspan="2">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for machine in machines %}
+          <tr class="{% if forloop.counter0|divisibleby:2 %}a{% else %}b{% endif %}">
+            <td>{{ machine.name }}</td>
+            <td>{{ machine.model }}</td>
+            <td>{{ machine.manufacturer }}</td>
+            <td><a href="{% url 'update_machine' machine.pk %}">Edit</a></td>
+            <td><a href="{% url 'delete_machine' machine.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="sequences">
+    <h2>MRI Sequences</h2>
+    <a href="{% url 'create_sequence' %}" class="btn secondary">Add Sequence</a>
+    <table class="cirs-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Instructions</th>
+          <th colspan="2">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sequence in sequences %}
+          <tr class="{% if forloop.counter0|divisibleby:2 %}a{% else %}b{% endif %}">
+            <td>{{ sequence.name }}</td>
+            <td>{{ sequence.instructions }}</td>
+            <td><a href="{% url 'update_sequence' sequence.pk %}">Edit</a></td>
+            <td><a href="{% url 'delete_sequence' sequence.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if users %}
+    <div class="users">
+      <h2>Users</h2>
+      <a href="{% url 'create_user' %}" class="btn secondary">Add User</a>
+      <table class="cirs-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Groups</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+            <tr class="{% if forloop.counter0|divisibleby:2 %}a{% else %}b{% endif %}">
+              <td>{{ user.get_full_name }}</td>
+              <td><a href="mailto:{{ user.email }}">{{ user.email }}</a></td>
+              <td>{{ user.groups.all|join:", " }}</td>
+              <td><a href="{% url 'delete_user' user.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   {% endif %}
 {% endblock %}
 

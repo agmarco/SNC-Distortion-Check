@@ -1,7 +1,6 @@
 @import '~normalize.css/normalize';
-@import '~bourbon/app/assets/stylesheets/bourbon';
-@import 'variables';
-@import 'bitters/base';
+@import '../common/base';
+@import '../common/bitters/base';
 
 html {
   height: 100%;
@@ -21,6 +20,13 @@ a {
 
   &:hover {
     text-decoration: underline;
+  }
+}
+
+form {
+  label {
+    font-weight: normal;
+    color: $heading-color;
   }
 }
 
@@ -111,6 +117,14 @@ a {
   }
 }
 
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: $heading-color;
+}
+
 .cirs-table {
   tr.a {
     background-color: rgb(241, 241, 241);
@@ -118,7 +132,7 @@ a {
 
   th {
     font-weight: normal;
-    color: rgb(146, 146, 146);
+    color: $heading-color;
   }
 }
 

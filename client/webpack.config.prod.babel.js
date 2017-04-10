@@ -19,7 +19,10 @@ export default (env) => ({
         machine_sequence_detail: [path.join(__dirname, 'src/machine_sequence_detail/app.tsx')],
         add_phantom: [path.join(__dirname, 'src/add_phantom/app.tsx')],
         upload_scan: [path.join(__dirname, 'src/upload_scan/app.tsx')],
+
+        // CSS only:
         base: [path.join(__dirname, 'src/base/app.scss')],
+        configuration: [path.join(__dirname, 'src/configuration/app.scss')],
     },
 
     output: {

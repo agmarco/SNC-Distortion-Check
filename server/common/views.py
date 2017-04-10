@@ -14,7 +14,7 @@ from rest_framework.renderers import JSONRenderer
 from process import dicom_import
 from .models import Scan, Phantom, Machine, Sequence, Fiducials, GoldenFiducials, User, DicomSeries, Institution, MachineSequencePair
 from .tasks import process_scan, process_ct_upload
-from .forms import UploadScanForm, UploadCTForm, UploadRawForm, CreatePhantomForm
+from .forms import UploadScanForm, UploadCTForm, UploadRawForm, CreatePhantomForm, InstitutionForm
 from .serializers import MachineSequencePairSerializer, MachineSerializer, SequenceSerializer, PhantomSerializer, ScanSerializer
 from .decorators import validate_institution, login_and_permission_required
 
@@ -60,7 +60,7 @@ def landing(request):
 @login_and_permission_required('common.configuration')
 class Configuration(UpdateView):
     model = Institution
-    fields = ('name', 'address', 'phone_number')
+    form_class = InstitutionForm
     success_url = reverse_lazy('configuration')
     template_name = 'common/configuration.html'
 

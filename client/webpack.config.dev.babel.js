@@ -3,6 +3,7 @@ import * as webpack from 'webpack';
 import ExtractTextPlugin from 'extract-text-webpack-plugin';
 import StyleLintPlugin from 'stylelint-webpack-plugin';
 
+// TODO factor out common config options
 export default (env) => {
     const config = {
         entry: {
@@ -18,7 +19,10 @@ export default (env) => {
             machine_sequence_detail: [path.join(__dirname, 'src/machine_sequence_detail/app.tsx')],
             add_phantom: [path.join(__dirname, 'src/add_phantom/app.tsx')],
             upload_scan: [path.join(__dirname, 'src/upload_scan/app.tsx')],
+
+            // CSS only:
             base: [path.join(__dirname, 'src/base/app.scss')],
+            configuration: [path.join(__dirname, 'src/configuration/app.scss')],
         },
 
         output: {
@@ -51,6 +55,9 @@ export default (env) => {
                     exclude: /node_modules/,
                     use: ['babel-loader', 'ts-loader'],
                 }, {
+
+                    // TODO HMR CSS
+                    // TODO don't include the base CSS in the other chunks
                     test: /\.scss$/,
                     use: ExtractTextPlugin.extract({
                         fallback: 'style-loader',

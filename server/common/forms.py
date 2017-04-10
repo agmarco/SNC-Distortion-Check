@@ -6,7 +6,7 @@ import numpy as np
 from django.core.exceptions import ObjectDoesNotExist
 
 from process import dicom_import
-from .models import Phantom
+from .models import Phantom, Institution
 
 
 class CreatePhantomForm(forms.ModelForm):
@@ -99,3 +99,14 @@ class UploadRawForm(forms.Form):
 
         self.cleaned_data['fiducials'] = fiducials
         return self.cleaned_data['csv']
+
+
+class InstitutionForm(forms.ModelForm):
+    class Meta:
+        model = Institution
+        fields = ('name', 'address', 'phone_number')
+        labels = {
+            'name': "Institution Name",
+            'address': "Institution Address",
+            'phone_number': "Institution Contact Phone Number",
+        }
