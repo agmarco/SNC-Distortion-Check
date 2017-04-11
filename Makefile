@@ -19,7 +19,7 @@ unregistered-points: $(patsubst data/dicom/%.zip,tmp/%-unregistered-points.mat,$
 	touch $@
 
 .JSDEPS: client/yarn.lock
-	npm install yarn
+	npm install -g yarn
 	cd client; yarn
 	touch $@
 
