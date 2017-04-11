@@ -86,6 +86,7 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
                             <th>Sequence</th>
                             <th>Date of Latest Scan</th>
                             <th>Latest Scan Within Tolerance?</th>
+                            <th className="sep" />
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -100,7 +101,8 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
                                 <td>
                                     {pair.latest_scan_passed !== null && <BoolIcon value={pair.latest_scan_passed} />}
                                 </td>
-                                <td><a href={pair.detail_url}>View Details</a></td>
+                                <td className="sep" />
+                                <td className="action"><a href={pair.detail_url}>View Details</a></td>
                             </tr>
                         ))}
                     </tbody>

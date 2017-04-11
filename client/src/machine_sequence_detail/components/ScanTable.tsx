@@ -67,6 +67,7 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
                             <th>Passed</th>
                             <th>Date Captured</th>
                             <th>Phantom</th>
+                            <th className="sep" />
                             <th colSpan={6}>Actions</th>
                         </tr>
                     </thead>
@@ -76,6 +77,7 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
                                 <td>{!scan.processing && !scan.errors && <BoolIcon value={scan.passed} />}</td>
                                 <td>{format(scan.acquisition_date, 'MMMM D, YYYY')}</td>
                                 <td>{scan.phantom.model_number} &mdash; {scan.phantom.serial_number}</td>
+                                <td className="sep" />
                                 {scan.processing ? <td colSpan={6}>The Data is Still being Processed...</td> : (
                                     scan.errors ? (
                                         <td colSpan={6}>
@@ -83,14 +85,22 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
                                             (<a href={scan.errors_url}>view details</a>)
                                         </td>
                                         ) : [
-                                        <td key={0}>
+                                        <td key={0} className="action">
                                             <a href="#"><i className="fa fa-refresh" aria-hidden="true" /></a>
                                         </td>,
-                                        <td key={1}><a href="#">DICOM Overlay</a></td>,
-                                        <td key={2}><a href={scan.zipped_dicom_files_url}>Raw Data</a></td>,
-                                        <td key={3}><a href="#">Executive Report</a></td>,
-                                        <td key={4}><a href="#">Full Report</a></td>,
-                                        <td key={5}>
+                                        <td key={1} className="action">
+                                            <a href="#">DICOM Overlay</a>
+                                        </td>,
+                                        <td key={2} className="action">
+                                            <a href={scan.zipped_dicom_files_url}>Raw Data</a>
+                                        </td>,
+                                        <td key={3} className="action">
+                                            <a href="#">Executive Report</a>
+                                        </td>,
+                                        <td key={4} className="action">
+                                            <a href="#">Full Report</a>
+                                        </td>,
+                                        <td key={5} className="action">
                                             <a href={scan.delete_url}>
                                                 <i className="fa fa-trash-o" aria-hidden="true" />
                                             </a>

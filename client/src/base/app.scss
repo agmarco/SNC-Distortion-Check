@@ -134,6 +134,19 @@ h6 {
     font-weight: normal;
     color: $heading-color;
   }
+
+  th,
+  td {
+    white-space: nowrap;
+
+    &.sep {
+      width: 100%;
+    }
+
+    &.action {
+      width: 1px;
+    }
+  }
 }
 
 .fa {
