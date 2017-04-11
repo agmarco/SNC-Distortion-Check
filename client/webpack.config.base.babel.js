@@ -19,6 +19,7 @@ export default (env) => ({
 
         // CSS only:
         base: [path.join(__dirname, 'src/base/app.scss')],
+        login: [path.join(__dirname, 'src/login/app.scss')],
         configuration: [path.join(__dirname, 'src/configuration/app.scss')],
     },
 

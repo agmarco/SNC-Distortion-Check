@@ -10,7 +10,7 @@ body {
   margin: 0;
   font-family: sans-serif;
   position: relative;
-  min-height: calc(100% - #{$header-height} - #{$footer-height});
+  min-height: 100%;
   padding-top: $header-height;
   padding-bottom: $footer-height;
 }

@@ -1,12 +1,20 @@
 {% extends "base.html" %}
 
+{% load common %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{% webpack 'login.css' %}">
+{% endblock %}
+
 {% block "content" %}
-<h1>CIRS Distortion Check</h1>
-<form action="{% url 'login' %}" method="post">
-  {% csrf_token %}
-  {% include 'includes/form_fields.html' %}
-  <input type="submit" value="Login" />
-  <a href="#">Having trouble logging in?</a>
-  <a href="#">Register New Account</a>
-</form>
+<div id="login">
+  <h1>CIRS Distortion Check</h1>
+  <form action="{% url 'login' %}" method="post">
+    {% csrf_token %}
+    {% include 'includes/form_fields.html' %}
+    <input type="submit" value="Login" class="btn secondary" />
+    <p class="forgot-password"><a href="#">Forgot your Password?</a></p>
+    <a href="#" class="btn primary">Register New Account</a>
+  </form>
+</div>
 {% endblock %}

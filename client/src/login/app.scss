@@ -1,0 +1,23 @@
+@import '../common/base';
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#login {
+  width: 300px;
+
+  .btn {
+    display: block;
+    width: 300px;
+    margin-bottom: $small-spacing;
+  }
+
+  .forgot-password {
+    text-align: right;
+    margin-bottom: $small-spacing * 4;
+    font-size: 0.875rem;
+  }
+}
