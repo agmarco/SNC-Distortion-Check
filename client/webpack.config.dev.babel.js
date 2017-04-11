@@ -2,31 +2,13 @@ import * as path from 'path';
 import * as webpack from 'webpack';
 import ExtractTextPlugin from 'extract-text-webpack-plugin';
 import StyleLintPlugin from 'stylelint-webpack-plugin';
+import merge from 'webpack-merge';
 
-// TODO factor out common config options
+import webpackBase from './webpack.config.base.babel';
+
 export default (env) => {
-    const config = {
-        entry: {
-            vendor: [
-                'babel-polyfill',
-                'react-hot-loader/patch',
-                'react-hot-loader',
-                'react',
-                'react-dom',
-            ],
-            landing: [path.join(__dirname, 'src/landing/app.tsx')],
-            machine_sequences: [path.join(__dirname, 'src/machine_sequences/app.tsx')],
-            machine_sequence_detail: [path.join(__dirname, 'src/machine_sequence_detail/app.tsx')],
-            add_phantom: [path.join(__dirname, 'src/add_phantom/app.tsx')],
-            upload_scan: [path.join(__dirname, 'src/upload_scan/app.tsx')],
-
-            // CSS only:
-            base: [path.join(__dirname, 'src/base/app.scss')],
-            configuration: [path.join(__dirname, 'src/configuration/app.scss')],
-        },
-
+    const config = merge(webpackBase(env), {
         output: {
-            path: path.join(__dirname, 'dist'),
             publicPath: 'http://0.0.0.0:8080/',
             filename: '[name].js',
         },
@@ -34,7 +16,6 @@ export default (env) => {
         devtool: 'cheap-eval-source-map',
 
         plugins: [
-            new webpack.NoEmitOnErrorsPlugin(),
             new webpack.optimize.CommonsChunkPlugin({
                 name: 'vendor',
                 minChunks: Infinity,
@@ -50,29 +31,8 @@ export default (env) => {
                     exclude: /node_modules/,
                     enforce: 'pre',
                     loader: 'tslint-loader',
-                }, {
-                    test: /\.tsx?$/,
-                    exclude: /node_modules/,
-                    use: ['babel-loader', 'ts-loader'],
-                }, {
-
-                    // TODO HMR CSS
-                    // TODO don't include the base CSS in the other chunks
-                    test: /\.scss$/,
-                    use: ExtractTextPlugin.extract({
-                        fallback: 'style-loader',
-                        use: ['css-loader', 'sass-loader'],
-                    }),
                 },
             ],
-        },
-
-        resolve: {
-            modules: [
-                path.join(__dirname, 'src'),
-                path.join(__dirname, 'node_modules'),
-            ],
-            extensions: ['.webpack.js', '.web.js', '.js', '.jsx', '.ts', '.tsx'],
         },
 
         devServer: {
@@ -84,7 +44,7 @@ export default (env) => {
             port: 8080,
             stats: {chunks: false},
         },
-    };
+    });
 
     if (env === 'hot') {
         for (let bundle of Object.values(config.entry)) {
