@@ -30,12 +30,15 @@ def webpack(bundle):
             return static_path
 
     else:
+        try:
 
-        # load the correct file from the manifest.json
-        with open(os.path.join(settings.BASE_DIR, 'client/dist/manifest.json')) as manifest_file:
-            manifest = json.load(manifest_file)
-            filename = manifest[bundle]
-        return static(filename)
+            # load the correct file from the manifest.json
+            with open(os.path.join(settings.BASE_DIR, 'client/dist/manifest.json')) as manifest_file:
+                manifest = json.load(manifest_file)
+                filename = manifest[bundle]
+            return static(filename)
+        except FileNotFoundError:
+            return ''
 
 
 @register.simple_tag
@@ -46,11 +49,14 @@ def manifest():
         return ''
 
     else:
-        with open(os.path.join(settings.BASE_DIR, 'client/dist/chunk-manifest.json')) as manifest_file:
-            manifest = json.load(manifest_file)
+        try:
+            with open(os.path.join(settings.BASE_DIR, 'client/dist/chunk-manifest.json')) as manifest_file:
+                manifest = json.load(manifest_file)
 
-        return mark_safe(f"""
-        //<![CDATA[
-            window.webpackManifest = {json.dumps(manifest)};
-        //]]>
-        """)
+            return mark_safe(f"""
+            //<![CDATA[
+                window.webpackManifest = {json.dumps(manifest)};
+            //]]>
+            """)
+        except FileNotFoundError:
+            return ''
