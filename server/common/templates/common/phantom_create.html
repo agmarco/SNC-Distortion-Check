@@ -3,7 +3,7 @@
 {% load common %}
 
 {% block styles %}
-  <link rel="stylesheet" href="{% webpack 'add_phantom.css' %}">
+  <link rel="stylesheet" href="{% webpack 'create_phantom.css' %}">
 {% endblock %}
 
 {% block "content" %}
@@ -19,5 +19,5 @@
     var CANCEL_URL = "{% url 'configuration' %}";
     var FORM_ERRORS = {% if form_errors %}{{ form_errors|safe }}{% else %}null{% endif %};
   </script>
-  <script src="{% webpack 'add_phantom.js' %}"></script>
+  <script src="{% webpack 'create_phantom.js' %}"></script>
 {% endblock %}

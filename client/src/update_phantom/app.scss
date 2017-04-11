@@ -1,0 +1,20 @@
+@import '../common/base';
+
+.cirs-table {
+  td {
+    height: 56px;
+  }
+}
+
+.phantom-details {
+  margin: 0 $small-spacing $small-spacing;
+}
+
+.update-phantom-links {
+  display: flex;
+  justify-content: flex-end;
+
+  & > * {
+    margin-right: $small-spacing;
+  }
+}

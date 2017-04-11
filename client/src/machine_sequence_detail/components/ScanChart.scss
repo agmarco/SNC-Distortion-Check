@@ -4,6 +4,11 @@ body {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
+.scan-chart {
+  display: block;
+  margin: 0 $small-spacing $small-spacing;
+}
+
 .box {
   font: 10px sans-serif;
   cursor: all-scroll;

@@ -5,6 +5,8 @@ import uniqBy from 'lodash/uniqBy';
 import { IScanDTO, IPhantomDTO } from 'common/service';
 import { BoolIcon } from 'common/components';
 
+import './ScanTable.scss';
+
 interface IScanTableProps {
     scans: IScanDTO[];
     uploadScanUrl: string;
@@ -49,9 +51,9 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
 
         return (
             <div>
-                <a href={uploadScanUrl} className="btn secondary">Upload New Scan</a>
-                <div>
-                    Filter By
+                <div className="cirs-filters">
+                    <a href={uploadScanUrl} className="btn secondary new-scan">Upload New Scan</a>
+                    <span>Filter By</span>
                     <select value={phantomFilterValue} onChange={this.handlePhantomChange.bind(this)}>
                         <option value="all">All Phantoms</option>
                         {phantoms.map((phantom) => (

@@ -63,8 +63,8 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
 
         return (
             <div>
-                <a href={uploadScanUrl} className="btn secondary new-scan">Upload New Scan</a>
-                <div className="machine-sequences-filters">
+                <div className="cirs-filters">
+                    <a href={uploadScanUrl} className="btn secondary new-scan">Upload New Scan</a>
                     <span>Filter By</span>
                     <select value={machineFilterValue} onChange={this.handleMachineChange.bind(this)}>
                         <option value="all">All Machines</option>

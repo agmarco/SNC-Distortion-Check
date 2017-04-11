@@ -99,6 +99,7 @@ def machine_sequences(request):
 @validate_institution()
 class MachineSequenceDetail(DetailView):
     model = MachineSequencePair
+    template_name = 'common/machine_sequence_detail.html'
 
     def get_context_data(self, **kwargs):
         machine_sequence_pair = MachineSequencePairSerializer(self.object)
@@ -112,6 +113,7 @@ class MachineSequenceDetail(DetailView):
 
 
 # TODO handle prepopulated machine and sequence
+# TODO cancel might take the user back to landing, machine-sequences, or machine-sequence-detail
 @login_and_permission_required('common.configuration')
 class UploadScan(FormView):
     form_class = UploadScanForm
@@ -221,13 +223,15 @@ class CreatePhantom(FormView):
 class UpdatePhantom(UpdateView):
     model = Phantom
     fields = ('name',)
-    success_url = reverse_lazy('configuration')
     template_name_suffix = '_update'
     pk_url_kwarg = 'phantom_pk'
 
     def form_valid(self, form):
         messages.success(self.request, f"\"{self.object.name}\" has been updated successfully.")
         return super(UpdatePhantom, self).form_valid(form)
+
+    def get_success_url(self):
+        return reverse('update_phantom', args=(self.kwargs['phantom_pk'],))
 
     @property
     def golden_fiducials(self):

@@ -14,13 +14,14 @@ export default (env) => ({
         landing: [path.join(__dirname, 'src/landing/app.tsx')],
         machine_sequences: [path.join(__dirname, 'src/machine_sequences/app.tsx')],
         machine_sequence_detail: [path.join(__dirname, 'src/machine_sequence_detail/app.tsx')],
-        add_phantom: [path.join(__dirname, 'src/add_phantom/app.tsx')],
+        create_phantom: [path.join(__dirname, 'src/create_phantom/app.tsx')],
         upload_scan: [path.join(__dirname, 'src/upload_scan/app.tsx')],
 
         // CSS only:
         base: [path.join(__dirname, 'src/base/app.scss')],
         login: [path.join(__dirname, 'src/login/app.scss')],
         configuration: [path.join(__dirname, 'src/configuration/app.scss')],
+        update_phantom: [path.join(__dirname, 'src/update_phantom/app.scss')],
     },
 
     output: {

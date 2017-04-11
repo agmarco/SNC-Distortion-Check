@@ -82,6 +82,7 @@ export default class extends React.Component<IScanChartProps, IScanChartState> {
         const labels = true;
         const margin = {top: 10, right: 10, bottom: 60, left: 60};
 
+        // TODO make the width responsive
         const clipWidth = 800 - margin.left - margin.right;
         const width = Math.max(scans.length * 100, clipWidth);
         const height = 400 - margin.top - margin.bottom;
@@ -175,7 +176,7 @@ export default class extends React.Component<IScanChartProps, IScanChartState> {
             <svg
                 width={clipWidth + margin.left + margin.right}
                 height={height + margin.top + margin.bottom}
-                className="box"
+                className="scan-chart box"
                 ref={(svg) => this.svg = svg}
             >
                 <defs>

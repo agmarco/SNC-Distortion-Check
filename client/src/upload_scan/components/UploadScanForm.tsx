@@ -70,7 +70,7 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
 
         return (
             <div>
-                <form action={uploadScanUrl} encType="multipart/form-data" method="post">
+                <form action={uploadScanUrl} encType="multipart/form-data" method="post" className="cirs-form">
                     <CSRFToken />
 
                     <div>
@@ -94,11 +94,11 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                             <div>
                                 <div>
                                     <label>Model</label>
-                                    {currentMachine.model}
+                                    <p>{currentMachine.model}</p>
                                 </div>
                                 <div>
                                     <label>Vendor</label>
-                                    {currentMachine.manufacturer}
+                                    <p>{currentMachine.manufacturer}</p>
                                 </div>
                             </div>
                         )}
@@ -125,7 +125,7 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                             <div>
                                 <div>
                                     <label>Instructions</label>
-                                    {currentSequence.instructions}
+                                    <p>{currentSequence.instructions}</p>
                                 </div>
                             </div>
                         )}
@@ -152,15 +152,15 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                             <div>
                                 <div>
                                     <label>Model Number</label>
-                                    {currentPhantom.model_number}
+                                    <p>{currentPhantom.model_number}</p>
                                 </div>
                                 <div>
                                     <label>Serial Number</label>
-                                    {currentPhantom.serial_number}
+                                    <p>{currentPhantom.serial_number}</p>
                                 </div>
                                 <div>
                                     <label>Gold Standard Grid Locations</label>
-                                    {currentPhantom.gold_standard_grid_locations}
+                                    <p>{currentPhantom.gold_standard_grid_locations}</p>
                                 </div>
                             </div>
                         )}
@@ -171,8 +171,10 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
 
                         <label htmlFor="upload-scan-dicom-archive">MRI Scan Files</label>
                         <input id="upload-scan-dicom-archive" name="dicom_archive" type="file" required />
-                        Please upload a zip-file containing the MRI DICOM files of a scan of the specified phatom, on
-                        the specified machine, using the specified sequence.
+                        <p>
+                            Please upload a zip-file containing the MRI DICOM files of a scan of the specified phatom,
+                            on the specified machine, using the specified sequence.
+                        </p>
                     </div>
 
                     <div>
@@ -182,8 +184,10 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                         <textarea cols={40} rows={10} id="upload-scan-notes" name="notes" />
                     </div>
 
-                    <a href={cancelUrl} className="btn tertiary">Cancel</a>
-                    <input type="submit" value="Process Scan" className="btn secondary" />
+                    <div className="form-links">
+                        <a href={cancelUrl} className="btn tertiary">Cancel</a>
+                        <input type="submit" value="Process Scan" className="btn secondary" />
+                    </div>
                 </form>
             </div>
         );

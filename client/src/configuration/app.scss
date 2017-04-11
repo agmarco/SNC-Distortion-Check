@@ -1,14 +1,5 @@
 @import '../common/base';
 
-.institution-form {
-  margin: $small-spacing;
-
-  input:not([type="submit"]),
-  textarea {
-    width: 500px;
-  }
-}
-
 .phantoms,
 .machines,
 .sequences,
@@ -17,7 +8,7 @@
 
   .btn {
     position: absolute;
-    width: 120px;
+    width: 200px;
     top: 0;
     right: $small-spacing;
   }

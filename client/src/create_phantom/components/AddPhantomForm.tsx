@@ -82,7 +82,7 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
 
         return (
             <div>
-                <form action={createPhantomUrl} method="post">
+                <form action={createPhantomUrl} method="post" className="cirs-form">
                     <CSRFToken />
 
                     <div>
@@ -106,23 +106,27 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
 
                     <div>
                         <label>Model Number</label>
-                        {valid ? modelNumber : (validating ? "Searching..." : "Invalid Serial Number")}
+                        <p>{valid ? modelNumber : (validating ? "Searching..." : "Invalid Serial Number")}</p>
                     </div>
 
                     <div>
                         <label>Gold Standard Grid Intersection Locations</label>
-                        By default, the new phantom will use gold standard grid intersection locations based on the CAD
-                        design for the particular phantom model you select. These points can be customized at any point
-                        using a gold standard CT, or a raw point upload.
+                        <p>
+                            By default, the new phantom will use gold standard grid intersection locations based on the
+                            CAD design for the particular phantom model you select. These points can be customized at
+                            any point using a gold standard CT, or a raw point upload.
+                        </p>
                     </div>
 
-                    <a href={cancelUrl} className="btn tertiary">Cancel</a>
-                    <input
-                        type="submit"
-                        value="Add Phantom"
-                        disabled={validating || !valid}
-                        className="btn secondary"
-                    />
+                    <div className="form-links">
+                        <a href={cancelUrl} className="btn tertiary">Cancel</a>
+                        <input
+                            type="submit"
+                            value="Add Phantom"
+                            disabled={validating || !valid}
+                            className="btn secondary"
+                        />
+                    </div>
                 </form>
             </div>
         );

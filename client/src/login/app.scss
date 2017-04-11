@@ -9,6 +9,10 @@ body {
 #login {
   width: 300px;
 
+  h1 {
+    margin: $small-spacing 0;
+  }
+
   .btn {
     display: block;
     width: 300px;

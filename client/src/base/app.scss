@@ -21,6 +21,11 @@ a {
   &:hover {
     text-decoration: underline;
   }
+
+  &:hover,
+  &:focus {
+    background-color: transparent;
+  }
 }
 
 form {
@@ -58,11 +63,11 @@ form {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 0;
+    padding: 8px $small-spacing;
   }
 
   h1 {
-    margin: 0 $small-spacing;
+    margin: 0;
 
     a:hover {
       text-decoration: none;
@@ -99,7 +104,7 @@ form {
   .container {
     display: flex;
     align-items: center;
-    padding: 8px 16px;
+    padding: 8px $small-spacing;
   }
 
   a {
@@ -145,6 +150,7 @@ h6 {
 
     &.action {
       width: 1px;
+      font-weight: bold;
     }
   }
 }
@@ -188,5 +194,50 @@ h6 {
     &:hover {
       background-color: darken($tertiary-color, 5%);
     }
+  }
+}
+
+.messages {
+  li {
+    border-radius: 4px;
+    margin: 0 $small-spacing $small-spacing;
+    padding: $small-spacing;
+
+    &.success {
+      background-color: lighten($success-color, 45%);
+      border: 1px solid $success-color;
+    }
+  }
+}
+
+.cirs-form {
+  margin: 0 $small-spacing $small-spacing;
+  width: 500px;
+
+  p {
+    margin: 0 0 $small-spacing;
+  }
+}
+
+.form-links {
+  display: flex;
+  justify-content: flex-end;
+
+  & > * {
+    margin-left: $small-spacing;
+  }
+}
+
+.cirs-filters {
+  margin-left: $small-spacing;
+  position: relative;
+  display: flex;
+
+  & > * {
+    margin-right: $small-spacing;
+  }
+
+  select {
+    width: 200px;
   }
 }
