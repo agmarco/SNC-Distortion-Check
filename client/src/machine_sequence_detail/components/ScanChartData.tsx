@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { IScanChartProps, IScanChartSettings, IScrollable } from './ScanChart';
+import { IScanChartProps, IScanChartSettings, IScrollable, IScanData } from './ScanChart';
 import Scrollable from './Scrollable';
 
 interface IScanChartDataProps extends IScanChartProps, IScanChartSettings, IScrollable {}
@@ -23,8 +23,8 @@ export default class extends React.Component<IScanChartDataProps, {}> {
         d3.select(this.g).selectAll(".box")
             .data(data)
             .enter().append("g")
-            .attr("transform", (d: any) => `translate(${xScale(d[0])}, 0)`)
-            .attr("class", (d: any) => d.passed ? "passed" : "failed")
+            .attr("transform", (d: IScanData) => `translate(${xScale(d[0])}, 0)`)
+            .attr("class", (d: IScanData) => d.passed ? "passed" : "failed")
             .call(chart.width(xScale.rangeBand()));
     }
 
@@ -34,7 +34,7 @@ export default class extends React.Component<IScanChartDataProps, {}> {
         return (
 
             <Scrollable {...scroll}>
-                <g ref={(g) => this.g = g} />
+                <g ref={g => this.g = g} />
             </Scrollable>
         );
     }

@@ -24,8 +24,8 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
         super();
 
         this.state = {
-            machines: uniqBy(props.machineSequencePairs, (p) => p.machine.pk).map((p) => p.machine),
-            sequences: uniqBy(props.machineSequencePairs, (p) => p.sequence.pk).map((p) => p.sequence),
+            machines: uniqBy(props.machineSequencePairs, p => p.machine.pk).map(p => p.machine),
+            sequences: uniqBy(props.machineSequencePairs, p => p.sequence.pk).map(p => p.sequence),
             machineFilterValue: 'all',
             sequenceFilterValue: 'all',
         };
@@ -37,13 +37,13 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
         const filters: Array<(pair: IMachineSequencePairDTO) => boolean> = [];
 
         if (machineFilterValue !== 'all') {
-            filters.push((p) => p.machine.pk === machineFilterValue);
+            filters.push(p => p.machine.pk === machineFilterValue);
         }
         if (sequenceFilterValue !== 'all') {
-            filters.push((p) => p.sequence.pk === sequenceFilterValue);
+            filters.push(p => p.sequence.pk === sequenceFilterValue);
         }
 
-        return machineSequencePairs.filter((p) => filters.every((filter) => filter(p)));
+        return machineSequencePairs.filter(p => filters.every(filter => filter(p)));
     }
 
     handleMachineChange(event: React.FormEvent<HTMLInputElement>) {
@@ -68,11 +68,11 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
                     <span>Filter By</span>
                     <select value={machineFilterValue} onChange={this.handleMachineChange.bind(this)}>
                         <option value="all">All Machines</option>
-                        {machines.map((m) => <option value={m.pk} key={m.pk}>{m.name}</option>)}
+                        {machines.map(m => <option value={m.pk} key={m.pk}>{m.name}</option>)}
                     </select>
                     <select value={sequenceFilterValue} onChange={this.handleSequenceChange.bind(this)}>
                         <option value="all">All Sequences</option>
-                        {sequences.map((s) => <option value={s.pk} key={s.pk}>{s.name}</option>)}
+                        {sequences.map(s => <option value={s.pk} key={s.pk}>{s.name}</option>)}
                     </select>
                 </div>
                 <table className="cirs-table">

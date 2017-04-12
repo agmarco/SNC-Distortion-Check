@@ -27,7 +27,7 @@ export default class extends React.Component<IScanChartAxesProps, {}> {
             .outerTickSize(0)
             .tickPadding(10)
             .tickFormat((pk: number) => {
-                const scanData = data.find((d: IScanData) => d[0] === pk);
+                const scanData = data.find(d => d[0] === pk);
                 return scanData ? scanData.label : pk;
             }));
 
@@ -58,7 +58,7 @@ export default class extends React.Component<IScanChartAxesProps, {}> {
         return (
             <g>
                 <Scrollable {...scroll}>
-                    <g ref={(g) => this.xAxis = g} {...xAxisProps} />
+                    <g ref={g => this.xAxis = g} {...xAxisProps} />
                 </Scrollable>
                 <text {...xLabelProps}>Scans</text>
             </g>
@@ -82,7 +82,7 @@ export default class extends React.Component<IScanChartAxesProps, {}> {
 
         return (
             <g>
-                <g ref={(g) => this.yAxis = g} {...yAxisProps} />
+                <g ref={g => this.yAxis = g} {...yAxisProps} />
                 <text {...yLabelProps}>Distortion (mm)</text>
             </g>
         );

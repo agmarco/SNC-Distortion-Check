@@ -22,7 +22,7 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
         super();
 
         this.state = {
-            phantoms: uniqBy(props.scans, (s) => s.phantom.pk).map((s) => s.phantom),
+            phantoms: uniqBy(props.scans, s => s.phantom.pk).map(s => s.phantom),
             phantomFilterValue: 'all',
         };
     }
@@ -33,10 +33,10 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
         const filters: Array<(scan: IScanDTO) => boolean> = [];
 
         if (phantomFilterValue !== 'all') {
-            filters.push((s) => s.phantom.pk === phantomFilterValue);
+            filters.push(s => s.phantom.pk === phantomFilterValue);
         }
 
-        return scans.filter((p) => filters.every((filter) => filter(p)));
+        return scans.filter(p => filters.every(filter => filter(p)));
     }
 
     handlePhantomChange(event: React.FormEvent<HTMLInputElement>) {

@@ -11,6 +11,7 @@
     "jsx-no-lambda": false,
     "jsx-wrap-multiline": false,
     "jsx-boolean-value": false,
-    "no-console": false
+    "no-console": false,
+    "arrow-parens": false
   }
 }

@@ -53,6 +53,7 @@ export default class extends React.Component<IScanChartProps, IScanChartState> {
 
     constructor(props: IScanChartProps) {
         super();
+        console.log(props);
         this.settings = this.getSettings(props);
         this.state = {scrollX: 0};
     }
@@ -78,20 +79,21 @@ export default class extends React.Component<IScanChartProps, IScanChartState> {
 
     getSettings(props: IScanChartProps) {
         const { machineSequencePair, scans } = props;
+        const processedScans = scans.filter(s => !s.processing && !s.errors);
 
         const labels = true;
         const margin = {top: 10, right: 10, bottom: 60, left: 60};
 
         // TODO make the width responsive
         const clipWidth = 800 - margin.left - margin.right;
-        const width = Math.max(scans.length * 100, clipWidth);
+        const width = Math.max(processedScans.length * 100, clipWidth);
         const height = 400 - margin.top - margin.bottom;
 
-        const maxDistortion = Math.max(...scans.map((s) => Math.max(...s.distortion)));
+        const maxDistortion = Math.max(...processedScans.map(s => Math.max(...s.distortion)));
         const yMin = 0;
         const yMax = 1.05 * Math.max(machineSequencePair.tolerance, maxDistortion);
 
-        const data = scans.map((scan) => {
+        const data = processedScans.map((scan) => {
             const array = [scan.pk, scan.distortion] as any;
             array.passed = scan.passed;
             array.label = format(scan.acquisition_date, 'D MMM YYYY');
@@ -105,7 +107,7 @@ export default class extends React.Component<IScanChartProps, IScanChartState> {
             .showLabels(labels);
 
         const xScale = d3.scale.ordinal()
-            .domain(data.map((d) => d[0]))
+            .domain(data.map(d => d[0]))
             .rangeRoundBands([0, width], 0.7, 0.3);
 
         const yScale = d3.scale.linear()
@@ -169,7 +171,7 @@ export default class extends React.Component<IScanChartProps, IScanChartState> {
                 width={clipWidth + margin.left + margin.right}
                 height={height + margin.top + margin.bottom}
                 className="scan-chart box"
-                ref={(svg) => this.svg = svg}
+                ref={svg => this.svg = svg}
             >
                 <defs>
                     <clipPath id={clipPathId}>
