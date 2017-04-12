@@ -34,7 +34,7 @@
     <tbody>
       {% for golden_fiducials in view.golden_fiducials %}
         <tr class="{% if forloop.counter0|divisibleby:2 %}a{% else %}b{% endif %}">
-          <td>{% if golden_fiducials.is_active %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>
+          <td>{% if golden_fiducials.is_active %}<i class="fa fa-check success" aria-hidden="true"></i>{% endif %}</td>
           <td>{{ golden_fiducials.created_on|date }}</td>
           <td>{{ golden_fiducials.type }}</td>
           <td>{% if golden_fiducials.type == 'CT' %}{{ golden_fiducials.dicom_series.filename }}{% endif %}</td>

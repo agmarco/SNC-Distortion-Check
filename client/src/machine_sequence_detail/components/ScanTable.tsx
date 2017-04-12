@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { format } from 'date-fns';
+import format from 'date-fns/format';
 import uniqBy from 'lodash/uniqBy';
 
 import { IScanDTO, IPhantomDTO } from 'common/service';
@@ -22,7 +22,7 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
         super();
 
         this.state = {
-            phantoms: uniqBy(props.scans, (scan) => scan.phantom.pk).map((scan) => scan.phantom),
+            phantoms: uniqBy(props.scans, (s) => s.phantom.pk).map((s) => s.phantom),
             phantomFilterValue: 'all',
         };
     }
@@ -33,10 +33,10 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
         const filters: Array<(scan: IScanDTO) => boolean> = [];
 
         if (phantomFilterValue !== 'all') {
-            filters.push((scan) => scan.phantom.pk === phantomFilterValue);
+            filters.push((s) => s.phantom.pk === phantomFilterValue);
         }
 
-        return scans.filter((pair) => filters.every((filter) => filter(pair)));
+        return scans.filter((p) => filters.every((filter) => filter(p)));
     }
 
     handlePhantomChange(event: React.FormEvent<HTMLInputElement>) {
@@ -56,10 +56,8 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
                     <span>Filter By</span>
                     <select value={phantomFilterValue} onChange={this.handlePhantomChange.bind(this)}>
                         <option value="all">All Phantoms</option>
-                        {phantoms.map((phantom) => (
-                            <option value={phantom.pk} key={phantom.pk}>
-                                {phantom.model_number} &mdash; {phantom.serial_number}
-                            </option>
+                        {phantoms.map((p) => (
+                            <option value={p.pk} key={p.pk}>{p.model_number} &mdash; {p.serial_number}</option>
                         ))}
                     </select>
                 </div>

@@ -59,13 +59,13 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
         const { machineFilterValue, sequenceFilterValue, phantomFilterValue } = this.state;
 
         const currentMachine = machineFilterValue && (
-            machines.find((machine) => machine.pk === machineFilterValue)
+            machines.find((m) => m.pk === machineFilterValue)
         );
         const currentSequence = sequenceFilterValue && (
-            sequences.find((sequence) => sequence.pk === sequenceFilterValue)
+            sequences.find((s) => s.pk === sequenceFilterValue)
         );
         const currentPhantom = phantomFilterValue && (
-            phantoms.find((phantom) => phantom.pk === phantomFilterValue)
+            phantoms.find((p) => p.pk === phantomFilterValue)
         );
 
         return (
@@ -85,9 +85,7 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                             required
                         >
                             <option value="" disabled />
-                            {machines.map((machine) => (
-                                <option value={machine.pk} key={machine.pk}>{machine.name}</option>
-                            ))}
+                            {machines.map((m) => <option value={m.pk} key={m.pk}>{m.name}</option>)}
                         </select>
 
                         {currentMachine && (
@@ -116,9 +114,7 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                             required
                         >
                             <option value="" disabled />
-                            {sequences.map((sequence) => (
-                                <option value={sequence.pk} key={sequence.pk}>{sequence.name}</option>
-                            ))}
+                            {sequences.map((s) => <option value={s.pk} key={s.pk}>{s.name}</option>)}
                         </select>
 
                         {currentSequence && (
@@ -143,9 +139,7 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                             required
                         >
                             <option value="" disabled />
-                            {phantoms.map((phantom) => (
-                                <option value={phantom.pk} key={phantom.pk}>{phantom.name}</option>
-                            ))}
+                            {phantoms.map((p) => <option value={p.pk} key={p.pk}>{p.name}</option>)}
                         </select>
 
                         {currentPhantom && (

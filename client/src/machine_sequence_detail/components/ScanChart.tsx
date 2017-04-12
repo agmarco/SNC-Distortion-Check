@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { format } from 'date-fns';
+import format from 'date-fns/format';
 
 import { IMachineSequencePairDTO, IScanDTO } from 'common/service';
 import ScanChartData from './ScanChartData';
@@ -87,7 +87,7 @@ export default class extends React.Component<IScanChartProps, IScanChartState> {
         const width = Math.max(scans.length * 100, clipWidth);
         const height = 400 - margin.top - margin.bottom;
 
-        const maxDistortion = Math.max(...scans.map((scan) => Math.max(...scan.distortion)));
+        const maxDistortion = Math.max(...scans.map((s) => Math.max(...s.distortion)));
         const yMin = 0;
         const yMax = 1.05 * Math.max(machineSequencePair.tolerance, maxDistortion);
 
