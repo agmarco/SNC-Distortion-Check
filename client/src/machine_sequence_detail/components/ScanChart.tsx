@@ -53,7 +53,6 @@ export default class extends React.Component<IScanChartProps, IScanChartState> {
 
     constructor(props: IScanChartProps) {
         super();
-        console.log(props);
         this.settings = this.getSettings(props);
         this.state = {scrollX: 0};
     }
