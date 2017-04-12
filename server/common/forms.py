@@ -8,6 +8,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from process import dicom_import
 from .models import Phantom, Institution
 
+MRI_SOP = '1.2.840.10008.5.1.4.1.1.4'  # MR Image Storage
+CT_SOP = '1.2.840.10008.5.1.4.1.1.2'  # CT Image Storage
+
 
 class CreatePhantomForm(forms.ModelForm):
     class Meta:
@@ -40,10 +43,8 @@ class UploadScanForm(forms.Form):
         with zipfile.ZipFile(self.cleaned_data['dicom_archive'], 'r') as zip_file:
             datasets = dicom_import.dicom_datasets_from_zip(zip_file)
 
-        if datasets[0].Modality.upper() != 'MRI':
-            # some of the MRI archives do not have a modality of "MRI"
-            #raise forms.ValidationError("The DICOM archive must be of modality 'MRI.'")
-            pass
+        if datasets[0].SOPClassUID != MRI_SOP:
+            raise forms.ValidationError("The DICOM archive must be of an MRI scan.")
 
         self.cleaned_data['datasets'] = datasets
         return self.cleaned_data['dicom_archive']
@@ -61,10 +62,8 @@ class UploadCTForm(forms.Form):
         with zipfile.ZipFile(self.cleaned_data['dicom_archive'], 'r') as zip_file:
             datasets = dicom_import.dicom_datasets_from_zip(zip_file)
 
-        if datasets[0].Modality.upper() != 'CT':
-            # some of the CT archives do not have a modality of "CT"
-            #raise forms.ValidationError("The DICOM archive must be of modality 'CT.'")
-            pass
+        if datasets[0].SOPClassUID != CT_SOP:
+            raise forms.ValidationError("The DICOM archive must be of a CT scan.")
 
         self.cleaned_data['datasets'] = datasets
         return self.cleaned_data['dicom_archive']
