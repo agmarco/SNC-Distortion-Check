@@ -3,11 +3,11 @@ import App from './containers/App';
 
 import 'base/app.scss';
 
-renderApp(App, 'add-phantom-app');
+renderApp(App, 'create-phantom-app');
 
 // Hot Module Replacement API
 if (module.hot) {
     module.hot.accept('./containers/App', () => {
-        renderApp(App, 'add-phantom-app');
+        renderApp(App, 'create-phantom-app');
     });
 }
