@@ -127,12 +127,12 @@ export default class extends React.Component<IScanChartProps, IScanChartState> {
         };
     }
 
-    scrollChart() {
+    componentDidMount() {
         const { clipWidth, width } = this.settings;
-        const { scrollX } = this.state;
 
         const scroll = d3.behavior.zoom()
             .on('zoom', () => {
+                const { scrollX } = this.state;
                 let newScrollX = scrollX;
 
                 if (d3.event.sourceEvent.type === 'wheel') {
@@ -142,7 +142,7 @@ export default class extends React.Component<IScanChartProps, IScanChartState> {
                     // extent of the vertical wheel scroll.
                     newScrollX += d3.event.sourceEvent.deltaY;
                 } else if (d3.event.sourceEvent.type === 'mousemove') {
-                    newScrollX += d3.event.translate[0];
+                    newScrollX = d3.event.translate[0];
                 }
 
                 // Don't let the user scroll beyond the bounds of the chart.
@@ -152,14 +152,6 @@ export default class extends React.Component<IScanChartProps, IScanChartState> {
             });
 
         d3.select(this.svg).call(scroll);
-    }
-
-    componentDidMount() {
-        this.scrollChart();
-    }
-
-    componentDidUpdate() {
-        this.scrollChart();
     }
 
     render() {
