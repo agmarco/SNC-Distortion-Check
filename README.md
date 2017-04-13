@@ -53,6 +53,6 @@ Run tests using
 
 ## Hot Module Replacement
 
-To enable hot module replacement, cd into the `client` directory and run:
+You can enable hot module replacement using:
 
-    yarn webpack:hot
+    yarn build:hot

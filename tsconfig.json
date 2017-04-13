@@ -13,6 +13,6 @@
     "allowJs": true
   },
   "include": [
-    "typings/**/*"
+    "client/typings/**/*"
   ]
 }
