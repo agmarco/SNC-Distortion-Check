@@ -17,3 +17,4 @@ django-storages
 h5py
 djangorestframework
 requests
+whitenoise
