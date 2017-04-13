@@ -1,29 +1,8 @@
-import os
-import zipfile
-
 from django.contrib.auth.models import Permission
 from django.core.management.base import BaseCommand
-from django.core.files import File
-from django.conf import settings
 
-from process import dicom_import
 from server.common import factories
 from server.common.models import GoldenFiducials
-
-
-def _create_dicom_series(filename):
-    with zipfile.ZipFile(filename, 'r') as zip_file:
-        datasets = dicom_import.dicom_datasets_from_zip(zip_file)
-    voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
-    dicom_series = factories.DicomSeriesFactory(
-        voxels=voxels,
-        ijk_to_xyz=ijk_to_xyz,
-        shape=voxels.shape,
-        datasets=datasets,
-    )
-    with open(os.path.join(settings.BASE_DIR, filename), 'rb') as dicom_file:
-        dicom_series.zipped_dicom_files.save(f'dicom_series_{dicom_series.pk}.zip', File(dicom_file))
-    return dicom_series
 
 
 class Command(BaseCommand):
@@ -156,30 +135,26 @@ class Command(BaseCommand):
         machine_sequence_pair_a = factories.MachineSequencePairFactory(
             machine=machine_a,
             sequence=sequence_a,
-            tolerance=1.75,
+            tolerance=2.25
         )
         machine_sequence_pair_b = factories.MachineSequencePairFactory(
             machine=machine_a,
             sequence=sequence_b,
-            tolerance=1.75,
         )
         machine_sequence_pair_c = factories.MachineSequencePairFactory(
             machine=machine_b,
             sequence=sequence_a,
-            tolerance=1.75,
         )
         machine_sequence_pair_d = factories.MachineSequencePairFactory(
             machine=machine_c,
             sequence=sequence_a,
-            tolerance=1.75,
         )
         machine_sequence_pair_e = factories.MachineSequencePairFactory(
             machine=machine_c,
             sequence=sequence_c,
-            tolerance=1.75,
         )
 
-        dicom_series_ct = _create_dicom_series('data/dicom/001_ct_603A_E3148_ST1.25.zip')
+        dicom_series_ct = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/001_ct_603A_E3148_ST1.25.zip')
 
         golden_fiducials_a = factories.GoldenFiducialsFactory(
             phantom=phantom_d,
@@ -191,16 +166,11 @@ class Command(BaseCommand):
             type=GoldenFiducials.CSV,
         )
 
-        dicom_series_mri_a = _create_dicom_series('data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
-        dicom_series_mri_b = _create_dicom_series('data/dicom/007_mri_603A_UVA_Sagittal_XUCWOCNR.zip')
-
-        scan_a = factories.ScanFactory(
-            machine_sequence_pair=machine_sequence_pair_a,
-            dicom_series=dicom_series_mri_a,
-            tolerance=1.65
-        )
-        scan_b = factories.ScanFactory(
-            machine_sequence_pair=machine_sequence_pair_b,
-            dicom_series=dicom_series_mri_b,
-            tolerance=1.85
-        )
+        for i in range(20):
+            dicom_series_mri = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
+            factories.ScanFactory(
+                creator=manager,
+                machine_sequence_pair=machine_sequence_pair_a,
+                dicom_series=dicom_series_mri,
+                tolerance=2.25,
+            )

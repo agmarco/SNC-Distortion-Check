@@ -12,11 +12,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework.renderers import JSONRenderer
 
 from process import dicom_import
-from .models import Scan, Phantom, Machine, Sequence, Fiducials, GoldenFiducials, User, DicomSeries, Institution, \
-    MachineSequencePair
+from .models import Scan, Phantom, Machine, Sequence, Fiducials, GoldenFiducials, User, DicomSeries, Institution, MachineSequencePair
 from .tasks import process_scan, process_ct_upload
-from .forms import UploadScanForm, UploadCTForm, UploadRawForm, CreatePhantomForm
-from .serializers import MachineSequencePairSerializer, MachineSerializer, SequenceSerializer
+from .forms import UploadScanForm, UploadCTForm, UploadRawForm, CreatePhantomForm, InstitutionForm
+from .serializers import MachineSequencePairSerializer, MachineSerializer, SequenceSerializer, PhantomSerializer, ScanSerializer
 from .decorators import validate_institution, login_and_permission_required
 
 logger = logging.getLogger(__name__)
@@ -48,38 +47,8 @@ class CirsDeleteView(DeleteView):
 
 
 @login_and_permission_required('common.configuration')
-def upload_scan(request):
-    if request.method == 'POST':
-        form_with_data = UploadScanForm(request.POST, request.FILES)
-        if form_with_data.is_valid():
-            scan = Scan(dicom_archive=request.FILES['dicom_archive'])
-            logger.info("Starting to save")
-            scan.processing = True
-            scan.save()
-            logger.info("Done saving")
-            process_scan.delay(scan.pk)
-
-            message = 'Upload was successful'
-            form = UploadScanForm()
-        else:
-            message = 'Error uploading'
-            form = form_with_data
-    else:
-        message = 'Upload a Scan!'
-        form = UploadScanForm()
-
-    scans = Scan.objects.all()
-
-    return render(request, 'common/scan_upload.html', {
-        'form': form,
-        'message': message,
-        'scans': scans,
-    })
-
-
-@login_and_permission_required('common.configuration')
 def landing(request):
-    machine_sequence_pairs_queryset = MachineSequencePair.objects.filter(machine__institution=request.user.institution)
+    machine_sequence_pairs_queryset = MachineSequencePair.objects.filter(machine__institution=request.user.institution).active().order_by('-last_modified_on')
     machine_sequence_pairs = MachineSequencePairSerializer(machine_sequence_pairs_queryset, many=True)
 
     renderer = JSONRenderer()
@@ -91,7 +60,7 @@ def landing(request):
 @login_and_permission_required('common.configuration')
 class Configuration(UpdateView):
     model = Institution
-    fields = ('name', 'address', 'phone_number')
+    form_class = InstitutionForm
     success_url = reverse_lazy('configuration')
     template_name = 'common/configuration.html'
 
@@ -117,7 +86,7 @@ class Configuration(UpdateView):
 
 @login_and_permission_required('common.configuration')
 def machine_sequences(request):
-    machine_sequence_pairs_queryset = MachineSequencePair.objects.filter(machine__institution=request.user.institution)
+    machine_sequence_pairs_queryset = MachineSequencePair.objects.filter(machine__institution=request.user.institution).active().order_by('-last_modified_on')
     machine_sequence_pairs = MachineSequencePairSerializer(machine_sequence_pairs_queryset, many=True)
 
     renderer = JSONRenderer()
@@ -130,14 +99,99 @@ def machine_sequences(request):
 @validate_institution()
 class MachineSequenceDetail(DetailView):
     model = MachineSequencePair
+    template_name = 'common/machine_sequence_detail.html'
 
     def get_context_data(self, **kwargs):
         machine_sequence_pair = MachineSequencePairSerializer(self.object)
+        scans = ScanSerializer(Scan.objects.filter(machine_sequence_pair=self.object).active().order_by('created_on'), many=True)
 
         renderer = JSONRenderer()
         return {
             'machine_sequence_pair': renderer.render(machine_sequence_pair.data),
+            'scans': renderer.render(scans.data)
         }
+
+
+# TODO handle prepopulated machine and sequence
+# TODO cancel might take the user back to landing, machine-sequences, or machine-sequence-detail
+@login_and_permission_required('common.configuration')
+class UploadScan(FormView):
+    form_class = UploadScanForm
+    template_name = 'common/upload_scan.html'
+
+    def get_context_data(self, **kwargs):
+        institution = self.request.user.institution
+        machines = MachineSerializer(Machine.objects.filter(institution=institution), many=True)
+        sequences = SequenceSerializer(Sequence.objects.filter(institution=institution), many=True)
+        phantoms = PhantomSerializer(Phantom.objects.filter(institution=institution), many=True)
+
+        renderer = JSONRenderer()
+        return {
+            'machines': renderer.render(machines.data),
+            'sequences': renderer.render(sequences.data),
+            'phantoms': renderer.render(phantoms.data),
+        }
+
+    def form_valid(self, form):
+        machine = Machine.objects.get(pk=form.cleaned_data['machine'])
+        sequence = Sequence.objects.get(pk=form.cleaned_data['sequence'])
+        phantom = Phantom.objects.get(pk=form.cleaned_data['phantom'])
+
+        try:
+            machine_sequence_pair = MachineSequencePair.objects.get(machine=machine, sequence=sequence)
+        except ObjectDoesNotExist:
+            machine_sequence_pair = MachineSequencePair.objects.create(machine=machine, sequence=sequence, tolerance=3)
+
+        voxels, ijk_to_xyz = dicom_import.combine_slices(form.cleaned_data['datasets'])
+        dicom_series = DicomSeries.objects.create(
+            zipped_dicom_files=self.request.FILES['dicom_archive'],
+            voxels=voxels,
+            ijk_to_xyz=ijk_to_xyz,
+            shape=voxels.shape,
+            series_uid=form.cleaned_data['datasets'][0].SeriesInstanceUID,
+            acquisition_date=datetime.strptime(form.cleaned_data['datasets'][0].AcquisitionDate, '%Y%m%d'),
+        )
+
+        scan = Scan.objects.create(
+            creator=self.request.user,
+            machine_sequence_pair=machine_sequence_pair,
+            dicom_series=dicom_series,
+            golden_fiducials=phantom.active_gold_standard,
+            notes=form.cleaned_data['notes'],
+            tolerance=machine_sequence_pair.tolerance,
+            processing=True,
+        )
+
+        process_scan.delay(scan.pk)
+        messages.success(self.request, "Your scan has been uploaded successfully and is processing.")
+        return redirect('machine_sequence_detail', machine_sequence_pair.pk)
+
+    def form_invalid(self, form):
+        renderer = JSONRenderer()
+        context = self.get_context_data(form=form)
+        context.update({'form_errors': renderer.render(form.errors)})
+        return self.render_to_response(context)
+
+
+@login_and_permission_required('common.configuration')
+@validate_institution()
+class ScanErrors(DetailView):
+    model = Scan
+    template_name = 'common/scan_errors.html'
+
+
+@login_and_permission_required('common.configuration')
+@validate_institution()
+class DeleteScan(CirsDeleteView):
+    model = Scan
+
+    def delete(self, request, *args, **kwargs):
+        response = super(DeleteScan, self).delete(request, *args, **kwargs)
+        messages.success(self.request, f"Scan for phantom \"{self.object.golden_fiducials.phantom.model.model_number} — {self.object.golden_fiducials.phantom.serial_number}\", captured on {self.object.dicom_series.acquisition_date}, has been deleted successfully.")
+        return response
+
+    def get_success_url(self):
+        return reverse('machine_sequence_detail', args=(self.object.machine_sequence_pair.pk,))
 
 
 @login_and_permission_required('common.configuration')
@@ -170,13 +224,15 @@ class CreatePhantom(FormView):
 class UpdatePhantom(UpdateView):
     model = Phantom
     fields = ('name',)
-    success_url = reverse_lazy('configuration')
     template_name_suffix = '_update'
     pk_url_kwarg = 'phantom_pk'
 
     def form_valid(self, form):
         messages.success(self.request, f"\"{self.object.name}\" has been updated successfully.")
         return super(UpdatePhantom, self).form_valid(form)
+
+    def get_success_url(self):
+        return reverse('update_phantom', args=(self.kwargs['phantom_pk'],))
 
     @property
     def golden_fiducials(self):
@@ -311,7 +367,6 @@ class UploadCT(FormView):
 
     def form_valid(self, form):
         voxels, ijk_to_xyz = dicom_import.combine_slices(form.cleaned_data['datasets'])
-
         dicom_series = DicomSeries.objects.create(
             zipped_dicom_files=self.request.FILES['dicom_archive'],
             voxels=voxels,
@@ -329,7 +384,7 @@ class UploadCT(FormView):
         )
 
         process_ct_upload.delay(dicom_series.pk, gold_standard.pk)
-        messages.success(self.request, "Your gold standard CT has been uploaded successfully.")
+        messages.success(self.request, "Your gold standard CT has been uploaded successfully and is processing.")
         return super(UploadCT, self).form_valid(form)
 
     def get_context_data(self, **kwargs):

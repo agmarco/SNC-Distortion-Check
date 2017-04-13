@@ -1,0 +1,15 @@
+@import '../common/base';
+
+.phantoms,
+.machines,
+.sequences,
+.users {
+  position: relative;
+
+  .btn {
+    position: absolute;
+    width: 200px;
+    top: 0;
+    right: $base-spacing;
+  }
+}

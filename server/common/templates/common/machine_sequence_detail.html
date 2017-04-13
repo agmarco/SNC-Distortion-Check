@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load common %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{% webpack 'machine_sequence_detail.css' %}">
+{% endblock %}
+
+{% block "content" %}
+  <div id="machine-sequence-detail-app"></div>
+{% endblock %}
+
+{% block "scripts" %}
+  <script src="{% static 'common/fontawesome.js' %}"></script>
+  <script>{% manifest %}</script>
+  <script src="{% webpack 'vendor.js' %}"></script>
+  <script>
+    var MACHINE_SEQUENCE_PAIR = {{ machine_sequence_pair|safe }};
+    var SCANS = {{ scans|safe }};
+    var UPLOAD_SCAN_URL = "{% url 'upload_scan' %}?machine={{ machinesequencepair.machine.pk }}&sequence={{ machine_sequence_pair.sequence.pk }}";
+  </script>
+  <script src="{% webpack 'machine_sequence_detail.js' %}"></script>
+{% endblock %}

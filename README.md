@@ -7,16 +7,15 @@
 - Postgres
 - Linux utilities (e.g. Make)
 - Lib HDF5
-- Yarn
 
 You can install all of these using homebrew pretty easily on mac.
 
 ## Everything
 
-Use this command to clean everything, install a new dev setup, run all the
-tests, and then start all the processes:
+Use this command to install a new dev setup, run all the tests, and then start
+all the processes:
 
-    make cleandev && make dev && pytest && honcho start
+    make dev && pytest && honcho start
 
 ## Installation
 
@@ -51,3 +50,9 @@ You can run the celery task runner and the web server using:
 Run tests using
 
     pytest
+
+## Hot Module Replacement
+
+To enable hot module replacement, cd into the `client` directory and run:
+
+    yarn webpack:hot

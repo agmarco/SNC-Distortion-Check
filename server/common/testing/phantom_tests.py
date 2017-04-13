@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 
 from django.urls import reverse
 from django.contrib.auth.models import Permission
@@ -35,13 +36,21 @@ def test_phantoms(client):
     # check that a GoldenFiducials was created and activated
     assert phantom.goldenfiducials_set.count() == 1
     assert phantom.goldenfiducials_set.first().is_active
-    assert phantom.active_gold_standard.fiducials == phantom.model.cad_fiducials
 
-    # test that changing the cad_fiducials of the phantom model doesn't change the CAD gold standard for the phantom
-    phantom_model_fiducials = phantom.model.cad_fiducials
+    phantom_fiducials = phantom.active_gold_standard.fiducials.fiducials
+
+    # check that the CAD gold standard for the phantom has the same fiducials as the phantom model
+    assert np.allclose(phantom_fiducials, phantom.model.cad_fiducials.fiducials)
+
+    # check that editing the cad_fiducials of the phantom model doesn't change the CAD gold standard fiducials for the phantom
+    phantom.model.cad_fiducials.fiducials = np.random.rand(3, 10)
+    phantom.model.cad_fiducials.save()
+    assert np.allclose(phantom.active_gold_standard.fiducials.fiducials, phantom_fiducials)
+
+    # check that replacing the cad_fiducials of the phantom model doesn't change the CAD gold standard fiducials for the phantom
     phantom.model.cad_fiducials = factories.FiducialsFactory()
     phantom.model.save()
-    assert phantom.active_gold_standard.fiducials == phantom_model_fiducials
+    assert np.allclose(phantom.active_gold_standard.fiducials.fiducials, phantom_fiducials)
 
 
 @pytest.mark.django_db

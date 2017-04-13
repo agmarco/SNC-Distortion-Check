@@ -6,7 +6,10 @@ import numpy as np
 from django.core.exceptions import ObjectDoesNotExist
 
 from process import dicom_import
-from .models import Phantom
+from .models import Phantom, Institution
+
+MRI_SOP = '1.2.840.10008.5.1.4.1.1.4'  # MR Image Storage
+CT_SOP = '1.2.840.10008.5.1.4.1.1.2'  # CT Image Storage
 
 
 class CreatePhantomForm(forms.ModelForm):
@@ -25,19 +28,11 @@ class CreatePhantomForm(forms.ModelForm):
 
 
 class UploadScanForm(forms.Form):
-    dicom_archive = forms.FileField()
-
-    def clean_dicom_archive(self):
-        try:
-            dicom_import.combined_series_from_zip(self.cleaned_data['dicom_archive'])
-        except dicom_import.DicomImportException as e:
-            raise forms.ValidationError(e.args[0])
-
-        return self.cleaned_data['dicom_archive']
-
-
-class UploadCTForm(forms.Form):
-    dicom_archive = forms.FileField(label="File browser")
+    machine = forms.IntegerField()
+    sequence = forms.IntegerField()
+    phantom = forms.IntegerField()
+    dicom_archive = forms.FileField(label="MRI Scan Files")
+    notes = forms.CharField(required=False)
 
     def clean_dicom_archive(self):
         try:
@@ -48,15 +43,36 @@ class UploadCTForm(forms.Form):
         with zipfile.ZipFile(self.cleaned_data['dicom_archive'], 'r') as zip_file:
             datasets = dicom_import.dicom_datasets_from_zip(zip_file)
 
-        if datasets[0].Modality != 'CT':
-            raise forms.ValidationError("The DICOM archive must be of modality 'CT.'")
+        if datasets[0].SOPClassUID != MRI_SOP:
+            #raise forms.ValidationError("The DICOM archive must be of an MRI scan.")
+            pass
+
+        self.cleaned_data['datasets'] = datasets
+        return self.cleaned_data['dicom_archive']
+
+
+class UploadCTForm(forms.Form):
+    dicom_archive = forms.FileField(label="File Browser")
+
+    def clean_dicom_archive(self):
+        try:
+            dicom_import.combined_series_from_zip(self.cleaned_data['dicom_archive'])
+        except dicom_import.DicomImportException as e:
+            raise forms.ValidationError(e.args[0])
+
+        with zipfile.ZipFile(self.cleaned_data['dicom_archive'], 'r') as zip_file:
+            datasets = dicom_import.dicom_datasets_from_zip(zip_file)
+
+        if datasets[0].SOPClassUID != CT_SOP:
+            #raise forms.ValidationError("The DICOM archive must be of a CT scan.")
+            pass
 
         self.cleaned_data['datasets'] = datasets
         return self.cleaned_data['dicom_archive']
 
 
 class UploadRawForm(forms.Form):
-    csv = forms.FileField(label="File browser")
+    csv = forms.FileField(label="File Browser")
 
     @staticmethod
     def _has_duplicates(ndarray):
@@ -84,3 +100,14 @@ class UploadRawForm(forms.Form):
 
         self.cleaned_data['fiducials'] = fiducials
         return self.cleaned_data['csv']
+
+
+class InstitutionForm(forms.ModelForm):
+    class Meta:
+        model = Institution
+        fields = ('name', 'address', 'phone_number')
+        labels = {
+            'name': "Institution Name",
+            'address': "Institution Address",
+            'phone_number': "Institution Contact Phone Number",
+        }

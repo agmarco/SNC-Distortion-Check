@@ -1,34 +1,35 @@
 import logging
-import zipfile
 
+import numpy as np
 from celery import shared_task
 from celery.signals import task_failure
 from django.db import transaction
 
-from process.dicom_import import combine_slices, dicom_datasets_from_zip
 from process.feature_detection import FeatureDetector
 
-from .models import Scan, Phantom, Fiducials, GoldenFiducials, DicomSeries
+from .models import Scan, Fiducials, GoldenFiducials, DicomSeries
 
 logger = logging.getLogger(__name__)
 
 
 @shared_task
-def process_scan(scan_id):
-    scan = Scan.objects.get(pk=scan_id)
+def process_scan(scan_pk):
+    scan = Scan.objects.get(pk=scan_pk)
 
     try:
         with transaction.atomic():
-            scan.errors = None
-            phantom_name = '603A'
             modality = 'mri'
 
-            with zipfile.ZipFile(scan.dicom_archive, 'r') as zip_file:
-                datasets = dicom_datasets_from_zip(zip_file)
-            voxels, ijk_to_xyz = combine_slices(datasets)
+            scan.detected_fiducials = FeatureDetector(
+                scan.phantom.model.model_number,
+                modality,
+                scan.dicom_series.voxels,
+                scan.dicom_series.ijk_to_xyz
+            ).run()
 
-            points_in_patient_xyz = FeatureDetector(phantom_name, modality, voxels, ijk_to_xyz).run()
-            scan.result = "Success, found {} points".format(points_in_patient_xyz.shape[1])
+            # TODO run the distortion algorithm
+            scan.distortion = np.array(list(max(0, x) for x in np.random.normal(1.2, 0.55, (10,))))
+
             scan.processing = False
             scan.save()
     except Exception as e:
@@ -39,15 +40,16 @@ def process_scan(scan_id):
 
 
 @shared_task
-def process_ct_upload(dicom_series_id, gold_standard_id):
+def process_ct_upload(dicom_series_pk, gold_standard_pk):
     try:
         with transaction.atomic():
-            dicom_series = DicomSeries.objects.get(pk=dicom_series_id)
-            gold_standard = GoldenFiducials.objects.get(pk=gold_standard_id)
+            modality = 'ct'
+            dicom_series = DicomSeries.objects.get(pk=dicom_series_pk)
+            gold_standard = GoldenFiducials.objects.get(pk=gold_standard_pk)
 
             points_in_patient_xyz = FeatureDetector(
                 gold_standard.phantom.model.model_number,
-                'ct',
+                modality,
                 dicom_series.voxels,
                 dicom_series.ijk_to_xyz
             ).run()

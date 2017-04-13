@@ -5,7 +5,7 @@
   <p>Are you sure you want to delete the Gold Standard "{{ goldenfiducials.source_summary }}"?</p>
   <form action="{% url 'delete_gold_standard' phantom_pk goldenfiducials.pk %}" method="post">
     {% csrf_token %}
-    <input type="submit" value="Yes">
-    <a href="{% url 'update_phantom' phantom_pk %}">Cancel</a>
+    <a href="{% url 'update_phantom' phantom_pk %}" class="btn tertiary">Cancel</a>
+    <input type="submit" value="Yes" class="btn secondary">
   </form>
 {% endblock %}

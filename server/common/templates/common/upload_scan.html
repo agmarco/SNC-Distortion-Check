@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% load common %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{% webpack 'upload_scan.css' %}">
+{% endblock %}
+
+{% block "content" %}
+  <div id="upload-scan-app"></div>
+{% endblock %}
+
+{% block "scripts" %}
+  <script>{% manifest %}</script>
+  <script src="{% webpack 'vendor.js' %}"></script>
+  <script>
+    var MACHINES = {{ machines|safe }};
+    var SEQUENCES = {{ sequences|safe }};
+    var PHANTOMS = {{ phantoms|safe }};
+    var UPLOAD_SCAN_URL = {% url 'upload_scan' %};
+    var CANCEL_URL = {% url 'machine_sequences' %};
+    var FORM_ERRORS = {% if form_errors %}{{ form_errors|safe }}{% else %}null{% endif %};
+  </script>
+  <script src="{% webpack 'upload_scan.js' %}"></script>
+{% endblock %}

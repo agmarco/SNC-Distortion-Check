@@ -1,4 +1,5 @@
-from datetime import datetime
+import datetime
+import zipfile
 
 import numpy as np
 import factory
@@ -85,6 +86,7 @@ class PhantomModelFactory(factory.django.DjangoModelFactory):
         model = "common.PhantomModel"
 
     cad_fiducials = factory.SubFactory(FiducialsFactory)
+    model_number = '603A'
 
 
 class PhantomFactory(factory.django.DjangoModelFactory):
@@ -93,7 +95,7 @@ class PhantomFactory(factory.django.DjangoModelFactory):
 
     name = factory.Sequence("Machine {0}".format)
     model = factory.SubFactory(PhantomModelFactory)
-    serial_number = factory.Sequence("Serial Number {0}".format)
+    serial_number = factory.Sequence("SN{0}".format)
 
 
 class SequenceFactory(factory.django.DjangoModelFactory):
@@ -111,18 +113,28 @@ class MachineSequencePairFactory(factory.django.DjangoModelFactory):
 
     machine = factory.SubFactory(MachineFactory)
     sequence = factory.SubFactory(SequenceFactory)
-    tolerance = 3.5
+    tolerance = 3
+
+
+def _get_acquisition_date_generator():
+    start = datetime.date(2016, 11, 2)
+    count = 0
+    while True:
+        yield start + datetime.timedelta(days=count)
+        count += 1
+
+_get_acquisition_date = _get_acquisition_date_generator()
 
 
 class DicomSeriesFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.DicomSeries"
 
-    series_uid = factory.LazyAttribute(lambda obj: obj.datasets[0].SeriesInstanceUID)
-    acquisition_date = factory.LazyAttribute(lambda obj: datetime.strptime(obj.datasets[0].AcquisitionDate, '%Y%m%d'))
-
-    class Params:
-        datasets = None
+    voxels = np.random.rand(10, 10, 10)
+    ijk_to_xyz = np.random.rand(4, 4)
+    shape = np.array([10, 10, 10])
+    series_uid = '1.2.392.200193.3.1626980217.161129.153348.41538611151089740341'
+    acquisition_date = factory.LazyAttribute(lambda dicom_series: next(_get_acquisition_date))
 
 
 class GoldenFiducialsFactory(factory.django.DjangoModelFactory):
@@ -142,3 +154,5 @@ class ScanFactory(factory.django.DjangoModelFactory):
     dicom_series = factory.SubFactory(DicomSeriesFactory)
     detected_fiducials = factory.SubFactory(FiducialsFactory)
     golden_fiducials = factory.SubFactory(GoldenFiducialsFactory)
+    distortion = factory.LazyAttribute(lambda scan: np.array(list(max(0, x) for x in np.random.normal(1.2, 0.55, (10,)))))
+    tolerance = 3

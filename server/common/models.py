@@ -139,8 +139,8 @@ class MachineSequencePair(CommonFieldsMixin):
         return self.latest_scan.created_on if self.latest_scan else None
 
     @property
-    def latest_scan_within_tolerance(self):
-        return self.latest_scan.tolerance < self.tolerance if self.latest_scan else None
+    def latest_scan_passed(self):
+        return self.latest_scan.passed if self.latest_scan else None
 
     @property
     def institution(self):
@@ -220,21 +220,34 @@ class GoldenFiducials(CommonFieldsMixin):
         verbose_name_plural = 'Golden Fiducials'
 
 
+# TODO add help text
 class Scan(CommonFieldsMixin):
     creator = models.ForeignKey(User, models.SET_NULL, null=True)
     machine_sequence_pair = models.ForeignKey(MachineSequencePair, models.CASCADE)
     dicom_series = models.ForeignKey(DicomSeries, models.CASCADE)
-    detected_fiducials = models.ForeignKey(Fiducials, models.CASCADE)
+    detected_fiducials = models.ForeignKey(Fiducials, models.CASCADE, null=True)
     golden_fiducials = models.ForeignKey(GoldenFiducials, models.CASCADE)
-
-    # TODO: figure out how to store results
-    result = models.TextField(null=True)
+    distortion = NumpyTextField(null=True)
+    notes = models.TextField(blank=True)
     processing = models.BooleanField(default=False)
     errors = models.TextField(null=True)
     tolerance = models.FloatField()
 
     def __str__(self):
-        return "Scan {}".format(self.id)
+        return f"Scan {self.pk}"
+
+    @property
+    def phantom(self):
+        return self.golden_fiducials.phantom
+
+    @property
+    def institution(self):
+        return self.creator.institution
+
+    @property
+    def passed(self):
+        """Return True if the max distortion is below the threshold."""
+        return self.distortion.max() < self.tolerance if self.distortion is not None else None
 
 
 # This table creates permissions that are not associated with a model.

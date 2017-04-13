@@ -1,20 +1,30 @@
+{% load common %}
+
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8">
     <title>CIRS Distortion Check</title>
+    <link rel="stylesheet" href="{% webpack 'base.css' %}">
+    {% block styles %}
+    {% endblock %}
   </head>
   <body>
     {% include 'includes/header.html' %}
-    {% if messages %}
-      <ul class="messages">
-        {% for message in messages %}
-          <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-    {% block "content" %}
-    {% endblock %}
+    <section id="site-content">
+      {# TODO breadcrumbs #}
+      <div class="container">
+      {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      {% block "content" %}
+      {% endblock %}
+    </div>
+    </section>
     {% include 'includes/footer.html' %}
     {% block "scripts" %}
     {% endblock %}

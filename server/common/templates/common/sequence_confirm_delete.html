@@ -2,10 +2,12 @@
 
 {% block "content" %}
   <h1>Delete MRI Sequence</h1>
-  <p>Are you sure you want to delete "{{ sequence.name }}"?</p>
-  <form action="{% url 'delete_sequence' sequence.pk %}" method="post">
+  <form action="{% url 'delete_sequence' sequence.pk %}" method="post" class="cirs-form">
     {% csrf_token %}
-    <input type="submit" value="Yes">
-    <a href="{% url 'configuration' %}">Cancel</a>
+    <p>Are you sure you want to delete "{{ sequence.name }}"?</p>
+    <div class="form-links">
+      <a href="{% url 'configuration' %}" class="btn tertiary">Cancel</a>
+      <input type="submit" value="Yes" class="btn secondary">
+    </div>
   </form>
 {% endblock %}
