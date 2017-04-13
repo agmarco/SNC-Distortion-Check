@@ -81,8 +81,10 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
                                 {scan.processing ? <td colSpan={6}>The Data is Still being Processed...</td> : (
                                     scan.errors ? (
                                         <td colSpan={6}>
-                                            There was an error while processing the data
-                                            (<a href={scan.errors_url}>view details</a>)
+                                            <span className="error">
+                                                There was an error while processing the data
+                                                (<a href={scan.errors_url}>view details</a>)
+                                            </span>
                                         </td>
                                         ) : [
                                         <td key={0} className="action">

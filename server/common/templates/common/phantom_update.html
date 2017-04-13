@@ -17,8 +17,10 @@
   </form>
 
   <div class="phantom-details">
-    <label>Model Number</label> {{ phantom.model }}<br>
-    <label>Serial Number</label> {{ phantom.serial_number }}
+    <label>Model Number</label>
+    <p>{{ phantom.model }}</p>
+    <label>Serial Number</label>
+    <p>{{ phantom.serial_number }}</p>
   </div>
   <table class="cirs-table">
     <thead>
@@ -52,9 +54,9 @@
             </td>
             <td class="action">
               {% if not golden_fiducials.is_active %}
-                <form action="{% url 'activate_gold_standard' phantom.pk golden_fiducials.pk %}" method="post">
+                <form id="activate-{{ golden_fiducials.pk }}" action="{% url 'activate_gold_standard' phantom.pk golden_fiducials.pk %}" method="post">
                   {% csrf_token %}
-                  <input type="submit" value="Set Active" class="activate" />
+                  <a href="#" onclick="document.getElementById('activate-{{ golden_fiducials.pk }}').submit();">Set Active</a>
                 </form>
               {% endif %}
             </td>

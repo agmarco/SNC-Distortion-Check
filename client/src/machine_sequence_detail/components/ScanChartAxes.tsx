@@ -51,8 +51,8 @@ export default class extends React.Component<IScanChartAxesProps, {}> {
         const xLabelProps = {
             className: "x-label",
             x: clipWidth / 2,
-            y: height + margin.bottom - 16, // 16 is the font size - text is anchored relative to its top
-            dy: ".71em",
+            y: height + margin.bottom - 8, // Safari renders the text 8px too low
+            dominantBaseline: "text-after-edge",
         };
 
         return (
@@ -76,7 +76,7 @@ export default class extends React.Component<IScanChartAxesProps, {}> {
             className: "y-label",
             x: -height / 2,
             y: -margin.left,
-            dy: ".71em",
+            dominantBaseline: "text-before-edge",
             transform: "rotate(-90)",
         };
 

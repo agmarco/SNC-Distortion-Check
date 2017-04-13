@@ -39,7 +39,7 @@ form {
 #site-content {
   .container {
     position: relative;
-    padding-top: $small-spacing;
+    padding-top: $base-spacing;
   }
 }
 
@@ -48,24 +48,27 @@ form {
   color: white;
   overflow: auto;
   height: $header-height;
-  position: fixed;
+  position: absolute;
   top: 0;
   right: 0;
   left: 0;
-  z-index: 1000;
 
   .container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px $small-spacing;
+    padding: 8px $base-spacing;
   }
 
   h1 {
     margin: 0;
 
-    a:hover {
-      text-decoration: none;
+    a {
+      color: #fff;
+
+      &:hover {
+        text-decoration: none;
+      }
     }
   }
 
@@ -75,12 +78,12 @@ form {
 
   ul {
     list-style-type: none;
-    margin: 0 $small-spacing;
+    margin: 0;
     padding: 0;
 
     li {
       display: inline-block;
-      margin-left: $small-spacing;
+      margin-left: $base-spacing;
     }
   }
 }
@@ -99,7 +102,7 @@ form {
   .container {
     display: flex;
     align-items: center;
-    padding: 8px $small-spacing;
+    padding: 8px $base-spacing;
   }
 
   a {
@@ -114,6 +117,13 @@ form {
       display: inline-block;
       margin-right: 16px;
     }
+  }
+}
+
+#site-header,
+#site-footer {
+  a {
+    color: #ef1;
   }
 }
 
@@ -138,6 +148,14 @@ h6 {
   th,
   td {
     white-space: nowrap;
+
+    &:first-child {
+      padding-left: $base-spacing;
+    }
+
+    &:last-child {
+      padding-right: $base-spacing;
+    }
 
     &.sep {
       width: 100%;
@@ -191,7 +209,7 @@ h6 {
 .messages {
   li {
     border-radius: 4px;
-    margin: 0 $small-spacing $small-spacing;
+    margin: 0 $base-spacing $base-spacing;
     padding: $small-spacing;
 
     &.success {
@@ -202,7 +220,7 @@ h6 {
 }
 
 .cirs-form {
-  margin: 0 $small-spacing $small-spacing;
+  margin: 0 $base-spacing $base-spacing;
   width: 500px;
 
   p {
@@ -220,7 +238,8 @@ h6 {
 }
 
 .cirs-filters {
-  margin-left: $small-spacing;
+  margin-left: $base-spacing;
+  margin-bottom: $base-spacing;
   position: relative;
   display: flex;
 
@@ -230,5 +249,13 @@ h6 {
 
   select {
     width: 200px;
+  }
+}
+
+.errorlist {
+  li {
+    font-size: 0.875rem;
+    color: $error-color;
+    margin: $small-spacing 0;
   }
 }

@@ -11,10 +11,17 @@
   <h1>CIRS Distortion Check</h1>
   <form action="{% url 'login' %}" method="post">
     {% csrf_token %}
-    {% include 'includes/form_fields.html' %}
+    {% for field in form %}
+      <div>
+        {{ field.errors }}
+        {{ field.label_tag }}
+        {{ field }}
+      </div>
+    {% endfor %}
     <input type="submit" value="Login" class="btn secondary" />
     <p class="forgot-password"><a href="#">Forgot your Password?</a></p>
-    <a href="#" class="btn primary">Register New Account</a>
+    {{ form.non_field_errors }}
+    <a href="#" class="btn primary register">Register New Account</a>
   </form>
 </div>
 {% endblock %}

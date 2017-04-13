@@ -6,7 +6,7 @@ body {
 
 .scan-chart {
   display: block;
-  margin: 0 $small-spacing $small-spacing;
+  margin: 0 $base-spacing $base-spacing;
 }
 
 .box {
@@ -75,5 +75,9 @@ body {
 
   .border {
     stroke: #000;
+  }
+
+  .tick line {
+    stroke: #ccc;
   }
 }
