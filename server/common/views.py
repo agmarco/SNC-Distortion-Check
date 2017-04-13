@@ -120,9 +120,10 @@ class UploadScan(FormView):
     template_name = 'common/upload_scan.html'
 
     def get_context_data(self, **kwargs):
-        machines = MachineSerializer(Machine.objects.filter(institution=self.request.user.institution), many=True)
-        sequences = SequenceSerializer(Sequence.objects.filter(institution=self.request.user.institution), many=True)
-        phantoms = PhantomSerializer(Phantom.objects.filter(institution=self.request.user.institution), many=True)
+        institution = self.request.user.institution
+        machines = MachineSerializer(Machine.objects.filter(institution=institution), many=True)
+        sequences = SequenceSerializer(Sequence.objects.filter(institution=institution), many=True)
+        phantoms = PhantomSerializer(Phantom.objects.filter(institution=institution), many=True)
 
         renderer = JSONRenderer()
         return {

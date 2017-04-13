@@ -44,7 +44,8 @@ class UploadScanForm(forms.Form):
             datasets = dicom_import.dicom_datasets_from_zip(zip_file)
 
         if datasets[0].SOPClassUID != MRI_SOP:
-            raise forms.ValidationError("The DICOM archive must be of an MRI scan.")
+            #raise forms.ValidationError("The DICOM archive must be of an MRI scan.")
+            pass
 
         self.cleaned_data['datasets'] = datasets
         return self.cleaned_data['dicom_archive']
@@ -63,7 +64,8 @@ class UploadCTForm(forms.Form):
             datasets = dicom_import.dicom_datasets_from_zip(zip_file)
 
         if datasets[0].SOPClassUID != CT_SOP:
-            raise forms.ValidationError("The DICOM archive must be of a CT scan.")
+            #raise forms.ValidationError("The DICOM archive must be of a CT scan.")
+            pass
 
         self.cleaned_data['datasets'] = datasets
         return self.cleaned_data['dicom_archive']

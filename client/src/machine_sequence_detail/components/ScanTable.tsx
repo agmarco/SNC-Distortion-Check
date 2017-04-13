@@ -44,6 +44,44 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
         this.setState({phantomFilterValue: value === 'all' ? value : Number(value)});
     }
 
+    renderScanActions(scan: IScanDTO) {
+        if (scan.processing) {
+            return <td colSpan={6}>The Data is Still being Processed...</td>;
+        } else if (scan.errors) {
+            return (
+                <td colSpan={6}>
+                    <span className="error">
+                        There was an error while processing the data
+                        (<a href={scan.errors_url}>view details</a>)
+                    </span>
+                </td>
+            );
+        } else {
+            return [
+                <td key={0} className="action">
+                    <a href="#"><i className="fa fa-refresh" aria-hidden="true" /></a>
+                </td>,
+                <td key={1} className="action">
+                    <a href="#">DICOM Overlay</a>
+                </td>,
+                <td key={2} className="action">
+                    <a href={scan.zipped_dicom_files_url}>Raw Data</a>
+                </td>,
+                <td key={3} className="action">
+                    <a href="#">Executive Report</a>
+                </td>,
+                <td key={4} className="action">
+                    <a href="#">Full Report</a>
+                </td>,
+                <td key={5} className="action">
+                    <a href={scan.delete_url}>
+                        <i className="fa fa-trash-o" aria-hidden="true" />
+                    </a>
+                </td>,
+            ];
+        }
+    }
+
     render() {
         const { uploadScanUrl } = this.props;
         const { phantoms, phantomFilterValue } = this.state;
@@ -78,37 +116,7 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
                                 <td>{format(scan.acquisition_date, 'MMMM D, YYYY')}</td>
                                 <td>{scan.phantom.model_number} &mdash; {scan.phantom.serial_number}</td>
                                 <td className="sep" />
-                                {scan.processing ? <td colSpan={6}>The Data is Still being Processed...</td> : (
-                                    scan.errors ? (
-                                        <td colSpan={6}>
-                                            <span className="error">
-                                                There was an error while processing the data
-                                                (<a href={scan.errors_url}>view details</a>)
-                                            </span>
-                                        </td>
-                                        ) : [
-                                        <td key={0} className="action">
-                                            <a href="#"><i className="fa fa-refresh" aria-hidden="true" /></a>
-                                        </td>,
-                                        <td key={1} className="action">
-                                            <a href="#">DICOM Overlay</a>
-                                        </td>,
-                                        <td key={2} className="action">
-                                            <a href={scan.zipped_dicom_files_url}>Raw Data</a>
-                                        </td>,
-                                        <td key={3} className="action">
-                                            <a href="#">Executive Report</a>
-                                        </td>,
-                                        <td key={4} className="action">
-                                            <a href="#">Full Report</a>
-                                        </td>,
-                                        <td key={5} className="action">
-                                            <a href={scan.delete_url}>
-                                                <i className="fa fa-trash-o" aria-hidden="true" />
-                                            </a>
-                                        </td>,
-                                    ]
-                                )}
+                                {this.renderScanActions(scan)}
                             </tr>
                         ))}
                     </tbody>
