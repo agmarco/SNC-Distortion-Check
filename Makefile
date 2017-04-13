@@ -18,9 +18,9 @@ unregistered-points: $(patsubst data/dicom/%.zip,tmp/%-unregistered-points.mat,$
 	nbstripout --install --attributes .gitattributes
 	touch $@
 
-.JSDEPS: client/yarn.lock
+.JSDEPS: yarn.lock
 	npm install -g yarn
-	cd client; yarn
+	yarn
 	touch $@
 
 tmp/%-voxels.mat: data/dicom/%.zip .PYTHONDEPS
@@ -49,7 +49,7 @@ dev: .PYTHONDEPS .JSDEPS static | .env
 	python server/manage.py generate_dev_data
 
 static: .PYTHONDEPS .JSDEPS | .env
-	cd client; yarn webpack:dev
+	yarn webpack:dev
 	python server/manage.py collectstatic --noinput
 
 freezedeps:
