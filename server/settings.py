@@ -149,6 +149,7 @@ STATICFILES_FINDERS = (
 if not DEBUG:
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+
 # Celery
 
 CELERY_BROKER_URL = os.getenv('REDIS_URL')
