@@ -1,10 +1,7 @@
-import webpackDev from './webpack.config.dev.babel';
-import webpackProd from './webpack.config.prod.babel';
-
 export default (env) => {
     if (['dev', 'hot'].includes(env)) {
-        return webpackDev(env);
+        return require('./webpack.config.dev.babel').default(env);
     } else if (env === 'prod') {
-        return webpackProd(env);
+        return require('./webpack.config.prod.babel').default(env);
     }
 }
