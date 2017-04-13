@@ -42,7 +42,7 @@ def webpack(bundle):
 
 
 @register.simple_tag
-def manifest():
+def chunk_manifest():
     """Add the webpack chunk manifest to the global scope."""
 
     if settings.DEBUG:
@@ -50,12 +50,12 @@ def manifest():
 
     else:
         try:
-            with open(os.path.join(settings.BASE_DIR, 'client/dist/chunk-manifest.json')) as manifest_file:
-                manifest = json.load(manifest_file)
+            with open(os.path.join(settings.BASE_DIR, 'client/dist/chunk-manifest.json')) as chunk_manifest_file:
+                chunk_manifest = json.load(chunk_manifest_file)
 
             return mark_safe(f"""
             //<![CDATA[
-                window.webpackManifest = {json.dumps(manifest)};
+                window.webpackManifest = {json.dumps(chunk_manifest)};
             //]]>
             """)
         except FileNotFoundError:
