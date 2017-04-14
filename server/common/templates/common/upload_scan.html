@@ -11,8 +11,8 @@
 {% endblock %}
 
 {% block "scripts" %}
-  <script>{% chunk_manifest %}</script>
-  <script src="{% webpack 'manifest.js' %}"></script>
+  {% chunk_manifest %}
+  {% manifest %}
   <script src="{% webpack 'vendor.js' %}"></script>
   <script>
     var MACHINES = {{ machines|safe }};

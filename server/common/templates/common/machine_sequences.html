@@ -13,8 +13,8 @@
 
 {% block "scripts" %}
   <script src="{% static 'common/fontawesome.js' %}"></script>
-  <script>{% chunk_manifest %}</script>
-  <script src="{% webpack 'manifest.js' %}"></script>
+  {% chunk_manifest %}
+  {% manifest %}
   <script src="{% webpack 'vendor.js' %}"></script>
   <script>
     var MACHINE_SEQUENCE_PAIRS = {{ machine_sequence_pairs|safe }};

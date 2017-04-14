@@ -42,6 +42,17 @@ def webpack(bundle):
 
 
 @register.simple_tag
+def manifest():
+    """Add manifest.js in production."""
+
+    if settings.DEBUG:
+        return ''
+
+    else:
+        return mark_safe(f'<script src="{webpack("manifest.js")}"></script>')
+
+
+@register.simple_tag
 def chunk_manifest():
     """Add the webpack chunk manifest to the global scope."""
 
@@ -54,9 +65,11 @@ def chunk_manifest():
                 chunk_manifest = json.load(chunk_manifest_file)
 
             return mark_safe(f"""
-            //<![CDATA[
-                window.webpackManifest = {json.dumps(chunk_manifest)};
-            //]]>
+            <script>
+                //<![CDATA[
+                    window.webpackManifest = {json.dumps(chunk_manifest)};
+                //]]>
+            </script>
             """)
         except FileNotFoundError:
             return ''
