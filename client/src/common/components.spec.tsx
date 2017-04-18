@@ -6,8 +6,6 @@ import { default as MachineSequenceTable, IMachineSequenceTableProps } from './c
 import { machineFixture, sequenceFixture, machineSequencePairFixture } from './fixtures';
 import { IMachineDTO, ISequenceDTO } from './service';
 
-// TODO chai's 'expect' throws an error
-
 describe('<MachineSequenceTable />', () => {
     let machineA: IMachineDTO;
     let machineB: IMachineDTO;
@@ -35,13 +33,13 @@ describe('<MachineSequenceTable />', () => {
     });
 
     it('filters by machine', () => {
-        wrapper.find('.machine-filter').first().simulate('change', {target: {value : machineA.pk.toString()}});
+        wrapper.find('.machine-filter').first().simulate('change', {target: {value: machineA.pk.toString()}});
         const results = wrapper.find('.results').find('tbody').find('tr');
         assert(results.everyWhere(r => r.find('td').at(0).text() === machineA.name));
     });
 
     it('filters by sequence', () => {
-        wrapper.find('.sequence-filter').first().simulate('change', {target: {value : sequenceA.pk.toString()}});
+        wrapper.find('.sequence-filter').first().simulate('change', {target: {value: sequenceA.pk.toString()}});
         const results = wrapper.find('.results').find('tbody').find('tr');
         assert(results.everyWhere(r => r.find('td').at(1).text() === sequenceA.name));
     });

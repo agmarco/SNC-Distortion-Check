@@ -1,8 +1,5 @@
-import 'd3';
-
 import { renderApp } from 'common/utils';
 import App from './containers/App';
-import './box.js';
 
 import 'base/app.scss';
 

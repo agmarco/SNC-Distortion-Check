@@ -24,7 +24,7 @@ export default class extends React.Component<IScanChartDataProps, {}> {
             .data(data)
             .enter().append("g")
             .attr("transform", (d: IScanData) => `translate(${xScale(d[0])}, 0)`)
-            .attr("class", (d: IScanData) => d.passed ? "passed" : "failed")
+            .attr("class", (d: IScanData) => "box-and-whiskers " + (d.passed ? "passed" : "failed"))
             .call(chart.width(xScale.rangeBand()));
     }
 

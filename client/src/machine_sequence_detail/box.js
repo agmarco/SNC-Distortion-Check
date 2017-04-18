@@ -199,7 +199,15 @@
                     .data(quartileData);
                 if(showLabels == true) {
                     boxTick.enter().append("text")
-                        .attr("class", "box")
+                        .attr("class", function(d, i) {
+                            if (i === 0) {
+                                return "box lower";
+                            } else if (i === 1) {
+                                return "box median";
+                            } else if (i === 2) {
+                                return "box upper";
+                            }
+                        })
                         .attr("dy", ".3em")
                         //.attr("dx", function(d, i) { return i & 1 ? 6 : -6 })
                         .attr("dx", function(d, i) { return 6 })
@@ -226,7 +234,13 @@
                     .data(whiskerData || []);
                 if(showLabels == true) {
                     whiskerTick.enter().append("text")
-                        .attr("class", "whisker")
+                        .attr("class", function(d, i) {
+                            if (i === 0) {
+                                return "whisker min";
+                            } else if (i === 1) {
+                                return "whisker max";
+                            }
+                        })
                         .attr("dy", ".3em")
                         .attr("dx", 6)
                         .attr("x", width)

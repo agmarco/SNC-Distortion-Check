@@ -7,7 +7,7 @@ import { BoolIcon } from 'common/components';
 
 import './ScanTable.scss';
 
-interface IScanTableProps {
+export interface IScanTableProps {
     scans: IScanDTO[];
     uploadScanUrl: string;
 }
@@ -92,14 +92,18 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
                 <div className="cirs-filters">
                     <a href={uploadScanUrl} className="btn secondary new-scan">Upload New Scan</a>
                     <span>Filter By</span>
-                    <select value={phantomFilterValue} onChange={this.handlePhantomChange.bind(this)}>
+                    <select
+                        className="phantom-filter"
+                        value={phantomFilterValue}
+                        onChange={this.handlePhantomChange.bind(this)}
+                    >
                         <option value="all">All Phantoms</option>
                         {phantoms.map((p) => (
                             <option value={p.pk} key={p.pk}>{p.model_number} &mdash; {p.serial_number}</option>
                         ))}
                     </select>
                 </div>
-                <table className="cirs-table">
+                <table className="cirs-table results">
                     <thead>
                         <tr>
                             <th>Passed</th>

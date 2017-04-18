@@ -33,7 +33,7 @@ export interface IScanDTO {
     pk: number;
     phantom: IPhantomDTO;
     processing: boolean;
-    errors: string;
+    errors: string | null;
     passed: boolean;
     acquisition_date: string;
     errors_url: string;

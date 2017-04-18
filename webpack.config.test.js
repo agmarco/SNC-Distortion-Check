@@ -1,15 +1,21 @@
-import * as path from 'path';
+const path = require('path');
+const webpack = require('webpack');
 
-// Some externals are for enzyme, see:
-// https://github.com/airbnb/enzyme/issues/47
+// Some externals are for enzyme, see: https://github.com/airbnb/enzyme/issues/47
 
-// TODO according to enzyme, we shouldn't need react-addons-test-utils since we're using React >= 15.5
-// but the tests throw an error without it
+// This file should *not* be transformed by Babel. Doing so seems to cause external modules to run in strict mode.
 
-export default {
+// According to enzyme, we shouldn't need react-addons-test-utils since we're using React >= 15.5 but the tests throw an
+// error without it
+
+module.exports = {
     devtool: 'cheap-eval-source-map',
 
     target: 'node',
+
+    plugins: [
+        new webpack.NoEmitOnErrorsPlugin(),
+    ],
 
     module: {
         rules: [
