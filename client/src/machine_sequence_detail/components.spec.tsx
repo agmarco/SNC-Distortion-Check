@@ -1,16 +1,16 @@
 import React from 'react';
-import { assert, expect } from 'chai';
-import { shallow, ShallowWrapper } from 'enzyme';
+import { assert } from 'chai';
+import { shallow, mount, ShallowWrapper, ReactWrapper } from 'enzyme';
 
 import * as fixtures from 'common/fixtures';
-import { default as ScanTable, IScanTableProps } from './components/ScanTable';
-import { default as ScanChart, IScanChartProps } from './components/ScanChart';
+import { default as ScanTable, IScanTableProps, IScanTableState } from './components/ScanTable';
+import { default as ScanChart, IScanChartProps, IScanChartState } from './components/ScanChart';
 import { IScanDTO, IPhantomDTO } from 'common/service';
 
 describe('<ScanTable />', () => {
     let phantomA: IPhantomDTO;
     let phantomB: IPhantomDTO;
-    let wrapper: ShallowWrapper<IScanTableProps, any>;
+    let wrapper: ShallowWrapper<IScanTableProps, IScanTableState>;
 
     beforeEach(() => {
         phantomA = fixtures.phantomFixture();
@@ -21,7 +21,7 @@ describe('<ScanTable />', () => {
             fixtures.scanFixture(phantomB),
         ];
 
-        wrapper = shallow<IScanTableProps>(<ScanTable scans={scans} uploadScanUrl="" />);
+        wrapper = shallow<IScanTableProps, IScanTableState>(<ScanTable scans={scans} uploadScanUrl="" />);
     });
 
     it('filters by phantom', () => {
@@ -34,7 +34,7 @@ describe('<ScanTable />', () => {
 
 describe('<ScanChart />', () => {
     let scan: IScanDTO;
-    let wrapper: ShallowWrapper<IScanChartProps, any>;
+    let wrapper: ReactWrapper<IScanChartProps, IScanChartState>;
 
     beforeEach(() => {
         const machineSequencePair = fixtures.machineSequencePairFixture();
@@ -44,7 +44,7 @@ describe('<ScanChart />', () => {
 
         const scans = [scan];
 
-        wrapper = shallow<IScanChartProps>(<ScanChart machineSequencePair={machineSequencePair} scans={scans} />);
+        wrapper = mount<IScanChartProps, IScanChartState>(<ScanChart machineSequencePair={machineSequencePair} scans={scans} />);
     });
 
     it('calculates the quartiles correctly', () => {
@@ -55,7 +55,7 @@ describe('<ScanChart />', () => {
         const upper = boxAndWhiskers.find('.upper').first().text();
         const max = boxAndWhiskers.find('.max').first().text();
 
-        assert(wrapper.find('.box-and-whiskers').length > 0);
+        assert(wrapper.find('.box-and-whiskers').length > 0, wrapper.html());
         // assert(min === '1.0');
         // assert(lower === '1.6');
         // assert(median === '2.2');

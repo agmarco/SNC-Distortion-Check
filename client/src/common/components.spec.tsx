@@ -2,7 +2,11 @@ import React from 'react';
 import { assert } from 'chai';
 import { shallow, ShallowWrapper } from 'enzyme';
 
-import { default as MachineSequenceTable, IMachineSequenceTableProps } from './components/MachineSequenceTable';
+import {
+    default as MachineSequenceTable,
+    IMachineSequenceTableProps,
+    IMachineSequenceTableState,
+} from './components/MachineSequenceTable';
 import { machineFixture, sequenceFixture, machineSequencePairFixture } from './fixtures';
 import { IMachineDTO, ISequenceDTO } from './service';
 
@@ -11,7 +15,7 @@ describe('<MachineSequenceTable />', () => {
     let machineB: IMachineDTO;
     let sequenceA: ISequenceDTO;
     let sequenceB: ISequenceDTO;
-    let wrapper: ShallowWrapper<IMachineSequenceTableProps, any>;
+    let wrapper: ShallowWrapper<IMachineSequenceTableProps, IMachineSequenceTableState>;
 
     beforeEach(() => {
         machineA = machineFixture();
@@ -27,7 +31,7 @@ describe('<MachineSequenceTable />', () => {
             machineSequencePairFixture(machineB, sequenceB),
         ];
 
-        wrapper = shallow<IMachineSequenceTableProps>(
+        wrapper = shallow<IMachineSequenceTableProps, IMachineSequenceTableState>(
             <MachineSequenceTable machineSequencePairs={machineSequencePairs} uploadScanUrl="" />
         );
     });

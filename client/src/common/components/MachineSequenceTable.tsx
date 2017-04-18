@@ -12,7 +12,7 @@ export interface IMachineSequenceTableProps {
     uploadScanUrl: string;
 }
 
-interface IMachineSequenceTableState {
+export interface IMachineSequenceTableState {
     machines: IMachineDTO[];
     sequences: ISequenceDTO[];
     machineFilterValue: 'all' | number;

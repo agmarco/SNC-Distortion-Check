@@ -45,7 +45,7 @@ export interface IScanChartProps {
     scans: IScanDTO[];
 }
 
-interface IScanChartState {
+export interface IScanChartState {
     scrollX: number;
 }
 

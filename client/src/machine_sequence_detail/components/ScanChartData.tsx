@@ -32,7 +32,6 @@ export default class extends React.Component<IScanChartDataProps, {}> {
         const { scroll } = this.props;
 
         return (
-
             <Scrollable {...scroll}>
                 <g ref={g => this.g = g} />
             </Scrollable>

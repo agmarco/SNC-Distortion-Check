@@ -12,7 +12,7 @@ export interface IScanTableProps {
     uploadScanUrl: string;
 }
 
-interface IScanTableState {
+export interface IScanTableState {
     phantoms: IPhantomDTO[];
     phantomFilterValue: 'all' | number;
 }
