@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { IMachineSequencePairDTO, IScanDTO } from 'common/service';
 import ScanChart from '../components/ScanChart';

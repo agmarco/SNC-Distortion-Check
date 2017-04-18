@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import format from 'date-fns/format';
 import uniqBy from 'lodash/uniqBy';
 
@@ -7,7 +7,7 @@ import BoolIcon from './BoolIcon';
 
 import './MachineSequenceTable.scss';
 
-interface IMachineSequenceTableProps {
+export interface IMachineSequenceTableProps {
     machineSequencePairs: IMachineSequencePairDTO[];
     uploadScanUrl: string;
 }
@@ -66,16 +66,24 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
                 <div className="cirs-filters">
                     <a href={uploadScanUrl} className="btn secondary new-scan">Upload New Scan</a>
                     <span>Filter By</span>
-                    <select value={machineFilterValue} onChange={this.handleMachineChange.bind(this)}>
+                    <select
+                        className="machine-filter"
+                        value={machineFilterValue}
+                        onChange={this.handleMachineChange.bind(this)}
+                    >
                         <option value="all">All Machines</option>
                         {machines.map(m => <option value={m.pk} key={m.pk}>{m.name}</option>)}
                     </select>
-                    <select value={sequenceFilterValue} onChange={this.handleSequenceChange.bind(this)}>
+                    <select
+                        className="sequence-filter"
+                        value={sequenceFilterValue}
+                        onChange={this.handleSequenceChange.bind(this)}
+                    >
                         <option value="all">All Sequences</option>
                         {sequences.map(s => <option value={s.pk} key={s.pk}>{s.name}</option>)}
                     </select>
                 </div>
-                <table className="cirs-table">
+                <table className="cirs-table results">
                     <thead>
                         <tr>
                             <th>Machine</th>

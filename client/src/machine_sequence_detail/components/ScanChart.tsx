@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import format from 'date-fns/format';
 
 import { IMachineSequencePairDTO, IScanDTO } from 'common/service';
@@ -47,6 +47,7 @@ interface IScanChartState {
     scrollX: number;
 }
 
+// TODO numbers should be above the ticks
 export default class extends React.Component<IScanChartProps, IScanChartState> {
     svg: SVGElement;
     settings: IScanChartSettings;

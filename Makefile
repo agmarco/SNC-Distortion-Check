@@ -49,7 +49,7 @@ dev: .PYTHONDEPS .JSDEPS static | .env
 	python server/manage.py generate_dev_data
 
 static: .PYTHONDEPS .JSDEPS | .env
-	yarn build:dev
+	yarn run build:dev
 	python server/manage.py collectstatic --noinput
 
 freezedeps:

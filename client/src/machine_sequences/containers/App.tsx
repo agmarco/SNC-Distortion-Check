@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { MachineSequenceTable } from 'common/components';
 import { IMachineSequencePairDTO } from 'common/service';

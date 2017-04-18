@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import * as Cookies from 'js-cookie';
 import * as Bluebird from 'bluebird';
 

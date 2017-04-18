@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { IScanChartProps, IScanChartSettings, IScrollable, IScanData } from './ScanChart';
 import Scrollable from './Scrollable';

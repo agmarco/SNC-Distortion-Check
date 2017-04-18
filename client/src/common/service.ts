@@ -15,8 +15,8 @@ export interface IMachineSequencePairDTO {
     pk: number;
     machine: IMachineDTO;
     sequence: ISequenceDTO;
-    latest_scan_date: string;
-    latest_scan_passed: boolean;
+    latest_scan_date: string|null;
+    latest_scan_passed: boolean|null;
     detail_url: string;
     tolerance: number;
 }

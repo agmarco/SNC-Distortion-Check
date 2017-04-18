@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { IMachineDTO, ISequenceDTO, IPhantomDTO } from 'common/service';
 import UploadScanForm from '../components/UploadScanForm';
