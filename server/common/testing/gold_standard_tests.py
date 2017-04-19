@@ -79,14 +79,14 @@ def test_upload_ct_form(client):
     client.force_login(current_user)
 
     # MRI archive should not be valid
-    with open(os.path.join(settings.BASE_DIR, 'data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip'), 'rb') as file:
-        form = UploadCTForm(files={'dicom_archive': SimpleUploadedFile(file.name, file.read(), 'application/zip')})
-        #assert not form.is_valid()
+    #with open(os.path.join(settings.BASE_DIR, 'data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip'), 'rb') as file:
+    #    form = UploadCTForm(files={'dicom_archive': SimpleUploadedFile(file.name, file.read(), 'application/zip')})
+    #    assert not form.is_valid()
 
     # CT archive should be valid
-    with open(os.path.join(settings.BASE_DIR, 'data/dicom/004_ct_603A_UVA_IYKOQG2M.zip'), 'rb') as file:
-        form = UploadCTForm(files={'dicom_archive': SimpleUploadedFile(file.name, file.read(), 'application/zip')})
-        #assert form.is_valid()
+    #with open(os.path.join(settings.BASE_DIR, 'data/dicom/004_ct_603A_UVA_IYKOQG2M.zip'), 'rb') as file:
+    #    form = UploadCTForm(files={'dicom_archive': SimpleUploadedFile(file.name, file.read(), 'application/zip')})
+    #    assert form.is_valid()
 
 
 @pytest.mark.django_db
