@@ -1,5 +1,7 @@
 --colors
 --reporter spec
 --require source-map-support/register
+--require setup
+--timeout 5000
 --webpack-config webpack.config.test.js
 client/src/**/*.spec.tsx

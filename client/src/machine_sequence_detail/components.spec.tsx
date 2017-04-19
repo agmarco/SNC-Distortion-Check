@@ -40,26 +40,44 @@ describe('<ScanChart />', () => {
         const machineSequencePair = fixtures.machineSequencePairFixture();
 
         scan = fixtures.scanFixture();
-        scan.distortion = [1, 1.1, 1.5, 2, 2.1, 2.2, 2.2, 2.7, 3.3, 3.6, 4.1, 5.2];
+        scan.distortion = [
+            2.1850395487480587,
+            0.8065866998556279,
+            1.425678550748541,
+            1.6661102033492017,
+            1.7346037030049957,
+            1.3128036339751563,
+            1.930314810061184,
+            1.215615536609391,
+            2.031341708678863,
+            0.9354963306802303,
+        ];
 
         const scans = [scan];
 
-        wrapper = mount<IScanChartProps, IScanChartState>(<ScanChart machineSequencePair={machineSequencePair} scans={scans} />);
+        // this takes awhile -- had to increase timeout
+        wrapper = mount<IScanChartProps, IScanChartState>(
+            <ScanChart machineSequencePair={machineSequencePair} scans={scans} />,
+            {attachTo: document.getElementById('app') as HTMLElement},
+        );
     });
 
     it('calculates the quartiles correctly', () => {
-        const boxAndWhiskers = wrapper.find('.box-and-whiskers').first();
-        const min = boxAndWhiskers.find('.min').first().text();
-        const lower = boxAndWhiskers.find('.lower').first().text();
-        const median = boxAndWhiskers.find('.median').first().text();
-        const upper = boxAndWhiskers.find('.upper').first().text();
-        const max = boxAndWhiskers.find('.max').first().text();
+        const app = document.getElementById('app') as HTMLElement;
+        const boxAndWhiskers = app.getElementsByClassName('box-and-whiskers')[0];
 
-        assert(wrapper.find('.box-and-whiskers').length > 0, wrapper.html());
-        // assert(min === '1.0');
-        // assert(lower === '1.6');
-        // assert(median === '2.2');
-        // assert(upper === '3.5');
-        // assert(max === '5.2');
+        const min = boxAndWhiskers.getElementsByClassName('whisker min')[0].innerHTML;
+        const lower = boxAndWhiskers.getElementsByClassName('box lower')[0].innerHTML;
+        const median = boxAndWhiskers.getElementsByClassName('box median')[0].innerHTML;
+        const upper = boxAndWhiskers.getElementsByClassName('box upper')[0].innerHTML;
+        const max = boxAndWhiskers.getElementsByClassName('whisker max')[0].innerHTML;
+
+        // 0.8, 1.2, 1.5, 1.9, 2.2
+
+        assert(min === '0.8');
+        assert(lower === '1.1');
+        assert(median === '1.5');
+        assert(upper === '2.0');
+        assert(max === '2.2');
     });
 });
