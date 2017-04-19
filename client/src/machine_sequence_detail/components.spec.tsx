@@ -72,12 +72,10 @@ describe('<ScanChart />', () => {
         const upper = boxAndWhiskers.getElementsByClassName('box upper')[0].innerHTML;
         const max = boxAndWhiskers.getElementsByClassName('whisker max')[0].innerHTML;
 
-        // 0.8, 1.2, 1.5, 1.9, 2.2
-
         assert(min === '0.8');
-        assert(lower === '1.1');
+        assert(lower === '1.2');
         assert(median === '1.5');
-        assert(upper === '2.0');
+        assert(upper === '1.9');
         assert(max === '2.2');
     });
 });
