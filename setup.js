@@ -1,6 +1,6 @@
 var jsdom = require('jsdom').jsdom;
 
-global.document = jsdom('<html><head></head><body><div id="app" /></body></html>');
+global.document = jsdom('<html><head></head><body><div id="app"></div></body></html>');
 global.window = document.defaultView;
 
 Object.keys(document.defaultView).forEach((property) => {
@@ -12,3 +12,4 @@ Object.keys(document.defaultView).forEach((property) => {
 global.navigator = {
     userAgent: 'node.js',
 };
+s
