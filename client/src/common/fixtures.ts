@@ -54,8 +54,8 @@ export const scanFixture = (phantom?: IPhantomDTO): IScanDTO => {
         errors: null,
         passed: true,
         acquisition_date: '2000-01-01',
-        errors_url: `/errors/${pk}`,
-        delete_url: `/delete/${pk}`,
+        errors_url: `/errors/${pk}/`,
+        delete_url: `/delete/${pk}/`,
         zipped_dicom_files_url: `/dicom/${pk}`,
         distortion: [],
     };

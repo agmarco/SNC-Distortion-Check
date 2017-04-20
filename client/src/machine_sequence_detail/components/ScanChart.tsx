@@ -49,7 +49,6 @@ export interface IScanChartState {
     scrollX: number;
 }
 
-// TODO numbers should be above the ticks
 export default class extends React.Component<IScanChartProps, IScanChartState> {
     svg: SVGElement;
     settings: IScanChartSettings;
@@ -182,8 +181,8 @@ export default class extends React.Component<IScanChartProps, IScanChartState> {
                 </defs>
                 <g transform={`translate(${margin.left}, ${margin.top})`}>
                     <ScanChartAxes{...this.props} {...this.settings} scroll={scroll} />
-                    <ScanChartData {...this.props} {...this.settings} scroll={scroll} />
                     <ScanChartTolerance{...this.props} {...this.settings} scroll={scroll} />
+                    <ScanChartData {...this.props} {...this.settings} scroll={scroll} />
                     <rect width={clipWidth} height={height} className="border" />
                 </g>
             </svg>
