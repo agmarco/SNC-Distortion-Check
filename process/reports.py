@@ -1,7 +1,9 @@
 import zipfile
+import math
 from collections import OrderedDict
 
 import matplotlib.pyplot as plt
+from matplotlib import colors
 import numpy as np
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy.interpolate.interpnd import LinearNDInterpolator
@@ -75,13 +77,66 @@ def generate_points(TP_A_S, TP_B):
     return points_fig
 
 
-def generate_spacial_mapping(grid_x, grid_y, gridded):
+def generate_spacial_mapping(grid_x, grid_y, gridded, threshold):
+    cmap = colors.ListedColormap(['green', 'red'])
+    bounds = [0, threshold, math.inf]
+    norm = colors.BoundaryNorm(bounds, cmap.N)
+
     contour_fig = plt.figure()
-    contour = plt.contour(grid_x.squeeze(), grid_y.squeeze(), gridded.squeeze(), colors='black')
+    contour = plt.contour(grid_x.squeeze(), grid_y.squeeze(), gridded.squeeze(), cmap=cmap, norm=norm)
     plt.clabel(contour, inline=True, fontsize=10)
+    return contour_fig
+
+
+def generate_axial_spacial_mapping(x_min, x_max, y_min, y_max, isocenter, TP_B, error_mags, threshold):
+
+    # interpolate onto plane at the isocenter to generate contour
+    grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
+                                         np.arange(y_min, y_max, GRID_DENSITY_mm),
+                                         [isocenter[2]])
+    gridded = griddata(TP_B.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
+    contour_fig = generate_spacial_mapping(grid_x, grid_y, gridded, threshold)
     plt.xlabel('x [mm]')
     plt.ylabel('y [mm]')
     return contour_fig
+
+
+def generate_sagittal_spacial_mapping(x_min, x_max, z_min, z_max, isocenter, TP_B, error_mags, threshold):
+    grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
+                                         [isocenter[1]],
+                                         np.arange(z_min, z_max, GRID_DENSITY_mm),)
+    gridded = griddata(TP_B.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
+    contour_fig = generate_spacial_mapping(grid_x, grid_z, gridded, threshold)
+    plt.xlabel('x [mm]')
+    plt.ylabel('z [mm]')
+    return contour_fig
+
+
+def generate_coronal_spacial_mapping(y_min, y_max, z_min, z_max, isocenter, TP_B, error_mags, threshold):
+    grid_x, grid_y, grid_z = np.meshgrid([isocenter[0]],
+                                         np.arange(y_min, y_max, GRID_DENSITY_mm),
+                                         np.arange(z_min, z_max, GRID_DENSITY_mm))
+    gridded = griddata(TP_B.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
+    contour_fig = generate_spacial_mapping(grid_y, grid_z, gridded, threshold)
+    plt.xlabel('y [mm]')
+    plt.ylabel('z [mm]')
+    return contour_fig
+
+
+def generate_axial_spacial_mapping_series(x_min, x_max, y_min, y_max, z_min, z_max, TP_B, error_mags, threshold):
+    figs = []
+    for z in np.arange(z_min, z_max, 2):
+        print(z)
+        grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
+                                             np.arange(y_min, y_max, GRID_DENSITY_mm),
+                                             [z])
+        gridded = griddata(TP_B.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
+        contour_fig = generate_spacial_mapping(grid_x, grid_y, gridded, threshold)
+        plt.xlabel('x [mm]')
+        plt.ylabel('y [mm]')
+        plt.figtext(0, 0, f'z = {z}')
+        figs.append(contour_fig)
+    return figs
 
 
 def generate_data_acquisition_table(datasets):
@@ -112,7 +167,11 @@ def generate_data_acquisition_table(datasets):
     return table_fig
 
 
-def generate_report(datasets, TP_A_S, TP_B, pdf_path):
+def generate_institution_table():
+    pass
+
+
+def generate_report(datasets, TP_A_S, TP_B, pdf_path, threshold):
     """
     Given the set of matched and registered points, generate a NEMA report.
 
@@ -129,26 +188,32 @@ def generate_report(datasets, TP_A_S, TP_B, pdf_path):
     x_min, y_min, z_min = np.min(all_points, axis=1)
     x_max, y_max, z_max = np.max(all_points, axis=1)
 
-    # interpolate onto plane at the isocenter to generate contour
-    grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm), np.arange(y_min, y_max, GRID_DENSITY_mm), [0])
-    gridded = griddata(TP_B.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
+    # assume that the isocenter is the geometric origin
+    isocenter = ((x_min + x_max) / 2, (y_min + y_max) / 2, (z_min + z_max) / 2)
 
     # interpolate onto spheres of increasing size to calculate average and max error table
     interpolator = LinearNDInterpolator(TP_B.T, error_mags.T)
     max_sphere_radius = np.min(np.abs([x_min, y_min, z_min, x_max, y_max, z_max]))
-    radius2MaxMeanError = OrderedDict()
+    radius2max_mean_error = OrderedDict()
+
     for r in np.arange(SPHERE_STEP_mm, max_sphere_radius, SPHERE_STEP_mm):
         num_points = int(round(surface_area(r)/SPHERE_POINTS_PER_AREA))
         equidistant_sphere_points = generate_equidistant_sphere(num_points) * r
         values = interpolator(equidistant_sphere_points)
         max_value, mean_value = np.max(values), np.mean(values)
-        radius2MaxMeanError[r] = (max_value, mean_value,)
+        radius2max_mean_error[r] = (max_value, mean_value,)
 
     with PdfPages(pdf_path) as pdf:
         pdf.savefig(generate_data_acquisition_table(datasets))
-        pdf.savefig(generate_spacial_mapping(grid_x, grid_y, gridded))
-        pdf.savefig(generate_scatter_plot(radius2MaxMeanError))
-        pdf.savefig(generate_error_table(radius2MaxMeanError))
+
+        pdf.savefig(generate_axial_spacial_mapping(x_min, x_max, y_min, y_max, isocenter, TP_B, error_mags, threshold))
+        pdf.savefig(generate_sagittal_spacial_mapping(x_min, x_max, z_min, z_max, isocenter, TP_B, error_mags, threshold))
+        pdf.savefig(generate_coronal_spacial_mapping(y_min, y_max, z_min, z_max, isocenter, TP_B, error_mags, threshold))
+        for fig in (generate_axial_spacial_mapping_series(x_min, x_max, y_min, y_max, z_min, z_max, TP_B, error_mags, threshold)):
+            pdf.savefig(fig)
+        pdf.savefig(generate_scatter_plot(radius2max_mean_error))
+        pdf.savefig(generate_error_table(radius2max_mean_error))
+
         pdf.savefig(generate_points(TP_A_S, TP_B))
         pdf.savefig(generate_quiver(TP_B, error_vecs))
 
@@ -171,4 +236,4 @@ if __name__ == '__main__':
     with zipfile.ZipFile('data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip') as zip_file:
         datasets = dicom_import.dicom_datasets_from_zip(zip_file)
 
-    generate_report(datasets, A, B, 'report.pdf')
+    generate_report(datasets, A, B, 'report.pdf', 0.4)
