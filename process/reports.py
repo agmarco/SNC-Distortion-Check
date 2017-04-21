@@ -98,6 +98,7 @@ def generate_axial_spacial_mapping(x_min, x_max, y_min, y_max, isocenter, TP_B, 
     contour_fig = generate_spacial_mapping(grid_x, grid_y, gridded, threshold)
     plt.xlabel('x [mm]')
     plt.ylabel('y [mm]')
+    plt.title('Axial Contour Plot')
     return contour_fig
 
 
@@ -109,6 +110,7 @@ def generate_sagittal_spacial_mapping(x_min, x_max, z_min, z_max, isocenter, TP_
     contour_fig = generate_spacial_mapping(grid_x, grid_z, gridded, threshold)
     plt.xlabel('x [mm]')
     plt.ylabel('z [mm]')
+    plt.title('Sagittal Contour Plot')
     return contour_fig
 
 
@@ -120,21 +122,23 @@ def generate_coronal_spacial_mapping(y_min, y_max, z_min, z_max, isocenter, TP_B
     contour_fig = generate_spacial_mapping(grid_y, grid_z, gridded, threshold)
     plt.xlabel('y [mm]')
     plt.ylabel('z [mm]')
+    plt.title('Coronal Contour Plot')
     return contour_fig
 
 
 def generate_axial_spacial_mapping_series(x_min, x_max, y_min, y_max, z_min, z_max, TP_B, error_mags, threshold):
     figs = []
     for z in np.arange(z_min, z_max, 2):
-        print(z)
         grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
                                              np.arange(y_min, y_max, GRID_DENSITY_mm),
                                              [z])
         gridded = griddata(TP_B.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
+        print(np.all(np.isnan(gridded.squeeze())))
+
         contour_fig = generate_spacial_mapping(grid_x, grid_y, gridded, threshold)
         plt.xlabel('x [mm]')
         plt.ylabel('y [mm]')
-        plt.figtext(0, 0, f'z = {z}')
+        plt.title(f'Axial Contour Plot Series (z = {z})')
         figs.append(contour_fig)
     return figs
 
@@ -177,6 +181,10 @@ def generate_report(datasets, TP_A_S, TP_B, pdf_path, threshold):
 
     Assumes that each column of TP_A_S is matched with the cooresponding column
     of TP_B.
+    
+    TP_A_S = matched fiducials
+    TP_B = golden fiducials
+    
     """
 
     assert TP_A_S.shape == TP_B.shape
@@ -185,8 +193,8 @@ def generate_report(datasets, TP_A_S, TP_B, pdf_path, threshold):
     error_mags = np.linalg.norm(error_vecs, axis=0)
 
     all_points = np.concatenate([TP_A_S, TP_B], axis=1)
-    x_min, y_min, z_min = np.min(all_points, axis=1)
-    x_max, y_max, z_max = np.max(all_points, axis=1)
+    x_min, y_min, z_min = np.min(TP_B, axis=1)
+    x_max, y_max, z_max = np.max(TP_B, axis=1)
 
     # assume that the isocenter is the geometric origin
     isocenter = ((x_min + x_max) / 2, (y_min + y_max) / 2, (z_min + z_max) / 2)
