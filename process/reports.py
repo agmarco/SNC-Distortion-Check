@@ -41,136 +41,6 @@ def generate_equidistant_sphere(n=256):
     return points
 
 
-def generate_scatter_plot(radius2MaxMeanError):
-    scatter_fig = plt.figure()
-    # distances = np.linalg.norm(A, axis=1)
-    plt.scatter(list(radius2MaxMeanError.keys()), np.array(list(radius2MaxMeanError.values()))[:, 1])
-    plt.xlabel('Distance from Isocenter [mm]')
-    plt.ylabel('Distortion Magnitude [mm]')
-    return scatter_fig
-
-
-def generate_error_table(radius2MaxMeanError):
-    table_fig = plt.figure()
-    rows = []
-    for r, (max_value, mean_value) in radius2MaxMeanError.items():
-        rows.append((r, np.round(max_value, 3), np.round(mean_value, 3),))
-    plt.table(cellText=rows, colLabels=['Distance from Isocenter [mm]', 'Maximum Error [mm]', 'Average Error [mm]'],
-              loc='center')
-    plt.axis('off')
-    return table_fig
-
-
-def generate_roi_table():
-    pass
-
-
-def generate_quiver(TP_B, error_vecs):
-    quiver_fig = plt.figure()
-    ax = quiver_fig.add_subplot(111, projection='3d')
-    ax.quiver(*TP_B, *error_vecs)
-    return quiver_fig
-
-
-def generate_points(TP_A_S, TP_B):
-    points_fig = scatter3({'A_S': TP_A_S, 'B': TP_B})
-    return points_fig
-
-
-def generate_spacial_mapping(grid_x, grid_y, gridded, threshold):
-    cmap = colors.ListedColormap(['green', 'red'])
-    bounds = [0, threshold, math.inf]
-    norm = colors.BoundaryNorm(bounds, cmap.N)
-
-    contour_fig = plt.figure()
-    contour = plt.contour(grid_x.squeeze(), grid_y.squeeze(), gridded.squeeze(), cmap=cmap, norm=norm)
-    plt.clabel(contour, inline=True, fontsize=10)
-    return contour_fig
-
-
-def generate_axial_spacial_mapping(x_min, x_max, y_min, y_max, isocenter, TP_B, error_mags, threshold):
-
-    # interpolate onto plane at the isocenter to generate contour
-    grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
-                                         np.arange(y_min, y_max, GRID_DENSITY_mm),
-                                         [isocenter[2]])
-    gridded = griddata(TP_B.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
-    contour_fig = generate_spacial_mapping(grid_x, grid_y, gridded, threshold)
-    plt.xlabel('x [mm]')
-    plt.ylabel('y [mm]')
-    plt.title('Axial Contour Plot')
-    return contour_fig
-
-
-def generate_sagittal_spacial_mapping(x_min, x_max, z_min, z_max, isocenter, TP_B, error_mags, threshold):
-    grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
-                                         [isocenter[1]],
-                                         np.arange(z_min, z_max, GRID_DENSITY_mm),)
-    gridded = griddata(TP_B.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
-    contour_fig = generate_spacial_mapping(grid_x, grid_z, gridded, threshold)
-    plt.xlabel('x [mm]')
-    plt.ylabel('z [mm]')
-    plt.title('Sagittal Contour Plot')
-    return contour_fig
-
-
-def generate_coronal_spacial_mapping(y_min, y_max, z_min, z_max, isocenter, TP_B, error_mags, threshold):
-    grid_x, grid_y, grid_z = np.meshgrid([isocenter[0]],
-                                         np.arange(y_min, y_max, GRID_DENSITY_mm),
-                                         np.arange(z_min, z_max, GRID_DENSITY_mm))
-    gridded = griddata(TP_B.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
-    contour_fig = generate_spacial_mapping(grid_y, grid_z, gridded, threshold)
-    plt.xlabel('y [mm]')
-    plt.ylabel('z [mm]')
-    plt.title('Coronal Contour Plot')
-    return contour_fig
-
-
-def generate_axial_spacial_mapping_series(x_min, x_max, y_min, y_max, z_min, z_max, TP_B, error_mags, threshold):
-    figs = []
-    for z in np.arange(z_min, z_max, 2):
-        grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
-                                             np.arange(y_min, y_max, GRID_DENSITY_mm),
-                                             [z])
-        gridded = griddata(TP_B.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
-        print(np.all(np.isnan(gridded.squeeze())))
-
-        contour_fig = generate_spacial_mapping(grid_x, grid_y, gridded, threshold)
-        plt.xlabel('x [mm]')
-        plt.ylabel('y [mm]')
-        plt.title(f'Axial Contour Plot Series (z = {z})')
-        figs.append(contour_fig)
-    return figs
-
-
-def generate_data_acquisition_table(datasets):
-    table_fig = plt.figure()
-    dataset = datasets[0]
-    rows = [
-        (r'Phantom filler T$_1$', ''),
-        (r'Phantom filler T$_2$', ''),
-        ('Phantom filler composition', ''),
-        ('Sequence type', dataset.ScanningSequence),
-        ('Pixel bandwidth', str(dataset.PixelBandwidth) + r' $\frac{Hz}{px}$'),
-        ('Voxel dimensions', ' x '.join([f'{str(x)} mm' for x in [*dataset.PixelSpacing, dataset.SliceThickness]])),
-        ('Sequence repetition time (TR)', f'{dataset.RepetitionTime} ms'),
-        ('Echo delay time (TE)', f'{dataset.EchoTime} ms'),
-        ('Number of signals averaged (NSA)', dataset.NumberOfAverages),
-        ('Data acquisition matrix size', ', '.join([str(i) for i in dataset.AcquisitionMatrix])),
-        ('Image matrix size', ''),
-        ('Field of view size', ''),
-        ('Type of acquisition', dataset.MRAcquisitionType),
-        ('Number of slices', len(datasets)),
-        ('Slice orientation', ', '.join([str(i) for i in dataset.ImageOrientationPatient])),
-        ('Slice position', ', '.join([str(i) for i in dataset.ImagePositionPatient])),
-        ('Slice thickness', f'{dataset.SliceThickness} mm'),
-        ('Direction of phase encoding', dataset.InPlanePhaseEncodingDirection),
-    ]
-    plt.table(cellText=rows, loc='center')
-    plt.axis('off')
-    return table_fig
-
-
 def generate_institution_table():
     pass
 
@@ -184,7 +54,6 @@ def generate_report(datasets, TP_A_S, TP_B, pdf_path, threshold):
     
     TP_A_S = matched fiducials
     TP_B = golden fiducials
-    
     """
 
     assert TP_A_S.shape == TP_B.shape
@@ -211,19 +80,138 @@ def generate_report(datasets, TP_A_S, TP_B, pdf_path, threshold):
         max_value, mean_value = np.max(values), np.mean(values)
         radius2max_mean_error[r] = (max_value, mean_value,)
 
+    def generate_scatter_plot():
+        scatter_fig = plt.figure()
+        # distances = np.linalg.norm(A, axis=1)
+        plt.scatter(list(radius2max_mean_error.keys()), np.array(list(radius2max_mean_error.values()))[:, 1])
+        plt.xlabel('Distance from Isocenter [mm]')
+        plt.ylabel('Distortion Magnitude [mm]')
+        return scatter_fig
+
+    def generate_error_table():
+        table_fig = plt.figure()
+        rows = []
+        for r, (max_value, mean_value) in radius2max_mean_error.items():
+            rows.append((r, np.round(max_value, 3), np.round(mean_value, 3),))
+        plt.table(cellText=rows, colLabels=['Distance from Isocenter [mm]', 'Maximum Error [mm]', 'Average Error [mm]'],
+                  loc='center')
+        plt.axis('off')
+        return table_fig
+
+    def generate_roi_table():
+        pass
+
+    def generate_quiver():
+        quiver_fig = plt.figure()
+        ax = quiver_fig.add_subplot(111, projection='3d')
+        ax.quiver(*TP_B, *error_vecs)
+        return quiver_fig
+
+    def generate_points():
+        points_fig = scatter3({'A_S': TP_A_S, 'B': TP_B})
+        return points_fig
+
+    def generate_spacial_mapping(grid_x, grid_y, gridded):
+        cmap = colors.ListedColormap(['green', 'red'])
+        bounds = [0, threshold, math.inf]
+        norm = colors.BoundaryNorm(bounds, cmap.N)
+
+        contour_fig = plt.figure()
+        contour = plt.contour(grid_x.squeeze(), grid_y.squeeze(), gridded.squeeze(), cmap=cmap, norm=norm)
+        plt.clabel(contour, inline=True, fontsize=10)
+        return contour_fig
+
+    def generate_axial_spacial_mapping():
+
+        # interpolate onto plane at the isocenter to generate contour
+        grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
+                                             np.arange(y_min, y_max, GRID_DENSITY_mm),
+                                             [isocenter[2]])
+        gridded = griddata(TP_B.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
+        contour_fig = generate_spacial_mapping(grid_x, grid_y, gridded)
+        plt.xlabel('x [mm]')
+        plt.ylabel('y [mm]')
+        plt.title('Axial Contour Plot')
+        return contour_fig
+
+    def generate_sagittal_spacial_mapping():
+        grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
+                                             [isocenter[1]],
+                                             np.arange(z_min, z_max, GRID_DENSITY_mm), )
+        gridded = griddata(TP_B.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
+        contour_fig = generate_spacial_mapping(grid_x, grid_z, gridded)
+        plt.xlabel('x [mm]')
+        plt.ylabel('z [mm]')
+        plt.title('Sagittal Contour Plot')
+        return contour_fig
+
+    def generate_coronal_spacial_mapping():
+        grid_x, grid_y, grid_z = np.meshgrid([isocenter[0]],
+                                             np.arange(y_min, y_max, GRID_DENSITY_mm),
+                                             np.arange(z_min, z_max, GRID_DENSITY_mm))
+        gridded = griddata(TP_B.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
+        contour_fig = generate_spacial_mapping(grid_y, grid_z, gridded)
+        plt.xlabel('y [mm]')
+        plt.ylabel('z [mm]')
+        plt.title('Coronal Contour Plot')
+        return contour_fig
+
+    def generate_axial_spacial_mapping_series():
+        figs = []
+        for z in np.arange(z_min, z_max, 2):
+            grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
+                                                 np.arange(y_min, y_max, GRID_DENSITY_mm),
+                                                 [z])
+            gridded = griddata(TP_B.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
+
+            contour_fig = generate_spacial_mapping(grid_x, grid_y, gridded)
+            plt.xlabel('x [mm]')
+            plt.ylabel('y [mm]')
+            plt.title(f'Axial Contour Plot Series (z = {z})')
+            figs.append(contour_fig)
+        return figs
+
+    def generate_data_acquisition_table():
+        table_fig = plt.figure()
+        dataset = datasets[0]
+        rows = [
+            (r'Phantom filler T$_1$', ''),
+            (r'Phantom filler T$_2$', ''),
+            ('Phantom filler composition', ''),
+            ('Sequence type', dataset.ScanningSequence),
+            ('Pixel bandwidth', str(dataset.PixelBandwidth) + r' $\frac{Hz}{px}$'),
+            ('Voxel dimensions', ' x '.join([f'{str(x)} mm' for x in [*dataset.PixelSpacing, dataset.SliceThickness]])),
+            ('Sequence repetition time (TR)', f'{dataset.RepetitionTime} ms'),
+            ('Echo delay time (TE)', f'{dataset.EchoTime} ms'),
+            ('Number of signals averaged (NSA)', dataset.NumberOfAverages),
+            ('Data acquisition matrix size', ', '.join([str(i) for i in dataset.AcquisitionMatrix])),
+            ('Image matrix size', ''),
+            ('Field of view size', ''),
+            ('Type of acquisition', dataset.MRAcquisitionType),
+            ('Number of slices', len(datasets)),
+            ('Slice orientation', ', '.join([str(i) for i in dataset.ImageOrientationPatient])),
+            ('Slice position', ', '.join([str(i) for i in dataset.ImagePositionPatient])),
+            ('Slice thickness', f'{dataset.SliceThickness} mm'),
+            ('Direction of phase encoding', dataset.InPlanePhaseEncodingDirection),
+        ]
+        plt.table(cellText=rows, loc='center')
+        plt.axis('off')
+        return table_fig
+
     with PdfPages(pdf_path) as pdf:
-        pdf.savefig(generate_data_acquisition_table(datasets))
+        pdf.savefig(generate_data_acquisition_table())
 
-        pdf.savefig(generate_axial_spacial_mapping(x_min, x_max, y_min, y_max, isocenter, TP_B, error_mags, threshold))
-        pdf.savefig(generate_sagittal_spacial_mapping(x_min, x_max, z_min, z_max, isocenter, TP_B, error_mags, threshold))
-        pdf.savefig(generate_coronal_spacial_mapping(y_min, y_max, z_min, z_max, isocenter, TP_B, error_mags, threshold))
-        for fig in (generate_axial_spacial_mapping_series(x_min, x_max, y_min, y_max, z_min, z_max, TP_B, error_mags, threshold)):
+        pdf.savefig(generate_axial_spacial_mapping())
+        pdf.savefig(generate_sagittal_spacial_mapping())
+        pdf.savefig(generate_coronal_spacial_mapping())
+        for fig in (generate_axial_spacial_mapping_series()):
             pdf.savefig(fig)
-        pdf.savefig(generate_scatter_plot(radius2max_mean_error))
-        pdf.savefig(generate_error_table(radius2max_mean_error))
 
-        pdf.savefig(generate_points(TP_A_S, TP_B))
-        pdf.savefig(generate_quiver(TP_B, error_vecs))
+        pdf.savefig(generate_scatter_plot())
+        pdf.savefig(generate_error_table())
+
+        pdf.savefig(generate_points())
+        pdf.savefig(generate_quiver())
 
 
 if __name__ == '__main__':
