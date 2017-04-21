@@ -61,7 +61,6 @@ def generate_report(datasets, TP_A_S, TP_B, pdf_path, threshold):
     error_vecs = TP_A_S - TP_B
     error_mags = np.linalg.norm(error_vecs, axis=0)
 
-    all_points = np.concatenate([TP_A_S, TP_B], axis=1)
     x_min, y_min, z_min = np.min(TP_B, axis=1)
     x_max, y_max, z_max = np.max(TP_B, axis=1)
 
@@ -82,8 +81,10 @@ def generate_report(datasets, TP_A_S, TP_B, pdf_path, threshold):
 
     def generate_scatter_plot():
         scatter_fig = plt.figure()
-        # distances = np.linalg.norm(A, axis=1)
-        plt.scatter(list(radius2max_mean_error.keys()), np.array(list(radius2max_mean_error.values()))[:, 1])
+
+        distances = np.linalg.norm(TP_B.T - np.array([isocenter] * TP_B.shape[1]), axis=1)
+
+        plt.scatter(distances, error_mags)
         plt.xlabel('Distance from Isocenter [mm]')
         plt.ylabel('Distortion Magnitude [mm]')
         return scatter_fig
@@ -156,6 +157,7 @@ def generate_report(datasets, TP_A_S, TP_B, pdf_path, threshold):
         plt.title('Coronal Contour Plot')
         return contour_fig
 
+    # TODO RuntimeWarning: invalid value encountered in true_divide
     def generate_axial_spacial_mapping_series():
         figs = []
         for z in np.arange(z_min, z_max, 2):
@@ -167,7 +169,7 @@ def generate_report(datasets, TP_A_S, TP_B, pdf_path, threshold):
             contour_fig = generate_spacial_mapping(grid_x, grid_y, gridded)
             plt.xlabel('x [mm]')
             plt.ylabel('y [mm]')
-            plt.title(f'Axial Contour Plot Series (z = {z})')
+            plt.title(f'Axial Contour Plot Series (z = {z} mm)')
             figs.append(contour_fig)
         return figs
 
