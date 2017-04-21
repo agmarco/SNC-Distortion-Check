@@ -82,7 +82,8 @@ def generate_report(datasets, TP_A_S, TP_B, pdf_path, threshold):
     def generate_scatter_plot():
         scatter_fig = plt.figure()
 
-        distances = np.linalg.norm(TP_B.T - np.array([isocenter] * TP_B.shape[1]), axis=1)
+        origins = np.repeat([isocenter], TP_B.shape[1], axis=0)
+        distances = np.linalg.norm(TP_B.T - origins, axis=1)
 
         plt.scatter(distances, error_mags)
         plt.xlabel('Distance from Isocenter [mm]')
