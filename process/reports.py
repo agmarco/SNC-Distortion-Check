@@ -84,8 +84,9 @@ def generate_report(datasets, TP_A_S, TP_B, pdf_path, threshold):
 
         origins = np.repeat([isocenter], TP_B.shape[1], axis=0)
         distances = np.linalg.norm(TP_B.T - origins, axis=1)
+        c = np.vectorize(lambda x: 'green' if x < threshold else 'red')(error_mags)
 
-        plt.scatter(distances, error_mags)
+        plt.scatter(distances, error_mags, c=c)
         plt.xlabel('Distance from Isocenter [mm]')
         plt.ylabel('Distortion Magnitude [mm]')
         return scatter_fig
