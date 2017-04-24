@@ -1,10 +1,12 @@
 import React from 'react';
+import $ from 'jquery';
 import { assert } from 'chai';
 import { shallow, mount, ShallowWrapper, ReactWrapper } from 'enzyme';
 
 import * as fixtures from 'common/fixtures';
 import { default as ScanTable, IScanTableProps, IScanTableState } from './components/ScanTable';
 import { default as ScanChart, IScanChartProps, IScanChartState } from './components/ScanChart';
+import ScanChartData from './components/ScanChartData';
 import { IScanDTO, IPhantomDTO } from 'common/service';
 
 describe('<ScanTable />', () => {
@@ -33,13 +35,13 @@ describe('<ScanTable />', () => {
 });
 
 describe('<ScanChart />', () => {
-    let app: HTMLElement;
+    let app: JQuery;
     let scanA: IScanDTO;
     let scanB: IScanDTO;
     let wrapper: ReactWrapper<IScanChartProps, IScanChartState>;
 
     beforeEach(() => {
-        app = document.getElementById('app') as HTMLElement;
+        app = $('#app');
 
         scanA = fixtures.scanFixture();
         scanB = fixtures.scanFixture();
@@ -66,31 +68,32 @@ describe('<ScanChart />', () => {
         // this takes awhile -- had to increase timeout
         wrapper = mount<IScanChartProps, IScanChartState>(
             <ScanChart machineSequencePair={machineSequencePair} scans={scans} />,
-            {attachTo: app},
+            {attachTo: app[0]},
         );
     });
 
     it('calculates the quartiles correctly', () => {
-        const scanAPlot = app.getElementsByClassName('box-and-whiskers')[0];
+        const data = wrapper.find(ScanChartData).prop('data');
+        assert(data.length === 2);
 
-        const min = scanAPlot.getElementsByClassName('whisker min')[0].innerHTML;
-        const lower = scanAPlot.getElementsByClassName('box lower')[0].innerHTML;
-        const median = scanAPlot.getElementsByClassName('box median')[0].innerHTML;
-        const upper = scanAPlot.getElementsByClassName('box upper')[0].innerHTML;
-        const max = scanAPlot.getElementsByClassName('whisker max')[0].innerHTML;
+        // const min = scanAPlot.find('.whisker.min').text();
+        // const lower = scanAPlot.find('.box.lower').text();
+        // const median = scanAPlot.find('.box.median').text();
+        // const upper = scanAPlot.find('.box.upper').text();
+        // const max = scanAPlot.find('.whisker.max').text();
 
-        assert(min === '0.8');
-        assert(lower === '1.2');
-        assert(median === '1.5');
-        assert(upper === '1.9');
-        assert(max === '2.2');
+        // assert(min === '0.8');
+        // assert(lower === '1.2');
+        // assert(median === '1.5');
+        // assert(upper === '1.9');
+        // assert(max === '2.2');
     });
 
     it('marks scans as passed/failed', () => {
-        const scanAPlot = app.getElementsByClassName('box-and-whiskers')[0];
-        const scanBPlot = app.getElementsByClassName('box-and-whiskers')[1];
+        const scanAPlot = app.find('.box-and-whiskers').eq(0);
+        const scanBPlot = app.find('.box-and-whiskers').eq(1);
 
-        assert(scanAPlot.classList.contains('passed'));
-        assert(scanBPlot.classList.contains('failed'));
+        assert(scanAPlot.hasClass('passed'));
+        assert(scanBPlot.hasClass('failed'));
     });
 });

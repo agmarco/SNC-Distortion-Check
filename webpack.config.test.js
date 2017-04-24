@@ -11,8 +11,6 @@ const webpack = require('webpack');
 module.exports = {
     devtool: 'cheap-eval-source-map',
 
-    target: 'node',
-
     plugins: [
         new webpack.NoEmitOnErrorsPlugin(),
     ],
@@ -36,13 +34,6 @@ module.exports = {
             path.join(__dirname, 'node_modules'),
         ],
         extensions: ['.webpack.js', '.web.js', '.js', '.jsx', '.ts', '.tsx'],
-    },
-
-    node: {
-        console: true,
-        fs: 'empty',
-        net: 'empty',
-        tls: 'empty',
     },
 
     externals: {
