@@ -3,7 +3,7 @@ import React from 'react';
 import { IScanChartProps, IScanChartSettings, IScrollable, IScanData } from './ScanChart';
 import Scrollable from './Scrollable';
 
-interface IScanChartDataProps extends IScanChartProps, IScanChartSettings, IScrollable {}
+export interface IScanChartDataProps extends IScanChartProps, IScanChartSettings, IScrollable {}
 
 export default class extends React.Component<IScanChartDataProps, {}> {
     g: SVGGElement;

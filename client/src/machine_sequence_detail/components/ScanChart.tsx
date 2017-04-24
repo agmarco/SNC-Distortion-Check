@@ -18,10 +18,13 @@ export interface IScrollable {
     };
 }
 
-type ScanTuple = [number, number[]]; // [pk, distortion]
+interface IScanDistortion extends Array<number> {
+    quartiles: number[];
+}
+
+type ScanTuple = [number, IScanDistortion]; // [pk, distortion]
 
 export interface IScanData extends ScanTuple {
-    quartiles: number[];
     passed: boolean;
     label: string;
 }
@@ -62,7 +65,7 @@ export default class extends React.Component<IScanChartProps, IScanChartState> {
     // Returns a function to compute the interquartile range.
     // Higher values of k will produce fewer outliers.
     iqr(k: number) {
-        return (d: IScanData, i: number) => {
+        return (d: IScanDistortion, i: number) => {
             let q1 = d.quartiles[0];
             let q3 = d.quartiles[2];
             let iqr = (q3 - q1) * k;

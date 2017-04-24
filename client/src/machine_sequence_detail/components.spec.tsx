@@ -73,20 +73,11 @@ describe('<ScanChart />', () => {
     });
 
     it('calculates the quartiles correctly', () => {
-        const data = wrapper.find(ScanChartData).prop('data');
-        assert(data.length === 2);
+        const quartiles = wrapper.find(ScanChartData).prop('data')[0][1].quartiles;
 
-        // const min = scanAPlot.find('.whisker.min').text();
-        // const lower = scanAPlot.find('.box.lower').text();
-        // const median = scanAPlot.find('.box.median').text();
-        // const upper = scanAPlot.find('.box.upper').text();
-        // const max = scanAPlot.find('.whisker.max').text();
-
-        // assert(min === '0.8');
-        // assert(lower === '1.2');
-        // assert(median === '1.5');
-        // assert(upper === '1.9');
-        // assert(max === '2.2');
+        //assert(quartiles[0] === 1.215615536609391);
+        //assert(quartiles[1] === 1.54589437705);
+        //assert(quartiles[2] === 1.930314810061184);
     });
 
     it('marks scans as passed/failed', () => {
