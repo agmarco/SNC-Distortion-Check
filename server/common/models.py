@@ -1,5 +1,7 @@
 import os
 
+import numpy as np
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import UserManager
@@ -124,7 +126,7 @@ class Sequence(CommonFieldsMixin):
 class MachineSequencePair(CommonFieldsMixin):
     machine = models.ForeignKey(Machine, models.CASCADE)
     sequence = models.ForeignKey(Sequence, models.CASCADE)
-    tolerance_ht = 'The maximum allowable geometric distortion (mm) for this machine-scanner pair'
+    tolerance_ht = 'The maximum allowable geometric error_mags (mm) for this machine-scanner pair'
     tolerance = models.FloatField(help_text=tolerance_ht)
 
     def __str__(self):
@@ -227,7 +229,10 @@ class Scan(CommonFieldsMixin):
     dicom_series = models.ForeignKey(DicomSeries, models.CASCADE)
     detected_fiducials = models.ForeignKey(Fiducials, models.CASCADE, null=True)
     golden_fiducials = models.ForeignKey(GoldenFiducials, models.CASCADE)
-    distortion = NumpyTextField(null=True)
+    TP_A_S = models.ForeignKey(Fiducials, models.CASCADE, null=True, related_name='scan_tp_a_s_set')
+    TP_B = models.ForeignKey(Fiducials, models.CASCADE, null=True, related_name='scan_tp_b_set')
+    full_report = models.FileField(upload_to='scan/full_report', null=True)
+    executive_report = models.FileField(upload_to='scan/executive_report', null=True)
     notes = models.TextField(blank=True)
     processing = models.BooleanField(default=False)
     errors = models.TextField(null=True)
@@ -244,10 +249,18 @@ class Scan(CommonFieldsMixin):
     def institution(self):
         return self.creator.institution
 
+    @cached_property
+    def error_mags(self):
+        if self.TP_A_S and self.TP_B:
+            error_vecs = self.TP_A_S.fiducials - self.TP_B.fiducials
+            return np.linalg.norm(error_vecs, axis=0)
+        else:
+            return None
+
     @property
     def passed(self):
-        """Return True if the max distortion is below the threshold."""
-        return self.distortion.max() < self.tolerance if self.distortion is not None else None
+        """Return True if the max error_mags is below the threshold."""
+        return self.error_mags.max() < self.tolerance if self.error_mags is not None else None
 
 
 # This table creates permissions that are not associated with a model.

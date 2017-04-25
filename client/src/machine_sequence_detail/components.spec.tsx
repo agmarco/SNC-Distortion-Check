@@ -46,7 +46,7 @@ describe('<ScanChart />', () => {
         scanA = fixtures.scanFixture();
         scanB = fixtures.scanFixture();
 
-        scanA.distortion = [
+        scanA.error_mags = [
             2.1850395487480587,
             0.8065866998556279,
             1.425678550748541,

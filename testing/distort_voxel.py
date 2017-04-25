@@ -26,7 +26,7 @@ def chain_transformers(func_list):
 
 def deform_func(distort_factor=8e-4):
     '''
-    Applies a arbitrary non-linear distortion simulating an MRI distortion. The magnitude of the distortion can be
+    Applies a arbitrary non-linear error_mags simulating an MRI error_mags. The magnitude of the error_mags can be
     tweaked. Returns the distorted voxels array the same shape as the input voxels. Also returns the deformation
     used expressed as a set of points and values associated.
     '''
@@ -35,8 +35,8 @@ def deform_func(distort_factor=8e-4):
         Maps coordinates in the output array to the corresponding coordinate in the input array.
         '''
         i, j, k = ijk_out_coord
-        # the following was just hand tuned to produce some sort of interesting mri distortion field. This has no
-        # basis in reality except for qualitatively looking like a reasonable distortion.
+        # the following was just hand tuned to produce some sort of interesting mri error_mags field. This has no
+        # basis in reality except for qualitatively looking like a reasonable error_mags.
         i_in_coord = i - i * math.pow(abs(j), 1.4) * distort_factor
         j_in_coord = j - j * math.pow(abs(i), 1.4) * distort_factor
         k_in_coord = k - k * math.pow(abs(k)+abs(i), 1.3) * distort_factor
@@ -51,7 +51,7 @@ def deform_func(distort_factor=8e-4):
         minimize = scipy.optimize.minimize(partial(objective, ijk_in_coord), initial_guess, tol=1e-8)
         if minimize.fun > 0.01:
 
-            raise Exception('Failed to find inverse solution of distortion function.')
+            raise Exception('Failed to find inverse solution of error_mags function.')
         return minimize.x
 
     return distort_func, undistort_func
@@ -101,9 +101,9 @@ if __name__ == '__main__':
     parser.add_argument('distorted_voxels', help='Destination to save the distorted voxels')
     parser.add_argument('undistorted_points', help='Undistorted points. Typically this is the manually annotated of the source voxels.')
     parser.add_argument('distorted_points', help='Destination to save the distorted points.')
-    parser.add_argument('--distort_factor', type=float, help='The magnitude of the distortion. Typically between 0 to 0.14')
+    parser.add_argument('--distort_factor', type=float, help='The magnitude of the error_mags. Typically between 0 to 0.14')
     parser.add_argument('--xyz_tpx', type=float, nargs=6, help='space separated x,y,z displacement and theta,phi,xi rotation. Rotations should be in degrees.')
-    parser.add_argument('--reduction_factor', type=int, help='How much to decimate the input voxels by, useful for previewing the distortion before processing it.')
+    parser.add_argument('--reduction_factor', type=int, help='How much to decimate the input voxels by, useful for previewing the error_mags before processing it.')
     args = parser.parse_args()
     voxel_data = file_io.load_voxels(args.undistorted_voxels)
     voxels = voxel_data['voxels']
@@ -117,7 +117,7 @@ if __name__ == '__main__':
     undistorters = [from_xyz_func]
     distorters = [to_xyz_func]
     if args.xyz_tpx and args.distort_factor:
-        raise Exception("Provide either rotation or distortion, not both because order is ambiguous (and important.)")
+        raise Exception("Provide either rotation or error_mags, not both because order is ambiguous (and important.)")
     if args.xyz_tpx:
         x, y, z, theta, pi, xhi = args.xyz_tpx
         theta, pi, xhi = np.deg2rad(theta), np.deg2rad(pi), np.deg2rad(xhi)

@@ -1,8 +1,21 @@
+import os
+import uuid
+import zipfile
+from random import randint
+
+import numpy as np
+from django.conf import settings
+
 from django.contrib.auth.models import Permission
+from django.core.files import File
 from django.core.management.base import BaseCommand
 
 from server.common import factories
 from server.common.models import GoldenFiducials
+
+from process import affine, dicom_import
+from process.affine import apply_affine
+from process.reports import generate_cube, generate_report
 
 
 class Command(BaseCommand):
@@ -166,11 +179,32 @@ class Command(BaseCommand):
             type=GoldenFiducials.CSV,
         )
 
-        for i in range(20):
-            dicom_series_mri = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
-            factories.ScanFactory(
+        dicom_series_mri = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
+        with zipfile.ZipFile('data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip', 'r') as zip_file:
+            datasets = dicom_import.dicom_datasets_from_zip(zip_file)
+
+        for i in range(12):
+            A = generate_cube(8)
+            B = generate_cube(8)
+
+            error = randint(4, 8)
+            affine_matrix = affine.translation_rotation(0, 0, 0, np.pi / 180 * error, np.pi / 180 * error, np.pi / 180 * error)
+
+            A = apply_affine(affine_matrix, A)
+
+            scan = factories.ScanFactory(
                 creator=manager,
                 machine_sequence_pair=machine_sequence_pair_a,
+                detected_fiducials=factories.FiducialsFactory(fiducials=A),
+                TP_A_S=factories.FiducialsFactory(fiducials=A),
+                TP_B=factories.FiducialsFactory(fiducials=B),
                 dicom_series=dicom_series_mri,
                 tolerance=2.25,
             )
+
+            report_filename = f'{uuid.uuid4()}.pdf'
+            report_path = os.path.join(settings.BASE_DIR, '.tmp', report_filename)
+            generate_report(datasets, A, B, scan.tolerance, report_path)
+
+            with open(report_path, 'rb') as report:
+                scan.full_report.save(report_filename, File(report))

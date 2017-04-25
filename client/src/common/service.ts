@@ -34,10 +34,12 @@ export interface IScanDTO {
     phantom: IPhantomDTO;
     processing: boolean;
     errors: string | null;
-    passed: boolean;
+    passed: boolean | null;
     acquisition_date: string;
     errors_url: string;
     delete_url: string;
     zipped_dicom_files_url: string;
-    distortion: number[];
+    full_report_url: string | null;
+    executive_report_url: string | null;
+    error_mags: number[] | null;
 }

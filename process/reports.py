@@ -1,5 +1,6 @@
 import zipfile
 import math
+import os
 from collections import OrderedDict
 
 import matplotlib.pyplot as plt
@@ -45,15 +46,12 @@ def generate_institution_table():
     pass
 
 
-def generate_report(datasets, TP_A_S, TP_B, pdf_path, threshold):
+def generate_report(datasets, TP_A_S, TP_B, threshold, pdf_path):
     """
     Given the set of matched and registered points, generate a NEMA report.
 
     Assumes that each column of TP_A_S is matched with the cooresponding column
     of TP_B.
-    
-    TP_A_S = matched fiducials
-    TP_B = golden fiducials
     """
 
     assert TP_A_S.shape == TP_B.shape
@@ -218,15 +216,16 @@ def generate_report(datasets, TP_A_S, TP_B, pdf_path, threshold):
         pdf.savefig(generate_quiver())
 
 
-if __name__ == '__main__':
-    def generate_cube(size, x0=0):
-        points = []
-        for x in range(-size, size):
-            for y in range(-size, size):
-                for z in range(-size, size):
-                    points.append((float(x), float(y), float(z)))
-        return np.array(points).T
+def generate_cube(size, x0=0):
+    points = []
+    for x in range(-size, size):
+        for y in range(-size, size):
+            for z in range(-size, size):
+                points.append((float(x), float(y), float(z)))
+    return np.array(points).T
 
+
+if __name__ == '__main__':
     A = generate_cube(8)
     B = generate_cube(8)
     affine_matrix = affine.translation_rotation(0, 0, 0, np.pi / 180 * 2, np.pi / 180 * 2, np.pi / 180 * 2)
@@ -236,4 +235,4 @@ if __name__ == '__main__':
     with zipfile.ZipFile('data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip') as zip_file:
         datasets = dicom_import.dicom_datasets_from_zip(zip_file)
 
-    generate_report(datasets, A, B, 'report.pdf', 0.4)
+    generate_report(datasets, A, B, 0.4, 'report.pdf')

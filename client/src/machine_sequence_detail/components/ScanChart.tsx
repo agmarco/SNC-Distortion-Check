@@ -22,7 +22,7 @@ interface IScanDistortion extends Array<number> {
     quartiles: number[];
 }
 
-type ScanTuple = [number, IScanDistortion]; // [pk, distortion]
+type ScanTuple = [number, IScanDistortion]; // [pk, error_mags]
 
 export interface IScanData extends ScanTuple {
     passed: boolean;
@@ -93,12 +93,12 @@ export default class extends React.Component<IScanChartProps, IScanChartState> {
         const width = Math.max(processedScans.length * 100, clipWidth);
         const height = 400 - margin.top - margin.bottom;
 
-        const maxDistortion = Math.max(...processedScans.map(s => Math.max(...s.distortion)));
+        const maxDistortion = Math.max(...processedScans.map(s => Math.max(...s.error_mags as number[])));
         const yMin = 0;
         const yMax = 1.05 * Math.max(machineSequencePair.tolerance, maxDistortion);
 
         const data = processedScans.map((scan) => {
-            const array = [scan.pk, scan.distortion] as any;
+            const array = [scan.pk, scan.error_mags] as any;
             array.passed = scan.passed;
             array.label = format(scan.acquisition_date, 'D MMM YYYY');
             return array;

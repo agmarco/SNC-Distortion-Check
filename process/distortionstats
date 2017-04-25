@@ -18,13 +18,13 @@ def print_histogram(data, suffix):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('voxels')
-    parser.add_argument('distortion')
+    parser.add_argument('error_mags')
     args = parser.parse_args()
 
     voxel_data = file_io.load_voxels(args.voxels)
     pixel_spacing = affine.pixel_spacing(voxel_data['ijk_to_patient_xyz_transform'])
 
-    distortion_mm = file_io.load_distortion(args.distortion)['distortion']
+    distortion_mm = file_io.load_distortion(args.distortion)['error_mags']
     magnitude_mm = np.linalg.norm(distortion_mm, axis=3)
 
     distortion_voxels = np.empty_like(distortion_mm)

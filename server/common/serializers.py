@@ -63,7 +63,9 @@ class ScanSerializer(serializers.ModelSerializer):
     errors_url = serializers.SerializerMethodField()
     delete_url = serializers.SerializerMethodField()
     zipped_dicom_files_url = serializers.SerializerMethodField()
-    distortion = serializers.SerializerMethodField()
+    full_report_url = serializers.SerializerMethodField()
+    executive_report_url = serializers.SerializerMethodField()
+    error_mags = serializers.ReadOnlyField()
 
     class Meta:
         model = Scan
@@ -77,7 +79,9 @@ class ScanSerializer(serializers.ModelSerializer):
             'errors_url',
             'delete_url',
             'zipped_dicom_files_url',
-            'distortion',
+            'full_report_url',
+            'executive_report_url',
+            'error_mags',
         )
 
     def get_acquisition_date(self, scan):
@@ -92,7 +96,8 @@ class ScanSerializer(serializers.ModelSerializer):
     def get_zipped_dicom_files_url(self, scan):
         return scan.dicom_series.zipped_dicom_files.url
 
-    def get_distortion(self, scan):
+    def get_full_report_url(self, scan):
+        return scan.full_report.name and scan.full_report.url
 
-        # DRF doesn't automatically decode the field, but this does
-        return scan.distortion
+    def get_executive_report_url(self, scan):
+        return scan.executive_report.name and scan.executive_report.url

@@ -154,5 +154,4 @@ class ScanFactory(factory.django.DjangoModelFactory):
     dicom_series = factory.SubFactory(DicomSeriesFactory)
     detected_fiducials = factory.SubFactory(FiducialsFactory)
     golden_fiducials = factory.SubFactory(GoldenFiducialsFactory)
-    distortion = factory.LazyAttribute(lambda scan: np.array(list(max(0, x) for x in np.random.normal(1.2, 0.55, (10,)))))
     tolerance = 3

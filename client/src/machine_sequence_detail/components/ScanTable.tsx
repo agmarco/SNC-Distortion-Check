@@ -68,10 +68,10 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
                     <a href={scan.zipped_dicom_files_url}>Raw Data</a>
                 </td>,
                 <td key={3} className="action">
-                    <a href="#">Executive Report</a>
+                    <a href={scan.executive_report_url === null ? '#' : scan.executive_report_url}>Executive Report</a>
                 </td>,
                 <td key={4} className="action">
-                    <a href="#">Full Report</a>
+                    <a href={scan.full_report_url === null ? '#' : scan.full_report_url}>Full Report</a>
                 </td>,
                 <td key={5} className="action">
                     <a href={scan.delete_url}>
@@ -116,7 +116,7 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
                     <tbody>
                         {filteredScans.map((scan, i) => (
                             <tr key={scan.pk} className={i % 2 === 0 ? 'a' : 'b'}>
-                                <td>{!scan.processing && !scan.errors && <BoolIcon value={scan.passed} />}</td>
+                                <td>{scan.passed !== null && <BoolIcon value={scan.passed} />}</td>
                                 <td>{format(scan.acquisition_date, 'MMMM D, YYYY')}</td>
                                 <td>{scan.phantom.model_number} &mdash; {scan.phantom.serial_number}</td>
                                 <td className="sep" />

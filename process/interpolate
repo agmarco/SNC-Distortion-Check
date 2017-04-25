@@ -9,7 +9,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('voxels', help='Input path to read voxels-file')
     parser.add_argument('m_s', help='Input path to read rigidly registered pairs of points (M_s)')
-    parser.add_argument('distortion', help='Output path to write distortion-file')
+    parser.add_argument('error_mags', help='Output path to write error_mags-file')
     args = parser.parse_args()
 
     voxel_data = file_io.load_voxels(args.voxels)
@@ -24,5 +24,5 @@ if __name__ == '__main__':
     distortion_grid = interpolate.interpolate_distortion(TP_A_S, TP_B, ijk_to_xyz, ijk_shape)
 
     file_io.save_distortion(args.distortion, {
-        'distortion': distortion_grid,
+        'error_mags': distortion_grid,
     })
