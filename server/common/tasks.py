@@ -43,7 +43,7 @@ def process_scan(scan_pk):
                 datasets = dicom_import.dicom_datasets_from_zip(zip_file)
 
             report_filename = f'{uuid.uuid4()}.pdf'
-            report_path = os.path.join(settings.BASE_DIR, '.tmp', report_filename)
+            report_path = os.path.join(settings.BASE_DIR, 'tmp', report_filename)
             generate_report(datasets, A, B, scan.tolerance, report_path)
 
             with open(report_path, 'rb') as report:
@@ -75,7 +75,7 @@ def process_scan(scan_pk):
             #     datasets = dicom_import.dicom_datasets_from_zip(zip_file)
 #
             # report_filename = f'{uuid.uuid4()}.pdf'
-            # report_path = os.path.join(settings.BASE_DIR, '.tmp', report_filename)
+            # report_path = os.path.join(settings.BASE_DIR, 'tmp', report_filename)
             # generate_report(datasets, TP_A_S, TP_B, scan.tolerance, report_path)
 #
             # with open(report_path) as report:

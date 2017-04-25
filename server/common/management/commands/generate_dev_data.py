@@ -217,7 +217,7 @@ class Command(BaseCommand):
             )
 
             report_filename = f'{uuid.uuid4()}.pdf'
-            report_path = os.path.join(settings.BASE_DIR, '.tmp', report_filename)
+            report_path = os.path.join(settings.BASE_DIR, 'tmp', report_filename)
             generate_report(datasets, A, B, scan.tolerance, report_path)
 
             with open(report_path, 'rb') as report:
