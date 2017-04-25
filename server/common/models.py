@@ -134,7 +134,7 @@ class MachineSequencePair(CommonFieldsMixin):
 
     @cached_property
     def latest_scan(self):
-        return self.scan_set.order_by('-created_on').first()
+        return self.scan_set.active().order_by('-created_on').first()
 
     @property
     def latest_scan_date(self):
