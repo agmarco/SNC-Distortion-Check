@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='scan',
-            name='error_mags',
+            name='distortion',
             field=server.django_numpy.fields.NumpyTextField(null=True),
         ),
         migrations.AlterField(

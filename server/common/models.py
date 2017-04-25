@@ -126,7 +126,7 @@ class Sequence(CommonFieldsMixin):
 class MachineSequencePair(CommonFieldsMixin):
     machine = models.ForeignKey(Machine, models.CASCADE)
     sequence = models.ForeignKey(Sequence, models.CASCADE)
-    tolerance_ht = 'The maximum allowable geometric error_mags (mm) for this machine-scanner pair'
+    tolerance_ht = 'The maximum allowable geometric distortion (mm) for this machine-scanner pair'
     tolerance = models.FloatField(help_text=tolerance_ht)
 
     def __str__(self):

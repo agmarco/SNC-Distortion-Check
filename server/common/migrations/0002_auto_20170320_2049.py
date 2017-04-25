@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='machinesequencepair',
             name='tolerance',
-            field=models.FloatField(help_text='The maximum allowable geometric error_mags (mm) for this machine-scanner pair'),
+            field=models.FloatField(help_text='The maximum allowable geometric distortion (mm) for this machine-scanner pair'),
         ),
         migrations.AlterField(
             model_name='user',

@@ -59,7 +59,7 @@ class TestInterpolateDistortion:
 
     def test_rectangle_slight_distortion(self):
         '''
-        Introduce error_mags into one corner of the grid.
+        Introduce distortion into one corner of the grid.
         '''
         side = np.array([0.0, 1.0])
         X, Y, Z = np.meshgrid(side, side, side, indexing='ij')

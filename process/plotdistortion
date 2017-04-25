@@ -11,13 +11,13 @@ from process import file_io
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('voxels')
-    parser.add_argument('error_mags')
+    parser.add_argument('distortion')
     args = parser.parse_args()
 
     voxel_data = file_io.load_voxels(args.voxels)
     voxels = voxel_data['voxels']
 
-    distortion = file_io.load_distortion(args.distortion)['error_mags']
+    distortion = file_io.load_distortion(args.distortion)['distortion']
     distortion_magnitude = np.linalg.norm(distortion, axis=3)
     min_value = np.nanmin(distortion_magnitude)
     max_value = np.nanmax(distortion_magnitude)

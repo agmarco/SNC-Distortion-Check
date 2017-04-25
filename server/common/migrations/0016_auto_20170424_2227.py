@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RemoveField(
             model_name='scan',
-            name='error_mags',
+            name='distortion',
         ),
         migrations.AddField(
             model_name='scan',
