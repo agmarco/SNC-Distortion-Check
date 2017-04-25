@@ -1,3 +1,5 @@
+import { quartiles as getQuartiles } from 'common/utils';
+
 // http://bl.ocks.org/jensgrubert/7789216
 
 (function() {
@@ -329,11 +331,7 @@
     }
 
     function boxQuartiles(d) {
-        return [
-            d3.quantile(d, .25),
-            d3.quantile(d, .5),
-            d3.quantile(d, .75)
-        ];
+        return getQuartiles(d);
     }
 
 })();

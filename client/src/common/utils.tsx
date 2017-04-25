@@ -22,3 +22,30 @@ export const renderApp = (Component: React.ComponentClass<any> | React.Stateless
         document.getElementById(appId),
     );
 };
+
+/**
+ * Assume the array is already sorted.
+ */
+export const median = (sample: number[]) => {
+    const i = Math.trunc(sample.length / 2);
+    if (sample.length % 2 === 0) {
+        return (sample[i - 1] + sample[i]) / 2;
+    } else {
+        return sample[i];
+    }
+};
+
+export const quartiles = (sample: number[]) => {
+    sample = [...sample].sort();
+    const i = Math.trunc(sample.length / 2);
+    let a = null;
+    let b = null;
+    if (sample.length % 2 === 0) {
+        a = sample.slice(0, i);
+        b = sample.slice(i);
+    } else {
+        a = sample.slice(0, i);
+        b = sample.slice(i + 1);
+    }
+    return [median(a), median(sample), median(b)];
+};
