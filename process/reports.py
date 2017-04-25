@@ -75,12 +75,15 @@ def generate_report(datasets, TP_A_S, TP_B, threshold, pdf_path):
 
     def generate_scatter_plot():
         scatter_fig = plt.figure()
-
         origins = np.repeat([isocenter], TP_B.shape[1], axis=0)
         distances = np.linalg.norm(TP_B.T - origins, axis=1)
-        c = np.vectorize(lambda x: 'green' if x < threshold else 'red')(error_mags)
 
-        plt.scatter(distances, error_mags, c=c)
+        cmap = colors.ListedColormap(['green', 'red'])
+        bounds = [0, threshold, math.inf]
+        norm = colors.BoundaryNorm(bounds, cmap.N)
+
+        plt.plot([0, distances.max()], [threshold, threshold], c='red', linestyle='dashed')
+        plt.scatter(distances, error_mags, c=error_mags, cmap=cmap, norm=norm)
         plt.xlabel('Distance from Isocenter [mm]')
         plt.ylabel('Distortion Magnitude [mm]')
         return scatter_fig
@@ -109,11 +112,12 @@ def generate_report(datasets, TP_A_S, TP_B, threshold, pdf_path):
         return points_fig
 
     def generate_spacial_mapping(grid_x, grid_y, gridded):
+        contour_fig = plt.figure()
+
         cmap = colors.ListedColormap(['green', 'red'])
         bounds = [0, threshold, math.inf]
         norm = colors.BoundaryNorm(bounds, cmap.N)
 
-        contour_fig = plt.figure()
         contour = plt.contour(grid_x.squeeze(), grid_y.squeeze(), gridded.squeeze(), cmap=cmap, norm=norm)
         plt.clabel(contour, inline=True, fontsize=10)
         return contour_fig

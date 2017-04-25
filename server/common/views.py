@@ -95,6 +95,7 @@ def machine_sequences(request):
     })
 
 
+# TODO scan table ordering is backwards when the acquisition dates are the same
 @login_and_permission_required('common.configuration')
 @validate_institution()
 class MachineSequenceDetail(DetailView):
