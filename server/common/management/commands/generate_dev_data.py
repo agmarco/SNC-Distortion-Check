@@ -179,10 +179,23 @@ class Command(BaseCommand):
             type=GoldenFiducials.CSV,
         )
 
-        dicom_series_path = os.path.join(settings.BASE_DIR, 'data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
-        dicom_series_mri = factories.DicomSeriesFactory(zipped_dicom_files=dicom_series_path)
-        with zipfile.ZipFile(dicom_series_path, 'r') as zip_file:
-            datasets = dicom_import.dicom_datasets_from_zip(zip_file)
+        dicom_series_mri = factories.DicomSeriesFactory()
+
+        class DataSet:
+            ScanningSequence = 'GR'
+            PixelBandwidth = 160
+            PixelSpacing = [0.9765625, 0.9765625]
+            SliceThickness = 1
+            RepetitionTime = 10
+            EchoTime = 4.76
+            NumberOfAverages = 1
+            AcquisitionMatrix = [256, 0, 0, 218]
+            MRAcquisitionType = '3D'
+            ImageOrientationPatient = [1, 0, 0, 0, 1, 0]
+            ImagePositionPatient = [-125, -102.87969398499, 137.37057876587]
+            InPlanePhaseEncodingDirection = 'COL'
+
+        datasets = [DataSet] * 192
 
         for i in range(12):
             A = generate_cube(8)
