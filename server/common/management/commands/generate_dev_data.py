@@ -179,8 +179,9 @@ class Command(BaseCommand):
             type=GoldenFiducials.CSV,
         )
 
-        dicom_series_mri = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
-        with zipfile.ZipFile('data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip', 'r') as zip_file:
+        dicom_series_path = os.path.join(settings.BASE_DIR, 'data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
+        dicom_series_mri = factories.DicomSeriesFactory(zipped_dicom_files=dicom_series_path)
+        with zipfile.ZipFile(dicom_series_path, 'r') as zip_file:
             datasets = dicom_import.dicom_datasets_from_zip(zip_file)
 
         for i in range(12):
