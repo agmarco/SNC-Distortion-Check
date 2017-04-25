@@ -19,3 +19,4 @@ djangorestframework
 requests
 whitenoise
 factory_boy
+ipywidgets
