@@ -179,7 +179,7 @@ class Command(BaseCommand):
             type=GoldenFiducials.CSV,
         )
 
-        dicom_series_mri = factories.DicomSeriesFactory()
+        dicom_series_mri = factories.DicomSeriesFactory(zipped_dicom_files=os.path.join(settings.BASE_DIR, 'empty.txt'))
 
         class DataSet:
             ScanningSequence = 'GR'
