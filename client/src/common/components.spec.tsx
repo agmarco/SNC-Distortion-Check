@@ -39,12 +39,14 @@ describe('<MachineSequenceTable />', () => {
     it('filters by machine', () => {
         wrapper.find('.machine-filter').first().simulate('change', {target: {value: machineA.pk.toString()}});
         const results = wrapper.find('.results').find('tbody').find('tr');
-        assert(results.everyWhere(r => r.find('td').at(0).text() === machineA.name));
+        const machineColumnIndex = 0;
+        assert(results.everyWhere(r => r.find('td').at(machineColumnIndex).text() === machineA.name));
     });
 
     it('filters by sequence', () => {
         wrapper.find('.sequence-filter').first().simulate('change', {target: {value: sequenceA.pk.toString()}});
         const results = wrapper.find('.results').find('tbody').find('tr');
-        assert(results.everyWhere(r => r.find('td').at(1).text() === sequenceA.name));
+        const sequenceColumnIndex = 1;
+        assert(results.everyWhere(r => r.find('td').at(sequenceColumnIndex).text() === sequenceA.name));
     });
 });
