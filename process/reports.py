@@ -42,7 +42,7 @@ def generate_equidistant_sphere(n=256):
     return points
 
 
-def generate_report(datasets, TP_A_S, TP_B, threshold, pdf_path):
+def generate_report(datasets, TP_A_S, TP_B, threshold, institution, pdf_path):
     """
     Given the set of matched and registered points, generate a NEMA report.
 
@@ -73,43 +73,46 @@ def generate_report(datasets, TP_A_S, TP_B, threshold, pdf_path):
         max_value, mean_value = np.max(values), np.mean(values)
         radius2max_mean_error[r] = (max_value, mean_value,)
 
-    def generate_scatter_plot():
-        scatter_fig = plt.figure()
-        origins = np.repeat([isocenter], TP_B.shape[1], axis=0)
-        distances = np.linalg.norm(TP_B.T - origins, axis=1)
-
-        cmap = colors.ListedColormap(['green', 'red'])
-        bounds = [0, threshold, math.inf]
-        norm = colors.BoundaryNorm(bounds, cmap.N)
-
-        plt.plot([0, distances.max()], [threshold, threshold], c='red', linestyle='dashed')
-        plt.scatter(distances, error_mags, c=error_mags, cmap=cmap, norm=norm)
-        plt.xlabel('Distance from Isocenter [mm]')
-        plt.ylabel('Distortion Magnitude [mm]')
-        return scatter_fig
-
-    def generate_error_table():
+    def generate_institution_table():
         table_fig = plt.figure()
-        rows = []
-        for r, (max_value, mean_value) in radius2max_mean_error.items():
-            rows.append((r, np.round(max_value, 3), np.round(mean_value, 3),))
-        plt.table(cellText=rows, colLabels=['Distance from Isocenter [mm]', 'Maximum Error [mm]', 'Average Error [mm]'],
-                  loc='center')
+        rows = [
+            ('Name', institution.name),
+            ('Number of Licenses', institution.number_of_licenses),
+            ('Address', institution.address),
+            ('Phone Number', institution.phone_number),
+        ]
+        plt.table(cellText=rows, loc='center')
         plt.axis('off')
+        plt.title('Institution Table')
         return table_fig
 
-    def generate_roi_table():
-        pass
-
-    def generate_quiver():
-        quiver_fig = plt.figure()
-        ax = quiver_fig.add_subplot(111, projection='3d')
-        ax.quiver(*TP_B, *error_vecs)
-        return quiver_fig
-
-    def generate_points():
-        points_fig = scatter3({'A_S': TP_A_S, 'B': TP_B})
-        return points_fig
+    def generate_data_acquisition_table():
+        table_fig = plt.figure()
+        dataset = datasets[0]
+        rows = [
+            (r'Phantom filler T$_1$', ''),
+            (r'Phantom filler T$_2$', ''),
+            ('Phantom filler composition', ''),
+            ('Sequence type', dataset.ScanningSequence),
+            ('Pixel bandwidth', str(dataset.PixelBandwidth) + r' $\frac{Hz}{px}$'),
+            ('Voxel dimensions', ' x '.join([f'{str(round(x, 3))} mm' for x in [*dataset.PixelSpacing, dataset.SliceThickness]])),
+            ('Sequence repetition time (TR)', f'{dataset.RepetitionTime} ms'),
+            ('Echo delay time (TE)', f'{dataset.EchoTime} ms'),
+            ('Number of signals averaged (NSA)', dataset.NumberOfAverages),
+            ('Data acquisition matrix size', ', '.join([str(i) for i in dataset.AcquisitionMatrix])),
+            ('Image matrix size', ''),
+            ('Field of view size', ''),
+            ('Type of acquisition', dataset.MRAcquisitionType),
+            ('Number of slices', len(datasets)),
+            ('Slice orientation', ', '.join([str(i) for i in dataset.ImageOrientationPatient])),
+            ('Slice position', ', '.join([str(round(i, 3)) for i in dataset.ImagePositionPatient])),
+            ('Slice thickness', f'{dataset.SliceThickness} mm'),
+            ('Direction of phase encoding', dataset.InPlanePhaseEncodingDirection),
+        ]
+        plt.table(cellText=rows, loc='center')
+        plt.axis('off')
+        plt.title('Data Acquisition Table')
+        return table_fig
 
     def generate_spacial_mapping(grid_x, grid_y, gridded):
         contour_fig = plt.figure()
@@ -173,34 +176,48 @@ def generate_report(datasets, TP_A_S, TP_B, threshold, pdf_path):
             figs.append(contour_fig)
         return figs
 
-    def generate_data_acquisition_table():
+    def generate_scatter_plot():
+        scatter_fig = plt.figure()
+        origins = np.repeat([isocenter], TP_B.shape[1], axis=0)
+        distances = np.linalg.norm(TP_B.T - origins, axis=1)
+
+        cmap = colors.ListedColormap(['green', 'red'])
+        bounds = [0, threshold, math.inf]
+        norm = colors.BoundaryNorm(bounds, cmap.N)
+
+        plt.plot([0, distances.max()], [threshold, threshold], c='red', linestyle='dashed')
+        plt.scatter(distances, error_mags, c=error_mags, cmap=cmap, norm=norm)
+        plt.xlabel('Distance from Isocenter [mm]')
+        plt.ylabel('Distortion Magnitude [mm]')
+        plt.title('Scatter Plot of Geometric Distortion vs. Distance from Isocenter')
+        return scatter_fig
+
+    def generate_error_table():
         table_fig = plt.figure()
-        dataset = datasets[0]
-        rows = [
-            (r'Phantom filler T$_1$', ''),
-            (r'Phantom filler T$_2$', ''),
-            ('Phantom filler composition', ''),
-            ('Sequence type', dataset.ScanningSequence),
-            ('Pixel bandwidth', str(dataset.PixelBandwidth) + r' $\frac{Hz}{px}$'),
-            ('Voxel dimensions', ' x '.join([f'{str(x)} mm' for x in [*dataset.PixelSpacing, dataset.SliceThickness]])),
-            ('Sequence repetition time (TR)', f'{dataset.RepetitionTime} ms'),
-            ('Echo delay time (TE)', f'{dataset.EchoTime} ms'),
-            ('Number of signals averaged (NSA)', dataset.NumberOfAverages),
-            ('Data acquisition matrix size', ', '.join([str(i) for i in dataset.AcquisitionMatrix])),
-            ('Image matrix size', ''),
-            ('Field of view size', ''),
-            ('Type of acquisition', dataset.MRAcquisitionType),
-            ('Number of slices', len(datasets)),
-            ('Slice orientation', ', '.join([str(i) for i in dataset.ImageOrientationPatient])),
-            ('Slice position', ', '.join([str(i) for i in dataset.ImagePositionPatient])),
-            ('Slice thickness', f'{dataset.SliceThickness} mm'),
-            ('Direction of phase encoding', dataset.InPlanePhaseEncodingDirection),
-        ]
-        plt.table(cellText=rows, loc='center')
+        rows = []
+        for r, (max_value, mean_value) in radius2max_mean_error.items():
+            rows.append((r, np.round(max_value, 3), np.round(mean_value, 3)))
+        plt.table(cellText=rows, colLabels=['Distance from Isocenter [mm]', 'Maximum Error [mm]', 'Average Error [mm]'],
+                  loc='center')
         plt.axis('off')
+        plt.title('Error Table')
         return table_fig
 
+    def generate_roi_table():
+        pass
+
+    def generate_points():
+        points_fig = scatter3({'A_S': TP_A_S, 'B': TP_B})
+        return points_fig
+
+    def generate_quiver():
+        quiver_fig = plt.figure()
+        ax = quiver_fig.add_subplot(111, projection='3d')
+        ax.quiver(*TP_B, *error_vecs)
+        return quiver_fig
+
     with PdfPages(pdf_path) as pdf:
+        pdf.savefig(generate_institution_table())
         pdf.savefig(generate_data_acquisition_table())
 
         pdf.savefig(generate_axial_spacial_mapping())
@@ -235,4 +252,10 @@ if __name__ == '__main__':
     with zipfile.ZipFile('data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip') as zip_file:
         datasets = dicom_import.dicom_datasets_from_zip(zip_file)
 
-    generate_report(datasets, A, B, 0.4, 'report.pdf')
+    class Institution:
+        name = "Johns Hopkins"
+        number_of_licenses = 12
+        address = "3101 Wyman Park Dr.\nBaltimore, MD 21211"
+        phone_number = "555-555-5555"
+
+    generate_report(datasets, A, B, 0.4, Institution, 'report.pdf')
