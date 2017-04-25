@@ -75,9 +75,9 @@ describe('<ScanChart />', () => {
     it('calculates the quartiles correctly', () => {
         const quartiles = wrapper.find(ScanChartData).prop('data')[0][1].quartiles;
 
-        //assert(quartiles[0] === 1.215615536609391);
-        //assert(quartiles[1] === 1.54589437705);
-        //assert(quartiles[2] === 1.930314810061184);
+        assert(quartiles[0] === 1.215615536609391);
+        assert(quartiles[1] === 1.5458943770488713);
+        assert(quartiles[2] === 1.930314810061184);
     });
 
     it('marks scans as passed/failed', () => {
