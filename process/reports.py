@@ -42,10 +42,6 @@ def generate_equidistant_sphere(n=256):
     return points
 
 
-def generate_institution_table():
-    pass
-
-
 def generate_report(datasets, TP_A_S, TP_B, threshold, pdf_path):
     """
     Given the set of matched and registered points, generate a NEMA report.
