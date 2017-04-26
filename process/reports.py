@@ -54,14 +54,14 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, threshold, insti
     error_vecs = TP_A_S - TP_B
     error_mags = np.linalg.norm(error_vecs, axis=0)
 
-    x_min, y_min, z_min = np.min(TP_B, axis=1)
-    x_max, y_max, z_max = np.max(TP_B, axis=1)
+    x_min, y_min, z_min = np.min(TP_A_S, axis=1)
+    x_max, y_max, z_max = np.max(TP_A_S, axis=1)
 
     # assume that the isocenter is the geometric origin
     isocenter = ((x_min + x_max) / 2, (y_min + y_max) / 2, (z_min + z_max) / 2)
 
     # interpolate onto spheres of increasing size to calculate average and max error table
-    interpolator = LinearNDInterpolator(TP_B.T, error_mags.T)
+    interpolator = LinearNDInterpolator(TP_A_S.T, error_mags.T)
     max_sphere_radius = np.min(np.abs([x_min, y_min, z_min, x_max, y_max, z_max]))
     radius2max_mean_error = OrderedDict()
 
@@ -130,7 +130,7 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, threshold, insti
         grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
                                              np.arange(y_min, y_max, GRID_DENSITY_mm),
                                              [isocenter[2]])
-        gridded = griddata(TP_B.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
+        gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
         contour_fig = generate_spacial_mapping(grid_x, grid_y, gridded)
         plt.xlabel('x [mm]')
         plt.ylabel('y [mm]')
@@ -141,7 +141,7 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, threshold, insti
         grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
                                              [isocenter[1]],
                                              np.arange(z_min, z_max, GRID_DENSITY_mm), )
-        gridded = griddata(TP_B.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
+        gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
         contour_fig = generate_spacial_mapping(grid_x, grid_z, gridded)
         plt.xlabel('x [mm]')
         plt.ylabel('z [mm]')
@@ -152,7 +152,7 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, threshold, insti
         grid_x, grid_y, grid_z = np.meshgrid([isocenter[0]],
                                              np.arange(y_min, y_max, GRID_DENSITY_mm),
                                              np.arange(z_min, z_max, GRID_DENSITY_mm))
-        gridded = griddata(TP_B.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
+        gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
         contour_fig = generate_spacial_mapping(grid_y, grid_z, gridded)
         plt.xlabel('y [mm]')
         plt.ylabel('z [mm]')
@@ -165,19 +165,21 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, threshold, insti
             grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
                                                  np.arange(y_min, y_max, GRID_DENSITY_mm),
                                                  [z])
-            gridded = griddata(TP_B.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
+            gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
 
-            contour_fig = generate_spacial_mapping(grid_x, grid_y, gridded)
-            plt.xlabel('x [mm]')
-            plt.ylabel('y [mm]')
-            plt.title(f'Axial Contour Plot Series (z = {z} mm)')
-            figs.append(contour_fig)
+            # why does this happen when z = z_min?
+            if not np.isnan(gridded).all():
+                contour_fig = generate_spacial_mapping(grid_x, grid_y, gridded)
+                plt.xlabel('x [mm]')
+                plt.ylabel('y [mm]')
+                plt.title(f'Axial Contour Plot Series (z = {z} mm)')
+                figs.append(contour_fig)
         return figs
 
     def generate_scatter_plot():
         scatter_fig = plt.figure()
-        origins = np.repeat([isocenter], TP_B.shape[1], axis=0)
-        distances = np.linalg.norm(TP_B.T - origins, axis=1)
+        origins = np.repeat([isocenter], TP_A_S.shape[1], axis=0)
+        distances = np.linalg.norm(TP_A_S.T - origins, axis=1)
 
         cmap = colors.ListedColormap(['green', 'red'])
         bounds = [0, threshold, math.inf]
@@ -204,27 +206,31 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, threshold, insti
     def generate_roi_table():
         xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
         rois = zip(apply_affine(xyz_to_ijk, TP_A_S).T, apply_affine(xyz_to_ijk, TP_B).T)
-        size = max(int(error_mags.max() * 1.5 / 2), 25)
+        size = 12
 
         figs = []
         for (A, B) in list(rois)[:1]:  # TODO
             roi_fig = plt.figure()
 
-            center = (int((A[0] + B[0]) / 2), int((A[1] + B[1]) / 2), int((A[2] + B[2]) / 2))
+            x_slice = slice(int(B[0]) - size, int(B[0]) + size)
+            y_slice = slice(int(B[1]) - size, int(B[1]) + size)
+            z_slice = slice(int(B[2]) - size, int(B[2]) + size)
 
-            x_slice = slice(center[0] - size, center[0] + size)
-            y_slice = slice(center[1] - size, center[1] + size)
-            z_slice = slice(center[2] - size, center[2] + size)
+            axial_slice = voxels[x_slice, y_slice, int(B[2])]
+            sagittal_slice = voxels[x_slice, int(B[1]), z_slice]
+            coronal_slice = voxels[int(B[0]), y_slice, z_slice]
 
-            axial_slice = voxels[x_slice, y_slice, center[2]]
-            # sagittal_slice = voxels[x_slice, center[1], z_slice]
-            # coronal_slice = voxels[center[0], y_slice, z_slice]
+            axial_plt = roi_fig.add_subplot(111)
+            axial_plt.imshow(axial_slice, cmap='Greys_r')
 
-            axial_slice = (axial_slice - axial_slice.min()) / axial_slice.ptp()
-            # sagittal_slice = (sagittal_slice - sagittal_slice.min()) / sagittal_slice.ptp()
-            # coronal_slice = (coronal_slice - coronal_slice.min()) / coronal_slice.ptp()
+            sagittal_plt = roi_fig.add_subplot(111)
+            sagittal_plt.imshow(sagittal_slice, cmap='Greys_r')
 
-            plt.imshow(axial_slice)
+            coronal_plt = roi_fig.add_subplot(111)
+            coronal_plt.imshow(coronal_slice, cmap='Greys_r')
+
+            plt.axis('off')
+            plt.title('Fiducial ROIs')
             figs.append(roi_fig)
         return figs
 
@@ -235,7 +241,7 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, threshold, insti
     def generate_quiver():
         quiver_fig = plt.figure()
         ax = quiver_fig.add_subplot(111, projection='3d')
-        ax.quiver(*TP_B, *error_vecs)
+        ax.quiver(*TP_A_S, *error_vecs)
         return quiver_fig
 
     with PdfPages(pdf_path) as pdf:
