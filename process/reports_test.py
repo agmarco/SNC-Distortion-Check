@@ -53,8 +53,8 @@ def test_roi_fiducial_near_edge():
     A = B = (0, 0, 0)
     slices = roi_slices(A, B, voxels, size)
     axial_image = roi_image(voxels, (slices[0], slices[1], 0))
-    sagittal_image = roi_image(voxels, (slices[0], slices[1], 0))
-    coronal_image = roi_image(voxels, (slices[0], slices[1], 0))
+    sagittal_image = roi_image(voxels, (slices[0], 0, slices[2]))
+    coronal_image = roi_image(voxels, (0, slices[1], slices[2]))
 
     assert axial_image.shape == (size, size, size)
     assert sagittal_image.shape == (size, size, size)
@@ -63,8 +63,8 @@ def test_roi_fiducial_near_edge():
     A = B = (99, 99, 99)
     slices = roi_slices(A, B, voxels, size)
     axial_image = roi_image(voxels, (slices[0], slices[1], 0))
-    sagittal_image = roi_image(voxels, (slices[0], slices[1], 0))
-    coronal_image = roi_image(voxels, (slices[0], slices[1], 0))
+    sagittal_image = roi_image(voxels, (slices[0], 0, slices[2]))
+    coronal_image = roi_image(voxels, (0, slices[1], slices[2]))
 
     assert axial_image.shape == (size, size, size)
     assert sagittal_image.shape == (size, size, size)
