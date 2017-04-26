@@ -203,10 +203,7 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, threshold, insti
 
     def generate_roi_table():
         xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
-        rois = zip(
-            (xyz_to_ijk @ np.vstack([TP_A_S, np.repeat([1], TP_A_S.shape[1])])).T,
-            (xyz_to_ijk @ np.vstack([TP_B, np.repeat([1], TP_B.shape[1])])).T,
-        )
+        rois = zip(apply_affine(xyz_to_ijk, TP_A_S).T, apply_affine(xyz_to_ijk, TP_B).T)
         size = max(int(error_mags.max() * 1.5 / 2), 25)
 
         figs = []
@@ -214,8 +211,6 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, threshold, insti
             roi_fig = plt.figure()
 
             center = (int((A[0] + B[0]) / 2), int((A[1] + B[1]) / 2), int((A[2] + B[2]) / 2))
-
-            print(error_mags.max() * 1.5 / 2)
 
             x_slice = slice(center[0] - size, center[0] + size)
             y_slice = slice(center[1] - size, center[1] + size)
