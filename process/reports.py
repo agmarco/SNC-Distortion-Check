@@ -1,6 +1,5 @@
 import zipfile
 import math
-import os
 from collections import OrderedDict
 
 import matplotlib.pyplot as plt
@@ -42,7 +41,7 @@ def generate_equidistant_sphere(n=256):
     return points
 
 
-def generate_report(datasets, TP_A_S, TP_B, threshold, institution, pdf_path):
+def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, threshold, institution, pdf_path):
     """
     Given the set of matched and registered points, generate a NEMA report.
 
@@ -160,7 +159,6 @@ def generate_report(datasets, TP_A_S, TP_B, threshold, institution, pdf_path):
         plt.title('Coronal Contour Plot')
         return contour_fig
 
-    # TODO RuntimeWarning: invalid value encountered in true_divide
     def generate_axial_spacial_mapping_series():
         figs = []
         for z in np.arange(z_min, z_max, 2):
@@ -204,7 +202,36 @@ def generate_report(datasets, TP_A_S, TP_B, threshold, institution, pdf_path):
         return table_fig
 
     def generate_roi_table():
-        pass
+        xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
+        rois = zip(
+            (xyz_to_ijk @ np.vstack([TP_A_S, np.repeat([1], TP_A_S.shape[1])])).T,
+            (xyz_to_ijk @ np.vstack([TP_B, np.repeat([1], TP_B.shape[1])])).T,
+        )
+        size = max(int(error_mags.max() * 1.5 / 2), 25)
+
+        figs = []
+        for (A, B) in list(rois)[:1]:  # TODO
+            roi_fig = plt.figure()
+
+            center = (int((A[0] + B[0]) / 2), int((A[1] + B[1]) / 2), int((A[2] + B[2]) / 2))
+
+            print(error_mags.max() * 1.5 / 2)
+
+            x_slice = slice(center[0] - size, center[0] + size)
+            y_slice = slice(center[1] - size, center[1] + size)
+            z_slice = slice(center[2] - size, center[2] + size)
+
+            axial_slice = voxels[x_slice, y_slice, center[2]]
+            # sagittal_slice = voxels[x_slice, center[1], z_slice]
+            # coronal_slice = voxels[center[0], y_slice, z_slice]
+
+            axial_slice = (axial_slice - axial_slice.min()) / axial_slice.ptp()
+            # sagittal_slice = (sagittal_slice - sagittal_slice.min()) / sagittal_slice.ptp()
+            # coronal_slice = (coronal_slice - coronal_slice.min()) / coronal_slice.ptp()
+
+            plt.imshow(axial_slice)
+            figs.append(roi_fig)
+        return figs
 
     def generate_points():
         points_fig = scatter3({'A_S': TP_A_S, 'B': TP_B})
@@ -217,6 +244,9 @@ def generate_report(datasets, TP_A_S, TP_B, threshold, institution, pdf_path):
         return quiver_fig
 
     with PdfPages(pdf_path) as pdf:
+        for fig in (generate_roi_table()):
+            pdf.savefig(fig)
+
         pdf.savefig(generate_institution_table())
         pdf.savefig(generate_data_acquisition_table())
 
@@ -252,10 +282,12 @@ if __name__ == '__main__':
     with zipfile.ZipFile('data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip') as zip_file:
         datasets = dicom_import.dicom_datasets_from_zip(zip_file)
 
+    voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
+
     class Institution:
         name = "Johns Hopkins"
         number_of_licenses = 12
         address = "3101 Wyman Park Dr.\nBaltimore, MD 21211"
         phone_number = "555-555-5555"
 
-    generate_report(datasets, A, B, 0.4, Institution, 'report.pdf')
+    generate_report(datasets, voxels, ijk_to_xyz, A, B, 0.4, Institution, 'report.pdf')
