@@ -46,9 +46,9 @@ def test_roi_size_rounding():
     assert size == 13
 
 
-def test_roi_fiducial_near_top_left_corner():
+def test_roi_fiducial_near_top_left_corner_size():
     """
-    Asserts the ROI image generated from a fiducial near (0, 0, 0) is the right size, and that the overflow is black.
+    Asserts the ROI image generated from a fiducial near (0, 0, 0) is the right size.
     """
 
     voxels_size = 100
@@ -65,14 +65,30 @@ def test_roi_fiducial_near_top_left_corner():
     assert sagittal_image.shape == (size, size, size)
     assert coronal_image.shape == (size, size, size)
 
+
+def test_roi_fiducial_near_top_left_corner_overflow():
+    """
+    Asserts the ROI image generated from a fiducial near (0, 0, 0) has a black overflow.
+    """
+
+    voxels_size = 100
+    voxels = np.ones((voxels_size, voxels_size, voxels_size))
+    size = 9
+
+    slices = (slice(0, 5), slice(0, 5), slice(0, 5))
+
+    axial_image = roi_image(voxels, (slices[0], slices[1], 0))
+    sagittal_image = roi_image(voxels, (slices[0], 0, slices[2]))
+    coronal_image = roi_image(voxels, (0, slices[1], slices[2]))
+
     assert (axial_image[0:5, :] == 0).all() and (axial_image[:, 0:5] == 0).all()
     assert (sagittal_image[0:5, :] == 0).all() and (sagittal_image[:, 0:5] == 0).all()
     assert (coronal_image[0:5, :] == 0).all() and (coronal_image[:, 0:5] == 0).all()
 
 
-def test_roi_fiducial_near_bottom_right_corner():
+def test_roi_fiducial_near_bottom_right_corner_size():
     """
-    Asserts the ROI image generated from a fiducial near (n, m, l) is the right size, and that the overflow is black.
+    Asserts the ROI image generated from a fiducial near (n, m, l) is the right size.
     """
 
     voxels_size = 100
@@ -88,6 +104,22 @@ def test_roi_fiducial_near_bottom_right_corner():
     assert axial_image.shape == (size, size, size)
     assert sagittal_image.shape == (size, size, size)
     assert coronal_image.shape == (size, size, size)
+
+
+def test_roi_fiducial_near_bottom_right_corner_overflow():
+    """
+    Asserts the ROI image generated from a fiducial near (n, m, l) has a black overflow.
+    """
+
+    voxels_size = 100
+    voxels = np.ones((voxels_size, voxels_size, voxels_size))
+    size = 9
+
+    slices = (slice(94, 100), slice(94, 100), slice(94, 100))
+
+    axial_image = roi_image(voxels, (slices[0], slices[1], 0))
+    sagittal_image = roi_image(voxels, (slices[0], 0, slices[2]))
+    coronal_image = roi_image(voxels, (0, slices[1], slices[2]))
 
     assert (axial_image[94:, :] == 0).all() and (axial_image[:, 94:] == 0).all()
     assert (sagittal_image[94:, :] == 0).all() and (sagittal_image[:, 94:] == 0).all()
