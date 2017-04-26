@@ -68,7 +68,7 @@ def test_roi_fiducial_near_top_left_corner_size():
 
 def test_roi_fiducial_near_top_left_corner_overflow():
     """
-    Asserts the ROI image generated from a fiducial near (0, 0, 0) has a black overflow.
+    Asserts the ROI image generated from a fiducial near (0, 0, 0) fills the extra space with black.
     """
 
     voxels_size = 100
@@ -108,7 +108,7 @@ def test_roi_fiducial_near_bottom_right_corner_size():
 
 def test_roi_fiducial_near_bottom_right_corner_overflow():
     """
-    Asserts the ROI image generated from a fiducial near (n, m, l) has a black overflow.
+    Asserts the ROI image generated from a fiducial near (n, m, l) fills the extra space with black.
     """
 
     voxels_size = 100
