@@ -95,7 +95,7 @@ def test_roi_fiducial_near_bottom_right_corner_size():
     voxels = np.ones((voxels_size, voxels_size, voxels_size))
     size = 9
 
-    slices = (slice(94, 100), slice(94, 100), slice(94, 100))
+    slices = (slice(95, 100), slice(95, 100), slice(95, 100))
 
     axial_image = roi_image(voxels, (slices[0], slices[1], 0))
     sagittal_image = roi_image(voxels, (slices[0], 0, slices[2]))
@@ -115,15 +115,15 @@ def test_roi_fiducial_near_bottom_right_corner_overflow():
     voxels = np.ones((voxels_size, voxels_size, voxels_size))
     size = 9
 
-    slices = (slice(94, 100), slice(94, 100), slice(94, 100))
+    slices = (slice(95, 100), slice(95, 100), slice(95, 100))
 
     axial_image = roi_image(voxels, (slices[0], slices[1], 0))
     sagittal_image = roi_image(voxels, (slices[0], 0, slices[2]))
     coronal_image = roi_image(voxels, (0, slices[1], slices[2]))
 
-    assert (axial_image[94:, :] == 0).all() and (axial_image[:, 94:] == 0).all()
-    assert (sagittal_image[94:, :] == 0).all() and (sagittal_image[:, 94:] == 0).all()
-    assert (coronal_image[94:, :] == 0).all() and (coronal_image[:, 94:] == 0).all()
+    assert (axial_image[95:, :] == 0).all() and (axial_image[:, 95:] == 0).all()
+    assert (sagittal_image[95:, :] == 0).all() and (sagittal_image[:, 95:] == 0).all()
+    assert (coronal_image[95:, :] == 0).all() and (coronal_image[:, 95:] == 0).all()
 
 
 def test_roi_center_odd_size():
