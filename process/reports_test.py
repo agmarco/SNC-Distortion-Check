@@ -146,10 +146,10 @@ def test_roi_center_even_size():
 
 def test_roi_center_rounding():
     """
-    Asserts the detected fiducial coordinates are rounded up.
+    Asserts the detected fiducial coordinates are rounded properly.
     """
 
     shape = (9, 9, 9)
-    B = (49.1, 49.1, 49.1)
+    B = (49.5, 49.5, 49.5)
     bounds_list = roi_bounds(B, shape)
-    assert all(bounds == (46, 55) for bounds in bounds_list)
+    assert all(bounds in ((45, 54), (46, 55)) for bounds in bounds_list)

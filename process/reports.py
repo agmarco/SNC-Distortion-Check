@@ -54,11 +54,15 @@ def roi_bounds(B, shape):
 
 
 def roi_image(voxels, bounds_list):
-    adjusted_bounds_list = [(max(start, 0), min(end, voxels.shape[i])) for i, (start, end) in enumerate(bounds_list)]
+    adjusted_bounds_list = tuple((max(start, 0), min(end, voxels.shape[i])) for i, (start, end) in enumerate(bounds_list))
     slices = tuple(slice(*bounds) for bounds in adjusted_bounds_list)
     image = voxels[slices].squeeze()
 
     v_bounds, h_bounds = [bounds for bounds in bounds_list if bounds[1] - bounds[0] > 1]
+
+    if bounds_list[0][1] - bounds_list[0][0] == 1:
+        # print(slices)
+        pass
 
     if v_bounds[0] < 0:
         zeros = np.zeros((0 - v_bounds[0], image.shape[1]), dtype=float)
@@ -73,14 +77,19 @@ def roi_image(voxels, bounds_list):
         zeros = np.zeros((image.shape[0], h_bounds[1] - voxels.shape[1]), dtype=float)
         image = np.hstack((image, zeros))
 
+    if bounds_list[0][1] - bounds_list[0][0] == 1:
+        # print(bounds_list)
+        # print(adjusted_bounds_list)
+        pass
+
     return image
 
 
-def roi_images(voxels, bounds_list):
+def roi_images(B, voxels, bounds_list):
     return (
-        roi_image(voxels, (bounds_list[0], bounds_list[1], (0, 1))),
-        roi_image(voxels, (bounds_list[0], (0, 1), bounds_list[2])),
-        roi_image(voxels, ((0, 1), bounds_list[1], bounds_list[2])),
+        roi_image(voxels, (bounds_list[0], bounds_list[1], (B[2], B[2] + 1))),
+        roi_image(voxels, (bounds_list[0], (B[1], B[1] + 1), bounds_list[2])),
+        roi_image(voxels, ((B[0], B[0] + 1), bounds_list[1], bounds_list[2])),
     )
 
 
@@ -257,11 +266,11 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, grid_radius, thr
             plt.axis('off')
 
             for i, (A, B, error_vec, error_mag) in enumerate(chunk):
-                B_ijk = apply_affine(xyz_to_ijk, np.array([B]).T).T.squeeze()
+                B_ijk = np.array([int(round(x)) for x in apply_affine(xyz_to_ijk, np.array([B]).T).T.squeeze()])
                 shape = roi_shape(grid_radius, pixel_spacing(ijk_to_xyz))
                 bounds = roi_bounds(B, shape)
                 bounds_ijk = roi_bounds(B_ijk, shape)
-                axial, sagittal, coronal = roi_images(voxels, bounds_ijk)
+                axial, sagittal, coronal = roi_images(B_ijk, voxels, bounds_ijk)
 
                 roi_fig.add_subplot(3, 4, i * 4 + 1)
                 plt.imshow(axial, cmap='Greys', extent=[*bounds[0], *bounds[1]])
