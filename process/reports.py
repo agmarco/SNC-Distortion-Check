@@ -46,17 +46,32 @@ def roi_shape(grid_radius, pixel_spacing, slice_thickness):
     return tuple(math.ceil(grid_radius / dim * 4) for dim in voxel_dims)
 
 
-def roi_slices(A, B, voxels, shape):
-    B = [int(math.ceil(x)) for x in B]
+def roi_slices(B, voxels, shape):
     return (
-        slice(max(B[0] - int(math.floor(shape[0] / 2)), 0), min(B[0] + int(math.ceil(shape[0] / 2)), voxels.shape[0])),
-        slice(max(B[1] - int(math.floor(shape[1] / 2)), 0), min(B[1] + int(math.ceil(shape[1] / 2)), voxels.shape[1])),
-        slice(max(B[2] - int(math.floor(shape[2] / 2)), 0), min(B[2] + int(math.ceil(shape[2] / 2)), voxels.shape[2])),
+        slice(
+            max(int(math.ceil(B[0])) - int(math.floor(shape[0] / 2)), 0),
+            min(int(math.ceil(B[0])) + int(math.ceil(shape[0] / 2)), voxels.shape[0]),
+        ),
+        slice(
+            max(int(math.ceil(B[1])) - int(math.floor(shape[1] / 2)), 0),
+            min(int(math.ceil(B[1])) + int(math.ceil(shape[1] / 2)), voxels.shape[1]),
+        ),
+        slice(
+            max(int(math.ceil(B[2])) - int(math.floor(shape[2] / 2)), 0),
+            min(int(math.ceil(B[2])) + int(math.ceil(shape[2] / 2)), voxels.shape[2]),
+        ),
     )
 
 
-def roi_image(voxels, slices):
-    pass
+def roi_image(voxels, slices, shape):
+    image = voxels[slices[0], slices[1], slices[2]]
+    if image.shape[0] < shape[0]:
+        zeros = np.zeros((shape[0] - image.shape[0], image.shape[1]), dtype=float)
+        image = np.vstack((image, zeros))
+    if image.shape[1] < shape[1]:
+        zeros = np.zeros((image.shape[0], shape[1] - image.shape[1]), dtype=float)
+        image = np.hstack((image, zeros))
+    return image
 
 
 def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, threshold, institution, pdf_path):

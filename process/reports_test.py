@@ -57,9 +57,9 @@ def test_roi_fiducial_near_top_left_corner_size():
 
     slices = (slice(0, 5), slice(0, 5), slice(0, 5))
 
-    axial_image = roi_image(voxels, (slices[0], slices[1], 0))
-    sagittal_image = roi_image(voxels, (slices[0], 0, slices[2]))
-    coronal_image = roi_image(voxels, (0, slices[1], slices[2]))
+    axial_image = roi_image(voxels, (slices[0], slices[1], 0), (shape[0], shape[1]))
+    sagittal_image = roi_image(voxels, (slices[0], 0, slices[2]), (shape[0], shape[2]))
+    coronal_image = roi_image(voxels, (0, slices[1], slices[2]), (shape[1], shape[2]))
 
     assert axial_image.shape == (shape[0], shape[1])
     assert sagittal_image.shape == (shape[0], shape[2])
@@ -73,12 +73,13 @@ def test_roi_fiducial_near_top_left_corner_overflow():
 
     voxels_size = 100
     voxels = np.ones((voxels_size, voxels_size, voxels_size))
+    shape = (9, 9, 9)
 
     slices = (slice(0, 5), slice(0, 5), slice(0, 5))
 
-    axial_image = roi_image(voxels, (slices[0], slices[1], 0))
-    sagittal_image = roi_image(voxels, (slices[0], 0, slices[2]))
-    coronal_image = roi_image(voxels, (0, slices[1], slices[2]))
+    axial_image = roi_image(voxels, (slices[0], slices[1], 0), (shape[0], shape[1]))
+    sagittal_image = roi_image(voxels, (slices[0], 0, slices[2]), (shape[0], shape[2]))
+    coronal_image = roi_image(voxels, (0, slices[1], slices[2]), (shape[1], shape[2]))
 
     assert (axial_image[0:5, :] == 0).all() and (axial_image[:, 0:5] == 0).all()
     assert (sagittal_image[0:5, :] == 0).all() and (sagittal_image[:, 0:5] == 0).all()
@@ -96,9 +97,9 @@ def test_roi_fiducial_near_bottom_right_corner_size():
 
     slices = (slice(95, 100), slice(95, 100), slice(95, 100))
 
-    axial_image = roi_image(voxels, (slices[0], slices[1], 0))
-    sagittal_image = roi_image(voxels, (slices[0], 0, slices[2]))
-    coronal_image = roi_image(voxels, (0, slices[1], slices[2]))
+    axial_image = roi_image(voxels, (slices[0], slices[1], 0), (shape[0], shape[1]))
+    sagittal_image = roi_image(voxels, (slices[0], 0, slices[2]), (shape[0], shape[2]))
+    coronal_image = roi_image(voxels, (0, slices[1], slices[2]), (shape[1], shape[2]))
 
     assert axial_image.shape == (shape[0], shape[1])
     assert sagittal_image.shape == (shape[0], shape[2])
@@ -112,12 +113,13 @@ def test_roi_fiducial_near_bottom_right_corner_overflow():
 
     voxels_size = 100
     voxels = np.ones((voxels_size, voxels_size, voxels_size))
+    shape = (9, 9, 9)
 
     slices = (slice(95, 100), slice(95, 100), slice(95, 100))
 
-    axial_image = roi_image(voxels, (slices[0], slices[1], 0))
-    sagittal_image = roi_image(voxels, (slices[0], 0, slices[2]))
-    coronal_image = roi_image(voxels, (0, slices[1], slices[2]))
+    axial_image = roi_image(voxels, (slices[0], slices[1], 0), (shape[0], shape[1]))
+    sagittal_image = roi_image(voxels, (slices[0], 0, slices[2]), (shape[0], shape[2]))
+    coronal_image = roi_image(voxels, (0, slices[1], slices[2]), (shape[1], shape[2]))
 
     assert (axial_image[95:, :] == 0).all() and (axial_image[:, 95:] == 0).all()
     assert (sagittal_image[95:, :] == 0).all() and (sagittal_image[:, 95:] == 0).all()
@@ -133,9 +135,8 @@ def test_roi_center_odd_size():
     voxels = np.zeros((voxels_size, voxels_size, voxels_size))
     shape = (9, 9, 9)
 
-    A = (40, 40, 40)
     B = (60, 60, 60)
-    slices = roi_slices(A, B, voxels, shape)
+    slices = roi_slices(B, voxels, shape)
     assert all(roi_slice == slice(56, 65) for roi_slice in slices)
 
 
@@ -148,9 +149,8 @@ def test_roi_center_even_size():
     voxels = np.zeros((voxels_size, voxels_size, voxels_size))
     shape = (10, 10, 10)
 
-    A = (40, 40, 40)
     B = (60, 60, 60)
-    slices = roi_slices(A, B, voxels, shape)
+    slices = roi_slices(B, voxels, shape)
     assert all(roi_slice in (slice(55, 65), slice(56, 66)) for roi_slice in slices)
 
 
@@ -163,6 +163,6 @@ def test_roi_center_rounding():
     voxels = np.zeros((voxels_size, voxels_size, voxels_size))
     shape = (9, 9, 9)
 
-    A = B = (49.1, 49.1, 49.1)
-    slices = roi_slices(A, B, voxels, shape)
+    B = (49.1, 49.1, 49.1)
+    slices = roi_slices(B, voxels, shape)
     assert all(roi_slice == slice(46, 55) for roi_slice in slices)
