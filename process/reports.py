@@ -248,7 +248,7 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, grid_radius, thr
 
     def generate_roi_table():
         xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
-        rois = zip(apply_affine(xyz_to_ijk, TP_A_S).T, apply_affine(xyz_to_ijk, TP_B).T, error_vecs.T, error_mags.T)
+        rois = zip(TP_A_S.T, TP_B.T, error_vecs.T, error_mags.T)
 
         figs = []
         for chunk in chunks(list(rois), 3):
@@ -257,30 +257,35 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, grid_radius, thr
             plt.axis('off')
 
             for i, (A, B, error_vec, error_mag) in enumerate(chunk):
+                B_ijk = apply_affine(xyz_to_ijk, np.array([B]).T).T.squeeze()
                 shape = roi_shape(grid_radius, pixel_spacing(ijk_to_xyz))
                 bounds = roi_bounds(B, shape)
-                axial, sagittal, coronal = roi_images(voxels, bounds)
+                bounds_ijk = roi_bounds(B_ijk, shape)
+                axial, sagittal, coronal = roi_images(voxels, bounds_ijk)
 
                 roi_fig.add_subplot(3, 4, i * 4 + 1)
-                plt.scatter([A[0]], [A[1]])
-                plt.imshow(axial, cmap='Greys_r')
+                plt.imshow(axial, cmap='Greys', extent=[*bounds[0], *bounds[1]])
+                plt.scatter([A[0]], [A[1]], c='gold')
+                plt.scatter([B[0]], [B[1]])
                 # plt.axis('off')
-                # plt.xlim([
-                #     apply_affine(ijk_to_xyz, np.array([[bounds[0][0]], [bounds[1][0]], [bounds[2][0]]], dtype=float))[0],
-                #     apply_affine(ijk_to_xyz, np.array([[bounds[0][1]], [bounds[1][1]], [bounds[2][1]]], dtype=float))[0],
-                # ])
-                # plt.ylim([
-                #     apply_affine(ijk_to_xyz, np.array([[bounds[0][0]], [bounds[1][0]], [bounds[2][0]]], dtype=float))[1],
-                #     apply_affine(ijk_to_xyz, np.array([[bounds[0][1]], [bounds[1][1]], [bounds[2][1]]], dtype=float))[1],
-                # ])
+                plt.xlim(bounds[0])
+                plt.ylim(bounds[1])
 
                 roi_fig.add_subplot(3, 4, i * 4 + 2)
-                plt.imshow(sagittal, cmap='Greys_r')
+                plt.imshow(sagittal, cmap='Greys', extent=[*bounds[0], *bounds[2]])
+                plt.scatter([A[0]], [A[2]], c='gold')
+                plt.scatter([B[0]], [B[2]])
                 # plt.axis('off')
+                plt.xlim(bounds[0])
+                plt.ylim(bounds[2])
 
                 roi_fig.add_subplot(3, 4, i * 4 + 3)
-                plt.imshow(coronal, cmap='Greys_r')
+                plt.imshow(coronal, cmap='Greys', extent=[*bounds[1], *bounds[2]])
+                plt.scatter([A[1]], [A[2]], c='gold')
+                plt.scatter([B[1]], [B[2]])
                 # plt.axis('off')
+                plt.xlim(bounds[1])
+                plt.ylim(bounds[2])
 
                 roi_fig.add_subplot(3, 4, i * 4 + 4)
                 rows = [
@@ -306,9 +311,6 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, grid_radius, thr
         return quiver_fig
 
     with PdfPages(pdf_path) as pdf:
-        for fig in (generate_roi_table()):
-            pdf.savefig(fig)
-
         pdf.savefig(generate_institution_table())
         pdf.savefig(generate_data_acquisition_table())
 
@@ -320,6 +322,9 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, grid_radius, thr
 
         pdf.savefig(generate_scatter_plot())
         pdf.savefig(generate_error_table())
+
+        for fig in (generate_roi_table()):
+            pdf.savefig(fig)
 
         pdf.savefig(generate_points())
         pdf.savefig(generate_quiver())
@@ -337,7 +342,7 @@ def generate_cube(size, spacing=1):
 if __name__ == '__main__':
     A = generate_cube(2, 4)
     B = generate_cube(2, 4)
-    affine_matrix = affine.translation_rotation(0, 0, 0, np.pi / 180 * 2, np.pi / 180 * 2, np.pi / 180 * 2)
+    affine_matrix = affine.translation_rotation(0, 0, 0, np.pi / 180 * 10, np.pi / 180 * 10, np.pi / 180 * 10)
 
     A = apply_affine(affine_matrix, A)
 
@@ -352,4 +357,4 @@ if __name__ == '__main__':
         address = "3101 Wyman Park Dr.\nBaltimore, MD 21211"
         phone_number = "555-555-5555"
 
-    generate_report(datasets, voxels, ijk_to_xyz, A, B, 1.5, 0.4, Institution, 'tmp/report.pdf')
+    generate_report(datasets, voxels, ijk_to_xyz, A, B, 1.5, 2.5, Institution, 'tmp/report.pdf')
