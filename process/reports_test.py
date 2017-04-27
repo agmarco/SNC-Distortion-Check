@@ -151,7 +151,7 @@ def test_roi_center_even_size():
     A = (40, 40, 40)
     B = (60, 60, 60)
     slices = roi_slices(A, B, voxels, shape)
-    assert all(roi_slice in (slice(56, 64), slice(57, 65)) for roi_slice in slices)
+    assert all(roi_slice in (slice(55, 65), slice(56, 66)) for roi_slice in slices)
 
 
 def test_roi_center_rounding():

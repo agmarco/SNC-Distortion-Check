@@ -46,8 +46,13 @@ def roi_shape(grid_radius, pixel_spacing, slice_thickness):
     return tuple(math.ceil(grid_radius / dim * 4) for dim in voxel_dims)
 
 
-def roi_slices(A, B, voxels, size):
-    pass
+def roi_slices(A, B, voxels, shape):
+    B = [int(math.ceil(x)) for x in B]
+    return (
+        slice(max(B[0] - int(math.floor(shape[0] / 2)), 0), min(B[0] + int(math.ceil(shape[0] / 2)), voxels.shape[0])),
+        slice(max(B[1] - int(math.floor(shape[1] / 2)), 0), min(B[1] + int(math.ceil(shape[1] / 2)), voxels.shape[1])),
+        slice(max(B[2] - int(math.floor(shape[2] / 2)), 0), min(B[2] + int(math.ceil(shape[2] / 2)), voxels.shape[2])),
+    )
 
 
 def roi_image(voxels, slices):
