@@ -247,10 +247,10 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, grid_radius, thr
 
     def generate_roi_table():
         xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
-        rois = zip(apply_affine(xyz_to_ijk, TP_A_S).T, apply_affine(xyz_to_ijk, TP_B).T)
+        rois = zip(apply_affine(xyz_to_ijk, TP_A_S).T, apply_affine(xyz_to_ijk, TP_B).T, error_vecs.T, error_mags.T)
 
         figs = []
-        for (A, B) in list(rois)[:2]:  # TODO
+        for (A, B, error_vec, error_mag) in list(rois)[:10]:  # TODO
             roi_fig = plt.figure()
             shape = roi_shape(grid_radius, pixel_spacing(ijk_to_xyz))
             bounds = roi_bounds(B, shape)
@@ -259,16 +259,27 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, grid_radius, thr
             plt.title('Fiducial ROIs')
             plt.axis('off')
 
-            roi_fig.add_subplot(131)
+            roi_fig.add_subplot(141)
+            plt.scatter([A[0]], [A[1]], c='gold')
             plt.imshow(axial, cmap='Greys_r')
             plt.axis('off')
 
-            roi_fig.add_subplot(132)
+            roi_fig.add_subplot(142)
             plt.imshow(sagittal, cmap='Greys_r')
             plt.axis('off')
 
-            roi_fig.add_subplot(133)
+            roi_fig.add_subplot(143)
             plt.imshow(coronal, cmap='Greys_r')
+            plt.axis('off')
+
+            roi_fig.add_subplot(144)
+            rows = [
+                ('x', f'{str(round(error_vec[0], 3))} mm'),
+                ('y', f'{str(round(error_vec[1], 3))} mm'),
+                ('z', f'{str(round(error_vec[2], 3))} mm'),
+                ('magnitude', f'{str(round(error_mag, 3))} mm'),
+            ]
+            plt.table(cellText=rows, loc='center')
             plt.axis('off')
 
             figs.append(roi_fig)
@@ -304,12 +315,12 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, grid_radius, thr
         pdf.savefig(generate_quiver())
 
 
-def generate_cube(size, x0=0):
+def generate_cube(size, spacing=1):
     points = []
     for x in range(-size, size):
         for y in range(-size, size):
             for z in range(-size, size):
-                points.append((float(x), float(y), float(z)))
+                points.append((float(x) * spacing, float(y) * spacing, float(z) * spacing))
     return np.array(points).T
 
 
@@ -331,4 +342,4 @@ if __name__ == '__main__':
         address = "3101 Wyman Park Dr.\nBaltimore, MD 21211"
         phone_number = "555-555-5555"
 
-    generate_report(datasets, voxels, ijk_to_xyz, A, B, 1.5, 0.4, Institution, 'report.pdf')
+    generate_report(datasets, voxels, ijk_to_xyz, A, B, 1.5, 0.4, Institution, 'tmp/report.pdf')
