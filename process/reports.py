@@ -282,7 +282,6 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, grid_radius, thr
                 plt.xlim(bounds[0])
                 plt.ylim(bounds[2])
 
-                # TODO no image shown
                 roi_fig.add_subplot(3, 4, i * 4 + 3)
                 plt.imshow(coronal, cmap='Greys', extent=[*bounds[1], *bounds[2]])
                 plt.scatter([A[1]], [A[2]], c='gold')
