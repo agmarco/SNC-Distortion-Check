@@ -41,6 +41,19 @@ def generate_equidistant_sphere(n=256):
     return points
 
 
+def roi_shape(grid_radius, pixel_spacing, slice_thickness):
+    voxel_dims = (*pixel_spacing, slice_thickness)
+    return tuple(math.ceil(grid_radius / dim * 4) for dim in voxel_dims)
+
+
+def roi_slices(A, B, voxels, size):
+    pass
+
+
+def roi_image(voxels, slices):
+    pass
+
+
 def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, threshold, institution, pdf_path):
     """
     Given the set of matched and registered points, generate a NEMA report.
@@ -167,7 +180,7 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, threshold, insti
                                                  [z])
             gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
 
-            # why does this happen when z = z_min?
+            # TODO why does this happen when z = z_min?
             if not np.isnan(gridded).all():
                 contour_fig = generate_spacial_mapping(grid_x, grid_y, gridded)
                 plt.xlabel('x [mm]')

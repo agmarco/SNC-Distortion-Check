@@ -1,6 +1,6 @@
 import numpy as np
 
-from process.reports import generate_equidistant_sphere, roi_size, roi_slices, roi_image
+from process.reports import generate_equidistant_sphere, roi_shape, roi_slices, roi_image
 
 
 def test_evenly_sampled_sphere_equidistant():
@@ -22,28 +22,28 @@ def test_evenly_sampled_sphere_equidistant():
     assert cv < 0.02
 
 
-def test_roi_size():
+def test_roi_shape():
     """
-    Asserts the size is 4x the grid radius.
+    Asserts the dimension sizes are 4x the grid radius.
     """
 
     grid_radius = 1.5
-    pixel_spacing = [0.5, 0.5]
-    A = B = np.array([[0], [0], [0]])
-    size = roi_size(A, B, grid_radius, pixel_spacing)
-    assert size == 12
+    pixel_spacing = [0.25, 0.5]
+    slice_thickness = 0.75
+    shape = roi_shape(grid_radius, pixel_spacing, slice_thickness)
+    assert shape == (24, 12, 8)  # TODO is this the right order?
 
 
-def test_roi_size_rounding():
+def test_roi_shape_rounding():
     """
-    Asserts the size is rounded up if 4x the grid radius is not a multiple of the pixel spacing.
+    Asserts the dimension sizes are rounded up if 4x the grid radius is not a multiple of the pixel spacing.
     """
 
     grid_radius = 1.51
     pixel_spacing = [0.5, 0.5]
-    A = B = np.array([[0], [0], [0]])
-    size = roi_size(A, B, grid_radius, pixel_spacing)
-    assert size == 13
+    slice_thickness = 0.5
+    shape = roi_shape(grid_radius, pixel_spacing, slice_thickness)
+    assert shape == (13, 13, 13)
 
 
 def test_roi_fiducial_near_top_left_corner_size():
@@ -53,7 +53,7 @@ def test_roi_fiducial_near_top_left_corner_size():
 
     voxels_size = 100
     voxels = np.ones((voxels_size, voxels_size, voxels_size))
-    size = 9
+    shape = (9, 9, 9)
 
     slices = (slice(0, 5), slice(0, 5), slice(0, 5))
 
@@ -61,9 +61,9 @@ def test_roi_fiducial_near_top_left_corner_size():
     sagittal_image = roi_image(voxels, (slices[0], 0, slices[2]))
     coronal_image = roi_image(voxels, (0, slices[1], slices[2]))
 
-    assert axial_image.shape == (size, size, size)
-    assert sagittal_image.shape == (size, size, size)
-    assert coronal_image.shape == (size, size, size)
+    assert axial_image.shape == (shape[0], shape[1])
+    assert sagittal_image.shape == (shape[0], shape[2])
+    assert coronal_image.shape == (shape[1], shape[2])
 
 
 def test_roi_fiducial_near_top_left_corner_overflow():
@@ -73,7 +73,6 @@ def test_roi_fiducial_near_top_left_corner_overflow():
 
     voxels_size = 100
     voxels = np.ones((voxels_size, voxels_size, voxels_size))
-    size = 9
 
     slices = (slice(0, 5), slice(0, 5), slice(0, 5))
 
@@ -93,7 +92,7 @@ def test_roi_fiducial_near_bottom_right_corner_size():
 
     voxels_size = 100
     voxels = np.ones((voxels_size, voxels_size, voxels_size))
-    size = 9
+    shape = (9, 9, 9)
 
     slices = (slice(95, 100), slice(95, 100), slice(95, 100))
 
@@ -101,9 +100,9 @@ def test_roi_fiducial_near_bottom_right_corner_size():
     sagittal_image = roi_image(voxels, (slices[0], 0, slices[2]))
     coronal_image = roi_image(voxels, (0, slices[1], slices[2]))
 
-    assert axial_image.shape == (size, size, size)
-    assert sagittal_image.shape == (size, size, size)
-    assert coronal_image.shape == (size, size, size)
+    assert axial_image.shape == (shape[0], shape[1])
+    assert sagittal_image.shape == (shape[0], shape[2])
+    assert coronal_image.shape == (shape[1], shape[2])
 
 
 def test_roi_fiducial_near_bottom_right_corner_overflow():
@@ -113,7 +112,6 @@ def test_roi_fiducial_near_bottom_right_corner_overflow():
 
     voxels_size = 100
     voxels = np.ones((voxels_size, voxels_size, voxels_size))
-    size = 9
 
     slices = (slice(95, 100), slice(95, 100), slice(95, 100))
 
@@ -133,11 +131,11 @@ def test_roi_center_odd_size():
 
     voxels_size = 100
     voxels = np.zeros((voxels_size, voxels_size, voxels_size))
-    size = 9
+    shape = (9, 9, 9)
 
     A = (40, 40, 40)
     B = (60, 60, 60)
-    slices = roi_slices(A, B, voxels, size)
+    slices = roi_slices(A, B, voxels, shape)
     assert all(roi_slice == slice(56, 65) for roi_slice in slices)
 
 
@@ -148,11 +146,11 @@ def test_roi_center_even_size():
 
     voxels_size = 100
     voxels = np.zeros((voxels_size, voxels_size, voxels_size))
-    size = 10
+    shape = (10, 10, 10)
 
     A = (40, 40, 40)
     B = (60, 60, 60)
-    slices = roi_slices(A, B, voxels, size)
+    slices = roi_slices(A, B, voxels, shape)
     assert all(roi_slice in (slice(56, 64), slice(57, 65)) for roi_slice in slices)
 
 
@@ -163,8 +161,8 @@ def test_roi_center_rounding():
 
     voxels_size = 100
     voxels = np.zeros((voxels_size, voxels_size, voxels_size))
-    size = 9
+    shape = (9, 9, 9)
 
     A = B = (49.1, 49.1, 49.1)
-    slices = roi_slices(A, B, voxels, size)
+    slices = roi_slices(A, B, voxels, shape)
     assert all(roi_slice == slice(46, 55) for roi_slice in slices)
