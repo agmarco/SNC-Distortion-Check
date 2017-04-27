@@ -30,7 +30,7 @@ def test_roi_shape():
     grid_radius = 1.5
     pixel_spacing = [0.25, 0.5, 0.75]
     shape = roi_shape(grid_radius, pixel_spacing)
-    assert shape == (24, 12, 8)
+    assert shape == (96, 48, 32)
 
 
 def test_roi_shape_rounding():
@@ -41,7 +41,7 @@ def test_roi_shape_rounding():
     grid_radius = 1.51
     pixel_spacing = [0.5, 0.5, 0.5]
     shape = roi_shape(grid_radius, pixel_spacing)
-    assert shape == (13, 13, 13)
+    assert shape == (49, 49, 49)
 
 
 def test_roi_fiducial_near_top_left_corner_size():

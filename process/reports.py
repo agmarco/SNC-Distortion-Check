@@ -10,7 +10,7 @@ from scipy.interpolate.interpnd import LinearNDInterpolator
 from scipy.interpolate.ndgriddata import griddata
 
 from process import affine
-from process.affine import apply_affine
+from process.affine import apply_affine, pixel_spacing
 from process.visualization import scatter3
 from process import dicom_import
 
@@ -42,7 +42,7 @@ def generate_equidistant_sphere(n=256):
 
 
 def roi_shape(grid_radius, pixel_spacing):
-    return tuple(math.ceil(grid_radius / dim * 4) for dim in pixel_spacing)
+    return tuple(math.ceil(grid_radius / dim * 16) for dim in pixel_spacing)
 
 
 def roi_bounds(B, shape):
@@ -75,7 +75,15 @@ def roi_image(voxels, bounds_list):
     return image
 
 
-def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, threshold, institution, pdf_path):
+def roi_images(voxels, bounds_list):
+    return (
+        roi_image(voxels, (bounds_list[0], bounds_list[1], (0, 1))),
+        roi_image(voxels, (bounds_list[0], (0, 1), bounds_list[2])),
+        roi_image(voxels, ((0, 1), bounds_list[1], bounds_list[2])),
+    )
+
+
+def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, grid_radius, threshold, institution, pdf_path):
     """
     Given the set of matched and registered points, generate a NEMA report.
 
@@ -128,7 +136,7 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, threshold, insti
             ('Phantom filler composition', ''),
             ('Sequence type', dataset.ScanningSequence),
             ('Pixel bandwidth', str(dataset.PixelBandwidth) + r' $\frac{Hz}{px}$'),
-            ('Voxel dimensions', ' x '.join([f'{str(round(x, 3))} mm' for x in [*dataset.PixelSpacing, dataset.SliceThickness]])), # TODO
+            ('Voxel dimensions', ' x '.join([f'{str(round(x, 3))} mm' for x in [*dataset.PixelSpacing, dataset.SliceThickness]])),  # TODO
             ('Sequence repetition time (TR)', f'{dataset.RepetitionTime} ms'),
             ('Echo delay time (TE)', f'{dataset.EchoTime} ms'),
             ('Number of signals averaged (NSA)', dataset.NumberOfAverages),
@@ -139,7 +147,7 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, threshold, insti
             ('Number of slices', len(datasets)),
             ('Slice orientation', ', '.join([str(i) for i in dataset.ImageOrientationPatient])),
             ('Slice position', ', '.join([str(round(i, 3)) for i in dataset.ImagePositionPatient])),
-            ('Slice thickness', f'{dataset.SliceThickness} mm'),
+            ('Slice thickness', f'{dataset.SliceThickness} mm'),  # TODO
             ('Direction of phase encoding', dataset.InPlanePhaseEncodingDirection),
         ]
         plt.table(cellText=rows, loc='center')
@@ -240,28 +248,22 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, threshold, insti
     def generate_roi_table():
         xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
         rois = zip(apply_affine(xyz_to_ijk, TP_A_S).T, apply_affine(xyz_to_ijk, TP_B).T)
-        size = 12
 
         figs = []
         for (A, B) in list(rois)[:1]:  # TODO
             roi_fig = plt.figure()
-
-            x_slice = slice(int(B[0]) - size, int(B[0]) + size)
-            y_slice = slice(int(B[1]) - size, int(B[1]) + size)
-            z_slice = slice(int(B[2]) - size, int(B[2]) + size)
-
-            axial_slice = voxels[x_slice, y_slice, int(B[2])]
-            sagittal_slice = voxels[x_slice, int(B[1]), z_slice]
-            coronal_slice = voxels[int(B[0]), y_slice, z_slice]
+            shape = roi_shape(grid_radius, pixel_spacing(ijk_to_xyz))
+            bounds = roi_bounds(B, shape)
+            axial, sagittal, coronal = roi_images(voxels, bounds)
 
             axial_plt = roi_fig.add_subplot(111)
-            axial_plt.imshow(axial_slice, cmap='Greys_r')
+            axial_plt.imshow(axial, cmap='Greys_r')
 
-            sagittal_plt = roi_fig.add_subplot(111)
-            sagittal_plt.imshow(sagittal_slice, cmap='Greys_r')
+            # sagittal_plt = roi_fig.add_subplot(111)
+            # sagittal_plt.imshow(sagittal, cmap='Greys_r')
 
-            coronal_plt = roi_fig.add_subplot(111)
-            coronal_plt.imshow(coronal_slice, cmap='Greys_r')
+            # coronal_plt = roi_fig.add_subplot(111)
+            # coronal_plt.imshow(coronal, cmap='Greys_r')
 
             plt.axis('off')
             plt.title('Fiducial ROIs')
@@ -325,4 +327,4 @@ if __name__ == '__main__':
         address = "3101 Wyman Park Dr.\nBaltimore, MD 21211"
         phone_number = "555-555-5555"
 
-    generate_report(datasets, voxels, ijk_to_xyz, A, B, 0.4, Institution, 'report.pdf')
+    generate_report(datasets, voxels, ijk_to_xyz, A, B, 1.5, 0.4, Institution, 'report.pdf')
