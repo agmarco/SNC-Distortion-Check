@@ -250,23 +250,27 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, grid_radius, thr
         rois = zip(apply_affine(xyz_to_ijk, TP_A_S).T, apply_affine(xyz_to_ijk, TP_B).T)
 
         figs = []
-        for (A, B) in list(rois)[:1]:  # TODO
+        for (A, B) in list(rois)[:2]:  # TODO
             roi_fig = plt.figure()
             shape = roi_shape(grid_radius, pixel_spacing(ijk_to_xyz))
             bounds = roi_bounds(B, shape)
             axial, sagittal, coronal = roi_images(voxels, bounds)
 
-            axial_plt = roi_fig.add_subplot(111)
-            axial_plt.imshow(axial, cmap='Greys_r')
-
-            # sagittal_plt = roi_fig.add_subplot(111)
-            # sagittal_plt.imshow(sagittal, cmap='Greys_r')
-
-            # coronal_plt = roi_fig.add_subplot(111)
-            # coronal_plt.imshow(coronal, cmap='Greys_r')
-
-            plt.axis('off')
             plt.title('Fiducial ROIs')
+            plt.axis('off')
+
+            roi_fig.add_subplot(131)
+            plt.imshow(axial, cmap='Greys_r')
+            plt.axis('off')
+
+            roi_fig.add_subplot(132)
+            plt.imshow(sagittal, cmap='Greys_r')
+            plt.axis('off')
+
+            roi_fig.add_subplot(133)
+            plt.imshow(coronal, cmap='Greys_r')
+            plt.axis('off')
+
             figs.append(roi_fig)
         return figs
 
