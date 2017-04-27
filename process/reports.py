@@ -62,8 +62,8 @@ def roi_bounds(B, shape):
 
 def roi_image(voxels, bounds_list):
     adjusted_bounds_list = [(max(start, 0), min(end, voxels.shape[i])) for i, (start, end) in enumerate(bounds_list)]
-    slices = [slice(*bounds) for bounds in adjusted_bounds_list]
-    image = voxels[slices[0], slices[1], slices[2]].squeeze()
+    slices = tuple(slice(*bounds) for bounds in adjusted_bounds_list)
+    image = voxels[slices].squeeze()
 
     v_bounds, h_bounds = [bounds for bounds in bounds_list if bounds[1] - bounds[0] > 1]
 
