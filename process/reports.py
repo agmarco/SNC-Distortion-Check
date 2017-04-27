@@ -78,9 +78,9 @@ def roi_image(voxels, bounds_list):
 
 def roi_images(B, voxels, bounds_list):
     return (
-        roi_image(voxels, (bounds_list[0], bounds_list[1], (B[2], B[2] + 1))),
-        roi_image(voxels, (bounds_list[0], (B[1], B[1] + 1), bounds_list[2])),
-        roi_image(voxels, ((B[0], B[0] + 1), bounds_list[1], bounds_list[2])),
+        roi_image(voxels, (bounds_list[0], bounds_list[1], (int(round(B[2])), int(round(B[2])) + 1))),
+        roi_image(voxels, (bounds_list[0], (int(round(B[1])), int(round(B[1])) + 1), bounds_list[2])),
+        roi_image(voxels, ((int(round(B[0])), int(round(B[0])) + 1), bounds_list[1], bounds_list[2])),
     )
 
 
@@ -131,13 +131,14 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, grid_radius, thr
     def generate_data_acquisition_table():
         table_fig = plt.figure()
         dataset = datasets[0]
+        voxel_dims = pixel_spacing(ijk_to_xyz)
         rows = [
             (r'Phantom filler T$_1$', ''),
             (r'Phantom filler T$_2$', ''),
             ('Phantom filler composition', ''),
             ('Sequence type', dataset.ScanningSequence),
             ('Pixel bandwidth', str(dataset.PixelBandwidth) + r' $\frac{Hz}{px}$'),
-            ('Voxel dimensions', ' x '.join([f'{str(round(x, 3))} mm' for x in [*dataset.PixelSpacing, dataset.SliceThickness]])),  # TODO
+            ('Voxel dimensions', ' x '.join(f'{str(round(x, 3))} mm' for x in voxel_dims)),
             ('Sequence repetition time (TR)', f'{dataset.RepetitionTime} ms'),
             ('Echo delay time (TE)', f'{dataset.EchoTime} ms'),
             ('Number of signals averaged (NSA)', dataset.NumberOfAverages),
@@ -148,7 +149,7 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, grid_radius, thr
             ('Number of slices', len(datasets)),
             ('Slice orientation', ', '.join([str(i) for i in dataset.ImageOrientationPatient])),
             ('Slice position', ', '.join([str(round(i, 3)) for i in dataset.ImagePositionPatient])),
-            ('Slice thickness', f'{dataset.SliceThickness} mm'),  # TODO
+            ('Slice thickness', f'{voxel_dims[2]} mm'),
             ('Direction of phase encoding', dataset.InPlanePhaseEncodingDirection),
         ]
         plt.table(cellText=rows, loc='center')
@@ -257,7 +258,7 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, grid_radius, thr
             plt.axis('off')
 
             for i, (A, B, error_vec, error_mag) in enumerate(chunk):
-                B_ijk = np.array([int(round(x)) for x in apply_affine(xyz_to_ijk, np.array([B]).T).T.squeeze()])
+                B_ijk = apply_affine(xyz_to_ijk, np.array([B]).T).T.squeeze()
                 shape = roi_shape(grid_radius, pixel_spacing(ijk_to_xyz))
                 bounds = roi_bounds(B, shape)
                 bounds_ijk = roi_bounds(B_ijk, shape)
@@ -334,7 +335,7 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, grid_radius, thr
         pdf.savefig(generate_quiver())
 
 
-def generate_cube(size, spacing=1):
+def generate_cube(size, spacing=1, x0=0):
     points = []
     for x in range(-size, size):
         for y in range(-size, size):
