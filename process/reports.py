@@ -12,6 +12,7 @@ from scipy.interpolate.ndgriddata import griddata
 from process import affine
 from process.affine import apply_affine, pixel_spacing
 from process.visualization import scatter3
+from process.utils import chunks
 from process import dicom_import
 
 GRID_DENSITY_mm = 0.5
@@ -42,7 +43,7 @@ def generate_equidistant_sphere(n=256):
 
 
 def roi_shape(grid_radius, pixel_spacing):
-    return tuple(math.ceil(grid_radius / dim * 16) for dim in pixel_spacing)
+    return tuple(math.ceil(grid_radius / dim * 8) for dim in pixel_spacing)
 
 
 def roi_bounds(B, shape):
@@ -250,37 +251,46 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, grid_radius, thr
         rois = zip(apply_affine(xyz_to_ijk, TP_A_S).T, apply_affine(xyz_to_ijk, TP_B).T, error_vecs.T, error_mags.T)
 
         figs = []
-        for (A, B, error_vec, error_mag) in list(rois)[:10]:  # TODO
+        for chunk in chunks(list(rois), 3):
             roi_fig = plt.figure()
-            shape = roi_shape(grid_radius, pixel_spacing(ijk_to_xyz))
-            bounds = roi_bounds(B, shape)
-            axial, sagittal, coronal = roi_images(voxels, bounds)
-
             plt.title('Fiducial ROIs')
             plt.axis('off')
 
-            roi_fig.add_subplot(141)
-            plt.scatter([A[0]], [A[1]], c='gold')
-            plt.imshow(axial, cmap='Greys_r')
-            plt.axis('off')
+            for i, (A, B, error_vec, error_mag) in enumerate(chunk):
+                shape = roi_shape(grid_radius, pixel_spacing(ijk_to_xyz))
+                bounds = roi_bounds(B, shape)
+                axial, sagittal, coronal = roi_images(voxels, bounds)
 
-            roi_fig.add_subplot(142)
-            plt.imshow(sagittal, cmap='Greys_r')
-            plt.axis('off')
+                roi_fig.add_subplot(3, 4, i * 4 + 1)
+                plt.scatter([A[0]], [A[1]])
+                plt.imshow(axial, cmap='Greys_r')
+                # plt.axis('off')
+                # plt.xlim([
+                #     apply_affine(ijk_to_xyz, np.array([[bounds[0][0]], [bounds[1][0]], [bounds[2][0]]], dtype=float))[0],
+                #     apply_affine(ijk_to_xyz, np.array([[bounds[0][1]], [bounds[1][1]], [bounds[2][1]]], dtype=float))[0],
+                # ])
+                # plt.ylim([
+                #     apply_affine(ijk_to_xyz, np.array([[bounds[0][0]], [bounds[1][0]], [bounds[2][0]]], dtype=float))[1],
+                #     apply_affine(ijk_to_xyz, np.array([[bounds[0][1]], [bounds[1][1]], [bounds[2][1]]], dtype=float))[1],
+                # ])
 
-            roi_fig.add_subplot(143)
-            plt.imshow(coronal, cmap='Greys_r')
-            plt.axis('off')
+                roi_fig.add_subplot(3, 4, i * 4 + 2)
+                plt.imshow(sagittal, cmap='Greys_r')
+                # plt.axis('off')
 
-            roi_fig.add_subplot(144)
-            rows = [
-                ('x', f'{str(round(error_vec[0], 3))} mm'),
-                ('y', f'{str(round(error_vec[1], 3))} mm'),
-                ('z', f'{str(round(error_vec[2], 3))} mm'),
-                ('magnitude', f'{str(round(error_mag, 3))} mm'),
-            ]
-            plt.table(cellText=rows, loc='center')
-            plt.axis('off')
+                roi_fig.add_subplot(3, 4, i * 4 + 3)
+                plt.imshow(coronal, cmap='Greys_r')
+                # plt.axis('off')
+
+                roi_fig.add_subplot(3, 4, i * 4 + 4)
+                rows = [
+                    ('x', f'{str(round(error_vec[0], 3))} mm'),
+                    ('y', f'{str(round(error_vec[1], 3))} mm'),
+                    ('z', f'{str(round(error_vec[2], 3))} mm'),
+                    ('magnitude', f'{str(round(error_mag, 3))} mm'),
+                ]
+                plt.table(cellText=rows, loc='center')
+                plt.axis('off')
 
             figs.append(roi_fig)
         return figs
@@ -325,8 +335,8 @@ def generate_cube(size, spacing=1):
 
 
 if __name__ == '__main__':
-    A = generate_cube(8)
-    B = generate_cube(8)
+    A = generate_cube(2, 4)
+    B = generate_cube(2, 4)
     affine_matrix = affine.translation_rotation(0, 0, 0, np.pi / 180 * 2, np.pi / 180 * 2, np.pi / 180 * 2)
 
     A = apply_affine(affine_matrix, A)

@@ -24,24 +24,24 @@ def test_evenly_sampled_sphere_equidistant():
 
 def test_roi_shape():
     """
-    Asserts the dimension sizes are 4x the grid radius.
+    Asserts the dimension sizes are 8x the grid radius.
     """
 
     grid_radius = 1.5
     pixel_spacing = [0.25, 0.5, 0.75]
     shape = roi_shape(grid_radius, pixel_spacing)
-    assert shape == (96, 48, 32)
+    assert shape == (48, 24, 16)
 
 
 def test_roi_shape_rounding():
     """
-    Asserts the dimension sizes are rounded up if 4x the grid radius is not a multiple of the pixel spacing.
+    Asserts the dimension sizes are rounded up if 8x the grid radius is not a multiple of the pixel spacing.
     """
 
     grid_radius = 1.51
     pixel_spacing = [0.5, 0.5, 0.5]
     shape = roi_shape(grid_radius, pixel_spacing)
-    assert shape == (49, 49, 49)
+    assert shape == (25, 25, 25)
 
 
 def test_roi_fiducial_near_top_left_corner_size():
