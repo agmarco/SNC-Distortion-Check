@@ -60,10 +60,6 @@ def roi_image(voxels, bounds_list):
 
     v_bounds, h_bounds = [bounds for bounds in bounds_list if bounds[1] - bounds[0] > 1]
 
-    if bounds_list[0][1] - bounds_list[0][0] == 1:
-        # print(slices)
-        pass
-
     if v_bounds[0] < 0:
         zeros = np.zeros((0 - v_bounds[0], image.shape[1]), dtype=float)
         image = np.vstack((zeros, image))
@@ -76,11 +72,6 @@ def roi_image(voxels, bounds_list):
     if h_bounds[1] > voxels.shape[1]:
         zeros = np.zeros((image.shape[0], h_bounds[1] - voxels.shape[1]), dtype=float)
         image = np.hstack((image, zeros))
-
-    if bounds_list[0][1] - bounds_list[0][0] == 1:
-        # print(bounds_list)
-        # print(adjusted_bounds_list)
-        pass
 
     return image
 
