@@ -46,18 +46,10 @@ def roi_shape(grid_radius, pixel_spacing):
 
 
 def roi_bounds(B, shape):
-    return (
-        (
-            int(math.ceil(B[0])) - int(math.floor(shape[0] / 2)),
-            int(math.ceil(B[0])) + int(math.ceil(shape[0] / 2)),
-        ), (
-            int(math.ceil(B[1])) - int(math.floor(shape[1] / 2)),
-            int(math.ceil(B[1])) + int(math.ceil(shape[1] / 2)),
-        ), (
-            int(math.ceil(B[2])) - int(math.floor(shape[2] / 2)),
-            int(math.ceil(B[2])) + int(math.ceil(shape[2] / 2)),
-        ),
-    )
+    return tuple((
+        int(math.ceil(a)) - int(math.floor(b / 2)),
+        int(math.ceil(a)) + int(math.ceil(b / 2)),
+    ) for a, b in zip(B, shape))
 
 
 def roi_image(voxels, bounds_list):
