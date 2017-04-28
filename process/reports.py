@@ -254,6 +254,7 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, grid_radius, thr
         figs = []
         for chunk in chunks(list(rois), 3):
             roi_fig = plt.figure()
+            subplot_dim = (3, 4)
             plt.title('Fiducial ROIs')
             plt.axis('off')
 
@@ -264,42 +265,43 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, grid_radius, thr
                 bounds_ijk = roi_bounds(B_ijk, shape)
                 axial, sagittal, coronal = roi_images(B_ijk, voxels, bounds_ijk)
 
-                roi_fig.add_subplot(3, 4, i * 4 + 1)
-                plt.imshow(axial, cmap='Greys', extent=[*bounds[0], *bounds[1]])
-                plt.scatter([A[0]], [A[1]], c='gold')
-                plt.scatter([B[0]], [B[1]])
-                plt.xticks([])
-                plt.yticks([])
-                plt.xlim(bounds[0])
-                plt.ylim(bounds[1])
+                # TODO images aren't stretched to fill axes
+                plt1 = plt.subplot2grid(subplot_dim, (i, 0), aspect='auto')
+                plt1.imshow(axial, cmap='Greys', extent=[*bounds[0], *bounds[1]], aspect='auto')
+                plt1.scatter([A[0]], [A[1]], c='gold')
+                plt1.scatter([B[0]], [B[1]])
+                plt1.set_xticks([])
+                plt1.set_yticks([])
+                plt1.set_xlim(bounds[0])
+                plt1.set_ylim(bounds[1])
 
-                roi_fig.add_subplot(3, 4, i * 4 + 2)
-                plt.imshow(sagittal, cmap='Greys', extent=[*bounds[0], *bounds[2]])
-                plt.scatter([A[0]], [A[2]], c='gold')
-                plt.scatter([B[0]], [B[2]])
-                plt.xticks([])
-                plt.yticks([])
-                plt.xlim(bounds[0])
-                plt.ylim(bounds[2])
+                plt2 = plt.subplot2grid(subplot_dim, (i, 1), aspect='auto')
+                plt2.imshow(sagittal, cmap='Greys', extent=[*bounds[0], *bounds[2]], aspect='auto')
+                plt2.scatter([A[0]], [A[2]], c='gold')
+                plt2.scatter([B[0]], [B[2]])
+                plt2.set_xticks([])
+                plt2.set_yticks([])
+                plt2.set_xlim(bounds[0])
+                plt2.set_ylim(bounds[2])
 
-                roi_fig.add_subplot(3, 4, i * 4 + 3)
-                plt.imshow(coronal, cmap='Greys', extent=[*bounds[1], *bounds[2]])
-                plt.scatter([A[1]], [A[2]], c='gold')
-                plt.scatter([B[1]], [B[2]])
-                plt.xticks([])
-                plt.yticks([])
-                plt.xlim(bounds[1])
-                plt.ylim(bounds[2])
+                plt3 = plt.subplot2grid(subplot_dim, (i, 2), aspect='auto')
+                plt3.imshow(coronal, cmap='Greys', extent=[*bounds[1], *bounds[2]], aspect='auto')
+                plt3.scatter([A[1]], [A[2]], c='gold')
+                plt3.scatter([B[1]], [B[2]])
+                plt3.set_xticks([])
+                plt3.set_yticks([])
+                plt3.set_xlim(bounds[1])
+                plt3.set_ylim(bounds[2])
 
-                roi_fig.add_subplot(3, 4, i * 4 + 4)
+                plt4 = plt.subplot2grid(subplot_dim, (i, 3), aspect='auto')
                 rows = [
                     ('x', f'{str(round(error_vec[0], 3))} mm'),
                     ('y', f'{str(round(error_vec[1], 3))} mm'),
                     ('z', f'{str(round(error_vec[2], 3))} mm'),
                     ('magnitude', f'{str(round(error_mag, 3))} mm'),
                 ]
-                plt.table(cellText=rows, loc='center')
-                plt.axis('off')
+                plt4.table(cellText=rows, loc='center')
+                plt4.axis('off')
 
             figs.append(roi_fig)
         return figs
