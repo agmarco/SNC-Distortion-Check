@@ -1,6 +1,10 @@
+pip-tools
+ipython
 pytest
 pytest-django
 nbstripout
 honcho
 gitpython
 pylint
+factory_boy
+ipywidgets

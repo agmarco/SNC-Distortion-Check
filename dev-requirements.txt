@@ -4,24 +4,58 @@
 #
 #    pip-compile --output-file dev-requirements.txt dev-requirements.in
 #
-appdirs==1.4.3            # via setuptools
-astroid==1.4.9            # via pylint
+appnope==0.1.0            # via ipython
+astroid==1.5.2            # via pylint
+bleach==2.0.0             # via nbconvert
+click==6.7                # via pip-tools
+decorator==4.0.11         # via ipython, traitlets
+entrypoints==0.2.2        # via nbconvert
+factory-boy==2.8.1
+faker==0.7.11             # via factory-boy
+first==2.0.1              # via pip-tools
 gitdb2==2.0.0             # via gitpython
 gitpython==2.1.3
-honcho==0.7.1
+honcho==1.0.1
+html5lib==0.999999999     # via bleach
+ipykernel==4.6.1          # via ipywidgets, notebook
+ipython-genutils==0.2.0   # via nbformat, notebook, traitlets
+ipython==6.0.0
+ipywidgets==6.0.0
 isort==4.2.5              # via pylint
+jedi==0.10.2              # via ipython
+jinja2==2.9.6             # via nbconvert, notebook
+jsonschema==2.6.0         # via nbformat
+jupyter-client==5.0.1     # via ipykernel, notebook
+jupyter-core==4.3.0       # via jupyter-client, nbconvert, nbformat, notebook
 lazy-object-proxy==1.2.2  # via astroid
+markupsafe==1.0           # via jinja2
 mccabe==0.6.1             # via pylint
+mistune==0.7.4            # via nbconvert
+nbconvert==5.1.1          # via notebook
+nbformat==4.3.0           # via ipywidgets, nbconvert, notebook
 nbstripout==0.3.0
-packaging==16.8           # via setuptools
-py==1.4.32                # via pytest
-pylint==1.6.5
-pyparsing==2.2.0          # via packaging
+notebook==5.0.0           # via widgetsnbextension
+pandocfilters==1.4.1      # via nbconvert
+pexpect==4.2.1            # via ipython
+pickleshare==0.7.4        # via ipython
+pip-tools==1.9.0
+prompt-toolkit==1.0.14    # via ipython
+ptyprocess==0.5.1         # via pexpect, terminado
+py==1.4.33                # via pytest
+pygments==2.2.0           # via ipython, nbconvert
+pylint==1.7.1
 pytest-django==3.1.2
-pytest==3.0.6
-six==1.10.0               # via astroid, packaging, pylint, setuptools
+pytest==3.0.7
+python-dateutil==2.6.0    # via faker, jupyter-client
+pyzmq==16.0.2             # via jupyter-client
+simplegeneric==0.8.1      # via ipython
+six==1.10.0               # via astroid, bleach, faker, html5lib, pip-tools, prompt-toolkit, pylint, python-dateutil, traitlets
 smmap2==2.0.1             # via gitdb2
+terminado==0.6            # via notebook
+testpath==0.3             # via nbconvert
+tornado==4.5.1            # via ipykernel, notebook, terminado
+traitlets==4.3.2          # via ipykernel, ipython, ipywidgets, jupyter-client, jupyter-core, nbconvert, nbformat, notebook
+wcwidth==0.1.7            # via prompt-toolkit
+webencodings==0.5.1       # via html5lib
+widgetsnbextension==2.0.0  # via ipywidgets
 wrapt==1.10.10            # via astroid
-
-# The following packages are considered to be unsafe in a requirements file:
-# setuptools                # via pytest
