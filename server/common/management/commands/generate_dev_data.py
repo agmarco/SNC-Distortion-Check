@@ -4,18 +4,19 @@ import zipfile
 from random import randint
 
 import numpy as np
-from django.conf import settings
 
+from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.core.files import File
 from django.core.management.base import BaseCommand
 
 from server.common import factories
-from server.common.models import GoldenFiducials
+from server.common.models import GoldenFiducials, Fiducials
 
 from process import affine, dicom_import
 from process.affine import apply_affine
 from process.reports import generate_cube, generate_report
+from process.file_io import load_points
 
 
 class Command(BaseCommand):
@@ -89,45 +90,50 @@ class Command(BaseCommand):
             institution=johns_hopkins,
         )
 
-        phantom_model_a = factories.PhantomModelFactory(
+
+        cad_fiducials_603A = load_points('data/points/603A.mat')['points']
+        phantom_model_603A = factories.PhantomModelFactory(
             name='CIRS 603A',
             model_number='603A',
+            cad_fiducials__fiducials=cad_fiducials_603A,
         )
-        phantom_model_b = factories.PhantomModelFactory(
+
+        # TODO: use real 604 cad fiducials
+        phantom_model_604 = factories.PhantomModelFactory(
             name='CIRS 604',
             model_number='604',
         )
 
         phantom_a = factories.PhantomFactory(
             name='Head Phantom 1',
-            model=phantom_model_a,
+            model=phantom_model_603A,
             serial_number='A123',
         )
         phantom_b = factories.PhantomFactory(
             name='Head Phantom 2',
-            model=phantom_model_a,
+            model=phantom_model_603A,
             serial_number='B123',
         )
         phantom_c = factories.PhantomFactory(
             name='Body Phantom',
-            model=phantom_model_b,
+            model=phantom_model_604,
             serial_number='C123',
         )
         phantom_d = factories.PhantomFactory(
             name='Head Phantom 1',
-            model=phantom_model_a,
+            model=phantom_model_603A,
             serial_number='A123',
             institution=johns_hopkins,
         )
         phantom_e = factories.PhantomFactory(
             name='Head Phantom 2',
-            model=phantom_model_a,
+            model=phantom_model_603A,
             serial_number='B123',
             institution=johns_hopkins,
         )
         phantom_f = factories.PhantomFactory(
             name='Body Phantom',
-            model=phantom_model_b,
+            model=phantom_model_604,
             serial_number='C123',
             institution=johns_hopkins,
         )
