@@ -10,6 +10,6 @@ __pycache__
 tmp
 media
 collected_static
-node_modules
+/node_modules
 dist
 dump.rdb

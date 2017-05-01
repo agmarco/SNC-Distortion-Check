@@ -1,4 +1,3 @@
-pip-tools
 pydicom
 orderedset
 keras
@@ -18,6 +17,3 @@ h5py
 djangorestframework
 requests
 whitenoise
-factory_boy
-ipywidgets
-ipython
