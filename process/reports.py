@@ -2,9 +2,10 @@ import zipfile
 import math
 from collections import OrderedDict
 
-import matplotlib.pyplot as plt
-from matplotlib import colors
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+from matplotlib import colors
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy.interpolate.interpnd import LinearNDInterpolator
 from scipy.interpolate.ndgriddata import griddata
@@ -104,25 +105,7 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
     grid_radius = phantoms.paramaters[phantom_model_number]['grid_radius']
 
     # assume that the isocenter is the geometric origin
-    isocenter = ((x_min + x_max) / 2, (y_min + y_max) / 2, (z_min + z_max) / 2)
-
-    # interpolate onto spheres of increasing size to calculate average and max error table
-    interpolator = LinearNDInterpolator(TP_A_S.T, error_mags.T)
-
-    radius2max_mean_error = OrderedDict()
-
-    r = SPHERE_STEP_mm
-    while True:
-        num_points = int(round(surface_area(r) / SPHERE_POINTS_PER_AREA))
-        equidistant_sphere_points = generate_equidistant_sphere(num_points) * r + np.array(isocenter)
-        values = interpolator(equidistant_sphere_points)
-        values = values[~np.isnan(values)]
-        if values.size == 0:
-            break
-        else:
-            max_value, mean_value = np.max(values), np.mean(values)
-            radius2max_mean_error[r] = (max_value, mean_value)
-            r += SPHERE_STEP_mm
+    isocenter = (np.mean([x_min, x_max]), np.mean([y_min, y_max]), np.mean([z_min, z_max]))
 
     def generate_institution_table():
         table_fig = plt.figure()
@@ -158,7 +141,7 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
             ('Number of slices', len(datasets)),
             ('Slice orientation', ', '.join([str(i) for i in dataset.ImageOrientationPatient])),
             ('Slice position', ', '.join([str(round(i, 3)) for i in dataset.ImagePositionPatient])),
-            ('Slice thickness', f'{voxel_dims[2]} mm'),
+            ('Slice thickness', f'{str(round(voxel_dims[2], 3))} mm'),
             ('Direction of phase encoding', dataset.InPlanePhaseEncodingDirection),
         ]
         plt.table(cellText=rows, loc='center')
@@ -250,8 +233,27 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
     def generate_error_table():
         table_fig = plt.figure()
         rows = []
+
+        # interpolate onto spheres of increasing size to calculate average and max error table
+        interpolator = LinearNDInterpolator(TP_A_S.T, error_mags.T)
+        radius2max_mean_error = OrderedDict()
+
+        r = SPHERE_STEP_mm
+        while True:
+            num_points = int(round(surface_area(r) / SPHERE_POINTS_PER_AREA))
+            equidistant_sphere_points = generate_equidistant_sphere(num_points) * r + np.array(isocenter)
+            values = interpolator(equidistant_sphere_points)
+            values = values[~np.isnan(values)]
+            if values.size == 0:
+                break
+            else:
+                max_value, mean_value = np.max(values), np.mean(values)
+                radius2max_mean_error[r] = (max_value, mean_value)
+                r += SPHERE_STEP_mm
+
         for r, (max_value, mean_value) in radius2max_mean_error.items():
             rows.append((r, np.round(max_value, 3), np.round(mean_value, 3)))
+
         plt.table(cellText=rows, colLabels=['Distance from Isocenter [mm]', 'Maximum Error [mm]', 'Average Error [mm]'],
                   loc='center')
         plt.axis('off')
@@ -268,6 +270,9 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
             subplot_dim = (3, 4)
             plt.suptitle('Fiducial ROIs')
             plt.axis('off')
+            A_S_patch = mpatches.Patch(color='gold')
+            B_patch = mpatches.Patch(color='C0')
+            roi_fig.legend([A_S_patch, B_patch], ('A_S', 'B'))
 
             for i, (A, B, error_vec, error_mag) in enumerate(chunk):
                 B_ijk = apply_affine(xyz_to_ijk, np.array([B]).T).T.squeeze()
@@ -311,7 +316,6 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
                     ('magnitude', f'{str(round(error_mag, 3))} mm'),
                 ]
                 plt4.table(cellText=rows, loc='center')
-                plt4.set_title('Distortion')
                 plt4.axis('off')
 
             figs.append(roi_fig)
