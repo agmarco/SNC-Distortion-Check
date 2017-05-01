@@ -108,23 +108,21 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
 
     # interpolate onto spheres of increasing size to calculate average and max error table
     interpolator = LinearNDInterpolator(TP_A_S.T, error_mags.T)
-    max_sphere_radius = np.min(np.abs([
-        x_min - isocenter[0],
-        y_min - isocenter[1],
-        z_min - isocenter[2],
-        x_max - isocenter[0],
-        y_max - isocenter[1],
-        z_max - isocenter[2],
-    ]))  # TODO nans
 
     radius2max_mean_error = OrderedDict()
 
-    for r in np.arange(SPHERE_STEP_mm, max_sphere_radius, SPHERE_STEP_mm):
+    r = SPHERE_STEP_mm
+    while True:
         num_points = int(round(surface_area(r) / SPHERE_POINTS_PER_AREA))
         equidistant_sphere_points = generate_equidistant_sphere(num_points) * r + np.array(isocenter)
         values = interpolator(equidistant_sphere_points)
-        max_value, mean_value = np.max(values), np.mean(values)
-        radius2max_mean_error[r] = (max_value, mean_value)
+        values = values[~np.isnan(values)]
+        if values.size == 0:
+            break
+        else:
+            max_value, mean_value = np.max(values), np.mean(values)
+            radius2max_mean_error[r] = (max_value, mean_value)
+            r += SPHERE_STEP_mm
 
     def generate_institution_table():
         table_fig = plt.figure()
