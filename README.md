@@ -10,13 +10,6 @@
 
 You can install all of these using homebrew pretty easily on mac.
 
-## Everything
-
-Use this command to install a new dev setup, run all the tests, and then start
-all the processes:
-
-    make dev && pytest && honcho start
-
 ## Installation
 
 Once have met all the system dependencies (and you are in a virtual environment, if you want one):
@@ -49,7 +42,7 @@ You can run the celery task runner and the web server using:
 
 Run tests using
 
-    pytest
+    python -m pytest && yarn run test
 
 ## Hot Module Replacement
 
