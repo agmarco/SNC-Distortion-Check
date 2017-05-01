@@ -30,7 +30,7 @@ h5py==2.6.0
 html5lib==0.999999999     # via bleach
 ipykernel==4.6.1          # via ipywidgets, notebook
 ipython-genutils==0.2.0   # via nbformat, notebook, traitlets
-ipython==6.0.0            # via ipykernel, ipywidgets
+ipython==6.0.0
 ipywidgets==6.0.0
 jedi==0.10.2              # via ipython
 jinja2==2.9.6             # via nbconvert, notebook
@@ -40,7 +40,7 @@ jupyter-client==5.0.1     # via ipykernel, notebook
 jupyter-core==4.3.0       # via jupyter-client, nbconvert, nbformat, notebook
 keras==1.2.2
 kombu==4.0.2              # via celery
-MarkupSafe==1.0           # via jinja2
+markupsafe==1.0           # via jinja2
 matplotlib==2.0.0
 mistune==0.7.4            # via nbconvert
 nbconvert==5.1.1          # via notebook

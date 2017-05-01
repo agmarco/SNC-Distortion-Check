@@ -20,3 +20,4 @@ requests
 whitenoise
 factory_boy
 ipywidgets
+ipython

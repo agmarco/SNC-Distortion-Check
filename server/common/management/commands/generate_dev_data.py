@@ -198,8 +198,8 @@ class Command(BaseCommand):
         datasets = [DataSet] * 192
 
         for i in range(12):
-            A = generate_cube(8)
-            B = generate_cube(8)
+            A = generate_cube(2, 4)
+            B = generate_cube(2, 4)
 
             error = randint(4, 8)
             affine_matrix = affine.translation_rotation(0, 0, 0, np.pi / 180 * error, np.pi / 180 * error, np.pi / 180 * error)
@@ -218,7 +218,14 @@ class Command(BaseCommand):
 
             report_filename = f'{uuid.uuid4()}.pdf'
             report_path = os.path.join(settings.BASE_DIR, 'tmp', report_filename)
-            generate_report(datasets, A, B, scan.tolerance, report_path)
+            voxels = np.random.rand(256, 256, 192)
+            ijk_to_xyz = np.array([
+                [0.9765625, 0., 0., -125.],
+                [0., 0.9765625, 0., -102.87969208],
+                [0., 0., 1., -53.62942123],
+                [0., 0., 0., 1.]],
+            )
+            generate_report(datasets, voxels, ijk_to_xyz, A, B, scan.tolerance, 2.5, johns_hopkins, report_path)
 
             with open(report_path, 'rb') as report:
                 scan.full_report.save(report_filename, File(report))

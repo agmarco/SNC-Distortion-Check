@@ -205,11 +205,15 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, grid_radius, thr
 
     def generate_axial_spacial_mapping_series():
         figs = []
+
+        # TODO + 0.1
         for z in np.arange(z_min, z_max, 2):
             grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
                                                  np.arange(y_min, y_max, GRID_DENSITY_mm),
                                                  [z])
             gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
+
+            # print(np.isnan(gridded).all())
 
             # TODO why does this happen when z = z_min?
             if not np.isnan(gridded).all():
