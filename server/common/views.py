@@ -237,7 +237,7 @@ class UpdatePhantom(UpdateView):
 
     @property
     def golden_fiducials(self):
-        return self.object.goldenfiducials_set.active().order_by('-last_modified_on')
+        return self.object.goldenfiducials_set.active().order_by('-created_on')
 
 
 @login_and_permission_required('common.configuration')
