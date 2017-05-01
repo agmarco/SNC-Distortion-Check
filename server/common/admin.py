@@ -14,11 +14,6 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ('first_name', 'last_name', 'email', 'institution')
 
 
-@admin.register(models.PhantomModel)
-class PhantomModelAdmin(admin.ModelAdmin):
-    list_display = ('name', 'model_number')
-
-
 @admin.register(models.Phantom)
 class PhantomAdmin(admin.ModelAdmin):
     list_display = ('name', 'institution', 'model', 'serial_number')
