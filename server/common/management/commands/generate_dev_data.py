@@ -197,7 +197,7 @@ class Command(BaseCommand):
 
         datasets = [DataSet] * 192
 
-        for i in range(12):
+        for i in range(3):
             A = generate_cube(2, 4)
             B = generate_cube(2, 4)
 

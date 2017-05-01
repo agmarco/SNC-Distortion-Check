@@ -115,7 +115,7 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
         x_max - isocenter[0],
         y_max - isocenter[1],
         z_max - isocenter[2],
-    ]))  # g nans
+    ]))  # TODO nans
 
     radius2max_mean_error = OrderedDict()
 
