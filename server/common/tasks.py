@@ -10,7 +10,7 @@ from django.core.files import File
 from django.db import transaction
 from django.conf import settings
 
-from process import dicom_import, affine
+from process import dicom_import, affine, phantoms
 from process.affine import apply_affine
 from process.feature_detection import FeatureDetector
 from process.registration import rigidly_register_and_categorize
@@ -29,8 +29,8 @@ def process_scan(scan_pk):
         with transaction.atomic():
 
             # For now, use mock data
-            A = generate_cube(8)
-            B = generate_cube(8)
+            A = generate_cube(2, 4)
+            B = generate_cube(2, 4)
             affine_matrix = affine.translation_rotation(0, 0, 0, np.pi / 180 * 10, np.pi / 180 * 10, np.pi / 180 * 10)
 
             A = apply_affine(affine_matrix, A)
@@ -42,9 +42,21 @@ def process_scan(scan_pk):
             with zipfile.ZipFile(scan.dicom_series.zipped_dicom_files, 'r') as zip_file:
                 datasets = dicom_import.dicom_datasets_from_zip(zip_file)
 
+            voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
+
             report_filename = f'{uuid.uuid4()}.pdf'
             report_path = os.path.join(settings.BASE_DIR, 'tmp', report_filename)
-            generate_report(datasets, A, B, scan.tolerance, report_path)
+            generate_report(
+                A,
+                B,
+                datasets,
+                voxels,
+                ijk_to_xyz,
+                scan.golden_fiducials.phantom.model.model_number,
+                scan.tolerance,
+                scan.institution,
+                report_path,
+            )
 
             with open(report_path, 'rb') as report:
                 scan.full_report.save(report_filename, File(report), save=False)
@@ -76,7 +88,17 @@ def process_scan(scan_pk):
 #
             # report_filename = f'{uuid.uuid4()}.pdf'
             # report_path = os.path.join(settings.BASE_DIR, 'tmp', report_filename)
-            # generate_report(datasets, TP_A_S, TP_B, scan.tolerance, report_path)
+            # generate_report(
+            #     TP_A_S,
+            #     TP_B,
+            #     datasets,
+            #     scan.dicom_series.voxels,
+            #     scan.dicom_series.ijk_to_xyz,
+            #     scan.golden_fiducials.phantom.model.model_number,
+            #     scan.tolerance,
+            #     scan.institution,
+            #     report_path,
+            # )
 #
             # with open(report_path) as report:
             #     scan.full_report.save(report_filename, File(report))

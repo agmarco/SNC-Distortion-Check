@@ -9,7 +9,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 from scipy.interpolate.interpnd import LinearNDInterpolator
 from scipy.interpolate.ndgriddata import griddata
 
-from process import affine
+from process import affine, phantoms
 from process.affine import apply_affine, pixel_spacing
 from process.visualization import scatter3
 from process.utils import chunks
@@ -84,7 +84,7 @@ def roi_images(B, voxels, bounds_list):
     )
 
 
-def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, grid_radius, threshold, institution, pdf_path):
+def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_number, threshold, institution, pdf_path):
     """
     Given the set of matched and registered points, generate a NEMA report.
 
@@ -100,6 +100,8 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, grid_radius, thr
     x_min, y_min, z_min = np.min(TP_A_S, axis=1)
     x_max, y_max, z_max = np.max(TP_A_S, axis=1)
 
+    grid_radius = phantoms.paramaters[phantom_model_number]['grid_radius']
+
     # assume that the isocenter is the geometric origin
     isocenter = ((x_min + x_max) / 2, (y_min + y_max) / 2, (z_min + z_max) / 2)
 
@@ -109,11 +111,11 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, grid_radius, thr
     radius2max_mean_error = OrderedDict()
 
     for r in np.arange(SPHERE_STEP_mm, max_sphere_radius, SPHERE_STEP_mm):
-        num_points = int(round(surface_area(r)/SPHERE_POINTS_PER_AREA))
+        num_points = int(round(surface_area(r) / SPHERE_POINTS_PER_AREA))
         equidistant_sphere_points = generate_equidistant_sphere(num_points) * r
         values = interpolator(equidistant_sphere_points)
         max_value, mean_value = np.max(values), np.mean(values)
-        radius2max_mean_error[r] = (max_value, mean_value,)
+        radius2max_mean_error[r] = (max_value, mean_value)
 
     def generate_institution_table():
         table_fig = plt.figure()
@@ -206,16 +208,12 @@ def generate_report(datasets, voxels, ijk_to_xyz, TP_A_S, TP_B, grid_radius, thr
     def generate_axial_spacial_mapping_series():
         figs = []
 
-        # TODO + 0.1
         for z in np.arange(z_min, z_max, 2):
             grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
                                                  np.arange(y_min, y_max, GRID_DENSITY_mm),
-                                                 [z])
+                                                 np.array([z]))
             gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
 
-            # print(np.isnan(gridded).all())
-
-            # TODO why does this happen when z = z_min?
             if not np.isnan(gridded).all():
                 contour_fig = generate_spacial_mapping(grid_x, grid_y, gridded)
                 plt.xlabel('x [mm]')
@@ -366,4 +364,4 @@ if __name__ == '__main__':
         address = "3101 Wyman Park Dr.\nBaltimore, MD 21211"
         phone_number = "555-555-5555"
 
-    generate_report(datasets, voxels, ijk_to_xyz, A, B, 1.5, 2.5, Institution, 'tmp/report.pdf')
+    generate_report(A, B, datasets, voxels, ijk_to_xyz, '603A', 2.5, Institution, 'tmp/report.pdf')

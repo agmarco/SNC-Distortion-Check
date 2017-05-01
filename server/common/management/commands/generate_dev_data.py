@@ -225,7 +225,17 @@ class Command(BaseCommand):
                 [0., 0., 1., -53.62942123],
                 [0., 0., 0., 1.]],
             )
-            generate_report(datasets, voxels, ijk_to_xyz, A, B, scan.tolerance, 2.5, johns_hopkins, report_path)
+            generate_report(
+                A,
+                B,
+                datasets,
+                voxels,
+                ijk_to_xyz,
+                '603A',
+                scan.tolerance,
+                johns_hopkins,
+                report_path
+            )
 
             with open(report_path, 'rb') as report:
                 scan.full_report.save(report_filename, File(report))
