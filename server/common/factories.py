@@ -87,7 +87,7 @@ class PhantomModelFactory(factory.django.DjangoModelFactory):
 
     cad_fiducials = factory.SubFactory(FiducialsFactory)
     model_number = '603A'
-    name = 'CIRS 603A'
+    name = 'Factory CIRS 603A'
 
 
 class PhantomFactory(factory.django.DjangoModelFactory):
