@@ -108,13 +108,20 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
 
     # interpolate onto spheres of increasing size to calculate average and max error table
     interpolator = LinearNDInterpolator(TP_A_S.T, error_mags.T)
-    max_sphere_radius = np.min(np.abs([x_min, y_min, z_min, x_max, y_max, z_max]))
+    max_sphere_radius = np.min(np.abs([
+        x_min - isocenter[0],
+        y_min - isocenter[1],
+        z_min - isocenter[2],
+        x_max - isocenter[0],
+        y_max - isocenter[1],
+        z_max - isocenter[2],
+    ]))
+
     radius2max_mean_error = OrderedDict()
 
-    # TODO from isocenter
     for r in np.arange(SPHERE_STEP_mm, max_sphere_radius, SPHERE_STEP_mm):
         num_points = int(round(surface_area(r) / SPHERE_POINTS_PER_AREA))
-        equidistant_sphere_points = generate_equidistant_sphere(num_points) * r
+        equidistant_sphere_points = generate_equidistant_sphere(num_points) * r + np.array(isocenter)
         values = interpolator(equidistant_sphere_points)
         max_value, mean_value = np.max(values), np.mean(values)
         radius2max_mean_error[r] = (max_value, mean_value)
@@ -261,7 +268,7 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
         for chunk in chunks(list(rois), 3):
             roi_fig = plt.figure()
             subplot_dim = (3, 4)
-            plt.title('Fiducial ROIs')
+            plt.suptitle('Fiducial ROIs')
             plt.axis('off')
 
             for i, (A, B, error_vec, error_mag) in enumerate(chunk):
@@ -306,6 +313,7 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
                     ('magnitude', f'{str(round(error_mag, 3))} mm'),
                 ]
                 plt4.table(cellText=rows, loc='center')
+                plt4.set_title('Distortion')
                 plt4.axis('off')
 
             figs.append(roi_fig)
