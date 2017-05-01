@@ -201,7 +201,7 @@ class Command(BaseCommand):
             A = generate_cube(2, 4)
             B = generate_cube(2, 4)
 
-            error = randint(4, 8)
+            error = randint(6, 10)
             affine_matrix = affine.translation_rotation(0, 0, 0, np.pi / 180 * error, np.pi / 180 * error, np.pi / 180 * error)
 
             A = apply_affine(affine_matrix, A)
