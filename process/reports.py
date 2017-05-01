@@ -18,6 +18,7 @@ from process import dicom_import
 GRID_DENSITY_mm = 0.5
 SPHERE_STEP_mm = 1
 SPHERE_POINTS_PER_AREA = 1
+CONTOUR_SERIES_STEP_mm = 2
 
 
 def surface_area(r):
@@ -110,6 +111,7 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
     max_sphere_radius = np.min(np.abs([x_min, y_min, z_min, x_max, y_max, z_max]))
     radius2max_mean_error = OrderedDict()
 
+    # TODO from isocenter
     for r in np.arange(SPHERE_STEP_mm, max_sphere_radius, SPHERE_STEP_mm):
         num_points = int(round(surface_area(r) / SPHERE_POINTS_PER_AREA))
         equidistant_sphere_points = generate_equidistant_sphere(num_points) * r
@@ -208,18 +210,20 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
     def generate_axial_spacial_mapping_series():
         figs = []
 
-        for z in np.arange(z_min, z_max, 2):
+        for z in np.arange(z_min, z_max, CONTOUR_SERIES_STEP_mm):
             grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
                                                  np.arange(y_min, y_max, GRID_DENSITY_mm),
                                                  np.array([z]))
             gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
 
-            if not np.isnan(gridded).all():
+            try:
                 contour_fig = generate_spacial_mapping(grid_x, grid_y, gridded)
                 plt.xlabel('x [mm]')
                 plt.ylabel('y [mm]')
-                plt.title(f'Axial Contour Plot Series (z = {z} mm)')
+                plt.title(f'Axial Contour Plot Series (z = {round(z, 3)} mm)')
                 figs.append(contour_fig)
+            except ValueError:
+                pass
         return figs
 
     def generate_scatter_plot():
