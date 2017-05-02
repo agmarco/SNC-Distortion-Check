@@ -35,7 +35,8 @@ class Slicer:
         self.f.tight_layout()
 
         # move slicer to foreground
-        self.f.canvas.manager.window.raise_()
+        # TODO: fix this; it stopped working with matplotlib 2
+        #self.f.canvas.manager.window.raise_()
 
     def add_renderer(self, renderer, hidden=False):
         self._renderers.append(renderer)
