@@ -3,6 +3,8 @@ import argparse
 
 from process import file_io
 from process.feature_detection import FeatureDetector
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('voxels', help='Input path to read voxels-file')
