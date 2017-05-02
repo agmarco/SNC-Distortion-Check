@@ -141,6 +141,10 @@ form {
   }
 }
 
+#site-breadcrumbs {
+  margin: 0 $base-spacing $small-spacing $base-spacing;
+}
+
 h2,
 h3,
 h4,
@@ -175,6 +179,7 @@ h6 {
       width: 100%;
     }
 
+    // TODO use fixed widths
     &.action {
       width: 1px;
       font-weight: bold;

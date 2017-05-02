@@ -6,11 +6,16 @@
   <link rel="stylesheet" href="{% webpack 'upload_scan.css' %}">
 {% endblock %}
 
-{% block "content" %}
+{% block breadcrumbs %}
+  <a href="{% url 'landing' %}">Home</a>
+  <i class="fa fa-angle-right" aria-hidden="true"></i>
+{% endblock %}
+
+{% block content %}
   <div id="upload-scan-app"></div>
 {% endblock %}
 
-{% block "scripts" %}
+{% block scripts %}
   {% chunk_manifest %}
   {% manifest %}
   <script src="{% webpack 'vendor.js' %}"></script>

@@ -379,7 +379,8 @@ class UploadCT(FormView):
 
     def get_context_data(self, **kwargs):
         context = super(UploadCT, self).get_context_data(**kwargs)
-        context.update({'phantom_pk': self.kwargs['phantom_pk']})
+        phantom = get_object_or_404(Phantom, pk=self.kwargs['phantom_pk'])
+        context.update({'phantom': phantom})
         return context
 
     def get_success_url(self):
@@ -405,7 +406,8 @@ class UploadRaw(FormView):
 
     def get_context_data(self, **kwargs):
         context = super(UploadRaw, self).get_context_data(**kwargs)
-        context.update({'phantom_pk': self.kwargs['phantom_pk']})
+        phantom = get_object_or_404(Phantom, pk=self.kwargs['phantom_pk'])
+        context.update({'phantom': phantom})
         return context
 
     def get_success_url(self):
@@ -431,7 +433,8 @@ class DeleteGoldStandard(CirsDeleteView):
 
     def get_context_data(self, **kwargs):
         context = super(DeleteGoldStandard, self).get_context_data(**kwargs)
-        context.update({'phantom_pk': self.kwargs['phantom_pk']})
+        phantom = get_object_or_404(Phantom, pk=self.kwargs['phantom_pk'])
+        context.update({'phantom': phantom})
         return context
 
 

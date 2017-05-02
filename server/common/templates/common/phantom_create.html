@@ -6,11 +6,17 @@
   <link rel="stylesheet" href="{% webpack 'create_phantom.css' %}">
 {% endblock %}
 
-{% block "content" %}
+{% block breadcrumbs %}
+  <a href="{% url 'landing' %}">Home</a>
+  <i class="fa fa-angle-right" aria-hidden="true"></i>
+  <a href="{% url 'configuration' %}">Configuration</a>
+{% endblock %}
+
+{% block content %}
   <div id="create-phantom-app"></div>
 {% endblock %}
 
-{% block "scripts" %}
+{% block scripts %}
   {% chunk_manifest %}
   {% manifest %}
   <script src="{% webpack 'vendor.js' %}"></script>

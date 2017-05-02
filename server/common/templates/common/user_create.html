@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 
-{% block "content" %}
+{% block breadcrumbs %}
+  <a href="{% url 'landing' %}">Home</a>
+  <i class="fa fa-angle-right" aria-hidden="true"></i>
+  <a href="{% url 'configuration' %}">Configuration</a>
+{% endblock %}
+
+{% block content %}
   <h1>Add User</h1>
   <form action="{% url 'create_user' %}" method="post" class="cirs-form">
     {% csrf_token %}

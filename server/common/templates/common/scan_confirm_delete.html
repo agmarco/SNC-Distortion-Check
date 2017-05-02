@@ -1,6 +1,14 @@
 {% extends "base.html" %}
 
-{% block "content" %}
+{% block breadcrumbs %}
+  <a href="{% url 'landing' %}">Home</a>
+  <i class="fa fa-angle-right" aria-hidden="true"></i>
+  <a href="{% url 'machine_sequence_detail' scan.machine_sequence_pair.pk %}">
+    {{ scan.machine_sequence_pair.machine.name }} &mdash; {{ scan.machine_sequence_pair.sequence.name }}
+  </a>
+{% endblock %}
+
+{% block content %}
   <h1>Delete Scan</h1>
   <form action="{% url 'delete_scan' scan.pk %}" method="post" class="cirs-form">
     {% csrf_token %}

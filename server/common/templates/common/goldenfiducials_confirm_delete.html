@@ -1,11 +1,19 @@
 {% extends "base.html" %}
 
-{% block "content" %}
+{% block breadcrumbs %}
+  <a href="{% url 'landing' %}">Home</a>
+  <i class="fa fa-angle-right" aria-hidden="true"></i>
+  <a href="{% url 'configuration' %}">Configuration</a>
+  <i class="fa fa-angle-right" aria-hidden="true"></i>
+  <a href="{% url 'update_phantom' phantom.pk %}">Edit Phantom {{ phantom.name }}</a>
+{% endblock %}
+
+{% block content %}
   <h1>Delete Golden Fiducials</h1>
   <p>Are you sure you want to delete the Gold Standard "{{ goldenfiducials.source_summary }}"?</p>
-  <form action="{% url 'delete_gold_standard' phantom_pk goldenfiducials.pk %}" method="post">
+  <form action="{% url 'delete_gold_standard' phantom.pk goldenfiducials.pk %}" method="post">
     {% csrf_token %}
-    <a href="{% url 'update_phantom' phantom_pk %}" class="btn tertiary">Cancel</a>
+    <a href="{% url 'update_phantom' phantom.pk %}" class="btn tertiary">Cancel</a>
     <input type="submit" value="Yes" class="btn secondary">
   </form>
 {% endblock %}

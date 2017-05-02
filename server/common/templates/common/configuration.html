@@ -7,7 +7,12 @@
   <link rel="stylesheet" href="{% webpack 'configuration.css' %}">
 {% endblock %}
 
-{% block "content" %}
+{% block breadcrumbs %}
+  <a href="{% url 'landing' %}">Home</a>
+  <i class="fa fa-angle-right" aria-hidden="true"></i>
+{% endblock %}
+
+{% block content %}
   <h1>Configuration</h1>
 
   <form action="{% url 'configuration' %}" method="post" class="cirs-form">
@@ -137,8 +142,4 @@
       </table>
     </div>
   {% endif %}
-{% endblock %}
-
-{% block "scripts" %}
-  <script src="{% static 'common/fontawesome.js' %}"></script>
 {% endblock %}

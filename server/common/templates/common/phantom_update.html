@@ -7,7 +7,13 @@
   <link rel="stylesheet" href="{% webpack 'update_phantom.css' %}">
 {% endblock %}
 
-{% block "content" %}
+{% block breadcrumbs %}
+  <a href="{% url 'landing' %}">Home</a>
+  <i class="fa fa-angle-right" aria-hidden="true"></i>
+  <a href="{% url 'configuration' %}">Configuration</a>
+{% endblock %}
+
+{% block content %}
   <h1>Edit Phantom</h1>
 
   <form action="{% url 'update_phantom' phantom.pk %}" method="post" class="cirs-form">
@@ -76,8 +82,4 @@
     <a href="{% url 'upload_ct' phantom.pk %}" class="btn tertiary">Upload Gold Standard CT</a>
     <a href="{% url 'upload_raw' phantom.pk %}" class="btn tertiary">Upload Raw Points</a>
   </div>
-{% endblock %}
-
-{% block "scripts" %}
-  <script src="{% static 'common/fontawesome.js' %}"></script>
 {% endblock %}

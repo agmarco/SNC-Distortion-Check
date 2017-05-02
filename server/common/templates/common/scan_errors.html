@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 
-{% block "content" %}
+{% block breadcrumbs %}
+  <a href="{% url 'landing' %}">Home</a>
+  <i class="fa fa-angle-right" aria-hidden="true"></i>
+{% endblock %}
+
+{% block content %}
   <h1>Scan Errors</h1>
   <p>{{ scan.errors }}</p>
 {% endblock %}
