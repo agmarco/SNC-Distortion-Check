@@ -5,7 +5,7 @@ import logging
 import matplotlib.pylab as plt
 import numpy as np
 
-from . import file_io
+from process import file_io
 from process.points_utils import closest
 from process.affine import apply_affine
 from process.slicer import PointsSlicer, render_cursor, render_points
@@ -78,6 +78,7 @@ class AnnotateSlicer(PointsSlicer):
                 self.selected_indice = None
             else:
                 self.selected_indice = self.selected_indice % num_points
+            print('deleting point')
         elif event.key == 'shift+tab':
             # TODO: shift+tab does not appear to be recognized
             self.selected_indice = (self.selected_indice - 1) % num_points
