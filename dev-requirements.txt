@@ -44,11 +44,13 @@ ptyprocess==0.5.1         # via pexpect, terminado
 py==1.4.33                # via pytest
 pygments==2.2.0           # via ipython, nbconvert
 pylint==1.7.1
+pyqt5==5.8.2
 pytest-django==3.1.2
 pytest==3.0.7
 python-dateutil==2.6.0    # via faker, jupyter-client
 pyzmq==16.0.2             # via jupyter-client
 simplegeneric==0.8.1      # via ipython
+sip==4.19.2               # via pyqt5
 six==1.10.0               # via astroid, bleach, faker, html5lib, pip-tools, prompt-toolkit, pylint, python-dateutil, traitlets
 smmap2==2.0.1             # via gitdb2
 terminado==0.6            # via notebook

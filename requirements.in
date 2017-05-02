@@ -1,6 +1,6 @@
 pydicom
 orderedset
-keras
+keras<2
 tensorflow
 matplotlib
 numpy
