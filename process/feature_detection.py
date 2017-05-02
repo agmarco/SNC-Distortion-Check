@@ -6,7 +6,6 @@ from scipy import signal
 from . import kernels
 from . import peak_detection
 from . import phantoms
-from .fp_rejector import remove_fps
 from . import affine
 from .utils import invert
 
@@ -44,37 +43,23 @@ class FeatureDetector:
 
         logger.info('detecting peaks')
         search_radius = self.grid_spacing/3.0
-        points_ijk_unfiltered, self.label_image = peak_detection.detect_peaks(
+        self.points_ijk, self.label_image = peak_detection.detect_peaks(
             self.feature_image,
             self.pixel_spacing,
             search_radius,
         )
 
-        logger.info('discarding false positives using neural network')
-
-        # TODO: switch to using original image after updating the model
-        inverted_image = invert(self.image)
-        self.points_ijk = remove_fps(points_ijk_unfiltered, inverted_image)
-        assert self.points_ijk.shape[1] > 0, 'All of the points were filtered out!'
-
         self.points_xyz = affine.apply_affine(self.ijk_to_xyz, self.points_ijk)
         return self.points_xyz
 
     def build_kernel(self):
-        # TODO: consider using cross initially, and then gaussian.  This would
-        # be as "backup" for the CNN.
-        # return kernels.cylindrical_grid_intersection(
-            # self.pixel_spacing,
-            # self.grid_radius,
-            # self.grid_spacing
-        # )
         return kernels.gaussian(
             self.pixel_spacing,
             self.grid_radius
         )
 
     def preprocess(self):
-        if self.modality == 'MR':
+        if self.modality == 'mri':
             return invert(self.image)
         else:
             return self.image
