@@ -40,7 +40,6 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
             promise.cancel();
         }
 
-        // validate the serial number
         const newPromise = Bluebird.resolve(fetch(validateSerialUrl, {
                 method: 'POST',
                 credentials: 'same-origin',

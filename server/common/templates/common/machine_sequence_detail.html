@@ -24,6 +24,8 @@
     var MACHINE_SEQUENCE_PAIR = {{ machine_sequence_pair|safe }};
     var SCANS = {{ scans|safe }};
     var UPLOAD_SCAN_URL = "{% url 'upload_scan' %}?machine={{ machinesequencepair.machine.pk }}&sequence={{ machine_sequence_pair.sequence.pk }}";
+    var UPDATE_TOLERANCE_URL = "{% url 'update_tolerance' %}";
+    var FORM_ERRORS = {% if form_errors %}{{ form_errors|safe }}{% else %}null{% endif %};
   </script>
   <script src="{% webpack 'machine_sequence_detail.js' %}"></script>
 {% endblock %}

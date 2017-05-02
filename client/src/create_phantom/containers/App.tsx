@@ -1,11 +1,12 @@
 import React from 'react';
 
+import { IFormErrors } from 'common/forms';
 import AddPhantomForm from '../components/AddPhantomForm';
 
 declare const CREATE_PHANTOM_URL: string;
 declare const VALIDATE_SERIAL_URL: string;
 declare const CANCEL_URL: string;
-declare const FORM_ERRORS: {[field: string]: string[]};
+declare const FORM_ERRORS: IFormErrors;
 
 export default () => (
     <div>

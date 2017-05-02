@@ -18,8 +18,15 @@
 
   <form action="{% url 'update_phantom' phantom.pk %}" method="post" class="cirs-form">
     {% csrf_token %}
-    {% include 'includes/form_fields.html' %}
-    <input type="submit" value="Save Name Change" class="btn tertiary">
+    {{ form.non_field_errors }}
+    <div>
+      {{ form.name.errors }}
+      {{ form.name.label_tag }}
+      <div class="inline-group">
+        {{ form.name }}
+        <input type="submit" value="Save Name Change" class="btn tertiary">
+      </div>
+    </div>
   </form>
 
   <div class="phantom-details">

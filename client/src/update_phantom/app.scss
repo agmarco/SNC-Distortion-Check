@@ -18,3 +18,14 @@
     margin-left: $small-spacing;
   }
 }
+
+.cirs-form {
+  .inline-group {
+    display: flex;
+
+    input:not([type="submit"]) {
+      margin-right: $small-spacing;
+      margin-bottom: 0;
+    }
+  }
+}

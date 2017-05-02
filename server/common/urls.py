@@ -6,6 +6,7 @@ from . import api
 urlpatterns = [
     url(r'^api/', include([
         url(r'^validate-serial/$', api.ValidateSerial.as_view(), name='validate_serial'),
+        url(r'^update-tolerance/$', api.UpdateTolerance.as_view(), name='update_tolerance'),
     ])),
 
     url(r'^$', views.landing, name='landing'),

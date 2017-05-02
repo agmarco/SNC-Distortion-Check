@@ -1,7 +1,7 @@
 import React from 'react';
 
-import MachineSequenceTable from '../components/MachineSequenceTable';
 import { IMachineSequencePairDTO } from 'common/service';
+import MachineSequenceTable from '../components/MachineSequenceTable';
 
 declare const MACHINE_SEQUENCE_PAIRS: IMachineSequencePairDTO[];
 declare const UPLOAD_SCAN_URL: string;

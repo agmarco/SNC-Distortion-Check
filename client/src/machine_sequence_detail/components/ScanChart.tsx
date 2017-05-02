@@ -46,6 +46,7 @@ export interface IScanChartSettings {
 export interface IScanChartProps {
     machineSequencePair: IMachineSequencePairDTO;
     scans: IScanDTO[];
+    tolerance: number;
 }
 
 export interface IScanChartState {
@@ -183,8 +184,8 @@ export default class extends React.Component<IScanChartProps, IScanChartState> {
                     </clipPath>
                 </defs>
                 <g transform={`translate(${margin.left}, ${margin.top})`}>
-                    <ScanChartAxes{...this.props} {...this.settings} scroll={scroll} />
-                    <ScanChartTolerance{...this.props} {...this.settings} scroll={scroll} />
+                    <ScanChartAxes {...this.props} {...this.settings} scroll={scroll} />
+                    <ScanChartTolerance {...this.props} {...this.settings} scroll={scroll} />
                     <ScanChartData {...this.props} {...this.settings} scroll={scroll} />
                     <rect width={clipWidth} height={height} className="border" />
                 </g>

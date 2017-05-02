@@ -1,0 +1,21 @@
+@import '../../common/base';
+
+.cirs-form {
+  .inline-group {
+    display: flex;
+    align-items: center;
+
+    input {
+      margin-right: $small-spacing;
+      margin-bottom: 0;
+    }
+
+    #tolerance-tolerance {
+      width: 150px;
+    }
+
+    .fa {
+      font-size: 24px;
+    }
+  }
+}

@@ -119,6 +119,15 @@ def dicom_overlay_data(user):
         'scan': scan,
     }
 
+
+def update_tolerance_data(user):
+    machine = factories.MachineFactory(institution=user.institution)
+    sequence = factories.SequenceFactory(institution=user.institution)
+    machine_sequence_pair = factories.MachineSequencePairFactory(machine=machine, sequence=sequence)
+    return {
+        'machine_sequence_pair': machine_sequence_pair,
+    }
+
 VIEWS = (
     {
         'view': views.landing,
@@ -363,5 +372,16 @@ VIEWS = (
         'permissions': ('common.configuration',),
         'validate_institution': False,
         'methods': {'POST': lambda data: {'serial_number': data['phantom'].serial_number}},
+    }, {
+        'view': api.UpdateTolerance,
+        'data': update_tolerance_data,
+        'url': lambda data: reverse('update_tolerance'),
+        'login_required': True,
+        'permissions': ('common.configuration',),
+        'validate_institution': True,
+        'methods': {'POST': lambda data: {
+            'pk': data['machine_sequence_pair'].pk,
+            'tolerance': 1,
+        }},
     },
 )

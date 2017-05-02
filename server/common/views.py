@@ -193,11 +193,10 @@ class DicomOverlay(FormView):
         return reverse('machine_sequence_detail', args=(self.scan.machine_sequence_pair.pk,))
 
     def form_valid(self, form):
-        messages.success(self.request, f"""
-        DICOM overlay for scan for phantom \"{self.scan.golden_fiducials.phantom.model.model_number} —
-        {self.scan.golden_fiducials.phantom.serial_number},\"
-        captured on {formats.date_format(self.scan.dicom_series.acquisition_date)}, has been generated successfully.
-        """)
+        messages.success(self.request, f"""DICOM overlay for scan for phantom
+            \"{self.scan.golden_fiducials.phantom.model.model_number} —
+            {self.scan.golden_fiducials.phantom.serial_number},\" captured on
+            {formats.date_format(self.scan.dicom_series.acquisition_date)}, has been generated successfully.""")
         # TODO generate overlay
         return super(DicomOverlay, self).form_valid(form)
 
@@ -212,8 +211,7 @@ class DeleteScan(CirsDeleteView):
         messages.success(self.request, f"""Scan for phantom
             \"{self.object.golden_fiducials.phantom.model.model_number} —
             {self.object.golden_fiducials.phantom.serial_number}\", captured on
-            {formats.date_format(self.object.dicom_series.acquisition_date)}, has been deleted successfully."""
-        )
+            {formats.date_format(self.object.dicom_series.acquisition_date)}, has been deleted successfully.""")
         return response
 
     def get_success_url(self):

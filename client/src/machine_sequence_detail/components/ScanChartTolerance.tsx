@@ -6,15 +6,15 @@ interface IScanChartToleranceProps extends IScanChartProps, IScanChartSettings, 
 
 export default class extends React.Component<IScanChartToleranceProps, {}> {
     render() {
-        const { clipWidth, machineSequencePair, yScale } = this.props;
+        const { clipWidth, tolerance, yScale } = this.props;
 
         return (
             <line
                 className="tolerance"
                 x1={0}
-                y1={yScale(machineSequencePair.tolerance)}
+                y1={yScale(tolerance)}
                 x2={clipWidth}
-                y2={yScale(machineSequencePair.tolerance)}
+                y2={yScale(tolerance)}
             />
         );
     }
