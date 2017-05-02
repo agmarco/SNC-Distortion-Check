@@ -66,9 +66,8 @@ class FeatureDetector:
         logger.info('discarding false positives using neural network')
 
         # TODO: switch to using original image after updating the model
-        # inverted_image = invert(self.image)
         self.points_ijk, false_positives_points_ijk = remove_fps(points_ijk_unfiltered, self.image, self.pixel_spacing)
-        # assert self.points_ijk.shape[1] > 0, 'All of the points were filtered out!'
+        assert self.points_ijk.shape[1] > 0, 'All of the points were filtered out!'
 
         self.points_xyz = affine.apply_affine(self.ijk_to_xyz, self.points_ijk)
         if not return_false_positives:
