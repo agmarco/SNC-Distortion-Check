@@ -50,6 +50,7 @@ class FeatureDetector:
         )
 
         self.points_xyz = affine.apply_affine(self.ijk_to_xyz, self.points_ijk)
+        return self.points_xyz
 
     def build_kernel(self):
         return kernels.gaussian(self.pixel_spacing, self.grid_radius*0.6)

@@ -9,3 +9,4 @@ pylint
 factory_boy
 ipywidgets
 pyqt5
+tabulate

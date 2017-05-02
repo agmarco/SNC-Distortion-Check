@@ -40,7 +40,7 @@ def remove_fps(points_ijk_unfiltered, voxels, voxel_spacing):
     probablities = model.predict_proba(np.array(windows), verbose=0)
     is_fp[~is_fp] = probablities[:, 1] < INTERSECTION_PROB_THRESHOLD
 
-    return points_ijk_unfiltered[:, ~is_fp], points_ijk_unfiltered[:, is_fp]
+    return points_ijk_unfiltered[:, ~is_fp]
 
 
 def is_grid_intersection(point_ijk, voxels, voxel_spacing):

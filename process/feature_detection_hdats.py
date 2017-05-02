@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from process import affine
-from process.feature_detection import render_intersection_square
 from . import file_io
 from . import points_utils
 from . import slicer
+from .slicer_fp_rejector import render_intersection_square
 from . import affine
 from .fp_rejector import remove_fps
 from hdatt.suite import Suite
@@ -63,6 +63,7 @@ class FeatureDetectionSuite(Suite):
         voxel_data = file_io.load_voxels(case_input['voxels'])
         voxels = voxel_data['voxels']
         ijk_to_xyz = voxel_data['ijk_to_patient_xyz_transform']
+        voxel_spacing = affine.pixel_spacing(ijk_to_xyz)
         phantom_name = voxel_data['phantom_name']
         modality = voxel_data['modality']
 
@@ -74,11 +75,12 @@ class FeatureDetectionSuite(Suite):
         context['preprocessed_image'] = feature_detector.preprocessed_image
         context['feature_image'] = feature_detector.feature_image
         context['kernel'] = feature_detector.kernel
+        context['voxel_spacing'] = voxel_spacing
 
         rho = lambda bmag: 3
         metrics['raw'], context['raw'] = self._process_points(golden_points, raw_points_xyz, rho)
 
-        pruned_points_ijk = remove_fps(feature_detector.points_ijk, voxels)
+        pruned_points_ijk = remove_fps(feature_detector.points_ijk, voxels, voxel_spacing)
         pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
         metrics['pruned'], context['pruned'] = self._process_points(golden_points, pruned_points_xyz, rho)
 
