@@ -6,50 +6,40 @@ import numpy as np
 from . import file_io
 from . import points_utils
 from . import slicer
+from . import affine
+from .fp_rejector import remove_fps
 from hdatt.suite import Suite
 from .feature_detection import FeatureDetector
+from .visualization import scatter3
 
 
 class FeatureDetectionSuite(Suite):
     id = 'feature-detection'
 
     def collect(self):
-        # data_generators = get_test_data_generators()
-        # cases = {
-            # '.'.join(data_generator.description): {
-                # 'voxels': data_generator.output_data_prefix+'-voxels.mat',
-                # 'points': data_generator.output_data_prefix+'-points.mat',
-            # }
-            # for data_generator in data_generators
-        # }
-
         cases = {
-            # '001': {
-                # 'voxels': 'tmp/001_ct_603A_E3148_ST1.25-voxels.mat',
-                # 'points': 'data/points/001_ct_603A_E3148_ST1.25-golden.mat',
-            # },
-            # '006': {
-                # 'voxels': 'tmp/006_mri_603A_UVA_Axial_2ME2SRS5-voxels.mat',
-                # 'points': 'data/points/006_mri_603A_UVA_Axial_2ME2SRS5-golden.mat',
-            # },
-            # '010': {
-                # 'voxels': 'tmp/010_mri_604_LFV-Phantom_E2632-1-voxels.mat',
-                # 'points': 'data/points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
-            # },
-            # '011': {
-                # 'voxels': 'tmp/011_mri_603A_arterial_TOF_3d_motsa_ND-voxels.mat',
-                # 'points': 'data/points/011_mri_630A_arterial_TOF_3d_motsa_ND-golden.mat',
-            # },
+            '001': {
+                'voxels': 'tmp/001_ct_603A_E3148_ST1.25-voxels.mat',
+                'points': 'data/points/001_ct_603A_E3148_ST1.25-golden.mat',
+            },
+            '006': {
+                'voxels': 'tmp/006_mri_603A_UVA_Axial_2ME2SRS5-voxels.mat',
+                'points': 'data/points/006_mri_603A_UVA_Axial_2ME2SRS5-golden.mat',
+            },
+            '010': {
+                'voxels': 'tmp/010_mri_604_LFV-Phantom_E2632-1-voxels.mat',
+                'points': 'data/points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
+            },
+            '011': {
+                'voxels': 'tmp/011_mri_603A_arterial_TOF_3d_motsa_ND-voxels.mat',
+                'points': 'data/points/011_mri_630A_arterial_TOF_3d_motsa_ND-golden.mat',
+            },
             '1540-075': {
                 'voxels': 'tmp/xxx_ct_1540_ST075-120kVp-100mA-voxels.mat',
                 'points': 'data/points/1540-gaussian.mat',
             },
             '1540-125': {
                 'voxels': 'tmp/xxx_ct_1540_ST125-120kVp-100mA-voxels.mat',
-                'points': 'data/points/1540-gaussian.mat',
-            },
-            '1540-150': {
-                'voxels': 'tmp/xxx_ct_1540_ST150-120kVp-100mA-voxels.mat',
                 'points': 'data/points/1540-gaussian.mat',
             },
             '1540-250': {
@@ -60,6 +50,8 @@ class FeatureDetectionSuite(Suite):
         return cases
 
     def run(self, case_input):
+        golden_points = file_io.load_points(case_input['points'])['points']
+
         metrics = OrderedDict()
         context = OrderedDict()
 
@@ -72,7 +64,7 @@ class FeatureDetectionSuite(Suite):
         modality = voxel_data['modality']
 
         feature_detector = FeatureDetector(phantom_name, modality, voxels, ijk_to_xyz)
-        points = feature_detector.run()
+        raw_points_xyz = feature_detector.run()
 
         context['phantom_name'] = phantom_name
         context['label_image'] = feature_detector.label_image
@@ -80,9 +72,19 @@ class FeatureDetectionSuite(Suite):
         context['feature_image'] = feature_detector.feature_image
         context['kernel'] = feature_detector.kernel
 
-        golden_points = file_io.load_points(case_input['points'])['points']
-
         rho = lambda bmag: 3
+        metrics['raw'], context['raw'] = self._process_points(golden_points, raw_points_xyz, rho)
+
+        pruned_points_ijk = remove_fps(feature_detector.points_ijk, voxels)
+        pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
+        metrics['pruned'], context['pruned'] = self._process_points(golden_points, pruned_points_xyz, rho)
+
+        return metrics, context
+
+    def _process_points(self, golden_points, points, rho):
+        metrics = OrderedDict()
+        context = OrderedDict()
+
         FN_A, TP_A, TP_B, FP_B = points_utils.categorize(golden_points, points, rho)
 
         context['FN_A'] = FN_A
@@ -97,12 +99,16 @@ class FeatureDetectionSuite(Suite):
         for p in [0, 25, 50, 75, 95, 99, 100]:
             metrics['FLE_{}'.format(p)] = FLE_percentiles[p]
 
-        self.print_metrics(metrics)
-
         return metrics, context
 
-    def print_metrics(self, metrics):
-        for k, v in metrics.items():
+    def _print_metrics(self, metrics):
+        print('BEFORE FP-REJECTOR DETECTION')
+        self._print_points_metrics(metrics['raw'])
+        print('AFTER FP-REJECTOR DETECTION')
+        self._print_points_metrics(metrics['pruned'])
+
+    def _print_points_metrics(self, point_cloud_comparison_metrics):
+        for k, v in point_cloud_comparison_metrics.items():
             if k.startswith('FLE_'):
                 msg = "{} = {:06.4f}mm ({:06.4f}mm, {:06.4f}mm, {:06.4f}mm)"
                 print(msg.format(k, v['r'], v['x'], v['y'], v['z']))
@@ -110,17 +116,18 @@ class FeatureDetectionSuite(Suite):
                 print("{} = {:06.4f}".format(k, v))
 
     def verify(self, old_metrics, new_metrics):
-        return new_metrics['TPF'] == 1.0 and \
+        return new_metrics['TPF'] >= old_metrics['TPF'] and \
                new_metrics['FPF'] < 0.2 and \
                new_metrics['FLE_100']['r'] < 0.375, ''
 
     def show(self, result):
-        self.print_metrics(result['metrics'])
+        self._print_metrics(result['metrics'])
 
         context = result['context']
+
         descriptors = [
             {
-                'points_xyz': context['FN_A'],
+                'points_xyz': context['pruned']['FN_A'],
                 'scatter_kwargs': {
                     'color': 'y',
                     'label': 'FN_A',
@@ -128,7 +135,7 @@ class FeatureDetectionSuite(Suite):
                 }
             },
             {
-                'points_xyz': context['TP_A'],
+                'points_xyz': context['pruned']['TP_A'],
                 'scatter_kwargs': {
                     'color': 'g',
                     'label': 'TP_A',
@@ -136,7 +143,7 @@ class FeatureDetectionSuite(Suite):
                 }
             },
             {
-                'points_xyz': context['TP_B'],
+                'points_xyz': context['pruned']['TP_B'],
                 'scatter_kwargs': {
                     'color': 'g',
                     'label': 'TP_B',
@@ -144,7 +151,7 @@ class FeatureDetectionSuite(Suite):
                 }
             },
             {
-                'points_xyz': context['FP_B'],
+                'points_xyz': context['pruned']['FP_B'],
                 'scatter_kwargs': {
                     'color': 'r',
                     'label': 'FP_B',
