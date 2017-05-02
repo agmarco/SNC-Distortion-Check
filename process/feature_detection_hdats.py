@@ -1,8 +1,11 @@
 from collections import OrderedDict
+from functools import partial
 
 import matplotlib.pyplot as plt
 import numpy as np
 
+from process import affine
+from process.feature_detection import render_intersection_square
 from . import file_io
 from . import points_utils
 from . import slicer
@@ -186,6 +189,7 @@ class FeatureDetectionSuite(Suite):
             [0, 1, 0]
         ))
         s.add_renderer(slicer.render_translucent_overlay(kernel_big, [1, 0, 0]))
+        s.add_renderer(partial(render_intersection_square, raw_voxels, affine.pixel_spacing(ijk_to_xyz)))
         s.add_renderer(slicer.render_cursor)
         s.draw()
         plt.show()

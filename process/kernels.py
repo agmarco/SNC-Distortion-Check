@@ -20,8 +20,8 @@ def _kernel_shape(pixel_spacing, sides):
     return tuple(1 + 2*math.ceil((0.5*s - 0.5*p)/p) for p, s in zip(pixel_spacing, sides))
 
 
-def gaussian(pixel_spacing, sigma):
-    shape = _kernel_shape(pixel_spacing, 2*2.5*sigma)
+def gaussian(pixel_spacing, sigma, sigma_extent=2.5):
+    shape = _kernel_shape(pixel_spacing, 2*sigma_extent*sigma)
     slices = [np.linspace(-(n - 1)/2*p, (n - 1)/2*p, n) for p, n in zip(pixel_spacing, shape)]
     X, Y, Z = np.meshgrid(*slices, indexing='ij')
     kernel = np.exp(-(X**2 + Y**2 + Z**2)/(2*sigma**2))

@@ -42,7 +42,7 @@ class FeatureDetector:
         self.feature_image = signal.fftconvolve(self.preprocessed_image, self.kernel, mode='same')
 
         logger.info('detecting peaks')
-        search_radius = self.grid_spacing/3.0
+        search_radius = self.grid_spacing/2.0
         self.points_ijk, self.label_image = peak_detection.detect_peaks(
             self.feature_image,
             self.pixel_spacing,
@@ -50,16 +50,13 @@ class FeatureDetector:
         )
 
         self.points_xyz = affine.apply_affine(self.ijk_to_xyz, self.points_ijk)
-        return self.points_xyz
 
     def build_kernel(self):
-        return kernels.gaussian(
-            self.pixel_spacing,
-            self.grid_radius
-        )
+        return kernels.gaussian(self.pixel_spacing, self.grid_radius*0.6)
 
     def preprocess(self):
-        if self.modality == 'mri':
+        # TODO: make the modality indicators consistent
+        if self.modality == 'MR' or self.modality == 'mri':
             return invert(self.image)
         else:
             return self.image

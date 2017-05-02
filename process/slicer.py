@@ -1,18 +1,79 @@
 import copy
 
+import scipy
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.colors import NoNorm
 
 from process import affine
 
 
-def show_slices(voxels):
+class cyclic_iterator:
+    def __init__(self, thelist):
+        self.thelist = thelist
+        self.index = 0
+
+    def next(self):
+        self.index += 1
+        if self.index >= len(self.thelist):
+            print('\a')
+            self.index = 0
+        return self.thelist[self.index]
+
+    def prev(self):
+        self.index -= 1
+        if self.index < 0:
+            print('\a')
+            self.index = len(self.thelist)-1
+        return self.thelist[self.index]
+
+def show_slices(voxels, overlaid_voxels=None):
+    """
+    Shows voxels and translucent overlay as overlaid_voxels
+    :param voxels:
+    :param overlaid_voxels: binary voxels mask same shape as voxels. Will be labelled and can be iterated using n/N keys.
+    :return:
+    """
     slicer = Slicer(voxels)
     slicer.add_renderer(render_cursor)
+    if overlaid_voxels is not None:
+        old_on_key_press = slicer.on_key_press
+        labeled, num_labels = scipy.ndimage.measurements.label(overlaid_voxels)
+        slicer.num_labels = num_labels
+        if num_labels > 100:
+            print("Warning lots of labels {}".format(num_labels))
+            num_labels = 100
+        centroids = []
+        for label in range(1, num_labels+1):
+            coords_in_label = np.array(np.where(labeled == label))
+            centroid = np.mean(coords_in_label, axis=1)
+            centroids.append(centroid)
+
+        centroid_iterator = cyclic_iterator(centroids)
+
+        def next_roi():
+            centroid = centroid_iterator.next()
+            slicer.cursor = np.round(centroid).astype(int)
+            slicer.draw()
+
+        slicer.next_roi = next_roi
+
+        def on_key_press(event):
+            old_on_key_press(event)
+            if event.key == 'n':
+                slicer.next_roi()
+            elif event.key == 'N':
+                centroid = centroid_iterator.prev()
+                slicer.cursor = np.round(centroid).astype(int)
+                slicer.draw()
+
+        slicer.on_key_press = on_key_press
+        slicer.add_renderer(render_overlay(overlaid_voxels, alpha=0.5, norm=NoNorm(), cmap=matplotlib.colors.ListedColormap([(0,0,0,0), (0,1,0,1), (1,1,0,1), (1,0,0,1)])))
+
     slicer.draw()
     plt.show()
-
+    return slicer
 
 class Slicer:
     def __init__(self, voxels):
@@ -190,7 +251,7 @@ def _scatter_in_slice(slicer, ax, descriptor):
     slice_location = slicer.cursor[slice_dimension]
 
     point_radius_mm = descriptor.get('point_radius_mm', 5)
-    point_radius_pixels = point_radius_mm/slicer.pixel_spacing[slice_dimension]
+    point_radius_pixels = point_radius_mm
     distance_to_slice = np.abs(points[slice_dimension, :] - slice_location)
     indices_in_slice = distance_to_slice < point_radius_pixels
 

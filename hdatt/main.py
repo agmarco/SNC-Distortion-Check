@@ -2,6 +2,8 @@ import argparse
 import traceback
 from collections import ChainMap, OrderedDict
 
+import tabulate
+
 from .resultspec import resolve_resultspec, print_resultspec
 from .casespec import resolve_casespecs, select_suite
 from .runner import run_cases
@@ -71,10 +73,14 @@ def main(arguments, suites, golden_store, archive, git_info):
         table = []
         for result in results:
             row = OrderedDict({'case id': result['case_id']})
-            row.update(result['metrics'])
+            row['TPF'] = result['metrics']['TPF']
+            row['FPF'] = result['metrics']['FPF']
             table.append(row)
 
-        # TODO: print results
+        print(tabulate.tabulate(table, headers="keys",  tablefmt="psql", floatfmt=".5f"))
+        # TODO: Find better way to print results table. Currently it only works
+        # with feature detection hdat.  e.g. allow the user to specify two
+        # metrics (e.g. using jsonrefs) for the x and y axis of the table
 
 
 def show_result(suites, result):
