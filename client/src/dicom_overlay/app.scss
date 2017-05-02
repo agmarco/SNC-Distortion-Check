@@ -1,0 +1,10 @@
+@import '../common/base';
+
+.isocenter {
+  display: flex;
+
+  label,
+  input:not(:last-child) {
+    margin-right: $small-spacing;
+  }
+}

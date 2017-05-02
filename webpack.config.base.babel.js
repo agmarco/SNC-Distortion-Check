@@ -21,6 +21,7 @@ export default (env) => ({
         login: [path.join(__dirname, 'client/src/login/app.scss')],
         configuration: [path.join(__dirname, 'client/src/configuration/app.scss')],
         update_phantom: [path.join(__dirname, 'client/src/update_phantom/app.scss')],
+        dicom_overlay: [path.join(__dirname, 'client/src/dicom_overlay/app.scss')],
     },
 
     output: {

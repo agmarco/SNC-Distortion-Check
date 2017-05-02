@@ -32,11 +32,8 @@ class Crud:
 
 def create_phantom_data(user):
     phantom_model = factories.PhantomModelFactory(name='CIRS 603A', model_number='603A')
-    phantom = factories.PhantomFactory(model=phantom_model, serial_number='A123')
-    return {
-        'phantom_model': phantom_model,
-        'phantom': phantom,
-    }
+    factories.PhantomFactory(model=phantom_model, serial_number='A123')
+    return {}
 
 
 def machine_sequence_detail_data(user):
@@ -44,8 +41,6 @@ def machine_sequence_detail_data(user):
     sequence = factories.SequenceFactory()
     machine_sequence_pair = factories.MachineSequencePairFactory(machine=machine, sequence=sequence)
     return {
-        'machine': machine,
-        'sequence': sequence,
         'machine_sequence_pair': machine_sequence_pair,
     }
 
@@ -89,10 +84,6 @@ def scan_errors_data(user):
         tolerance=2,
     )
     return {
-        'machine': machine,
-        'sequence': sequence,
-        'machine_sequence_pair': machine_sequence_pair,
-        'dicom_series': dicom_series,
         'scan': scan,
     }
 
@@ -109,10 +100,22 @@ def delete_scan_data(user):
         tolerance=2,
     )
     return {
-        'machine': machine,
-        'sequence': sequence,
-        'machine_sequence_pair': machine_sequence_pair,
-        'dicom_series': dicom_series,
+        'scan': scan,
+    }
+
+
+def dicom_overlay_data(user):
+    machine = factories.MachineFactory(institution=user.institution)
+    sequence = factories.SequenceFactory(institution=user.institution)
+    machine_sequence_pair = factories.MachineSequencePairFactory(machine=machine, sequence=sequence)
+    dicom_series = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
+    scan = factories.ScanFactory(
+        creator=user,
+        machine_sequence_pair=machine_sequence_pair,
+        dicom_series=dicom_series,
+        tolerance=2,
+    )
+    return {
         'scan': scan,
     }
 
@@ -342,6 +345,15 @@ VIEWS = (
         'permissions': ('common.configuration',),
         'validate_institution': True,
         'methods': {'GET': None},
+    },
+    {
+        'view': views.DicomOverlay,
+        'data': dicom_overlay_data,
+        'url': lambda data: reverse('dicom_overlay', args=(data['scan'].pk,)),
+        'login_required': True,
+        'permissions': ('common.configuration',),
+        'validate_institution': True,
+        'methods': {'GET': None, 'POST': None},
     },
     {
         'view': api.ValidateSerial,

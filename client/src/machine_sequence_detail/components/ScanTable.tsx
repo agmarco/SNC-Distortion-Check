@@ -44,6 +44,7 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
         this.setState({phantomFilterValue: value === 'all' ? value : Number(value)});
     }
 
+    // TODO hook up executive report
     renderScanActions(scan: IScanDTO) {
         if (scan.processing) {
             return <td colSpan={6}>The Data is Still being Processed...</td>;
@@ -62,7 +63,7 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
                     <a href="#"><i className="fa fa-refresh" aria-hidden="true" /></a>
                 </td>,
                 <td key={1} className="action">
-                    <a href="#">DICOM Overlay</a>
+                    <a href={scan.dicom_overlay_url}>DICOM Overlay</a>
                 </td>,
                 <td key={2} className="action">
                     <a href={scan.zipped_dicom_files_url}>Raw Data</a>

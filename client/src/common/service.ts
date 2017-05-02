@@ -38,6 +38,7 @@ export interface IScanDTO {
     acquisition_date: string;
     errors_url: string;
     delete_url: string;
+    dicom_overlay_url: string;
     zipped_dicom_files_url: string;
     full_report_url: string | null;
     executive_report_url: string | null;

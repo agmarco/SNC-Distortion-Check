@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% load common %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{% webpack 'dicom_overlay.css' %}">
+{% endblock %}
+
+{% block breadcrumbs %}
+  <a href="{% url 'landing' %}">Home</a>
+  <i class="fa fa-angle-right" aria-hidden="true"></i>
+  <a href="{% url 'machine_sequence_detail' scan.machine_sequence_pair.pk %}">
+    {{ scan.machine_sequence_pair.machine.name }} &mdash; {{ scan.machine_sequence_pair.sequence.name }}
+  </a>
+{% endblock %}
+
+{% block content %}
+  <h1>DICOM Overlay</h1>
+  <form action="{% url 'dicom_overlay' scan.pk %}" method="post" class="cirs-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div>
+      {{ form.series_instance_uid.errors }}
+      {{ form.series_instance_uid.label_tag }}
+      {{ form.series_instance_uid }}
+    </div>
+    <div>
+      {{ form.study_instance_uid.errors }}
+      {{ form.study_instance_uid.label_tag }}
+      {{ form.study_instance_uid }}
+    </div>
+    <div>
+      {{ form.patient_uid.errors }}
+      {{ form.patient_uid.label_tag }}
+      {{ form.patient_uid }}
+    </div>
+    <div>
+      {{ form.isocenter_x.errors }}
+      {{ form.isocenter_y.errors }}
+      {{ form.isocenter_z.errors }}
+      <label>Isocenter (mm)</label>
+      <div class="isocenter">
+        {{ form.isocenter_x.label_tag }}
+        {{ form.isocenter_x }}
+        {{ form.isocenter_y.label_tag }}
+        {{ form.isocenter_y }}
+        {{ form.isocenter_z.label_tag }}
+        {{ form.isocenter_z }}
+      </div>
+    </div>
+    <div>
+      {{ form.frame_of_reference_uid.errors }}
+      {{ form.frame_of_reference_uid.label_tag }}
+      {{ form.frame_of_reference_uid }}
+    </div>
+    <div class="form-links">
+      <a href="{% url 'machine_sequence_detail' scan.machine_sequence_pair.pk %}" class="btn tertiary">Cancel</a>
+      <input type="submit" value="Generate DICOM Overlay" class="btn secondary">
+    </div>
+  </form>
+{% endblock %}

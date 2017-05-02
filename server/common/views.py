@@ -6,6 +6,8 @@ from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
+from django.utils import formats
+from django.utils.functional import cached_property
 from django.views.generic import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
 from django.shortcuts import render, redirect, get_object_or_404
@@ -14,7 +16,7 @@ from rest_framework.renderers import JSONRenderer
 from process import dicom_import
 from .models import Scan, Phantom, Machine, Sequence, Fiducials, GoldenFiducials, User, DicomSeries, Institution, MachineSequencePair
 from .tasks import process_scan, process_ct_upload
-from .forms import UploadScanForm, UploadCTForm, UploadRawForm, CreatePhantomForm, InstitutionForm
+from .forms import UploadScanForm, UploadCTForm, UploadRawForm, CreatePhantomForm, InstitutionForm, DicomOverlayForm
 from .serializers import MachineSequencePairSerializer, MachineSerializer, SequenceSerializer, PhantomSerializer, ScanSerializer
 from .decorators import validate_institution, login_and_permission_required
 
@@ -48,7 +50,8 @@ class CirsDeleteView(DeleteView):
 
 @login_and_permission_required('common.configuration')
 def landing(request):
-    machine_sequence_pairs_queryset = MachineSequencePair.objects.filter(machine__institution=request.user.institution).active().order_by('-last_modified_on')
+    machine_sequence_pairs_queryset = MachineSequencePair.objects.filter(machine__institution=request.user.institution)
+    machine_sequence_pairs_queryset = machine_sequence_pairs_queryset.active().order_by('-last_modified_on')
     machine_sequence_pairs = MachineSequencePairSerializer(machine_sequence_pairs_queryset, many=True)
 
     renderer = JSONRenderer()
@@ -171,13 +174,45 @@ class ScanErrors(DetailView):
 
 
 @login_and_permission_required('common.configuration')
+@validate_institution(model_class=Scan)
+class DicomOverlay(FormView):
+    form_class = DicomOverlayForm
+    template_name = 'common/dicom_overlay.html'
+
+    @cached_property
+    def scan(self):
+        return get_object_or_404(Scan, pk=self.kwargs['pk'])
+
+    def get_context_data(self, **kwargs):
+        context = super(DicomOverlay, self).get_context_data(**kwargs)
+        context.update({'scan': self.scan})
+        return context
+
+    def get_success_url(self):
+        return reverse('machine_sequence_detail', args=(self.scan.machine_sequence_pair.pk,))
+
+    def form_valid(self, form):
+        messages.success(self.request, f"""
+        DICOM overlay for scan for phantom \"{self.scan.golden_fiducials.phantom.model.model_number} —
+        {self.scan.golden_fiducials.phantom.serial_number},\"
+        captured on {formats.date_format(self.scan.dicom_series.acquisition_date)}, has been generated successfully.
+        """)
+        # TODO generate overlay
+        return super(DicomOverlay, self).form_valid(form)
+
+
+@login_and_permission_required('common.configuration')
 @validate_institution()
 class DeleteScan(CirsDeleteView):
     model = Scan
 
     def delete(self, request, *args, **kwargs):
         response = super(DeleteScan, self).delete(request, *args, **kwargs)
-        messages.success(self.request, f"Scan for phantom \"{self.object.golden_fiducials.phantom.model.model_number} — {self.object.golden_fiducials.phantom.serial_number}\", captured on {self.object.dicom_series.acquisition_date}, has been deleted successfully.")
+        messages.success(self.request, f"""
+        Scan for phantom \"{self.object.golden_fiducials.phantom.model.model_number} —
+        {self.object.golden_fiducials.phantom.serial_number},\"
+        captured on {formats.date_format(self.object.dicom_series.acquisition_date)}, has been deleted successfully.
+        """)
         return response
 
     def get_success_url(self):

@@ -109,3 +109,13 @@ class InstitutionForm(forms.ModelForm):
             'address': "Institution Address",
             'phone_number': "Institution Contact Phone Number",
         }
+
+
+class DicomOverlayForm(forms.Form):
+    series_instance_uid = forms.CharField(label="SeriesInstanceUID")
+    study_instance_uid = forms.CharField(label="StudyInstanceUID")
+    patient_uid = forms.CharField(label="PatientUID")
+    isocenter_x = forms.FloatField(label="x")
+    isocenter_y = forms.FloatField(label="y")
+    isocenter_z = forms.FloatField(label="z")
+    frame_of_reference_uid = forms.CharField(label="FrameOfReferenceUID")

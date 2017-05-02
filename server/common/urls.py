@@ -11,9 +11,13 @@ urlpatterns = [
     url(r'^$', views.landing, name='landing'),
     url(r'^configuration/$', views.Configuration.as_view(), name='configuration'),
     url(r'^machine-sequences/(?P<pk>\d+)/', views.MachineSequenceDetail.as_view(), name='machine_sequence_detail'),
-    url(r'^upload-scan/$', views.UploadScan.as_view(), name='upload_scan'),
-    url(r'^scans/(?P<pk>\d+)/delete/$', views.DeleteScan.as_view(), name='delete_scan'),
-    url(r'^scans/(?P<pk>\d+)/errors/$', views.ScanErrors.as_view(), name='scan_errors'),
+
+    url(r'^scans/', include([
+        url(r'^add/$', views.UploadScan.as_view(), name='upload_scan'),
+        url(r'^(?P<pk>\d+)/delete/$', views.DeleteScan.as_view(), name='delete_scan'),
+        url(r'^(?P<pk>\d+)/errors/$', views.ScanErrors.as_view(), name='scan_errors'),
+        url(r'^(?P<pk>\d+)/dicom-overlay/$', views.DicomOverlay.as_view(), name='dicom_overlay'),
+    ])),
 
     url(r'^phantoms/', include([
         url(r'^add/$', views.CreatePhantom.as_view(), name='create_phantom'),

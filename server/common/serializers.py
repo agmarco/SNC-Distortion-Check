@@ -62,6 +62,7 @@ class ScanSerializer(serializers.ModelSerializer):
     acquisition_date = serializers.SerializerMethodField()
     errors_url = serializers.SerializerMethodField()
     delete_url = serializers.SerializerMethodField()
+    dicom_overlay_url = serializers.SerializerMethodField()
     zipped_dicom_files_url = serializers.SerializerMethodField()
     full_report_url = serializers.SerializerMethodField()
     executive_report_url = serializers.SerializerMethodField()
@@ -78,6 +79,7 @@ class ScanSerializer(serializers.ModelSerializer):
             'acquisition_date',
             'errors_url',
             'delete_url',
+            'dicom_overlay_url',
             'zipped_dicom_files_url',
             'full_report_url',
             'executive_report_url',
@@ -92,6 +94,9 @@ class ScanSerializer(serializers.ModelSerializer):
 
     def get_delete_url(self, scan):
         return reverse('delete_scan', args=(scan.pk,))
+
+    def get_dicom_overlay_url(self, scan):
+        return reverse('dicom_overlay', args=(scan.pk,))
 
     def get_zipped_dicom_files_url(self, scan):
         return scan.dicom_series.zipped_dicom_files.url
