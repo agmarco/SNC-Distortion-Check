@@ -135,14 +135,15 @@ class UploadScan(FormView):
         except ObjectDoesNotExist:
             machine_sequence_pair = MachineSequencePair.objects.create(machine=machine, sequence=sequence, tolerance=3)
 
-        voxels, ijk_to_xyz = dicom_import.combine_slices(form.cleaned_data['datasets'])
+        dicom_datasets = form.cleaned_data['datasets']
+        voxels, ijk_to_xyz = dicom_import.combine_slices(dicom_datasets)
         dicom_series = DicomSeries.objects.create(
             zipped_dicom_files=self.request.FILES['dicom_archive'],
             voxels=voxels,
             ijk_to_xyz=ijk_to_xyz,
             shape=voxels.shape,
-            series_uid=form.cleaned_data['datasets'][0].SeriesInstanceUID,
-            acquisition_date=datetime.strptime(form.cleaned_data['datasets'][0].AcquisitionDate, '%Y%m%d'),
+            series_uid=dicom_datasets[0].SeriesInstanceUID,
+            acquisition_date=datetime.strptime(dicom_datasets[0].AcquisitionDate, '%Y%m%d'),
         )
 
         scan = Scan.objects.create(
@@ -208,11 +209,11 @@ class DeleteScan(CirsDeleteView):
 
     def delete(self, request, *args, **kwargs):
         response = super(DeleteScan, self).delete(request, *args, **kwargs)
-        messages.success(self.request, f"""
-        Scan for phantom \"{self.object.golden_fiducials.phantom.model.model_number} —
-        {self.object.golden_fiducials.phantom.serial_number},\"
-        captured on {formats.date_format(self.object.dicom_series.acquisition_date)}, has been deleted successfully.
-        """)
+        messages.success(self.request, f"""Scan for phantom
+            \"{self.object.golden_fiducials.phantom.model.model_number} —
+            {self.object.golden_fiducials.phantom.serial_number}\", captured on
+            {formats.date_format(self.object.dicom_series.acquisition_date)}, has been deleted successfully."""
+        )
         return response
 
     def get_success_url(self):
