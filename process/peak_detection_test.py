@@ -171,12 +171,12 @@ class TestDetectPeaks:
         d = np.zeros((7, 9, 11))
         d[0, 0, 0] = 1
         d[4, 4, 4] = 1
-        pixel_spacing = np.array([1.0, 1.0, 1.0])
+        voxel_spacing = np.array([1.0, 1.0, 1.0])
         search_radius = 1.1
 
         expected_peaks = np.array([[4, 4, 4]], dtype=float).T
 
-        peaks, labels = detect_peaks(d, pixel_spacing, search_radius)
+        peaks, labels = detect_peaks(d, voxel_spacing, search_radius)
 
         assert_allclose(expected_peaks, peaks)
 
@@ -185,13 +185,13 @@ class TestDetectPeaks:
         d[4, 4, 4] = 1
         d[4, 4, 5] = 1
 
-        pixel_spacing = np.array([1.0, 1.0, 1.0])
+        voxel_spacing = np.array([1.0, 1.0, 1.0])
         search_radius = 1.1
 
         # TODO: look into the math behind the spline interpolation to verify
         # this hardcoded value is correct
         expected_peaks = np.array([[4, 4, 4.444444]], dtype=float).T
 
-        peaks, labels = detect_peaks(d, pixel_spacing, search_radius)
+        peaks, labels = detect_peaks(d, voxel_spacing, search_radius)
 
         assert_allclose(expected_peaks, peaks, atol=0.001)

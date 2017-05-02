@@ -22,15 +22,15 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     voxel_data = file_io.load_voxels(args.voxels)
-    pixel_spacing = affine.pixel_spacing(voxel_data['ijk_to_patient_xyz_transform'])
+    voxel_spacing = affine.voxel_spacing(voxel_data['ijk_to_patient_xyz_transform'])
 
     distortion_mm = file_io.load_distortion(args.distortion)['distortion']
     magnitude_mm = np.linalg.norm(distortion_mm, axis=3)
 
     distortion_voxels = np.empty_like(distortion_mm)
-    distortion_voxels[:, :, :, 0] = distortion_mm[:, :, :, 0]/pixel_spacing[0]
-    distortion_voxels[:, :, :, 1] = distortion_mm[:, :, :, 1]/pixel_spacing[1]
-    distortion_voxels[:, :, :, 1] = distortion_mm[:, :, :, 2]/pixel_spacing[2]
+    distortion_voxels[:, :, :, 0] = distortion_mm[:, :, :, 0]/voxel_spacing[0]
+    distortion_voxels[:, :, :, 1] = distortion_mm[:, :, :, 1]/voxel_spacing[1]
+    distortion_voxels[:, :, :, 1] = distortion_mm[:, :, :, 2]/voxel_spacing[2]
     magnitude_voxels = np.linalg.norm(distortion_voxels, axis=3)
 
     is_nan = np.isnan(magnitude_mm)

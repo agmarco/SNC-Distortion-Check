@@ -63,7 +63,7 @@ class FeatureDetectionSuite(Suite):
         voxel_data = file_io.load_voxels(case_input['voxels'])
         voxels = voxel_data['voxels']
         ijk_to_xyz = voxel_data['ijk_to_patient_xyz_transform']
-        voxel_spacing = affine.pixel_spacing(ijk_to_xyz)
+        voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
         phantom_name = voxel_data['phantom_name']
         modality = voxel_data['modality']
 
@@ -191,7 +191,7 @@ class FeatureDetectionSuite(Suite):
             [0, 1, 0]
         ))
         s.add_renderer(slicer.render_translucent_overlay(kernel_big, [1, 0, 0]))
-        s.add_renderer(partial(render_intersection_square, raw_voxels, affine.pixel_spacing(ijk_to_xyz)))
+        s.add_renderer(partial(render_intersection_square, raw_voxels, affine.voxel_spacing(ijk_to_xyz)))
         s.add_renderer(slicer.render_cursor)
         s.draw()
         plt.show()

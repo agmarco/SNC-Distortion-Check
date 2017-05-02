@@ -71,7 +71,7 @@ def apply_xyztpx(xyztpx, points):
     return apply_affine(translation_rotation(*xyztpx), points)
 
 
-def pixel_spacing(ijk_to_xyz):
+def voxel_spacing(ijk_to_xyz):
     test_ijk_points = np.array([
         [0, 0, 0],
         [1, 0, 0],

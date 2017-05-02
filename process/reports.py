@@ -11,7 +11,7 @@ from scipy.interpolate.interpnd import LinearNDInterpolator
 from scipy.interpolate.ndgriddata import griddata
 
 from process import affine, phantoms
-from process.affine import apply_affine, pixel_spacing
+from process.affine import apply_affine, voxel_spacing
 from process.visualization import scatter3
 from process.utils import chunks
 from process import dicom_import
@@ -44,8 +44,8 @@ def generate_equidistant_sphere(n=256):
     return points
 
 
-def roi_shape(grid_radius, pixel_spacing):
-    return tuple(math.ceil(grid_radius / dim * 8) for dim in pixel_spacing)
+def roi_shape(grid_radius, voxel_spacing):
+    return tuple(math.ceil(grid_radius / dim * 8) for dim in voxel_spacing)
 
 
 def roi_bounds(B, shape):
@@ -125,7 +125,7 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
     def generate_data_acquisition_table():
         table_fig = plt.figure()
         dataset = datasets[0]
-        voxel_dims = pixel_spacing(ijk_to_xyz)
+        voxel_dims = voxel_spacing(ijk_to_xyz)
         rows = [
             (r'Phantom filler T$_1$', ''),
             (r'Phantom filler T$_2$', ''),
@@ -279,7 +279,7 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
             # TODO (x, y, z) coordinates should be in the center of the pixels
             for i, (A, B, error_vec, error_mag) in enumerate(chunk):
                 B_ijk = apply_affine(xyz_to_ijk, np.array([B]).T).T.squeeze()
-                shape = roi_shape(grid_radius, pixel_spacing(ijk_to_xyz))
+                shape = roi_shape(grid_radius, voxel_spacing(ijk_to_xyz))
                 bounds = roi_bounds(B, shape)
                 bounds_ijk = roi_bounds(B_ijk, shape)
                 axial, sagittal, coronal = roi_images(B_ijk, voxels, bounds_ijk)

@@ -71,13 +71,13 @@ def real_intersection_generator(train_or_validation, min_offset, offset_mag):
         voxels = voxel_data['voxels']
         ijk_to_xyz = voxel_data['ijk_to_patient_xyz_transform']
         xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
-        pixel_spacing = affine.pixel_spacing(ijk_to_xyz)
+        voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
         golden_points = file_io.load_points(case['points'])['points']
         point_ijk = apply_affine(xyz_to_ijk, golden_points)
         for point_ijk in point_ijk.T[start_offset::2, :]:
             random_signs = np.array([random.choice([-1,1]), random.choice([-1,1]), random.choice([-1,1])])
             point_ijk += random_signs * (np.random.sample(3) * offset_mag + min_offset)
-            voxel_window = window_from_ijk(point_ijk, voxels, pixel_spacing)
+            voxel_window = window_from_ijk(point_ijk, voxels, voxel_spacing)
             if voxel_window is not None:
                 assert voxel_window.shape == (cube_size,cube_size,cube_size)
                 yield np.expand_dims(voxel_window, axis=3)
@@ -89,7 +89,7 @@ def non_intersection_generator(min_dist_from_annotated=5, num_samples=1000):
         voxel_data = file_io.load_voxels(case['voxels'])
         voxels = voxel_data['voxels']
         ijk_to_xyz = voxel_data['ijk_to_patient_xyz_transform']
-        pixel_spacing = affine.pixel_spacing(ijk_to_xyz)
+        voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
         xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
         golden_points = file_io.load_points(case['points'])['points']
         points_ijk = apply_affine(xyz_to_ijk, golden_points)
@@ -99,7 +99,7 @@ def non_intersection_generator(min_dist_from_annotated=5, num_samples=1000):
         for point_ijk in random_points.T:
             distances = np.sum(np.abs(points_ijk.T - point_ijk), axis=1)
             if np.min(distances) > min_dist_from_annotated:
-                voxel_window = window_from_ijk(point_ijk, voxels, pixel_spacing)
+                voxel_window = window_from_ijk(point_ijk, voxels, voxel_spacing)
                 if voxel_window is not None:
                     assert voxel_window.shape == (cube_size,cube_size,cube_size)
                     yield np.expand_dims(voxel_window, axis=3)

@@ -31,7 +31,7 @@ class FeatureDetector:
         grid_spacing_environment_factor = float(os.environ.get('GRID_SPACING', '1'))
         self.grid_spacing = actual_grid_spacing*grid_spacing_environment_factor
 
-        self.pixel_spacing = affine.pixel_spacing(self.ijk_to_xyz)
+        self.voxel_spacing = affine.voxel_spacing(self.ijk_to_xyz)
 
     def run(self):
         logger.info('building kernel')
@@ -45,7 +45,7 @@ class FeatureDetector:
         search_radius = self.grid_spacing/2.0
         self.points_ijk, self.label_image = peak_detection.detect_peaks(
             self.feature_image,
-            self.pixel_spacing,
+            self.voxel_spacing,
             search_radius,
         )
 
@@ -53,7 +53,7 @@ class FeatureDetector:
         return self.points_xyz
 
     def build_kernel(self):
-        return kernels.gaussian(self.pixel_spacing, self.grid_radius*0.6)
+        return kernels.gaussian(self.voxel_spacing, self.grid_radius*0.6)
 
     def preprocess(self):
         # TODO: make the modality indicators consistent

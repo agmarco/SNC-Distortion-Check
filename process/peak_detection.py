@@ -47,7 +47,7 @@ def neighborhood_peaks(data, neighborhood):
     return peak_heights
 
 
-def detect_peaks(data, pixel_spacing, search_radius):
+def detect_peaks(data, voxel_spacing, search_radius):
     """
     Detect peaks using a local maximum filter.  A peak is defined as the
     maximum value within a binary neighborhood.  In order to provide subpixel
@@ -59,7 +59,7 @@ def detect_peaks(data, pixel_spacing, search_radius):
     Returns the peak locations in ijk coordinates.
     """
     logger.info('building neighborhood')
-    search_neighborhood = kernels.rectangle(pixel_spacing, search_radius).astype(bool)
+    search_neighborhood = kernels.rectangle(voxel_spacing, search_radius).astype(bool)
 
     assert np.sum(search_neighborhood) > 1, 'search neighborhood is too small'
 

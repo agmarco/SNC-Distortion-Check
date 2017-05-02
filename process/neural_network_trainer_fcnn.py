@@ -72,8 +72,8 @@ def annotation_from_points_mask(voxels, ijk_to_xyz, points_ijk):
     '''
     Returns a binary mask with spheres overlaid over grid intersection points
     '''
-    pixel_spacing = affine.pixel_spacing(ijk_to_xyz)
-    sphere_kernel = sphere(pixel_spacing, radius=intersection_radius, upsample=1)
+    voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
+    sphere_kernel = sphere(voxel_spacing, radius=intersection_radius, upsample=1)
     sphere_kernel = sphere_kernel > 0
     sphere_kernel_shape = np.array(sphere_kernel.shape)
     sphere_kernel_shape_half = sphere_kernel_shape // 2

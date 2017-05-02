@@ -11,9 +11,9 @@ class TestSphere:
         '''
         A radius of 3.5 will nudge up against the outermost pixel.
         '''
-        pixel_spacing = (1.0, 1.0, 1.0)
+        voxel_spacing = (1.0, 1.0, 1.0)
         radius = 3.5
-        kernel = sphere(pixel_spacing, radius, upsample=7)
+        kernel = sphere(voxel_spacing, radius, upsample=7)
         assert kernel.shape == (7, 7, 7)
 
         expected_kernel_volume = 4/3*math.pi*radius**3
@@ -24,9 +24,9 @@ class TestSphere:
         '''
         A radius of 4.0 will fall 1/2 into the last pixel
         '''
-        pixel_spacing = (1.0, 1.0, 1.0)
+        voxel_spacing = (1.0, 1.0, 1.0)
         radius = 4.0
-        kernel = sphere(pixel_spacing, radius, upsample=7)
+        kernel = sphere(voxel_spacing, radius, upsample=7)
         assert kernel.shape == (9, 9, 9)
 
         expected_kernel_volume = 4/3*math.pi*radius**3
@@ -41,18 +41,18 @@ class TestCylinderGridIntersection:
         always be odd, and should depend only on the grid spacing and the pixel
         size.
         '''
-        pixel_spacing = (1.0, 2.0, 4.0)
+        voxel_spacing = (1.0, 2.0, 4.0)
         grid_radius = 4.0
         grid_spacing = 12.0
-        expected_shape = tuple(1 + 2*math.ceil((0.5*grid_spacing - 0.5*p)/p) for p in pixel_spacing)
-        kernel = cylindrical_grid_intersection(pixel_spacing, grid_radius, grid_spacing, upsample=1)
+        expected_shape = tuple(1 + 2*math.ceil((0.5*grid_spacing - 0.5*p)/p) for p in voxel_spacing)
+        kernel = cylindrical_grid_intersection(voxel_spacing, grid_radius, grid_spacing, upsample=1)
         assert kernel.shape == expected_shape
 
     def test_no_upsampling(self):
-        pixel_spacing = (1.0, 1.0, 1.0)
+        voxel_spacing = (1.0, 1.0, 1.0)
         grid_radius = 0.5
         grid_spacing = 2.0
-        kernel = cylindrical_grid_intersection(pixel_spacing, grid_radius, grid_spacing, upsample=1)
+        kernel = cylindrical_grid_intersection(voxel_spacing, grid_radius, grid_spacing, upsample=1)
 
         intersection_slice = np.array([
             [0, 1, 0],
@@ -75,10 +75,10 @@ class TestCylinderGridIntersection:
         Set the grid radius such that 5/9 upsampled voxels fall within the
         cylinder.
         '''
-        pixel_spacing = (1.0, 1.0, 1.0)
+        voxel_spacing = (1.0, 1.0, 1.0)
         grid_radius = math.sqrt(2)/3 - 0.00001
         grid_spacing = 2.0
-        kernel = cylindrical_grid_intersection(pixel_spacing, grid_radius, grid_spacing, upsample=3)
+        kernel = cylindrical_grid_intersection(voxel_spacing, grid_radius, grid_spacing, upsample=3)
 
         g = 15.0/27.0
         off_slice = np.array([
@@ -116,10 +116,10 @@ class TestCylinderGridIntersection:
         NOTE: I am not sure why the numbers are so far off, but I am 80% sure
         these formula are correct.
         '''
-        pixel_spacing = (1.0, 1.0, 1.0)
+        voxel_spacing = (1.0, 1.0, 1.0)
         radius = 3.0
         length = 7.0
-        kernel = cylindrical_grid_intersection(pixel_spacing, radius, length)
+        kernel = cylindrical_grid_intersection(voxel_spacing, radius, length)
 
 
         cylinder_volume = math.pi*radius**2*length

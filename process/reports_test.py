@@ -28,8 +28,8 @@ def test_roi_shape():
     """
 
     grid_radius = 1.5
-    pixel_spacing = [0.25, 0.5, 0.75]
-    shape = roi_shape(grid_radius, pixel_spacing)
+    voxel_spacing = [0.25, 0.5, 0.75]
+    shape = roi_shape(grid_radius, voxel_spacing)
     assert shape == (48, 24, 16)
 
 
@@ -39,8 +39,8 @@ def test_roi_shape_rounding():
     """
 
     grid_radius = 1.51
-    pixel_spacing = [0.5, 0.5, 0.5]
-    shape = roi_shape(grid_radius, pixel_spacing)
+    voxel_spacing = [0.5, 0.5, 0.5]
+    shape = roi_shape(grid_radius, voxel_spacing)
     assert shape == (25, 25, 25)
 
 

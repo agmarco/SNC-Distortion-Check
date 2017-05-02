@@ -227,7 +227,7 @@ class PointsSlicer(Slicer):
         super().__init__(voxels)
         self.ijk_to_xyz = ijk_to_xyz
         self.xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
-        self.pixel_spacing = affine.pixel_spacing(ijk_to_xyz)
+        self.voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
         self.points_descriptors = self._transform_points_descriptors(points_descriptors)
 
     def _transform_points_descriptors(self, points_descriptors):

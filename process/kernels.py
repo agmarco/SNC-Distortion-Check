@@ -7,7 +7,7 @@ import numpy as np
 from .utils import decimate
 
 
-def _kernel_shape(pixel_spacing, sides):
+def _kernel_shape(voxel_spacing, sides):
     '''
     Figure out the kernel shape, for a given rectangular size.
 
@@ -17,36 +17,36 @@ def _kernel_shape(pixel_spacing, sides):
     '''
     if not isinstance(sides, collections.Iterable):
         sides = itertools.repeat(sides)
-    return tuple(1 + 2*math.ceil((0.5*s - 0.5*p)/p) for p, s in zip(pixel_spacing, sides))
+    return tuple(1 + 2*math.ceil((0.5*s - 0.5*p)/p) for p, s in zip(voxel_spacing, sides))
 
 
-def gaussian(pixel_spacing, sigma, sigma_extent=2.5):
-    shape = _kernel_shape(pixel_spacing, 2*sigma_extent*sigma)
-    slices = [np.linspace(-(n - 1)/2*p, (n - 1)/2*p, n) for p, n in zip(pixel_spacing, shape)]
+def gaussian(voxel_spacing, sigma, sigma_extent=2.5):
+    shape = _kernel_shape(voxel_spacing, 2*sigma_extent*sigma)
+    slices = [np.linspace(-(n - 1)/2*p, (n - 1)/2*p, n) for p, n in zip(voxel_spacing, shape)]
     X, Y, Z = np.meshgrid(*slices, indexing='ij')
     kernel = np.exp(-(X**2 + Y**2 + Z**2)/(2*sigma**2))
     return kernel/np.sum(kernel)
 
 
-def rectangle(pixel_spacing, sides):
-    shape = _kernel_shape(pixel_spacing, sides)
+def rectangle(voxel_spacing, sides):
+    shape = _kernel_shape(voxel_spacing, sides)
     return np.ones(shape, dtype=float)
 
 
-def sphere(pixel_spacing, radius, upsample=3):
-    #assert all(radius > p for p in pixel_spacing)
+def sphere(voxel_spacing, radius, upsample=3):
+    #assert all(radius > p for p in voxel_spacing)
 
     assert type(upsample) == int
     assert upsample >= 1
     assert upsample % 2 == 1
 
-    corner_shape = tuple(1 + math.ceil((radius - 0.5*p)/p) for p in pixel_spacing)
+    corner_shape = tuple(1 + math.ceil((radius - 0.5*p)/p) for p in voxel_spacing)
     upsampled_corner_shape = tuple(upsample*n - int((upsample - 1)/2) for n in corner_shape)
 
     slices = [
         np.linspace(0, (n - 1)*p/upsample, n)
         for p, n
-        in zip(pixel_spacing, upsampled_corner_shape)
+        in zip(voxel_spacing, upsampled_corner_shape)
     ]
 
     X, Y, Z = np.meshgrid(*slices, indexing='ij')
@@ -62,7 +62,7 @@ def sphere(pixel_spacing, radius, upsample=3):
 
 
 
-def cylindrical_grid_intersection(pixel_spacing, radius, spacing, upsample=3):
+def cylindrical_grid_intersection(voxel_spacing, radius, spacing, upsample=3):
     '''
     Generate a convolution kernel that can be used to detect "cylindrical grid
     intersections".  This is a set of cylinders that are lined up on a three
@@ -77,10 +77,10 @@ def cylindrical_grid_intersection(pixel_spacing, radius, spacing, upsample=3):
     assert upsample >= 1
     assert upsample % 2 == 1
 
-    corner_shape = tuple(1 + math.ceil((0.5*spacing - 0.5*p)/p) for p in pixel_spacing)
+    corner_shape = tuple(1 + math.ceil((0.5*spacing - 0.5*p)/p) for p in voxel_spacing)
     upsampled_corner_shape = tuple(upsample*n - int((upsample - 1)/2) for n in corner_shape)
 
-    slices = [np.linspace(0, (n - 1)*p/upsample, n) for p, n in zip(pixel_spacing, upsampled_corner_shape)]
+    slices = [np.linspace(0, (n - 1)*p/upsample, n) for p, n in zip(voxel_spacing, upsampled_corner_shape)]
 
     X, Y, Z = np.meshgrid(*slices, indexing='ij')
 
