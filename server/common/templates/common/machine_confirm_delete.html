@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block "content" %}
+  <h1>Delete MRI Scanner</h1>
+  <form action="{% url 'delete_machine' machine.pk %}" method="post" class="cirs-form">
+    {% csrf_token %}
+    <p>Are you sure you want to delete "{{ machine.name }}"?</p>
+    <div class="form-links">
+      <a href="{% url 'configuration' %}" class="btn tertiary">Cancel</a>
+      <input type="submit" value="Yes" class="btn secondary">
+    </div>
+  </form>
+{% endblock %}

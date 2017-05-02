@@ -18,6 +18,10 @@ unregistered-points: $(patsubst data/dicom/%.zip,tmp/%-unregistered-points.mat,$
 	nbstripout --install --attributes .gitattributes
 	touch $@
 
+.JSDEPS: yarn.lock
+	npm install -g yarn
+	yarn
+	touch $@
 
 tmp/%-voxels.mat: data/dicom/%.zip .PYTHONDEPS
 	./process/dicom2voxels $< $@
@@ -31,16 +35,22 @@ tmp/%-matched-points.mat: tmp/%-voxels.mat tmp/%-unregistered-points.mat .PYTHON
 tmp/%-report.pdf: tmp/%-matched-points.mat .PYTHONDEPS
 	./process/report $< $@
 
-
 tmp/%-distortion.mat: tmp/%-voxels.mat tmp/%-matched-points.mat .PYTHONDEPS
 	./process/interpolate $< $(word 2,$^) $@
 
+.env: .sample.env
+	cp $< $@
 
-.PHONY: clean cleandev dev freezedeps
 
-dev: .PYTHONDEPS
-	cp .sample.env .env
+.PHONY: clean cleandev dev freezedeps static
+
+dev: .PYTHONDEPS .JSDEPS static | .env
 	./createdb
+	python server/manage.py generate_dev_data
+
+static: .PYTHONDEPS .JSDEPS | .env
+	yarn run build:dev
+	python server/manage.py collectstatic --noinput
 
 freezedeps:
 	pip-compile requirements.in > requirements.txt
@@ -49,7 +59,10 @@ freezedeps:
 clean:
 	git clean -fqx tmp
 	git clean -fqx .hdattarchive
+	rm -fr collected_static
+	rm -fr client/dist
 
-cleandev:
-	./dropdb
+cleandev: clean
+	./droppostgresdb || echo 'Unable to drop Postgres DB'
+	./dropredisdb || echo 'Unable to drop Redis DB'
 	git clean -fqx

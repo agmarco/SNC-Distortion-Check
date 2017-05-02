@@ -1,0 +1,10 @@
+@import '../base';
+
+.cirs-filters {
+  .new-scan {
+    position: absolute;
+    top: 0;
+    right: $base-spacing;
+    margin-right: 0;
+  }
+}

@@ -2,4 +2,7 @@ from django.apps import AppConfig
 
 
 class CommonConfig(AppConfig):
-    name = 'common'
+    name = 'server.common'
+
+    def ready(self):
+        from . import signals

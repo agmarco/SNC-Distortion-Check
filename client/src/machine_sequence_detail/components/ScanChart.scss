@@ -1,0 +1,83 @@
+@import '../../common/base';
+
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.scan-chart {
+  display: block;
+  margin: 0 $base-spacing $base-spacing;
+}
+
+.box {
+  font: 10px sans-serif;
+  cursor: all-scroll;
+
+  line,
+  rect,
+  circle {
+    fill: none;
+    stroke-width: 1px;
+  }
+
+  .passed {
+    line,
+    rect,
+    circle {
+      stroke: $success-color;
+    }
+  }
+
+  .failed {
+    line,
+    rect,
+    circle {
+      stroke: $error-color;
+    }
+  }
+
+  .outlier {
+    fill: none;
+    stroke: #000;
+  }
+
+  .axis {
+    font: 12px sans-serif;
+
+    path,
+    line {
+      fill: none;
+      stroke: #000;
+    }
+  }
+
+  .x.axis path {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+  }
+
+  .tolerance {
+    stroke: $error-color;
+    stroke-dasharray: 5, 5;
+  }
+
+  .x-label {
+    text-anchor: middle;
+    alignment-baseline: baseline;
+    font-size: 16px;
+  }
+
+  .y-label {
+    text-anchor: middle;
+    font-size: 16px;
+  }
+
+  .border {
+    stroke: #000;
+  }
+
+  .tick line {
+    stroke: #ccc;
+  }
+}

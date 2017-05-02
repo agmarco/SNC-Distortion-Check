@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load common %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{% webpack 'landing.css' %}">
+{% endblock %}
+
+{% block "content" %}
+  <div id="landing-app"></div>
+{% endblock %}
+
+{% block "scripts" %}
+  <script src="{% static 'common/fontawesome.js' %}"></script>
+  {% chunk_manifest %}
+  {% manifest %}
+  <script src="{% webpack 'vendor.js' %}"></script>
+  <script>
+    var MACHINE_SEQUENCE_PAIRS = {{ machine_sequence_pairs|safe }};
+    var UPLOAD_SCAN_URL = {% url 'upload_scan' %};
+  </script>
+  <script src="{% webpack 'landing.js' %}"></script>
+{% endblock %}

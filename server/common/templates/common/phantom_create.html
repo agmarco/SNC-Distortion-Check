@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% load common %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{% webpack 'create_phantom.css' %}">
+{% endblock %}
+
+{% block "content" %}
+  <div id="create-phantom-app"></div>
+{% endblock %}
+
+{% block "scripts" %}
+  {% chunk_manifest %}
+  {% manifest %}
+  <script src="{% webpack 'vendor.js' %}"></script>
+  <script>
+    var CREATE_PHANTOM_URL = "{% url 'create_phantom' %}";
+    var VALIDATE_SERIAL_URL = "{% url 'validate_serial' %}";
+    var CANCEL_URL = "{% url 'configuration' %}";
+    var FORM_ERRORS = {% if form_errors %}{{ form_errors|safe }}{% else %}null{% endif %};
+  </script>
+  <script src="{% webpack 'create_phantom.js' %}"></script>
+{% endblock %}

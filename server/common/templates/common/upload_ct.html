@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block "content" %}
+  <h1>Upload Gold Standard CT</h1>
+  <form action="{% url 'upload_ct' phantom_pk %}" enctype="multipart/form-data" method="post" class="cirs-form">
+    {% csrf_token %}
+    <p>The uploaded file should be a zip-archive containing CT DICOM slices for the gold standard CT scan of the phantom.</p>
+    {% include 'includes/form_fields.html' %}
+    <div class="form-links">
+      <a href="{% url 'update_phantom' phantom_pk %}" class="btn tertiary">Cancel</a>
+      <input type="submit" value="Upload CT" class="btn secondary">
+    </div>
+  </form>
+{% endblock %}

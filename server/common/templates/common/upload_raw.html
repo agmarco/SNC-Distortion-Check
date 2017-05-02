@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block "content" %}
+  <h1>Upload Gold Standard Points</h1>
+  <form action="{% url 'upload_raw' phantom_pk %}" enctype="multipart/form-data" method="post" class="cirs-form">
+    {% csrf_token %}
+    <p>The gold standard points must be in a CSV file. Each row of the file should contain the x, y, and z points of a single phantom grid intersection.</p>
+    <p>The origin of the coordinate system should be centered in the phantom.</p>
+    {% include 'includes/form_fields.html' %}
+    <div class="form-links">
+      <a href="{% url 'update_phantom' phantom_pk %}" class="btn tertiary">Cancel</a>
+      <input type="submit" value="Upload Raw Points" class="btn secondary">
+    </div>
+  </form>
+{% endblock %}

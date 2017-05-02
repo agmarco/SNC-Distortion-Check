@@ -1,0 +1,17 @@
+{
+  "extends": ["tslint:recommended", "tslint-react"],
+  "rules": {
+    "triple-equals": true,
+    "quotemark": false,
+    "ordered-imports": false,
+    "object-literal-sort-keys": false,
+    "member-access": false,
+    "only-arrow-functions": false,
+    "jsx-no-multiline-js": false,
+    "jsx-no-lambda": false,
+    "jsx-wrap-multiline": false,
+    "jsx-boolean-value": false,
+    "arrow-parens": false,
+    "jsx-no-bind": false
+  }
+}

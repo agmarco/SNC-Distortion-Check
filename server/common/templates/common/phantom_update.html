@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load common %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{% webpack 'update_phantom.css' %}">
+{% endblock %}
+
+{% block "content" %}
+  <h1>Edit Phantom</h1>
+
+  <form action="{% url 'update_phantom' phantom.pk %}" method="post" class="cirs-form">
+    {% csrf_token %}
+    {% include 'includes/form_fields.html' %}
+    <input type="submit" value="Save Name Change" class="btn tertiary">
+  </form>
+
+  <div class="phantom-details">
+    <label>Model Number</label>
+    <p>{{ phantom.model }}</p>
+    <label>Serial Number</label>
+    <p>{{ phantom.serial_number }}</p>
+  </div>
+  <table class="cirs-table">
+    <thead>
+      <tr>
+        <th>Active</th>
+        <th>Date Uploaded</th>
+        <th>Type</th>
+        <th>Filename</th>
+        <th class="sep"></th>
+        <th colspan="4">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for golden_fiducials in view.golden_fiducials %}
+        <tr class="{% if forloop.counter0|divisibleby:2 %}a{% else %}b{% endif %}">
+          <td>{% if golden_fiducials.is_active %}<i class="fa fa-check success" aria-hidden="true"></i>{% endif %}</td>
+          <td>{{ golden_fiducials.created_on|date }}</td>
+          <td>{{ golden_fiducials.type }}</td>
+          <td>{% if golden_fiducials.type == 'CT' %}{{ golden_fiducials.dicom_series.filename }}{% endif %}</td>
+          <td class="sep"></td>
+          {% if golden_fiducials.processing %}
+            <td colspan="4">The Data is Still being Processed...</td>
+          {% else %}
+            <td class="action">
+              {% if golden_fiducials.type == 'CT' %}
+                <a href="{{ golden_fiducials.dicom_series.zipped_dicom_files.url }}">Download Images</a>
+              {% endif %}
+            </td>
+            <td class="action">
+              <a href="{% url 'gold_standard_csv' phantom.pk golden_fiducials.pk %}">Download Points</a>
+            </td>
+            <td class="action">
+              {% if not golden_fiducials.is_active %}
+                <form id="activate-{{ golden_fiducials.pk }}" action="{% url 'activate_gold_standard' phantom.pk golden_fiducials.pk %}" method="post">
+                  {% csrf_token %}
+                  <a href="#" onclick="document.getElementById('activate-{{ golden_fiducials.pk }}').submit();">Set Active</a>
+                </form>
+              {% endif %}
+            </td>
+            <td class="action">
+              {% if not golden_fiducials.is_active and not golden_fiducials.type == 'CAD' %}
+                <a href="{% url 'delete_gold_standard' phantom.pk golden_fiducials.pk %}">
+                  <i class="fa fa-trash-o" aria-hidden="true"></i>
+                </a>
+              {% endif %}
+            </td>
+          {% endif %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="update-phantom-links">
+    <a href="{% url 'upload_ct' phantom.pk %}" class="btn tertiary">Upload Gold Standard CT</a>
+    <a href="{% url 'upload_raw' phantom.pk %}" class="btn tertiary">Upload Raw Points</a>
+  </div>
+{% endblock %}
+
+{% block "scripts" %}
+  <script src="{% static 'common/fontawesome.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,20 @@
+table {
+  border-collapse: collapse;
+  margin-bottom: $base-spacing;
+  width: 100%;
+}
+
+th {
+  padding: $small-spacing * (2 / 3);
+  text-align: left;
+}
+
+td {
+  padding: $small-spacing * (2 / 3);
+}
+
+tr,
+td,
+th {
+  vertical-align: middle;
+}

@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 import os
 import logging.config
 import sys
+import tempfile
+import time
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -45,6 +47,7 @@ ALLOWED_HOSTS = [os.getenv('HOSTNAME', '*')]
 
 INSTALLED_APPS = [
     'server.common',
+    'server.django_numpy',
     'storages',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -56,6 +59,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -133,6 +137,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'client/dist'),
+)
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+)
+
+if not DEBUG:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # Celery
@@ -149,7 +164,7 @@ if TESTING:
 
 BASE_URL = os.environ["BASE_URL"]
 MEDIA_PATH = 'media/'
-MEDIA_URL = ''
+MEDIA_URL = '/media/'
 
 if TESTING:
     MEDIA_ROOT = os.path.join(
@@ -196,3 +211,14 @@ logging.config.dictConfig({
         },
     }
 })
+
+
+# Users
+
+AUTH_USER_MODEL = 'common.User'
+
+
+# Auth
+
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'landing'

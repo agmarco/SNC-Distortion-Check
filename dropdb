@@ -1,9 +1,0 @@
-#!/bin/bash
-
-set -e
-
-source .env
-if psql $DATABASE_URL -c 'SELECT 1;' > /dev/null 2>&1 ; then
-  database_name=$(echo $DATABASE_URL | grep -Eo '[a-z_-]+$')
-  dropdb "$database_name"
-fi
