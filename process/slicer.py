@@ -28,7 +28,13 @@ class cyclic_iterator:
             self.index = len(self.thelist)-1
         return self.thelist[self.index]
 
-def show_slices(voxels, overlaid_voxels=None, quantized=False):
+def show_slices(voxels, overlaid_voxels=None):
+    """
+    Shows voxels and translucent overlay as overlaid_voxels
+    :param voxels:
+    :param overlaid_voxels: binary voxels mask same shape as voxels. Will be labelled and can be iterated using n/N keys.
+    :return:
+    """
     slicer = Slicer(voxels)
     slicer.add_renderer(render_cursor)
     if overlaid_voxels is not None:
@@ -63,10 +69,7 @@ def show_slices(voxels, overlaid_voxels=None, quantized=False):
                 slicer.draw()
 
         slicer.on_key_press = on_key_press
-        if quantized:
-            slicer.add_renderer(render_overlay(overlaid_voxels, alpha=0.5, norm=NoNorm(), cmap=matplotlib.colors.ListedColormap([(0,0,0,0), (0,1,0,1), (1,1,0,1), (1,0,0,1)])))
-        else:
-            slicer.add_renderer(render_overlay(overlaid_voxels, alpha=0.5, cmap=matplotlib.colors.ListedColormap([(0,0,0,0), (1,1,0,1), (1,0,0,1)])))
+        slicer.add_renderer(render_overlay(overlaid_voxels, alpha=0.5, norm=NoNorm(), cmap=matplotlib.colors.ListedColormap([(0,0,0,0), (0,1,0,1), (1,1,0,1), (1,0,0,1)])))
 
     slicer.draw()
     plt.show()

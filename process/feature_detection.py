@@ -5,14 +5,11 @@ from functools import partial
 from matplotlib import patches
 from scipy import signal
 
-from process.fp_rejector import is_grid_intersection, cube_size, cube_size_mm
-from process.slicer import Slicer, render_cursor, render_points
-import matplotlib.pyplot as plt
-
+from process.fp_rejector import is_grid_intersection, cube_size_mm
 import argparse
 
 from process import file_io
-from process.slicer import show_slices, PointsSlicer, render_points, render_cursor, render_legend
+from process.slicer import PointsSlicer, render_points, render_cursor, render_legend
 from matplotlib import pyplot as plt
 import numpy as np
 
@@ -48,6 +45,8 @@ class FeatureDetector:
         self.pixel_spacing = affine.pixel_spacing(self.ijk_to_xyz)
 
     def run(self, return_false_positives=False):
+        # TODO: David when you split out the FP removal hdats please find a better way to do the return_false_positives
+        # for visualization.
         logger.info('building kernel')
         self.kernel = self.build_kernel()
         logger.info('preprocessing image')

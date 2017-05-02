@@ -4,9 +4,9 @@ from scipy.ndimage.interpolation import zoom
 
 model = None
 
-cube_size = 15
+cube_size_ijk = 15
 cube_size_mm = 15
-input_shape = (cube_size, cube_size, cube_size, 1)
+input_shape = (cube_size_ijk, cube_size_ijk, cube_size_ijk, 1)
 
 INTERSECTION_PROB_THRESHOLD = 0.4
 
@@ -79,8 +79,8 @@ def window_from_ijk(point_ijk, voxels, voxel_spacing):
         k - window_size_half[2]:k + window_size_half[2] + 1
     ]
     if np.allclose(voxel_window.shape,  window_size_half*2+1):
-        voxel_window = zoom_like(voxel_window, (cube_size, cube_size, cube_size))
-        assert voxel_window.shape == (cube_size, cube_size, cube_size)
+        voxel_window = zoom_like(voxel_window, (cube_size_ijk, cube_size_ijk, cube_size_ijk))
+        assert voxel_window.shape == (cube_size_ijk, cube_size_ijk, cube_size_ijk)
         return voxel_window
     else:
         return None
