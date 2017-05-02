@@ -107,6 +107,7 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
     # assume that the isocenter is the geometric origin
     isocenter = (np.mean([x_min, x_max]), np.mean([y_min, y_max]), np.mean([z_min, z_max]))
 
+    # TODO address row should be taller
     def generate_institution_table():
         table_fig = plt.figure()
         rows = [
@@ -120,6 +121,7 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
         plt.title('Institution Table')
         return table_fig
 
+    # TODO add missing rows
     def generate_data_acquisition_table():
         table_fig = plt.figure()
         dataset = datasets[0]
@@ -274,6 +276,7 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
             B_patch = mpatches.Patch(color='C0')
             roi_fig.legend([A_S_patch, B_patch], ('A_S', 'B'))
 
+            # TODO (x, y, z) coordinates should be in the center of the pixels
             for i, (A, B, error_vec, error_mag) in enumerate(chunk):
                 B_ijk = apply_affine(xyz_to_ijk, np.array([B]).T).T.squeeze()
                 shape = roi_shape(grid_radius, pixel_spacing(ijk_to_xyz))
@@ -281,10 +284,13 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
                 bounds_ijk = roi_bounds(B_ijk, shape)
                 axial, sagittal, coronal = roi_images(B_ijk, voxels, bounds_ijk)
 
+                # plt.rcParams['xtick.labelsize'] = 4
+                # plt.rcParams['ytick.labelsize'] = 4
+
                 plt1 = plt.subplot2grid(subplot_dim, (i, 0))
                 plt1.imshow(axial, cmap='Greys', extent=[*bounds[0], *bounds[1]], aspect='auto')
                 plt1.scatter([A[0]], [A[1]], c='gold')
-                plt1.scatter([B[0]], [B[1]])
+                plt1.scatter([B[0]], [B[1]], c='C0')
                 plt1.set_xticks([])
                 plt1.set_yticks([])
                 plt1.set_xlim(bounds[0])
@@ -293,7 +299,7 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
                 plt2 = plt.subplot2grid(subplot_dim, (i, 1))
                 plt2.imshow(sagittal, cmap='Greys', extent=[*bounds[0], *bounds[2]], aspect='auto')
                 plt2.scatter([A[0]], [A[2]], c='gold')
-                plt2.scatter([B[0]], [B[2]])
+                plt2.scatter([B[0]], [B[2]], c='C0')
                 plt2.set_xticks([])
                 plt2.set_yticks([])
                 plt2.set_xlim(bounds[0])
@@ -302,7 +308,7 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
                 plt3 = plt.subplot2grid(subplot_dim, (i, 2))
                 plt3.imshow(coronal, cmap='Greys', extent=[*bounds[1], *bounds[2]], aspect='auto')
                 plt3.scatter([A[1]], [A[2]], c='gold')
-                plt3.scatter([B[1]], [B[2]])
+                plt3.scatter([B[1]], [B[2]], c='C0')
                 plt3.set_xticks([])
                 plt3.set_yticks([])
                 plt3.set_xlim(bounds[1])
