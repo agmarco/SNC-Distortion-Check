@@ -56,7 +56,7 @@ class FeatureDetector:
         self.feature_image = signal.fftconvolve(self.preprocessed_image, self.kernel, mode='same')
 
         logger.info('detecting peaks')
-        search_radius = self.grid_spacing/3.0
+        search_radius = self.grid_spacing/2
         points_ijk_unfiltered, self.label_image = peak_detection.detect_peaks(
             self.feature_image,
             self.pixel_spacing,
@@ -67,7 +67,7 @@ class FeatureDetector:
 
         # TODO: switch to using original image after updating the model
         # inverted_image = invert(self.image)
-        self.points_ijk, false_positives_points_ijk = remove_fps(points_ijk_unfiltered, invert(self.image), self.pixel_spacing)
+        self.points_ijk, false_positives_points_ijk = remove_fps(points_ijk_unfiltered, self.image, self.pixel_spacing)
         # assert self.points_ijk.shape[1] > 0, 'All of the points were filtered out!'
 
         self.points_xyz = affine.apply_affine(self.ijk_to_xyz, self.points_ijk)
@@ -88,7 +88,7 @@ class FeatureDetector:
         # )
         return kernels.gaussian(
             self.pixel_spacing,
-            self.grid_radius*0.7
+            self.grid_radius*0.6
         )
 
     def preprocess(self):
