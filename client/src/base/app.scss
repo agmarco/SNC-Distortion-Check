@@ -70,6 +70,20 @@ form {
         text-decoration: none;
       }
     }
+
+    .title {
+      display: flex;
+      align-items: center;
+
+      .logo {
+        font-size: 0;
+        background-image: url(./logo_header.png);
+        height: 28px;
+        width: 807px / 210px * 28px;
+        background-size: contain;
+        margin-right: 8px;
+      }
+    }
   }
 
   a {

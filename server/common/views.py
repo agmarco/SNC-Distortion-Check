@@ -84,17 +84,6 @@ class Configuration(UpdateView):
         return context
 
 
-@login_and_permission_required('common.configuration')
-def machine_sequences(request):
-    machine_sequence_pairs_queryset = MachineSequencePair.objects.filter(machine__institution=request.user.institution).active().order_by('-last_modified_on')
-    machine_sequence_pairs = MachineSequencePairSerializer(machine_sequence_pairs_queryset, many=True)
-
-    renderer = JSONRenderer()
-    return render(request, 'common/machine_sequences.html', {
-        'machine_sequence_pairs': renderer.render(machine_sequence_pairs.data),
-    })
-
-
 # TODO scan table ordering is backwards when the acquisition dates are the same
 @login_and_permission_required('common.configuration')
 @validate_institution()

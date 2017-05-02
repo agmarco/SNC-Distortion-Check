@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { MachineSequenceTable } from 'common/components';
+import MachineSequenceTable from '../components/MachineSequenceTable';
 import { IMachineSequencePairDTO } from 'common/service';
 
 declare const MACHINE_SEQUENCE_PAIRS: IMachineSequencePairDTO[];

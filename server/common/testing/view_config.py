@@ -134,14 +134,6 @@ VIEWS = (
         'methods': {'GET': None, 'POST': None},
     },
     {
-        'view': views.machine_sequences,
-        'url': reverse('landing'),
-        'login_required': True,
-        'permissions': ('common.configuration',),
-        'validate_institution': False,
-        'methods': {'GET': None},
-    },
-    {
         'view': views.MachineSequenceDetail,
         'data': machine_sequence_detail_data,
         'url': lambda data: reverse('machine_sequence_detail', args=(data['machine_sequence_pair'].pk,)),

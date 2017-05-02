@@ -2,8 +2,8 @@ import React from 'react';
 import format from 'date-fns/format';
 import uniqBy from 'lodash/uniqBy';
 
-import { IMachineSequencePairDTO, IMachineDTO, ISequenceDTO } from '../service';
-import BoolIcon from './BoolIcon';
+import { IMachineSequencePairDTO, IMachineDTO, ISequenceDTO } from 'common/service';
+import { BoolIcon } from 'common/components';
 
 import './MachineSequenceTable.scss';
 

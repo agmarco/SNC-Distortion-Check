@@ -7,8 +7,8 @@ import {
     IMachineSequenceTableProps,
     IMachineSequenceTableState,
 } from './components/MachineSequenceTable';
-import { machineFixture, sequenceFixture, machineSequencePairFixture } from './fixtures';
-import { IMachineDTO, ISequenceDTO } from './service';
+import { machineFixture, sequenceFixture, machineSequencePairFixture } from 'common/fixtures';
+import { IMachineDTO, ISequenceDTO } from 'common/service';
 
 describe('<MachineSequenceTable />', () => {
     let machineA: IMachineDTO;

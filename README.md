@@ -48,4 +48,4 @@ Run tests using
 
 You can enable hot module replacement using:
 
-    yarn build:hot
+    yarn run build:hot

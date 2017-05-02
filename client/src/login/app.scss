@@ -11,6 +11,11 @@ body {
 
   h1 {
     margin: 0 0 $base-spacing 0;
+    font-size: 0;
+    background-image: url(./logo.png);
+    width: 300px;
+    height: 499px / 1275px * 300px;
+    background-size: contain;
   }
 
   .btn {

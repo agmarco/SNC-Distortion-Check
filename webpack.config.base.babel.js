@@ -12,7 +12,6 @@ export default (env) => ({
             'react-dom',
         ],
         landing: [path.join(__dirname, 'client/src/landing/app.tsx')],
-        machine_sequences: [path.join(__dirname, 'client/src/machine_sequences/app.tsx')],
         machine_sequence_detail: [path.join(__dirname, 'client/src/machine_sequence_detail/app.tsx')],
         create_phantom: [path.join(__dirname, 'client/src/create_phantom/app.tsx')],
         upload_scan: [path.join(__dirname, 'client/src/upload_scan/app.tsx')],
@@ -47,6 +46,10 @@ export default (env) => ({
                     fallback: 'style-loader',
                     use: ['css-loader', 'sass-loader'],
                 }),
+            }, {
+                test: /\.(ico|jpg|png|gif|eot|otf|webp|svg|ttf|woff|woff2)$/,
+                loader: 'url-loader',
+                query: {limit: 8192},
             },
         ],
     },
