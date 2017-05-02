@@ -69,7 +69,7 @@ class AnnotateSlicer(PointsSlicer):
 
         if event.key == 'esc':
             self.selected_indice = None
-        elif event.key in ['d', 'e']:
+        elif event.key in ['d', 'e', 'delete']:
             points_without_selected = points[:, np.arange(num_points) != self.selected_indice]
             self.points_descriptors[0]['points_ijk'] = points_without_selected
             points = points_without_selected
@@ -87,9 +87,6 @@ class AnnotateSlicer(PointsSlicer):
             nudge_list = nudge_lookup[event.key]
             nudge = np.array(nudge_list, dtype=float)
             points[:, self.selected_indice] += nudge
-        elif event.key == 'delete':
-            self.points_descriptors[0]['points_ijk'] = np.delete(points, self.selected_indice, axis=1)
-            self.selected_indice = None
         else:
             print(event.key)
             return super().on_key_press(event)
