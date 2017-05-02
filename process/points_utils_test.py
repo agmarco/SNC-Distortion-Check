@@ -1,16 +1,13 @@
+import math
+
 import numpy as np
 import pytest
 
 from process.points_utils import categorize, metrics, closest, _valid_location
 
 
-def fs(*args):
-    return frozenset(args)
-
-
 class TestCategorize:
     def assert_categorized(self, FN_A, TP_A, TP_B, FP_B, rho):
-        # keep test cases clean by casting and handling empty arrays
         FN_A = np.array(FN_A).T if FN_A else np.zeros((3, 0))
         TP_A = np.array(TP_A).T if TP_A else np.zeros((3, 0))
         TP_B = np.array(TP_B).T if TP_B else np.zeros((3, 0))
@@ -80,55 +77,113 @@ class TestCategorize:
             lambda bmag: 1
         )
 
+    def test_all_empty(self):
+        self.assert_categorized(
+            [],
+            [],
+            [],
+            [],
+            lambda bmag: 1
+        )
+
+    def test_a_empty(self):
+        self.assert_categorized(
+            [],
+            [],
+            [],
+            [[0, 0, 0]],
+            lambda bmag: 1
+        )
+
+    def test_b_empty(self):
+        self.assert_categorized(
+            [[0, 0, 0]],
+            [],
+            [],
+            [],
+            lambda bmag: 1
+        )
+
+
+def assert_floats_equal(actual, expected):
+    if math.isnan(expected):
+        assert math.isnan(actual)
+    else:
+        assert actual == expected
+
 
 class TestMetrics:
+    def assert_metrics(self, FN_A, TP_A, TP_B, FP_B, TPF_expected, FPF_expected):
+        FN_A = np.array(FN_A).T if FN_A else np.zeros((3, 0))
+        TP_A = np.array(TP_A).T if TP_A else np.zeros((3, 0))
+        TP_B = np.array(TP_B).T if TP_B else np.zeros((3, 0))
+        FP_B = np.array(FP_B).T if FP_B else np.zeros((3, 0))
+
+        # TODO: verify percentiles
+        TPF, FPF, error_percentiles = metrics(FN_A, TP_A, TP_B, FP_B)
+
+        assert_floats_equal(TPF, TPF_expected)
+        assert_floats_equal(FPF, FPF_expected)
+
     def test_two_perfectly_matched_points(self):
-        A = np.array([
-            [0, 0, 0],
-        ]).T
-
-        B = np.array([
-            [0, 0, 0],
-        ]).T
-
-        rho = lambda bmag: 1
-        TPF, FPF, _ = metrics(*categorize(A, B, rho))
-
-        assert TPF == 1.0
-        assert FPF == 0.0
+        self.assert_metrics(
+            [],
+            [[0, 0, 0]],
+            [[0, 0, 0]],
+            [],
+            TPF_expected=1.0,
+            FPF_expected=0.0
+        )
 
     def test_two_matched_points(self):
-        A = np.array([
-            [0, 0, 0],
-        ]).T
-
-        B = np.array([
-            [0, 0, 0.1],
-        ]).T
-
-        rho = lambda bmag: 1
-        TPF, FPF, _ = metrics(*categorize(A, B, rho))
-
-        assert TPF == 1.0
-        assert FPF == 0.0
+        self.assert_metrics(
+            [],
+            [[0, 0, 0]],
+            [[0, 0, 0.1]],
+            [],
+            TPF_expected=1.0,
+            FPF_expected=0.0
+        )
 
     def test_four_matched_one_false_negative(self):
-        A = np.array([
-            [0, 0, 0],
-            [1, 0, 0],
-            [0, 0, 2],
-        ]).T
+        self.assert_metrics(
+            [[0, 0, 2]],
+            [[0, 0, 0], [1, 0, 0]],
+            [[0, 0, 0.1], [1, 0, -0.1]],
+            [],
+            TPF_expected=2/3,
+            FPF_expected=0.0
+        )
 
-        B = np.array([
-            [0, 0, 0.1],
-            [1, 0, -0.1],
-        ]).T
+    def test_both_empty(self):
+        self.assert_metrics(
+            [],
+            [],
+            [],
+            [],
+            TPF_expected=float('nan'),
+            FPF_expected=float('nan')
+        )
 
-        rho = lambda bmag: 1
-        TPF, FPF, _ = metrics(*categorize(A, B, rho))
+    def test_b_empty(self):
+        self.assert_metrics(
+            [[0, 0, 0]],
+            [],
+            [],
+            [],
+            TPF_expected=0,
+            FPF_expected=float('nan')
+        )
 
-        assert TPF == 2/3
-        assert FPF == 0.0
+    def test_a_empty(self):
+        self.assert_metrics(
+            [],
+            [],
+            [],
+            [[0, 0, 0]],
+            TPF_expected=float('nan'),
+            FPF_expected=1
+        )
 
 
 class TestClosest:

@@ -11,7 +11,7 @@ def closest(A, point):
     assert num_points >= 1
 
     distances_squared = np.sum((A - point.reshape((3, 1)))**2, axis=0)
-    closest_indice = np.argmin(distances_squared) 
+    closest_indice = np.argmin(distances_squared)
     distance = math.sqrt(distances_squared[closest_indice])
     return closest_indice, A[:, closest_indice], distance
 
@@ -52,40 +52,58 @@ def categorize(A, B, rho):
     in A (both of which can ONLY match this one point), then the matching will
     be arbitrary.
     '''
-    _, num_b = B.shape
-    assert _ == 3
     _, num_a = A.shape
     assert _ == 3
 
-    kdtree = KDTree(B.T)
+    _, num_b = B.shape
+    assert _ == 3
 
-    a_b_distances, closest_b_indices = kdtree.query(A.T)
+    if num_a == 0:
+        FN_A = np.empty((3, 0))
+        TP_A = np.empty((3, 0))
+        TP_B = np.empty((3, 0))
+        FP_B = B
 
-    seen_b_indices = OrderedSet()
-    seen_a_indices = OrderedSet()
+    elif num_b == 0:
+        FN_A = A
+        TP_A = np.empty((3, 0))
+        TP_B = np.empty((3, 0))
+        FP_B = np.empty((3, 0))
 
-    TP_A_indices = np.zeros(num_a, dtype=bool)
-    TP_B_indices = np.zeros(num_b, dtype=bool)
+    else:
+        kdtree = KDTree(B.T)
 
-    a_indices = range(num_a)
-    for a_indice, b_indice, a_b_distance in zip(a_indices, closest_b_indices, a_b_distances):
-        b = B[:, b_indice]
-        b_mag = np.linalg.norm(b)
-        if a_b_distance < rho(b_mag):
-            TP_A_indices[a_indice] = True
-            TP_B_indices[b_indice] = True
+        a_b_distances, closest_b_indices = kdtree.query(A.T)
 
-            if b_indice in seen_b_indices:
-                continue
-                #raise NotImplementedError("Multiple points in A match same point in B")
-            else:
-                seen_b_indices.add(b_indice)
-                seen_a_indices.add(a_indice)
+        seen_b_indices = OrderedSet()
+        seen_a_indices = OrderedSet()
 
-    FN_A = A[:, ~TP_A_indices]
-    TP_A = A[:, seen_a_indices]
-    TP_B = B[:, seen_b_indices]
-    FP_B = B[:, ~TP_B_indices]
+        TP_A_indices = np.zeros(num_a, dtype=bool)
+        TP_B_indices = np.zeros(num_b, dtype=bool)
+
+        a_indices = range(num_a)
+        for a_indice, b_indice, a_b_distance in zip(a_indices, closest_b_indices, a_b_distances):
+            b = B[:, b_indice]
+            b_mag = np.linalg.norm(b)
+            if a_b_distance < rho(b_mag):
+                TP_A_indices[a_indice] = True
+                TP_B_indices[b_indice] = True
+
+                if b_indice in seen_b_indices:
+                    continue
+                    #raise NotImplementedError("Multiple points in A match same point in B")
+                    # TODO: when there are multiple matching points, pick the
+                    # closest match; once this is done, the two assertions
+                    # below should be enabled; also there are skipped tests for
+                    # this that should be enabled
+                else:
+                    seen_b_indices.add(b_indice)
+                    seen_a_indices.add(a_indice)
+
+        FN_A = A[:, ~TP_A_indices]
+        TP_A = A[:, seen_a_indices]
+        TP_B = B[:, seen_b_indices]
+        FP_B = B[:, ~TP_B_indices]
 
     #assert FN_A.shape[1] + TP_A.shape[1] == num_a
     #assert FP_B.shape[1] + TP_B.shape[1] == num_b
@@ -109,16 +127,20 @@ def metrics(FN_A, TP_A, TP_B, FP_B):
     num_points_a = len(FN_A.T) + len(TP_A.T)
     num_points_b = len(FP_B.T) + len(TP_B.T)
 
-    assert num_points_a > 0
+    percentiles = range(0, 100 + 1)
 
     if len(TP_B.T) == 0:
-        raise NotImplementedError('No points in B!')
+        error_percentiles = {
+            p: {'r': float('nan'), 'x': float('nan'), 'y': float('nan'), 'z': float('nan')}
+            for
+            p
+            in
+            percentiles
+        }
     else:
-
         error_vectors = TP_A - TP_B
         error_vector_norms = np.linalg.norm(error_vectors, axis=0)
 
-        percentiles = range(0, 100 + 1)
         error_percentiles = {
             p: {'r': r, 'x': x, 'y': y, 'z': z}
             for
@@ -133,8 +155,7 @@ def metrics(FN_A, TP_A, TP_B, FP_B):
             )
         }
 
-        TPF = len(TP_A.T)/num_points_a
-        FPF = len(FP_B.T)/num_points_b
+    TPF = len(TP_A.T)/num_points_a if num_points_a else float('nan')
+    FPF = len(FP_B.T)/num_points_b if num_points_b else float('nan')
 
-        return TPF, FPF, error_percentiles
-
+    return TPF, FPF, error_percentiles
