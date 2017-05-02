@@ -22,7 +22,6 @@ class AnnotateSlicer(PointsSlicer):
 
     def on_button_press(self, event):
         if event.button == 3:  # right click
-            print("Right click")
             points = self.points_descriptors[0]['points_ijk']
             num_points = points.shape[1]
 
@@ -89,9 +88,7 @@ class AnnotateSlicer(PointsSlicer):
             nudge = np.array(nudge_list, dtype=float)
             points[:, self.selected_indice] += nudge
         elif event.key == 'delete':
-            print("deleting. Points {} before".format(points.shape))
             self.points_descriptors[0]['points_ijk'] = np.delete(points, self.selected_indice, axis=1)
-            print("deleting. Points {} after".format(points.shape))
             self.selected_indice = None
         else:
             print(event.key)
