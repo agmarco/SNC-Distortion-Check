@@ -97,22 +97,6 @@ class FullAlgorithmSuite(Suite):
                 'scatter_kwargs': {
                     'color': 'b',
                     'label': 'A',
-                    'marker': 's'
-                }
-            },
-            {
-                'points_xyz': context['FN_A_S'],
-                'scatter_kwargs': {
-                    'color': 'y',
-                    'label': 'FN_A_S',
-                    'marker': 'x'
-                }
-            },
-            {
-                'points_xyz': context['TP_A_S'],
-                'scatter_kwargs': {
-                    'color': 'y',
-                    'label': 'TP_A_s',
                     'marker': 'o'
                 }
             },
@@ -132,10 +116,27 @@ class FullAlgorithmSuite(Suite):
                     'marker': 'o'
                 }
             },
+            {
+                'points_xyz': context['FN_A_S'],
+                'scatter_kwargs': {
+                    'color': 'g',
+                    'label': 'FN_A_S',
+                    'marker': 'x'
+                }
+            },
+            {
+                'points_xyz': context['TP_A_S'],
+                'scatter_kwargs': {
+                    'color': 'g',
+                    'label': 'TP_A_s',
+                    'marker': 's'
+                }
+            },
         ]
 
         s = slicer.PointsSlicer(context['preprocessed_image'], context['ijk_to_xyz'], descriptors)
         s.add_renderer(slicer.render_points)
         s.add_renderer(slicer.render_cursor)
+        s.add_renderer(slicer.render_legend)
         s.draw()
         plt.show()
