@@ -1,0 +1,9 @@
+#!/bin/bash
+set -e
+
+pip install pip-sync
+pip-sync requirements.txt dev-requirements.txt
+nbstripout --install --attributes .gitattributes
+npm install -g yarn
+yarn
+./createdb

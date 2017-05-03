@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e
+
+./droppostgresdb || echo 'Unable to drop Postgres DB'
+./dropredisdb || echo 'Unable to drop Redis DB'
+git clean -fqx
+./clean

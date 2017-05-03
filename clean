@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e
+
+git clean -fqx tmp
+git clean -fqx .hdattarchive
+rm -fr collected_static
+rm -fr client/dist
