@@ -17,5 +17,5 @@ if __name__ == '__main__':
     phantom_name = voxel_data['phantom_name']
     modality = voxel_data['modality']
 
-    points_in_patient_xyz, false_positives_points_xyz = FeatureDetector(phantom_name, modality, voxels, ijk_to_xyz).run(return_false_positives=True)
-    file_io.save_points(args.points, {'points': points_in_patient_xyz})
+    feature_detector = FeatureDetector(phantom_name, modality, voxels, ijk_to_xyz)
+    file_io.save_points(args.points, {'points': feature_detector.points_xyz})

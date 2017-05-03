@@ -68,7 +68,6 @@ class FeatureDetectionSuite(Suite):
         modality = voxel_data['modality']
 
         feature_detector = FeatureDetector(phantom_name, modality, voxels, ijk_to_xyz)
-        raw_points_xyz = feature_detector.run()
 
         context['phantom_name'] = phantom_name
         context['label_image'] = feature_detector.label_image
@@ -78,7 +77,7 @@ class FeatureDetectionSuite(Suite):
         context['voxel_spacing'] = voxel_spacing
 
         rho = lambda bmag: 3
-        metrics['raw'], context['raw'] = self._process_points(golden_points, raw_points_xyz, rho)
+        metrics['raw'], context['raw'] = self._process_points(golden_points, feature_detector.points_xyz, rho)
 
         pruned_points_ijk = remove_fps(feature_detector.points_ijk, voxels, voxel_spacing)
         pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)

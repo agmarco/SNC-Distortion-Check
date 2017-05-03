@@ -46,7 +46,6 @@ class FullAlgorithmSuite(Suite):
 
         # 1. feature detector
         feature_detector = FeatureDetector(phantom_name, modality, voxels, ijk_to_xyz)
-        feature_detector.run()
 
         context['preprocessed_image'] = feature_detector.preprocessed_image
 
