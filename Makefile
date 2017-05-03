@@ -42,15 +42,11 @@ tmp/%-distortion.mat: tmp/%-voxels.mat tmp/%-matched-points.mat .PYTHONDEPS
 	cp $< $@
 
 
-.PHONY: clean cleandev dev freezedeps static
+.PHONY: clean cleandev dev freezedeps
 
-dev: .PYTHONDEPS .JSDEPS static | .env
+dev: .PYTHONDEPS .JSDEPS | .env
 	./createdb
 	python server/manage.py generate_dev_data
-
-static: .PYTHONDEPS .JSDEPS | .env
-	yarn run build:dev
-	python server/manage.py collectstatic --noinput
 
 freezedeps:
 	pip-compile requirements.in > requirements.txt
