@@ -6,9 +6,11 @@ import merge from 'webpack-merge';
 
 import webpackBase from './webpack.config.base.babel';
 
+
 export default (env) => {
     const config = merge(webpackBase(env), {
         output: {
+            // TODO: grab this from the .env file
             publicPath: 'http://0.0.0.0:8080/',
             filename: '[name].js',
         },
