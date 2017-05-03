@@ -83,10 +83,13 @@ def rigidly_register(A, B, g, rho, tol=1e-4):
     f = build_f(A, B, g, rho)
     logger.info('Built f')
 
+    center_of_mass_shift = np.mean(B, axis=1) - np.mean(A, axis=1)
+    assert center_of_mass_shift.shape[0] == 3
+
     brute_force_ranges = [
-        slice(-4, 4, 2),
-        slice(-4, 4, 2),
-        slice(-4, 4, 2),
+        slice(-4 + center_of_mass_shift[0], 4 + center_of_mass_shift[0], 2),
+        slice(-4 + center_of_mass_shift[1], 4 + center_of_mass_shift[1], 2),
+        slice(-4 + center_of_mass_shift[2], 4 + center_of_mass_shift[2], 2),
         slice(-0.08, 0.08, 0.04),
         slice(-0.08, 0.08, 0.04),
         slice(-0.08, 0.08, 0.04),
