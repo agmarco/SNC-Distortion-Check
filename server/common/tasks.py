@@ -27,81 +27,54 @@ def process_scan(scan_pk):
 
     try:
         with transaction.atomic():
+            modality = 'mri'
 
-            # For now, use mock data
-            A = generate_cube(2, 4)
-            B = generate_cube(2, 4)
-            affine_matrix = affine.translation_rotation(0, 0, 0, np.pi / 180 * 10, np.pi / 180 * 10, np.pi / 180 * 10)
+            voxels = scan.dicom_series.voxels,
+            ijk_to_xyz = scan.dicom_series.ijk_to_xyz
+            voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
 
-            A = apply_affine(affine_matrix, A)
+            feature_detector = FeatureDetector(
+                scan.phantom.model.model_number,
+                modality,
+                voxels,
+                ijk_to_xyz,
+            )
 
-            scan.detected_fiducials = Fiducials.objects.create(fiducials=A)
-            scan.TP_A_S = Fiducials.objects.create(fiducials=A)
-            scan.TP_B = Fiducials.objects.create(fiducials=B)
+            pruned_points_ijk = remove_fps(feature_detector.points_ijk, voxels, voxel_spacing)
+            pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
+
+            scan.detected_fiducials = Fiducials.objects.create(fiducials=pruned_points_xyz)
+
+            xyztpx, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
+                scan.golden_fiducials.fiducials.fiducials,
+                scan.detected_fiducials.fiducials,
+            )
+
+            if TP_B.size == 0:
+                raise Exception("No fiducials could be matched with the gold standard.")
+
+            scan.TP_A_S = Fiducials.objects.create(fiducials=TP_A_S)
+            scan.TP_B = Fiducials.objects.create(fiducials=TP_B)
 
             with zipfile.ZipFile(scan.dicom_series.zipped_dicom_files, 'r') as zip_file:
                 datasets = dicom_import.dicom_datasets_from_zip(zip_file)
 
-            voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
-
             report_filename = f'{uuid.uuid4()}.pdf'
             report_path = os.path.join(settings.BASE_DIR, 'tmp', report_filename)
             generate_report(
-                A,
-                B,
+                TP_A_S,
+                TP_B,
                 datasets,
-                voxels,
-                ijk_to_xyz,
+                scan.dicom_series.voxels,
+                scan.dicom_series.ijk_to_xyz,
                 scan.golden_fiducials.phantom.model.model_number,
                 scan.tolerance,
                 scan.institution,
                 report_path,
             )
 
-            with open(report_path, 'rb') as report:
-                scan.full_report.save(report_filename, File(report), save=False)
-
-            # modality = 'mri'
-#
-            # points_in_patient_xyz = FeatureDetector(
-            #     scan.phantom.model.model_number,
-            #     modality,
-            #     scan.dicom_series.voxels,
-            #     scan.dicom_series.ijk_to_xyz,
-            # ).run()
-#
-            # scan.detected_fiducials = Fiducials.objects.create(fiducials=points_in_patient_xyz)
-#
-            # xyztpx, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
-            #     scan.golden_fiducials.fiducials.fiducials,
-            #     scan.detected_fiducials.fiducials,
-            # )
-#
-            # if TP_B.size == 0:
-            #     raise Exception("No fiducials could be matched with the gold standard.")
-#
-            # scan.TP_A_S = Fiducials.objects.create(fiducials=TP_A_S)
-            # scan.TP_B = Fiducials.objects.create(fiducials=TP_B)
-#
-            # with zipfile.ZipFile(scan.dicom_series.zipped_dicom_files, 'r') as zip_file:
-            #     datasets = dicom_import.dicom_datasets_from_zip(zip_file)
-#
-            # report_filename = f'{uuid.uuid4()}.pdf'
-            # report_path = os.path.join(settings.BASE_DIR, 'tmp', report_filename)
-            # generate_report(
-            #     TP_A_S,
-            #     TP_B,
-            #     datasets,
-            #     scan.dicom_series.voxels,
-            #     scan.dicom_series.ijk_to_xyz,
-            #     scan.golden_fiducials.phantom.model.model_number,
-            #     scan.tolerance,
-            #     scan.institution,
-            #     report_path,
-            # )
-#
-            # with open(report_path) as report:
-            #     scan.full_report.save(report_filename, File(report))
+            with open(report_path) as report:
+                scan.full_report.save(report_filename, File(report))
 
             scan.processing = False
             scan.save()
