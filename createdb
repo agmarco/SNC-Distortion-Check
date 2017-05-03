@@ -3,9 +3,11 @@
 set -e
 
 source .env
+database_name=$(echo $DATABASE_URL | grep -Eo '[a-z_-]+$')
 if ! psql $DATABASE_URL -c 'SELECT 1;' > /dev/null 2>&1 ; then
-  database_name=$(echo $DATABASE_URL | grep -Eo '[a-z_-]+$')
-  createdb "$database_name"
-  python server/manage.py migrate
-  python server/manage.py generate_dev_data
+    createdb "$database_name"
+    python server/manage.py migrate
+    python server/manage.py generate_dev_data
+else
+    echo "Database \"$database_name\" already exists!"
 fi
