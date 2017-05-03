@@ -271,3 +271,32 @@ class Global(models.Model):
             ('configuration', 'Configuration'),
             ('manage_users', 'Manage Users'),
         )
+
+
+def create_scan(machine, sequence, phantom, dicom_datasets):
+    # TODO: grab tolerance from the sequence (will need to add a tolerance
+    # field to the sequence)
+    machine_sequence_pair = MachineSequencePair.objects.get_or_create(
+        machine=machine,
+        sequence=sequence,
+        defaults={tolerance: 3},
+    )
+
+    voxels, ijk_to_xyz = dicom_import.combine_slices(dicom_datasets)
+    dicom_series = DicomSeries(
+        voxels=voxels,
+        ijk_to_xyz=ijk_to_xyz,
+        shape=voxels.shape,
+        series_uid=dicom_datasets[0].SeriesInstanceUID,
+        acquisition_date=datetime.strptime(dicom_datasets[0].AcquisitionDate, '%Y%m%d'),
+    )
+
+    scan = Scan(
+        machine_sequence_pair=machine_sequence_pair,
+        dicom_series=dicom_series,
+        golden_fiducials=phantom.active_gold_standard,
+        tolerance=machine_sequence_pair.tolerance,
+        processing=True,
+    )
+
+    return scan

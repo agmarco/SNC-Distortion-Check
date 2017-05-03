@@ -14,7 +14,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework.renderers import JSONRenderer
 
 from process import dicom_import
-from .models import Scan, Phantom, Machine, Sequence, Fiducials, GoldenFiducials, User, DicomSeries, Institution, MachineSequencePair
+from .models import Scan, Phantom, Machine, Sequence, Fiducials, GoldenFiducials, User, DicomSeries, Institution, MachineSequencePair, create_scan
 from .tasks import process_scan, process_ct_upload
 from .forms import UploadScanForm, UploadCTForm, UploadRawForm, CreatePhantomForm, InstitutionForm, DicomOverlayForm
 from .serializers import MachineSequencePairSerializer, MachineSerializer, SequenceSerializer, PhantomSerializer, ScanSerializer
@@ -130,31 +130,13 @@ class UploadScan(FormView):
         sequence = Sequence.objects.get(pk=form.cleaned_data['sequence'])
         phantom = Phantom.objects.get(pk=form.cleaned_data['phantom'])
 
-        try:
-            machine_sequence_pair = MachineSequencePair.objects.get(machine=machine, sequence=sequence)
-        except ObjectDoesNotExist:
-            machine_sequence_pair = MachineSequencePair.objects.create(machine=machine, sequence=sequence, tolerance=3)
+        scan = create_scan(machine, sequence, phantom, form.cleaned_data['datasets'])
 
-        dicom_datasets = form.cleaned_data['datasets']
-        voxels, ijk_to_xyz = dicom_import.combine_slices(dicom_datasets)
-        dicom_series = DicomSeries.objects.create(
-            zipped_dicom_files=self.request.FILES['dicom_archive'],
-            voxels=voxels,
-            ijk_to_xyz=ijk_to_xyz,
-            shape=voxels.shape,
-            series_uid=dicom_datasets[0].SeriesInstanceUID,
-            acquisition_date=datetime.strptime(dicom_datasets[0].AcquisitionDate, '%Y%m%d'),
-        )
+        scan.dicom_series.zipped_dicom_files = self.request.FILES['dicom_archive']
+        scan.creator = self.request.user
+        scan.notes = form.cleaned_data['notes']
 
-        scan = Scan.objects.create(
-            creator=self.request.user,
-            machine_sequence_pair=machine_sequence_pair,
-            dicom_series=dicom_series,
-            golden_fiducials=phantom.active_gold_standard,
-            notes=form.cleaned_data['notes'],
-            tolerance=machine_sequence_pair.tolerance,
-            processing=True,
-        )
+        scan.save()
 
         process_scan.delay(scan.pk)
         messages.success(self.request, "Your scan has been uploaded successfully and is processing.")
