@@ -1,10 +1,9 @@
-import csv
 import logging
 from datetime import datetime
 
-from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
+from django.core.exceptions import PermissionDenied
 from django.contrib import messages
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.utils import formats
 from django.utils.functional import cached_property
@@ -14,24 +13,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework.renderers import JSONRenderer
 
 from process import dicom_import
-from .models import Scan, Phantom, Machine, Sequence, Fiducials, GoldenFiducials, User, DicomSeries, Institution, MachineSequencePair, create_scan
+from . import models
+from . import serializers
 from .tasks import process_scan, process_ct_upload
 from .forms import UploadScanForm, UploadCTForm, UploadRawForm, CreatePhantomForm, InstitutionForm, DicomOverlayForm
-from .serializers import MachineSequencePairSerializer, MachineSerializer, SequenceSerializer, PhantomSerializer, ScanSerializer
 from .decorators import validate_institution, login_and_permission_required
+from .http import CSVResponse, ZipResponse
 
 logger = logging.getLogger(__name__)
-
-
-class CSVResponse(HttpResponse):
-    def __init__(self, ndarray, filename="array.csv", *args, **kwargs):
-        kwargs.setdefault('content_type', 'text/csv')
-        super(CSVResponse, self).__init__(*args, **kwargs)
-
-        self['Content-Disposition'] = f'attachment; filename="{filename}"'
-        writer = csv.writer(self)
-        for row in ndarray.T:
-            writer.writerow(row)
 
 
 class CirsDeleteView(DeleteView):
@@ -50,9 +39,9 @@ class CirsDeleteView(DeleteView):
 
 @login_and_permission_required('common.configuration')
 def landing(request):
-    machine_sequence_pairs_queryset = MachineSequencePair.objects.filter(machine__institution=request.user.institution)
+    machine_sequence_pairs_queryset = models.MachineSequencePair.objects.filter(machine__institution=request.user.institution)
     machine_sequence_pairs_queryset = machine_sequence_pairs_queryset.active().order_by('-last_modified_on')
-    machine_sequence_pairs = MachineSequencePairSerializer(machine_sequence_pairs_queryset, many=True)
+    machine_sequence_pairs = serializers.MachineSequencePairSerializer(machine_sequence_pairs_queryset, many=True)
 
     renderer = JSONRenderer()
     return render(request, 'common/landing.html', {
@@ -62,7 +51,7 @@ def landing(request):
 
 @login_and_permission_required('common.configuration')
 class Configuration(UpdateView):
-    model = Institution
+    model = models.Institution
     form_class = InstitutionForm
     success_url = reverse_lazy('configuration')
     template_name = 'common/configuration.html'
@@ -91,12 +80,14 @@ class Configuration(UpdateView):
 @login_and_permission_required('common.configuration')
 @validate_institution()
 class MachineSequenceDetail(DetailView):
-    model = MachineSequencePair
+    model = models.MachineSequencePair
     template_name = 'common/machine_sequence_detail.html'
 
     def get_context_data(self, **kwargs):
-        machine_sequence_pair = MachineSequencePairSerializer(self.object)
-        scans = ScanSerializer(Scan.objects.filter(machine_sequence_pair=self.object).active().order_by('-dicom_series__acquisition_date'), many=True)
+        machine_sequence_pair = serializers.MachineSequencePairSerializer(self.object)
+        scans = models.Scan.objects.filter(machine_sequence_pair=self.object)
+        scans = scans.active().order_by('-dicom_series__acquisition_date')
+        scans = serializers.ScanSerializer(scans, many=True)
 
         renderer = JSONRenderer()
         return {
@@ -114,9 +105,9 @@ class UploadScan(FormView):
 
     def get_context_data(self, **kwargs):
         institution = self.request.user.institution
-        machines = MachineSerializer(Machine.objects.filter(institution=institution), many=True)
-        sequences = SequenceSerializer(Sequence.objects.filter(institution=institution), many=True)
-        phantoms = PhantomSerializer(Phantom.objects.filter(institution=institution), many=True)
+        machines = serializers.MachineSerializer(models.Machine.objects.filter(institution=institution), many=True)
+        sequences = serializers.SequenceSerializer(models.Sequence.objects.filter(institution=institution), many=True)
+        phantoms = serializers.PhantomSerializer(models.Phantom.objects.filter(institution=institution), many=True)
 
         renderer = JSONRenderer()
         return {
@@ -126,11 +117,11 @@ class UploadScan(FormView):
         }
 
     def form_valid(self, form):
-        machine = Machine.objects.get(pk=form.cleaned_data['machine'])
-        sequence = Sequence.objects.get(pk=form.cleaned_data['sequence'])
-        phantom = Phantom.objects.get(pk=form.cleaned_data['phantom'])
+        machine = models.Machine.objects.get(pk=form.cleaned_data['machine'])
+        sequence = models.Sequence.objects.get(pk=form.cleaned_data['sequence'])
+        phantom = models.Phantom.objects.get(pk=form.cleaned_data['phantom'])
 
-        scan = create_scan(machine, sequence, phantom, form.cleaned_data['datasets'])
+        scan = models.create_scan(machine, sequence, phantom, form.cleaned_data['datasets'])
 
         scan.dicom_series.zipped_dicom_files = self.request.FILES['dicom_archive']
         scan.creator = self.request.user
@@ -140,7 +131,7 @@ class UploadScan(FormView):
 
         process_scan.delay(scan.pk)
         messages.success(self.request, "Your scan has been uploaded successfully and is processing.")
-        return redirect('machine_sequence_detail', machine_sequence_pair.pk)
+        return redirect('machine_sequence_detail', scan.machine_sequence_pair.pk)
 
     def form_invalid(self, form):
         renderer = JSONRenderer()
@@ -152,19 +143,19 @@ class UploadScan(FormView):
 @login_and_permission_required('common.configuration')
 @validate_institution()
 class ScanErrors(DetailView):
-    model = Scan
+    model = models.Scan
     template_name = 'common/scan_errors.html'
 
 
 @login_and_permission_required('common.configuration')
-@validate_institution(model_class=Scan)
+@validate_institution(model_class=models.Scan)
 class DicomOverlay(FormView):
     form_class = DicomOverlayForm
     template_name = 'common/dicom_overlay.html'
 
     @cached_property
     def scan(self):
-        return get_object_or_404(Scan, pk=self.kwargs['pk'])
+        return get_object_or_404(models.Scan, pk=self.kwargs['pk'])
 
     def get_context_data(self, **kwargs):
         context = super(DicomOverlay, self).get_context_data(**kwargs)
@@ -186,7 +177,7 @@ class DicomOverlay(FormView):
 @login_and_permission_required('common.configuration')
 @validate_institution()
 class DeleteScan(CirsDeleteView):
-    model = Scan
+    model = models.Scan
 
     def delete(self, request, *args, **kwargs):
         response = super(DeleteScan, self).delete(request, *args, **kwargs)
@@ -228,7 +219,7 @@ class CreatePhantom(FormView):
 @login_and_permission_required('common.configuration')
 @validate_institution()
 class UpdatePhantom(UpdateView):
-    model = Phantom
+    model = models.Phantom
     fields = ('name',)
     template_name_suffix = '_update'
     pk_url_kwarg = 'phantom_pk'
@@ -248,7 +239,7 @@ class UpdatePhantom(UpdateView):
 @login_and_permission_required('common.configuration')
 @validate_institution()
 class DeletePhantom(CirsDeleteView):
-    model = Phantom
+    model = models.Phantom
     success_url = reverse_lazy('configuration')
     pk_url_kwarg = 'phantom_pk'
 
@@ -260,7 +251,7 @@ class DeletePhantom(CirsDeleteView):
 
 @login_and_permission_required('common.configuration')
 class CreateMachine(CreateView):
-    model = Machine
+    model = models.Machine
     fields = ('name', 'model', 'manufacturer')
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_create'
@@ -276,7 +267,7 @@ class CreateMachine(CreateView):
 @login_and_permission_required('common.configuration')
 @validate_institution()
 class UpdateMachine(UpdateView):
-    model = Machine
+    model = models.Machine
     fields = ('name', 'model', 'manufacturer')
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_update'
@@ -289,7 +280,7 @@ class UpdateMachine(UpdateView):
 @login_and_permission_required('common.configuration')
 @validate_institution()
 class DeleteMachine(CirsDeleteView):
-    model = Machine
+    model = models.Machine
     success_url = reverse_lazy('configuration')
 
     def delete(self, request, *args, **kwargs):
@@ -300,7 +291,7 @@ class DeleteMachine(CirsDeleteView):
 
 @login_and_permission_required('common.configuration')
 class CreateSequence(CreateView):
-    model = Sequence
+    model = models.Sequence
     fields = ('name', 'instructions')
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_create'
@@ -316,7 +307,7 @@ class CreateSequence(CreateView):
 @login_and_permission_required('common.configuration')
 @validate_institution()
 class UpdateSequence(UpdateView):
-    model = Sequence
+    model = models.Sequence
     fields = ('name', 'instructions')
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_update'
@@ -329,7 +320,7 @@ class UpdateSequence(UpdateView):
 @login_and_permission_required('common.configuration')
 @validate_institution()
 class DeleteSequence(CirsDeleteView):
-    model = Sequence
+    model = models.Sequence
     success_url = reverse_lazy('configuration')
 
     def delete(self, request, *args, **kwargs):
@@ -340,7 +331,7 @@ class DeleteSequence(CirsDeleteView):
 
 @login_and_permission_required('common.manage_users')
 class CreateUser(CreateView):
-    model = User
+    model = models.User
     fields = ('username', 'first_name', 'last_name', 'email')
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_create'
@@ -356,7 +347,7 @@ class CreateUser(CreateView):
 @login_and_permission_required('common.manage_users')
 @validate_institution()
 class DeleteUser(CirsDeleteView):
-    model = User
+    model = models.User
     success_url = reverse_lazy('configuration')
 
     def delete(self, request, *args, **kwargs):
@@ -366,14 +357,14 @@ class DeleteUser(CirsDeleteView):
 
 
 @login_and_permission_required('common.configuration')
-@validate_institution(model_class=Phantom, pk_url_kwarg='phantom_pk')
+@validate_institution(model_class=models.Phantom, pk_url_kwarg='phantom_pk')
 class UploadCT(FormView):
     form_class = UploadCTForm
     template_name = 'common/upload_ct.html'
 
     def form_valid(self, form):
         voxels, ijk_to_xyz = dicom_import.combine_slices(form.cleaned_data['datasets'])
-        dicom_series = DicomSeries.objects.create(
+        dicom_series = models.DicomSeries.objects.create(
             zipped_dicom_files=self.request.FILES['dicom_archive'],
             voxels=voxels,
             ijk_to_xyz=ijk_to_xyz,
@@ -382,10 +373,10 @@ class UploadCT(FormView):
             acquisition_date=datetime.strptime(form.cleaned_data['datasets'][0].AcquisitionDate, '%Y%m%d'),
         )
 
-        gold_standard = GoldenFiducials.objects.create(
-            phantom=Phantom.objects.get(pk=self.kwargs['phantom_pk']),
+        gold_standard = models.GoldenFiducials.objects.create(
+            phantom=models.Phantom.objects.get(pk=self.kwargs['phantom_pk']),
             dicom_series=dicom_series,
-            type=GoldenFiducials.CT,
+            type=models.GoldenFiducials.CT,
             processing=True,
         )
 
@@ -395,7 +386,7 @@ class UploadCT(FormView):
 
     def get_context_data(self, **kwargs):
         context = super(UploadCT, self).get_context_data(**kwargs)
-        phantom = get_object_or_404(Phantom, pk=self.kwargs['phantom_pk'])
+        phantom = get_object_or_404(models.Phantom, pk=self.kwargs['phantom_pk'])
         context.update({'phantom': phantom})
         return context
 
@@ -404,25 +395,25 @@ class UploadCT(FormView):
 
 
 @login_and_permission_required('common.configuration')
-@validate_institution(model_class=Phantom, pk_url_kwarg='phantom_pk')
+@validate_institution(model_class=models.Phantom, pk_url_kwarg='phantom_pk')
 class UploadRaw(FormView):
     form_class = UploadRawForm
     template_name = 'common/upload_raw.html'
 
     def form_valid(self, form):
-        phantom = Phantom.objects.get(pk=self.kwargs['phantom_pk'])
-        fiducials = Fiducials.objects.create(fiducials=form.cleaned_data['fiducials'])
-        GoldenFiducials.objects.create(
+        phantom = models.Phantom.objects.get(pk=self.kwargs['phantom_pk'])
+        fiducials = models.Fiducials.objects.create(fiducials=form.cleaned_data['fiducials'])
+        models.GoldenFiducials.objects.create(
             phantom=phantom,
             fiducials=fiducials,
-            type=GoldenFiducials.CSV,
+            type=models.GoldenFiducials.CSV,
         )
         messages.success(self.request, "Your gold standard points have been uploaded successfully.")
         return super(UploadRaw, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super(UploadRaw, self).get_context_data(**kwargs)
-        phantom = get_object_or_404(Phantom, pk=self.kwargs['phantom_pk'])
+        phantom = get_object_or_404(models.Phantom, pk=self.kwargs['phantom_pk'])
         context.update({'phantom': phantom})
         return context
 
@@ -433,12 +424,12 @@ class UploadRaw(FormView):
 @login_and_permission_required('common.configuration')
 @validate_institution()
 class DeleteGoldStandard(CirsDeleteView):
-    model = GoldenFiducials
+    model = models.GoldenFiducials
     pk_url_kwarg = 'gold_standard_pk'
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
-        if self.object.type == GoldenFiducials.CAD or self.object.is_active:
+        if self.object.type == models.GoldenFiducials.CAD or self.object.is_active:
             raise PermissionDenied
         else:
             messages.success(self.request, f"\"{self.object.source_summary}\" has been deleted successfully.")
@@ -449,22 +440,30 @@ class DeleteGoldStandard(CirsDeleteView):
 
     def get_context_data(self, **kwargs):
         context = super(DeleteGoldStandard, self).get_context_data(**kwargs)
-        phantom = get_object_or_404(Phantom, pk=self.kwargs['phantom_pk'])
+        phantom = get_object_or_404(models.Phantom, pk=self.kwargs['phantom_pk'])
         context.update({'phantom': phantom})
         return context
 
 
 @login_and_permission_required('common.configuration')
-@validate_institution(model_class=GoldenFiducials, pk_url_kwarg='gold_standard_pk')
+@validate_institution(model_class=models.GoldenFiducials, pk_url_kwarg='gold_standard_pk')
 def activate_gold_standard(request, phantom_pk=None, gold_standard_pk=None):
-    gold_standard = get_object_or_404(GoldenFiducials, pk=gold_standard_pk)
+    gold_standard = get_object_or_404(models.GoldenFiducials, pk=gold_standard_pk)
     gold_standard.activate()
     messages.success(request, f"\"{gold_standard.source_summary}\" has been activated successfully.")
     return redirect('update_phantom', phantom_pk)
 
 
 @login_and_permission_required('common.configuration')
-@validate_institution(model_class=GoldenFiducials, pk_url_kwarg='gold_standard_pk')
+@validate_institution(model_class=models.GoldenFiducials, pk_url_kwarg='gold_standard_pk')
 def gold_standard_csv(request, phantom_pk=None, gold_standard_pk=None):
-    gold_standard = get_object_or_404(GoldenFiducials, pk=gold_standard_pk)
+    gold_standard = get_object_or_404(models.GoldenFiducials, pk=gold_standard_pk)
     return CSVResponse(gold_standard.fiducials.fiducials, filename=f'{gold_standard.source_summary}.csv')
+
+
+@login_and_permission_required('common.configuration')
+@validate_institution(model_class=models.Scan)
+def raw_data(request, pk=None):
+    scan = get_object_or_404(models.Scan, pk=pk)
+    zipfile = models.dump_raw_data(scan)
+    return ZipResponse(zipfile, filename=f'raw_data.zip')

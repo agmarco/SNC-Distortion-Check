@@ -9,7 +9,7 @@
 
 {% block breadcrumbs %}
   <a href="{% url 'landing' %}">Home</a>
-  <i class="fa fa-angle-right" aria-hidden="true"></i>
+  {% include 'includes/breadcrumb_sep.html' %}
   <a href="{% url 'configuration' %}">Configuration</a>
 {% endblock %}
 

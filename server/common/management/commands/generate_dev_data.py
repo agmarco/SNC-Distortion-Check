@@ -173,7 +173,11 @@ class Command(BaseCommand):
             sequence=sequence_c,
         )
 
-        dicom_series_ct = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/001_ct_603A_E3148_ST1.25.zip')
+        ct_dicom_files = os.path.join(settings.BASE_DIR, 'data/dicom/001_ct_603A_E3148_ST1.25.zip')
+        dicom_series_ct = factories.DicomSeriesFactory()
+
+        with open(ct_dicom_files, 'rb') as f:
+            dicom_series_ct.zipped_dicom_files.save(f'{uuid.uuid4()}.zip', f)
 
         golden_fiducials_a = factories.GoldenFiducialsFactory(
             phantom=phantom_d,
@@ -185,23 +189,15 @@ class Command(BaseCommand):
             type=GoldenFiducials.CSV,
         )
 
-        dicom_series_mri = factories.DicomSeriesFactory(zipped_dicom_files=os.path.join(settings.BASE_DIR, 'empty.txt'))
+        mri_dicom_files = os.path.join(settings.BASE_DIR, 'data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
+        dicom_series_mri = factories.DicomSeriesFactory()
 
-        class DataSet:
-            ScanningSequence = 'GR'
-            PixelBandwidth = 160
-            PixelSpacing = [0.9765625, 0.9765625]
-            SliceThickness = 1
-            RepetitionTime = 10
-            EchoTime = 4.76
-            NumberOfAverages = 1
-            AcquisitionMatrix = [256, 0, 0, 218]
-            MRAcquisitionType = '3D'
-            ImageOrientationPatient = [1, 0, 0, 0, 1, 0]
-            ImagePositionPatient = [-125, -102.87969398499, 137.37057876587]
-            InPlanePhaseEncodingDirection = 'COL'
+        with open(mri_dicom_files, 'rb') as f:
+            dicom_series_mri.zipped_dicom_files.save(f'{uuid.uuid4()}.zip', f)
 
-        datasets = [DataSet] * 192
+        with zipfile.ZipFile(mri_dicom_files, 'r') as zip_file:
+            datasets = dicom_import.dicom_datasets_from_zip(zip_file)
+        voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
 
         for i in range(3):
             A = generate_cube(2, 4)
@@ -224,13 +220,6 @@ class Command(BaseCommand):
 
             report_filename = f'{uuid.uuid4()}.pdf'
             report_path = os.path.join(settings.BASE_DIR, 'tmp', report_filename)
-            voxels = np.random.rand(256, 256, 192)
-            ijk_to_xyz = np.array([
-                [0.9765625, 0., 0., -125.],
-                [0., 0.9765625, 0., -102.87969208],
-                [0., 0., 1., -53.62942123],
-                [0., 0., 0., 1.]],
-            )
             generate_report(
                 A,
                 B,

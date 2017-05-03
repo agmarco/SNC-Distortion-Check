@@ -154,5 +154,7 @@ class ScanFactory(factory.django.DjangoModelFactory):
     machine_sequence_pair = factory.SubFactory(MachineSequencePairFactory)
     dicom_series = factory.SubFactory(DicomSeriesFactory)
     detected_fiducials = factory.SubFactory(FiducialsFactory)
+    TP_A_S = factory.SubFactory(FiducialsFactory)
+    TP_B = factory.SubFactory(FiducialsFactory)
     golden_fiducials = factory.SubFactory(GoldenFiducialsFactory)
     tolerance = 3

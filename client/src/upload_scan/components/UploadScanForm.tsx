@@ -2,6 +2,7 @@ import React from 'react';
 
 import { IMachineDTO, ISequenceDTO, IPhantomDTO } from 'common/service';
 import { CSRFToken } from 'common/components';
+import { fieldErrors } from 'common/utils';
 
 interface IUploadScanFormProps {
     machines: IMachineDTO[];
@@ -29,16 +30,6 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
         };
     }
 
-    fieldErrors(field: string) {
-        const { formErrors } = this.props;
-
-        return formErrors && formErrors[field] && (
-            <ul>
-                {formErrors[field].map((error, i) => <li key={i}>{error}</li>)}
-            </ul>
-        );
-    }
-
     handleMachineChange(event: React.FormEvent<HTMLInputElement>) {
         const value = (event.target as any).value;
         this.setState({machineFilterValue: value === '' ? value : Number(value)});
@@ -55,7 +46,7 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
     }
 
     render() {
-        const { machines, sequences, phantoms, uploadScanUrl, cancelUrl } = this.props;
+        const { machines, sequences, phantoms, uploadScanUrl, cancelUrl, formErrors } = this.props;
         const { machineFilterValue, sequenceFilterValue, phantomFilterValue } = this.state;
 
         const currentMachine = machineFilterValue && (
@@ -74,7 +65,7 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                     <CSRFToken />
 
                     <div>
-                        {this.fieldErrors('machine')}
+                        {fieldErrors(formErrors, 'machine')}
 
                         <label htmlFor="upload-scan-machine">Machine</label>
                         <select
@@ -103,7 +94,7 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                     </div>
 
                     <div>
-                        {this.fieldErrors('sequence')}
+                        {fieldErrors(formErrors, 'sequence')}
 
                         <label htmlFor="upload-scan-sequence">Sequence</label>
                         <select
@@ -128,7 +119,7 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                     </div>
 
                     <div>
-                        {this.fieldErrors('phantom')}
+                        {fieldErrors(formErrors, 'phantom')}
 
                         <label htmlFor="upload-scan-phantom">Phantom</label>
                         <select
@@ -161,7 +152,7 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                     </div>
 
                     <div>
-                        {this.fieldErrors('dicom_archive')}
+                        {fieldErrors(formErrors, 'dicom_archive')}
 
                         <label htmlFor="upload-scan-dicom-archive">MRI Scan Files</label>
                         <input id="upload-scan-dicom-archive" name="dicom_archive" type="file" required />
@@ -172,7 +163,7 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                     </div>
 
                     <div>
-                        {this.fieldErrors('notes')}
+                        {fieldErrors(formErrors, 'notes')}
 
                         <label htmlFor="upload-scan-notes">Notes</label>
                         <textarea cols={40} rows={10} id="upload-scan-notes" name="notes" />

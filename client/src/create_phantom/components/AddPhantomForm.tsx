@@ -2,7 +2,7 @@ import React from 'react';
 import * as Cookies from 'js-cookie';
 import * as Bluebird from 'bluebird';
 
-import { handleErrors, encode } from 'common/utils';
+import { handleErrors, encode, fieldErrors } from 'common/utils';
 import { CSRFToken } from 'common/components';
 
 interface IAddPhantomFormProps {
@@ -13,7 +13,7 @@ interface IAddPhantomFormProps {
 }
 
 interface IAddPhantomFormState {
-    validating: boolean;
+    fetching: boolean;
     valid: boolean;
     modelNumber: string | null;
     promise: Bluebird<any> | null;
@@ -25,7 +25,7 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
 
         Bluebird.config({cancellation: true});
         this.state = {
-            validating: false,
+            fetching: false,
             valid: false,
             modelNumber: null,
             promise: null,
@@ -54,7 +54,7 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
                     const { valid, model_number } = await res.json();
 
                     this.setState({
-                        validating: false,
+                        fetching: false,
                         promise: null,
                         modelNumber: model_number,
                         valid,
@@ -62,22 +62,12 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
                 }).bind(this));
             });
 
-        this.setState({validating: true, valid: false, promise: newPromise});
-    }
-
-    fieldErrors(field: string) {
-        const { formErrors } = this.props;
-
-        return formErrors && formErrors[field] && (
-            <ul>
-                {formErrors[field].map((error, i) => <li key={i}>{error}</li>)}
-            </ul>
-        );
+        this.setState({fetching: true, valid: false, promise: newPromise});
     }
 
     render() {
-        const { createPhantomUrl, cancelUrl } = this.props;
-        const { validating, valid, modelNumber } = this.state;
+        const { createPhantomUrl, cancelUrl, formErrors } = this.props;
+        const { fetching, valid, modelNumber } = this.state;
 
         return (
             <div>
@@ -85,13 +75,13 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
                     <CSRFToken />
 
                     <div>
-                        {this.fieldErrors('name')}
+                        {fieldErrors(formErrors, 'name')}
                         <label htmlFor="add-phantom-name">Name</label>
                         <input type="text" id="add-phantom-name" name="name" maxLength={255} required />
                     </div>
 
                     <div>
-                        {this.fieldErrors('serial_number')}
+                        {fieldErrors(formErrors, 'serial_number')}
                         <label htmlFor="add-phantom-serial">Serial Number</label>
                         <input
                             type="text"
@@ -105,7 +95,7 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
 
                     <div>
                         <label>Model Number</label>
-                        <p>{valid ? modelNumber : (validating ? "Searching..." : "Invalid Serial Number")}</p>
+                        <p>{valid ? modelNumber : (fetching ? "Searching..." : "Invalid Serial Number")}</p>
                     </div>
 
                     <div>
@@ -122,7 +112,7 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
                         <input
                             type="submit"
                             value="Add Phantom"
-                            disabled={validating || !valid}
+                            disabled={fetching || !valid}
                             className="btn secondary"
                         />
                     </div>

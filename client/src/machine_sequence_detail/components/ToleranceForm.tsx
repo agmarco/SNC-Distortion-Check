@@ -2,8 +2,8 @@ import React from 'react';
 import * as Cookies from 'js-cookie';
 import * as Bluebird from 'bluebird';
 
-import { handleErrors, encode } from 'common/utils';
-import { CSRFToken, BoolIcon } from 'common/components';
+import { encode, fieldErrors } from 'common/utils';
+import { CSRFToken, BoolIcon, LoadingIcon } from 'common/components';
 import { IMachineSequencePairDTO } from 'common/service';
 
 import './ToleranceForm.scss';
@@ -17,8 +17,8 @@ interface IToleranceFormProps {
 }
 
 interface IToleranceFormState {
-    validating: boolean;
-    valid: boolean | null;
+    fetching: boolean;
+    success: boolean | null;
     promise: Bluebird<any> | null;
 }
 
@@ -28,8 +28,8 @@ export default class extends React.Component<IToleranceFormProps, IToleranceForm
 
         Bluebird.config({cancellation: true});
         this.state = {
-            validating: false,
-            valid: null,
+            fetching: false,
+            success: null,
             promise: null,
         };
     }
@@ -59,35 +59,25 @@ export default class extends React.Component<IToleranceFormProps, IToleranceForm
             .then((res) => {
                 if (res.ok) {
                     this.setState({
-                        validating: false,
+                        fetching: false,
                         promise: null,
-                        valid: true,
+                        success: true,
                     });
                 } else {
                     this.setState({
-                        validating: false,
+                        fetching: false,
                         promise: null,
-                        valid: false,
+                        success: false,
                     });
                 }
             });
 
-        this.setState({validating: true, valid: false, promise: newPromise});
-    }
-
-    fieldErrors(field: string) {
-        const { formErrors } = this.props;
-
-        return formErrors && formErrors[field] && (
-            <ul>
-                {formErrors[field].map((error, i) => <li key={i}>{error}</li>)}
-            </ul>
-        );
+        this.setState({fetching: true, success: false, promise: newPromise});
     }
 
     render() {
-        const { updateToleranceUrl, tolerance, handleToleranceChange } = this.props;
-        const { validating, valid } = this.state;
+        const { updateToleranceUrl, tolerance, handleToleranceChange, formErrors } = this.props;
+        const { fetching, success } = this.state;
 
         return (
             <div>
@@ -100,7 +90,7 @@ export default class extends React.Component<IToleranceFormProps, IToleranceForm
                     <CSRFToken />
 
                     <div>
-                        {this.fieldErrors('tolerance')}
+                        {fieldErrors(formErrors, 'tolerance')}
                         <label htmlFor="tolerance-tolerance">Maximum FLE (mm)</label>
                         <div className="inline-group">
                             <input
@@ -113,9 +103,7 @@ export default class extends React.Component<IToleranceFormProps, IToleranceForm
                                 onChange={handleToleranceChange}
                             />
                             <input type="submit" value="Save" className="btn tertiary" />
-                            {validating ? <i className="fa fa-spinner fa-pulse fa-3x fa-fw" aria-hidden="true" /> : (
-                                valid !== null && <BoolIcon value={valid} />
-                            )}
+                            {fetching ? <LoadingIcon /> : (success !== null && <BoolIcon value={success} />)}
                         </div>
                     </div>
                 </form>

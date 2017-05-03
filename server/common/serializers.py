@@ -1,9 +1,14 @@
 from django.urls import reverse
 
-import numpy as np
 from rest_framework import serializers
 
-from .models import MachineSequencePair, Machine, Sequence, Phantom, Scan
+from .models import MachineSequencePair, Machine, Sequence, Phantom, Scan, Institution
+
+
+class InstitutionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Institution
+        fields = ('pk', 'name', 'number_of_licenses', 'address', 'phone_number')
 
 
 class MachineSerializer(serializers.ModelSerializer):
@@ -63,7 +68,7 @@ class ScanSerializer(serializers.ModelSerializer):
     errors_url = serializers.SerializerMethodField()
     delete_url = serializers.SerializerMethodField()
     dicom_overlay_url = serializers.SerializerMethodField()
-    zipped_dicom_files_url = serializers.SerializerMethodField()
+    raw_data_url = serializers.SerializerMethodField()
     full_report_url = serializers.SerializerMethodField()
     executive_report_url = serializers.SerializerMethodField()
     error_mags = serializers.ReadOnlyField()
@@ -80,7 +85,7 @@ class ScanSerializer(serializers.ModelSerializer):
             'errors_url',
             'delete_url',
             'dicom_overlay_url',
-            'zipped_dicom_files_url',
+            'raw_data_url',
             'full_report_url',
             'executive_report_url',
             'error_mags',
@@ -98,8 +103,8 @@ class ScanSerializer(serializers.ModelSerializer):
     def get_dicom_overlay_url(self, scan):
         return reverse('dicom_overlay', args=(scan.pk,))
 
-    def get_zipped_dicom_files_url(self, scan):
-        return scan.dicom_series.zipped_dicom_files.url
+    def get_raw_data_url(self, scan):
+        return reverse('raw_data', args=(scan.pk,))
 
     def get_full_report_url(self, scan):
         return scan.full_report.name and scan.full_report.url

@@ -11,7 +11,7 @@ export default (env) => {
     const config = merge(webpackBase(env), {
         output: {
             // TODO: grab this from the .env file
-            publicPath: 'http://0.0.0.0:8080/',
+            publicPath: 'http://0.0.0.0:8000/static/',
             filename: '[name].js',
         },
 
