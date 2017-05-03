@@ -128,6 +128,7 @@ def update_tolerance_data(user):
         'machine_sequence_pair': machine_sequence_pair,
     }
 
+
 VIEWS = (
     {
         'view': views.landing,
@@ -309,7 +310,7 @@ VIEWS = (
         'validate_institution': True,
         'methods': {'GET': None, 'POST': None},
     },
-{
+    {
         'view': views.UploadCT,
         'data': lambda user: {'phantom': factories.PhantomFactory(institution=user.institution)},
         'url': lambda data: reverse('upload_ct', args=(data['phantom'].pk,)),
@@ -372,7 +373,8 @@ VIEWS = (
         'permissions': ('common.configuration',),
         'validate_institution': False,
         'methods': {'POST': lambda data: {'serial_number': data['phantom'].serial_number}},
-    }, {
+    },
+    {
         'view': api.UpdateTolerance,
         'data': update_tolerance_data,
         'url': lambda data: reverse('update_tolerance'),
