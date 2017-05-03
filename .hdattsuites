@@ -1,3 +1,2 @@
 process.feature_detection_hdats.FeatureDetectionSuite
-process.registration_hdats.RegistrationSuite
 process.full_algorithm_hdats.FullAlgorithmSuite
