@@ -67,7 +67,7 @@ describe('<ScanChart />', () => {
 
         // this takes awhile -- had to increase timeout
         wrapper = mount<IScanChartProps, IScanChartState>(
-            <ScanChart machineSequencePair={machineSequencePair} scans={scans} />,
+            <ScanChart machineSequencePair={machineSequencePair} scans={scans} tolerance={1} />,
             {attachTo: app[0]},
         );
     });
