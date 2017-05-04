@@ -1,7 +1,3 @@
-import os
-import uuid
-
-from django.conf import settings
 from django.urls import reverse
 
 from .. import views
@@ -80,11 +76,9 @@ def scan_errors_data(user):
     machine = factories.MachineFactory(institution=user.institution)
     sequence = factories.SequenceFactory(institution=user.institution)
     machine_sequence_pair = factories.MachineSequencePairFactory(machine=machine, sequence=sequence)
-    dicom_series = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
     scan = factories.ScanFactory(
         creator=user,
         machine_sequence_pair=machine_sequence_pair,
-        dicom_series=dicom_series,
         tolerance=2,
     )
     return {
@@ -96,11 +90,9 @@ def delete_scan_data(user):
     machine = factories.MachineFactory(institution=user.institution)
     sequence = factories.SequenceFactory(institution=user.institution)
     machine_sequence_pair = factories.MachineSequencePairFactory(machine=machine, sequence=sequence)
-    dicom_series = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
     scan = factories.ScanFactory(
         creator=user,
         machine_sequence_pair=machine_sequence_pair,
-        dicom_series=dicom_series,
         tolerance=2,
     )
     return {
@@ -112,11 +104,9 @@ def dicom_overlay_data(user):
     machine = factories.MachineFactory(institution=user.institution)
     sequence = factories.SequenceFactory(institution=user.institution)
     machine_sequence_pair = factories.MachineSequencePairFactory(machine=machine, sequence=sequence)
-    dicom_series = factories.DicomSeriesFactory(zipped_dicom_files='data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
     scan = factories.ScanFactory(
         creator=user,
         machine_sequence_pair=machine_sequence_pair,
-        dicom_series=dicom_series,
         tolerance=2,
     )
     return {
@@ -137,16 +127,10 @@ def raw_data_data(user):
     machine = factories.MachineFactory(institution=user.institution)
     sequence = factories.SequenceFactory(institution=user.institution)
     machine_sequence_pair = factories.MachineSequencePairFactory(machine=machine, sequence=sequence)
-    dicom_series = factories.DicomSeriesFactory()
-    dicom_files = os.path.join(settings.BASE_DIR, 'data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
-
-    with open(dicom_files, 'rb') as f:
-        dicom_series.zipped_dicom_files.save(f'{uuid.uuid4()}.zip', f)
 
     scan = factories.ScanFactory(
         creator=user,
         machine_sequence_pair=machine_sequence_pair,
-        dicom_series=dicom_series,
         tolerance=2,
     )
     return {

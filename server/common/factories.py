@@ -1,8 +1,12 @@
 import datetime
 import zipfile
+import os
 
 import numpy as np
+import scipy.io
 import factory
+
+from process import file_io
 
 
 class InstitutionFactory(factory.django.DjangoModelFactory):
@@ -124,18 +128,26 @@ def _get_acquisition_date_generator():
         yield start + datetime.timedelta(days=count)
         count += 1
 
+
 _get_acquisition_date = _get_acquisition_date_generator()
+
+sample_603A_mri_zip_filename = os.path.abspath('data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
+print(sample_603A_mri_zip_filename)
+sample_603A_mri = file_io.load_voxels('data/voxels/006_mri_603A_UVA_Axial_2ME2SRS5-voxels.mat')
+sample_603A_mri['voxels'].flags.writeable = False
+sample_603A_mri['ijk_to_patient_xyz_transform'].flags.writeable = False
 
 
 class DicomSeriesFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.DicomSeries"
 
-    voxels = np.random.rand(10, 10, 10)
-    ijk_to_xyz = np.random.rand(4, 4)
-    shape = np.array([10, 10, 10])
+    voxels = sample_603A_mri['voxels']
+    ijk_to_xyz = sample_603A_mri['ijk_to_patient_xyz_transform']
+    shape = sample_603A_mri['voxels'].shape
     series_uid = '1.2.392.200193.3.1626980217.161129.153348.41538611151089740341'
     acquisition_date = factory.LazyAttribute(lambda dicom_series: next(_get_acquisition_date))
+    zipped_dicom_files = factory.django.FileField(from_path=sample_603A_mri_zip_filename)
 
 
 class GoldenFiducialsFactory(factory.django.DjangoModelFactory):
