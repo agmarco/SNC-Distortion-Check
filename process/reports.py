@@ -185,6 +185,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         plt.title('Scatter Plot of Geometric Distortion vs. Distance from Isocenter')
         return scatter_fig
 
+    # TODO .3 mm spacing
     def generate_spacial_mapping(grid_x, grid_y, gridded):
         contour_fig = plt.figure(figsize=figsize)
         add_header()
@@ -197,7 +198,6 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         plt.clabel(contour, inline=True, fontsize=10)
         return contour_fig
 
-    # TODO .3 mm spacing
     def generate_axial_spacial_mapping():
         # interpolate onto plane at the isocenter to generate contour
         grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
@@ -289,28 +289,26 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
     def generate_roi_view(plt, im, x_bounds, y_bounds, A_S_2D, B_2D):
         x_bounds = tuple(b - 0.5 for b in x_bounds)
         y_bounds = tuple(b - 0.5 for b in y_bounds)
-        plt.imshow(im, cmap='Greys', extent=[*x_bounds, *y_bounds], aspect='auto')
-        plt.scatter([A_S_2D[0]], [A_S_2D[1]], c='gold')
-        plt.scatter([B_2D[0]], [B_2D[1]], c='C0')
+        plt.imshow(im.T, cmap='Greys', extent=[*x_bounds, *y_bounds], aspect='auto', origin='lower')
+        plt.scatter([A_S_2D[0]], [A_S_2D[1]], c='coral')
+        plt.scatter([B_2D[0]], [B_2D[1]], c='skyblue')
         plt.set_xticks([])
         plt.set_yticks([])
-        # plt.set_xticks(np.arange(x_bounds[0] + 0.5, x_bounds[1] + 1.5, 1))
-        # plt.set_yticks(np.arange(y_bounds[0] + 0.5, y_bounds[1] + 1.5, 1))
         plt.set_xlim(x_bounds)
         plt.set_ylim(y_bounds)
 
     def generate_roi_table(plt, A_S, B, error_vec, error_mag):
         rows = (
-            ('A_S [mm]', f'({str(round(A_S[0], 3))}, {str(round(A_S[1], 3))}, {str(round(A_S[2], 3))})'),
-            ('B [mm]', f'({str(round(B[0], 3))}, {str(round(B[1], 3))}, {str(round(B[2], 3))})'),
+            ('Actual [mm]', f'({str(round(A_S[0], 3))}, {str(round(A_S[1], 3))}, {str(round(A_S[2], 3))})'),
+            ('Detected [mm]', f'({str(round(B[0], 3))}, {str(round(B[1], 3))}, {str(round(B[2], 3))})'),
             ('x [mm]', f'{str(round(error_vec[0], 3))}'),
             ('y [mm]', f'{str(round(error_vec[1], 3))}'),
             ('z [mm]', f'{str(round(error_vec[2], 3))}'),
             ('magnitude [mm]', f'{str(round(error_mag, 3))}'),
         )
         colors = (
-            ('gold', 'w'),
-            ('C0', 'w'),
+            ('coral', 'w'),
+            ('skyblue', 'w'),
             ('w', 'w'),
             ('w', 'w'),
             ('w', 'w'),
@@ -339,17 +337,14 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
                 bounds_ijk = roi_bounds(B_ijk, shape)
                 axial, sagittal, coronal = roi_images(B_ijk, voxels, bounds_ijk)
 
-                # plt.rcParams['xtick.labelsize'] = 4
-                # plt.rcParams['ytick.labelsize'] = 4
-
                 plt1 = plt.subplot2grid(subplot_dim, (i, 0))
-                generate_roi_view(plt1, axial, bounds[1], bounds[0], (A_S[1], A_S[0]), (B[1], B[0]))
+                generate_roi_view(plt1, axial, bounds[0], bounds[1], (A_S[0], A_S[1]), (B[0], B[1]))
 
                 plt2 = plt.subplot2grid(subplot_dim, (i, 1))
-                generate_roi_view(plt2, sagittal, bounds[2], bounds[0], (A_S[2], A_S[0]), (B[2], B[0]))
+                generate_roi_view(plt2, sagittal, bounds[0], bounds[2], (A_S[0], A_S[2]), (B[0], B[2]))
 
                 plt3 = plt.subplot2grid(subplot_dim, (i, 2))
-                generate_roi_view(plt3, coronal, bounds[2], bounds[1], (A_S[2], A_S[1]), (B[2], B[1]))
+                generate_roi_view(plt3, coronal, bounds[1], bounds[2], (A_S[1], A_S[2]), (B[1], B[2]))
 
                 plt4 = plt.subplot2grid(subplot_dim, (i, 3), colspan=2)
                 generate_roi_table(plt4, A_S, B, error_vec, error_mag)

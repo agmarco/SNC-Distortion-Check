@@ -44,20 +44,54 @@ def test_roi_shape_rounding():
     assert shape == (25, 25, 25)
 
 
-def test_roi_images_shape():
+def test_roi_images():
     """
-    Asserts that the 3 images have the right shape.
+    Asserts that the 3 images have the right shape and orientation.
     """
 
     voxels_size = 100
     voxels = np.ones((voxels_size, voxels_size, voxels_size))
-    shape = (9, 10, 11)
+    shape = (9, 11, 13)
 
     B_ijk = (50, 50, 50)
+    voxels[B_ijk[0] - 1, B_ijk[1] - 1, 50] = 0.11
+    voxels[B_ijk[0] - 1, B_ijk[1] + 1, 50] = 0.21
+    voxels[B_ijk[0] + 1, B_ijk[1] - 1, 50] = 0.31
+    voxels[B_ijk[0] + 1, B_ijk[1] + 1, 50] = 0.41
+
+    voxels[B_ijk[0] - 1, 50, B_ijk[2] - 1] = 0.12
+    voxels[B_ijk[0] - 1, 50, B_ijk[2] + 1] = 0.22
+    voxels[B_ijk[0] + 1, 50, B_ijk[2] - 1] = 0.32
+    voxels[B_ijk[0] + 1, 50, B_ijk[2] + 1] = 0.42
+
+    voxels[50, B_ijk[1] - 1, B_ijk[2] - 1] = 0.13
+    voxels[50, B_ijk[1] - 1, B_ijk[2] + 1] = 0.23
+    voxels[50, B_ijk[1] + 1, B_ijk[2] - 1] = 0.33
+    voxels[50, B_ijk[1] + 1, B_ijk[2] + 1] = 0.43
+
     axial, sagittal, coronal = roi_images(B_ijk, voxels, roi_bounds(B_ijk, shape))
-    assert axial.shape == (9, 10)
-    assert sagittal.shape == (9, 11)
-    assert coronal.shape == (10, 11)
+
+    B_axial = (4, 5)
+    B_sagittal = (4, 6)
+    B_coronal = (5, 6)
+
+    assert axial.shape == (9, 11)
+    assert axial[B_axial[0] - 1, B_axial[1] - 1] == 0.11
+    assert axial[B_axial[0] - 1, B_axial[1] + 1] == 0.21
+    assert axial[B_axial[0] + 1, B_axial[1] - 1] == 0.31
+    assert axial[B_axial[0] + 1, B_axial[1] + 1] == 0.41
+
+    assert sagittal.shape == (9, 13)
+    assert sagittal[B_sagittal[0] - 1, B_sagittal[1] - 1] == 0.12
+    assert sagittal[B_sagittal[0] - 1, B_sagittal[1] + 1] == 0.22
+    assert sagittal[B_sagittal[0] + 1, B_sagittal[1] - 1] == 0.32
+    assert sagittal[B_sagittal[0] + 1, B_sagittal[1] + 1] == 0.42
+
+    assert coronal.shape == (11, 13)
+    assert coronal[B_coronal[0] - 1, B_coronal[1] - 1] == 0.13
+    assert coronal[B_coronal[0] - 1, B_coronal[1] + 1] == 0.23
+    assert coronal[B_coronal[0] + 1, B_coronal[1] - 1] == 0.33
+    assert coronal[B_coronal[0] + 1, B_coronal[1] + 1] == 0.43
 
 
 def test_roi_fiducial_near_top_left_corner_shape():
