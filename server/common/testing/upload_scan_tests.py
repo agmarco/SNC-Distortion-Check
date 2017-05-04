@@ -49,9 +49,9 @@ def test_upload_scan_context(client):
     client.force_login(current_user)
 
     res = client.get(reverse('upload_scan'))
-    machines = json.loads(res.context['machines'])
-    sequences = json.loads(res.context['sequences'])
-    phantoms = json.loads(res.context['phantoms'])
+    machines = json.loads(res.context['machines_json'])
+    sequences = json.loads(res.context['sequences_json'])
+    phantoms = json.loads(res.context['phantoms_json'])
 
     for machine_data in machines:
         machine = Machine.objects.get(pk=machine_data['pk'])

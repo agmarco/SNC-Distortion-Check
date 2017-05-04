@@ -53,7 +53,7 @@ def test_landing_context(client):
     client.force_login(current_user)
 
     res = client.get(reverse('landing'))
-    machine_sequence_pairs = json.loads(res.context['machine_sequence_pairs'])
+    machine_sequence_pairs = json.loads(res.context['machine_sequence_pairs_json'])
     for pair_data in machine_sequence_pairs:
         pair = MachineSequencePair.objects.get(pk=pair_data['pk'])
         assert pair.institution == current_user.institution
@@ -99,7 +99,7 @@ def test_machine_sequence_detail_context(client):
     client.force_login(current_user)
 
     res = client.get(reverse('machine_sequence_detail', args=(machine_sequence_pair_a.pk,)))
-    scans = json.loads(res.context['scans'])
+    scans = json.loads(res.context['scans_json'])
     for scan_data in scans:
         scan = Scan.objects.get(pk=scan_data['pk'])
         assert scan.machine_sequence_pair == machine_sequence_pair_a
