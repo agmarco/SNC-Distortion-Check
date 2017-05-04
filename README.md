@@ -15,3 +15,8 @@ You can install all of these using homebrew pretty easily on mac.
 You can enable hot module replacement using:
 
     yarn run build:hot
+
+## Interactive Algorithm Work
+
+You will need to swap out the matplotlib backend for interactive algorithm
+work; see `matplotlibrc` for details.
