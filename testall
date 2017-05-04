@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
 
-python -m pytest -m 'not slow'
+python -m pytest
 
 yarn run test
