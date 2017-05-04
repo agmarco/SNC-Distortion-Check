@@ -236,7 +236,7 @@ class Scan(CommonFieldsMixin):
     full_report = models.FileField(upload_to='scan/full_report', null=True)
     executive_report = models.FileField(upload_to='scan/executive_report', null=True)
     notes = models.TextField(blank=True)
-    processing = models.BooleanField(default=False)
+    processing = models.BooleanField(default=True)
     errors = models.TextField(null=True)
     tolerance = models.FloatField()
 
