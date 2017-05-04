@@ -1,5 +1,6 @@
 import logging
 from math import sqrt
+from math import pi
 
 import numpy as np
 import scipy.optimize
@@ -86,15 +87,16 @@ def rigidly_register(A, B, g, rho, tol=1e-4):
     center_of_mass_shift = np.mean(B, axis=1) - np.mean(A, axis=1)
     assert center_of_mass_shift.shape[0] == 3
 
+    search_degrees = pi/180*5
     brute_force_ranges = [
-        slice(-4 + center_of_mass_shift[0], 4 + center_of_mass_shift[0], 2),
-        slice(-4 + center_of_mass_shift[1], 4 + center_of_mass_shift[1], 2),
-        slice(-4 + center_of_mass_shift[2], 4 + center_of_mass_shift[2], 2),
-        slice(-0.08, 0.08, 0.04),
-        slice(-0.08, 0.08, 0.04),
-        slice(-0.08, 0.08, 0.04),
+        (-4 + center_of_mass_shift[0], 4 + center_of_mass_shift[0]),
+        (-4 + center_of_mass_shift[1], 4 + center_of_mass_shift[1]),
+        (-4 + center_of_mass_shift[2], 4 + center_of_mass_shift[2]),
+        (-search_degrees, search_degrees),
+        (-search_degrees, search_degrees),
+        (-search_degrees, search_degrees),
     ]
-    x0 = scipy.optimize.brute(f, brute_force_ranges)
+    x0 = scipy.optimize.brute(f, brute_force_ranges, Ns=3)
     logger.info('Brute force stage complete')
 
     options = {
@@ -112,16 +114,50 @@ def rigidly_register(A, B, g, rho, tol=1e-4):
     return result.x
 
 
-def rigidly_register_and_categorize(A, B):
+def rigidly_register_and_categorize(A, B, isocenter_in_B=None):
+    # assume the isocenter is at B's center of mass; this is not ideal since
+    # (a) some phantom's "center" may not actually be at the center of mass (b)
+    # the end-user may introduce error into the phantom positioning
+    if isocenter_in_B is None:
+        isocenter_in_B = np.mean(B, axis=1)
+
     # TODO: determine rho and g based on our knowledge of the phantom
-    # for now, we assume that the distortion is always within 5 mm
-    g = lambda bmag: 1.0
-    rho = lambda bmag: 5.0
+    # for now, we assume that the distortion is always within 5 mm and we
+    # weight points less linearly as the get further from the isocenter
+    maximum_extent = 200.0
+    maximum_distortion = 5.0
 
-    xyztpx = rigidly_register(A, B, rho, g, 1e-6)
+    def g(bmag):
+        return 1
+        # if bmag < maximum_extent:
+            # return 1.0 - 0.75*bmag/maximum_extent
+        # else:
+            # return 0.25
 
-    a_to_b_registration_matrix = affine.translation_rotation(*xyztpx)
+    def rho(bmag):
+        return 5.0
+        # if bmag < maximum_extent:
+            # return 1.0 + bmag*(maximum_distortion - 1)/maximum_extent
+        # else:
+            # return maximum_distortion
+
+    # shift B's coordinate system so that its origin is centered at the
+    # isocenter; the lower level registration functions assume B's origin is
+    # the isocenter
+    b_to_b_i_registration_matrix = affine.T(*(-1*isocenter_in_B))
+    B_i = affine.apply_affine(b_to_b_i_registration_matrix, B)
+
+    xyztpx_i = rigidly_register(A, B_i, rho, g, 1e-6)
+
+    # now apply both shifts (from A -> B_i and then from B_i -> B) back onto A.
+    # This preservers the original patient coordinate system
+    a_to_b_i_registration_matrix = affine.translation_rotation(*xyztpx_i)
+    b_i_to_b_registration_matrix = affine.T(*isocenter_in_B)
+    a_to_b_registration_matrix =  b_i_to_b_registration_matrix @ a_to_b_i_registration_matrix
     A_S = affine.apply_affine(a_to_b_registration_matrix, A)
 
+    xyztpx = affine.xyztpx_from_rotation_translation(a_to_b_registration_matrix)
+
     FN_A_S, TP_A_S, TP_B, FP_B = points_utils.categorize(A_S, B, rho)
+
     return xyztpx, FN_A_S, TP_A_S, TP_B, FP_B

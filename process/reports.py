@@ -386,7 +386,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         return figs
 
     def generate_points():
-        points_fig = scatter3({'A_S': TP_A_S, 'B': TP_B}, figsize=figsize)
+        points_fig = scatter3({'Actual': TP_A_S, 'Detected': TP_B}, figsize=figsize)
         add_header()
         return points_fig
 

@@ -29,13 +29,11 @@ class RegistrationSuite(Suite):
         B = file_io.load_points(case_input['B'])['points']
 
         assumed_center_of_mass_isocenter = np.mean(B, axis=1)
-
         context['isocenter'] = assumed_center_of_mass_isocenter
 
         xyztpx, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
             A,
-            B,
-            assumed_center_of_mass_isocenter
+            B
         )
 
         x, y, z, theta, phi, xi = xyztpx

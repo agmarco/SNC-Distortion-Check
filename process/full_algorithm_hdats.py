@@ -2,8 +2,6 @@ from collections import OrderedDict
 
 import numpy as np
 from scipy.interpolate.interpnd import LinearNDInterpolator
-import matplotlib
-matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 
 
@@ -60,7 +58,7 @@ class FullAlgorithmSuite(Suite):
         # 3. rigidly register
         xyztpx, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
             golden_points,
-            pruned_points_xyz
+            pruned_points_xyz,
         )
 
         x, y, z, theta, phi, xi = xyztpx
