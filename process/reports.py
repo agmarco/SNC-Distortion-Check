@@ -238,7 +238,11 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         interpolator = LinearNDInterpolator(TP_A_S.T, error_mags.T)
         radius2max_mean_error = OrderedDict()
 
-        r = SPHERE_STEP_mm
+        origins = np.repeat([isocenter], TP_A_S.shape[1], axis=0)
+        distances = np.linalg.norm(TP_A_S.T - origins, axis=1)
+        step = max(distances.max() // 20, SPHERE_STEP_mm)
+
+        r = step
         while True:
             num_points = int(round(surface_area(r) / SPHERE_POINTS_PER_AREA))
             equidistant_sphere_points = generate_equidistant_sphere(num_points) * r + np.array(isocenter)
@@ -249,7 +253,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
             else:
                 max_value, mean_value = np.max(values), np.mean(values)
                 radius2max_mean_error[r] = (max_value, mean_value)
-                r += SPHERE_STEP_mm
+                r += step
 
         for r, (max_value, mean_value) in radius2max_mean_error.items():
             rows.append((r, np.round(max_value, 3), np.round(mean_value, 3)))
