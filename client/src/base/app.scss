@@ -4,6 +4,7 @@
 
 html {
   height: 100%;
+  font-size: 14px;
 }
 
 body {
@@ -80,7 +81,6 @@ form {
 #site-header {
   // ensures the header displays when the user is not logged in
   min-height: $footer-height;
-
   overflow: auto;
   top: 0;
 
@@ -124,6 +124,7 @@ form {
 
 #site-breadcrumbs {
   margin: 0 $base-spacing $small-spacing $base-spacing;
+  color: $primary-muted-color;
 }
 
 h2,
@@ -135,6 +136,8 @@ h6 {
 }
 
 .cirs-table {
+  margin-bottom: 1.5 * $base-spacing;
+
   tr.a {
     background-color: rgb(241, 241, 241);
   }
@@ -220,7 +223,8 @@ h6 {
 }
 
 .cirs-form {
-  margin: 0 $base-spacing $base-spacing;
+  margin: $base-spacing;
+  margin-bottom: 1.5 * $base-spacing;
   width: 500px;
 
   p {
