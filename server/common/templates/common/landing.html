@@ -16,7 +16,7 @@
   {% manifest %}
   <script src="{% webpack 'vendor.js' %}"></script>
   <script>
-    var MACHINE_SEQUENCE_PAIRS = {{ machine_sequence_pairs|safe }};
+    var MACHINE_SEQUENCE_PAIRS = {{ machine_sequence_pairs_json|safe }};
     var UPLOAD_SCAN_URL = "{% url 'upload_scan' %}";
   </script>
   <script src="{% webpack 'landing.js' %}"></script>

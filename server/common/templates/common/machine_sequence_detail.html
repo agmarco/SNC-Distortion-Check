@@ -21,9 +21,9 @@
   {% manifest %}
   <script src="{% webpack 'vendor.js' %}"></script>
   <script>
-    var MACHINE_SEQUENCE_PAIR = {{ machine_sequence_pair|safe }};
-    var SCANS = {{ scans|safe }};
-    var UPLOAD_SCAN_URL = "{% url 'upload_scan' %}?machine={{ machinesequencepair.machine.pk }}&sequence={{ machine_sequence_pair.sequence.pk }}";
+    var MACHINE_SEQUENCE_PAIR = {{ machine_sequence_pair_json|safe }};
+    var SCANS = {{ scans_json|safe }};
+    var UPLOAD_SCAN_URL = "{% url 'upload_scan' %}?machine={{ machine_sequence_pair.machine.pk }}&sequence={{ machine_sequence_pair.sequence.pk }}";
     var UPDATE_TOLERANCE_URL = "{% url 'update_tolerance' %}";
     var FORM_ERRORS = {% if form_errors %}{{ form_errors|safe }}{% else %}null{% endif %};
   </script>

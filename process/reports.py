@@ -337,6 +337,7 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
         ax.quiver(*TP_A_S, *error_vecs)
         return quiver_fig
 
+    # TODO write PDF in memory
     with PdfPages(pdf_path) as pdf:
         pdf.savefig(generate_institution_table())
         pdf.savefig(generate_data_acquisition_table())

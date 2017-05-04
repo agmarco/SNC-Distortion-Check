@@ -49,11 +49,11 @@ class CirsDeleteView(DeleteView):
 def landing(request):
     machine_sequence_pairs_queryset = models.MachineSequencePair.objects.filter(machine__institution=request.user.institution)
     machine_sequence_pairs_queryset = machine_sequence_pairs_queryset.active().order_by('-last_modified_on')
-    machine_sequence_pairs = serializers.MachineSequencePairSerializer(machine_sequence_pairs_queryset, many=True)
+    machine_sequence_pairs_json = serializers.MachineSequencePairSerializer(machine_sequence_pairs_queryset, many=True)
 
     renderer = JSONRenderer()
     return render(request, 'common/landing.html', {
-        'machine_sequence_pairs': renderer.render(machine_sequence_pairs.data),
+        'machine_sequence_pairs_json': renderer.render(machine_sequence_pairs_json.data),
     })
 
 
@@ -92,15 +92,16 @@ class MachineSequenceDetail(DetailView):
     template_name = 'common/machine_sequence_detail.html'
 
     def get_context_data(self, **kwargs):
-        machine_sequence_pair = serializers.MachineSequencePairSerializer(self.object)
-        scans = models.Scan.objects.filter(machine_sequence_pair=self.object)
-        scans = scans.active().order_by('-dicom_series__acquisition_date')
-        scans = serializers.ScanSerializer(scans, many=True)
+        machine_sequence_pair_json = serializers.MachineSequencePairSerializer(self.object)
+        scans_json = models.Scan.objects.filter(machine_sequence_pair=self.object)
+        scans_json = scans_json.active().order_by('-dicom_series__acquisition_date')
+        scans_json = serializers.ScanSerializer(scans_json, many=True)
 
         renderer = JSONRenderer()
         return {
-            'machine_sequence_pair': renderer.render(machine_sequence_pair.data),
-            'scans': renderer.render(scans.data)
+            'machine_sequence_pair': self.object,
+            'machine_sequence_pair_json': renderer.render(machine_sequence_pair_json.data),
+            'scans_json': renderer.render(scans_json.data)
         }
 
 
@@ -113,15 +114,15 @@ class UploadScan(FormView):
 
     def get_context_data(self, **kwargs):
         institution = self.request.user.institution
-        machines = serializers.MachineSerializer(models.Machine.objects.filter(institution=institution), many=True)
-        sequences = serializers.SequenceSerializer(models.Sequence.objects.filter(institution=institution), many=True)
-        phantoms = serializers.PhantomSerializer(models.Phantom.objects.filter(institution=institution), many=True)
+        machines_json = serializers.MachineSerializer(models.Machine.objects.filter(institution=institution), many=True)
+        sequences_json = serializers.SequenceSerializer(models.Sequence.objects.filter(institution=institution), many=True)
+        phantoms_json = serializers.PhantomSerializer(models.Phantom.objects.filter(institution=institution), many=True)
 
         renderer = JSONRenderer()
         return {
-            'machines': renderer.render(machines.data),
-            'sequences': renderer.render(sequences.data),
-            'phantoms': renderer.render(phantoms.data),
+            'machines_json': renderer.render(machines_json.data),
+            'sequences_json': renderer.render(sequences_json.data),
+            'phantoms_json': renderer.render(phantoms_json.data),
         }
 
     def form_valid(self, form):
@@ -477,6 +478,7 @@ def raw_data(request, pk=None):
     return ZipResponse(zipfile, filename=f'raw_data.zip')
 
 
+# TODO write MAT files in memory?
 def dump_raw_data(scan):
     voxels_path = os.path.join(settings.BASE_DIR, f'tmp/{uuid.uuid4()}.mat')
     voxels_data = {

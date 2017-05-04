@@ -8,6 +8,8 @@ interface IUploadScanFormProps {
     machines: IMachineDTO[];
     sequences: ISequenceDTO[];
     phantoms: IPhantomDTO[];
+    initialMachinePk: number | null;
+    initialSequencePk: number | null;
     uploadScanUrl: string;
     cancelUrl: string;
     formErrors: {[field: string]: string[]};
@@ -20,12 +22,13 @@ interface IUploadScanFormState {
 }
 
 export default class extends React.Component<IUploadScanFormProps, IUploadScanFormState> {
-    constructor() {
+    constructor(props: IUploadScanFormProps) {
         super();
 
+        const { initialMachinePk, initialSequencePk } = props;
         this.state = {
-            machineFilterValue: '',
-            sequenceFilterValue: '',
+            machineFilterValue: initialMachinePk || '',
+            sequenceFilterValue: initialSequencePk || '',
             phantomFilterValue: '',
         };
     }
