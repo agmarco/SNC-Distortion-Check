@@ -32,8 +32,3 @@ def institution_data(db, request):
         'current_user': current_user,
         'institution': johns_hopkins if request.param else utexas,
     }
-
-
-@pytest.fixture
-def demo_scan(db):
-    pass

@@ -1,6 +1,8 @@
 import pytest
 
 from ..tasks import process_scan
+from .view_config import dicom_overlay_data
+from ..factories import UserFactory, InstitutionFactory
 
 # TODO: test how an unknown exception is handled; it should save an error
 # message in scan.errors and should log the stack trace
@@ -12,7 +14,17 @@ from ..tasks import process_scan
 # message in scan.errors and should log the stack trace
 
 
+@pytest.mark.slow
 @pytest.mark.django_db
 def test_working_scan():
-    # create a scan
-    pass
+    institution = InstitutionFactory()
+    user = UserFactory(institution=institution)
+    scan = dicom_overlay_data(user)['scan']
+
+    assert scan.processing == True
+
+    process_scan(scan.pk)
+    scan.refresh_from_db()
+
+    assert scan.processing == False
+    assert scan.errors is None

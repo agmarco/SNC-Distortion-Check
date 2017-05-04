@@ -10,8 +10,7 @@ from django.core.files import File
 from django.db import transaction
 from django.conf import settings
 
-from process import dicom_import, affine, phantoms
-from process.affine import apply_affine
+from process import dicom_import, affine, phantoms, fp_rejector
 from process.feature_detection import FeatureDetector
 from process.registration import rigidly_register_and_categorize
 from process.reports import generate_report, generate_cube
@@ -19,6 +18,14 @@ from process.reports import generate_report, generate_cube
 from .models import Scan, Fiducials, GoldenFiducials, DicomSeries
 
 logger = logging.getLogger(__name__)
+
+
+class AlgorithmException(Exception):
+    '''
+    The algorithm's results failed in a way that indicates it can not handle
+    the data set.
+    '''
+    pass
 
 
 @shared_task
@@ -29,7 +36,15 @@ def process_scan(scan_pk):
         with transaction.atomic():
             modality = 'mri'
 
-            voxels = scan.dicom_series.voxels,
+            # TODO: save condensed DICOM tags onto `dicom_series` on upload so
+            # we don't need to load all the zip files just to get at the
+            # metadata; this should be a feature of dicom-numpy
+            dicom_archive = scan.dicom_series.zipped_dicom_files
+
+            with zipfile.ZipFile(dicom_archive, 'r') as zip_file:
+                datasets = dicom_import.dicom_datasets_from_zip(zip_file)
+
+            voxels = scan.dicom_series.voxels
             ijk_to_xyz = scan.dicom_series.ijk_to_xyz
             voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
 
@@ -40,7 +55,7 @@ def process_scan(scan_pk):
                 ijk_to_xyz,
             )
 
-            pruned_points_ijk = remove_fps(feature_detector.points_ijk, voxels, voxel_spacing)
+            pruned_points_ijk = fp_rejector.remove_fps(feature_detector.points_ijk, voxels, voxel_spacing)
             pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
 
             scan.detected_fiducials = Fiducials.objects.create(fiducials=pruned_points_xyz)
@@ -51,16 +66,16 @@ def process_scan(scan_pk):
             )
 
             if TP_B.size == 0:
-                raise Exception("No fiducials could be matched with the gold standard.")
+                # TODO: add more satisfying error message
+                raise AlgorithmException("No fiducials could be matched with the gold standard.")
 
             scan.TP_A_S = Fiducials.objects.create(fiducials=TP_A_S)
             scan.TP_B = Fiducials.objects.create(fiducials=TP_B)
 
-            with zipfile.ZipFile(scan.dicom_series.zipped_dicom_files, 'r') as zip_file:
-                datasets = dicom_import.dicom_datasets_from_zip(zip_file)
-
+            # TODO: come up with better filename
             report_filename = f'{uuid.uuid4()}.pdf'
             report_path = os.path.join(settings.BASE_DIR, 'tmp', report_filename)
+
             generate_report(
                 TP_A_S,
                 TP_B,
@@ -75,14 +90,29 @@ def process_scan(scan_pk):
 
             with open(report_path) as report:
                 scan.full_report.save(report_filename, File(report))
+                # TODO: save executive report too
 
-            scan.processing = False
-            scan.save()
-    except Exception as e:
+    except AlgorithmException as e:
+        scan = Scan.objects.get(pk=scan_pk)  # fresh instance
+
+        logger.exception('Algorithm error')
         scan.errors = str(e)
+
+    except Exception as e:
+        scan = Scan.objects.get(pk=scan_pk)  # fresh instance
+
+        creator_email = scan.creator.email
+        logger.exception(f'Unhandled scan exception occurred while processing scan for "{creator_email}"')
+        scan.errors = f'''
+            A server error occurred while processing the scan.  CIRS has been
+            notified of the issue and is taking steps to resolve the issue.  We
+            will notify you at "{creator_email}" when the exception has been
+            resolved.
+        '''
+    finally:
         scan.processing = False
         scan.save()
-        raise e
+        logger.info('finished processing scan')
 
 
 @shared_task
