@@ -104,7 +104,7 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
 
     grid_radius = phantoms.paramaters[phantom_model_number]['grid_radius']
 
-    # assume that the isocenter is the geometric origin
+    # TODO: use the correct isocenter (it is not at the geometric origin)
     isocenter = (np.mean([x_min, x_max]), np.mean([y_min, y_max]), np.mean([z_min, z_max]))
 
     # TODO address row should be taller
@@ -339,23 +339,28 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
 
     # TODO write PDF in memory
     with PdfPages(pdf_path) as pdf:
-        pdf.savefig(generate_institution_table())
-        pdf.savefig(generate_data_acquisition_table())
+        save_then_close_figure(pdf, generate_institution_table())
+        save_then_close_figure(pdf, generate_data_acquisition_table())
 
-        pdf.savefig(generate_axial_spacial_mapping())
-        pdf.savefig(generate_sagittal_spacial_mapping())
-        pdf.savefig(generate_coronal_spacial_mapping())
+        save_then_close_figure(pdf, generate_axial_spacial_mapping())
+        save_then_close_figure(pdf, generate_sagittal_spacial_mapping())
+        save_then_close_figure(pdf, generate_coronal_spacial_mapping())
         for fig in (generate_axial_spacial_mapping_series()):
-            pdf.savefig(fig)
+            save_then_close_figure(pdf, fig)
 
-        pdf.savefig(generate_scatter_plot())
-        pdf.savefig(generate_error_table())
+        save_then_close_figure(pdf, generate_scatter_plot())
+        save_then_close_figure(pdf, generate_error_table())
 
         for fig in (generate_roi_table()):
-            pdf.savefig(fig)
+            save_then_close_figure(pdf, fig)
 
-        pdf.savefig(generate_points())
-        pdf.savefig(generate_quiver())
+        save_then_close_figure(pdf, generate_points())
+        save_then_close_figure(pdf, generate_quiver())
+
+
+def save_then_close_figure(pdf, figure):
+    pdf.savefig(figure)
+    plt.close(figure)
 
 
 def generate_cube(size, spacing=1, x0=0):
