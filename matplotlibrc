@@ -1,2 +1,5 @@
-# some keyboard events didn't seem to trigger on the default backend
-backend: Qt5Agg
+# The report generation requires an Agg-like backend.
+backend: Agg
+
+# Local interactive requires a QT backend (Tkinter may work too).
+#backend: Qt5Agg
