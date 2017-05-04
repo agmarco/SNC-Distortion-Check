@@ -102,13 +102,14 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
     x_max, y_max, z_max = np.max(TP_A_S, axis=1)
 
     grid_radius = phantoms.paramaters[phantom_model_number]['grid_radius']
+    figsize = (8.5, 11)
 
     # TODO: use the correct isocenter (it is not at the geometric origin)
     isocenter = (np.mean([x_min, x_max]), np.mean([y_min, y_max]), np.mean([z_min, z_max]))
 
     # TODO address row should be taller
     def generate_institution_table():
-        table_fig = plt.figure()
+        table_fig = plt.figure(figsize=figsize)
         rows = [
             ('Name', institution.name),
             ('Number of Licenses', institution.number_of_licenses),
@@ -122,7 +123,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
 
     # TODO add missing rows
     def generate_data_acquisition_table():
-        table_fig = plt.figure()
+        table_fig = plt.figure(figsize=figsize)
         dataset = datasets[0]
         voxel_dims = voxel_spacing(ijk_to_xyz)
         rows = [
@@ -151,7 +152,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         return table_fig
 
     def generate_scatter_plot():
-        scatter_fig = plt.figure()
+        scatter_fig = plt.figure(figsize=figsize)
         origins = np.repeat([isocenter], TP_A_S.shape[1], axis=0)
         distances = np.linalg.norm(TP_A_S.T - origins, axis=1)
 
@@ -167,7 +168,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         return scatter_fig
 
     def generate_spacial_mapping(grid_x, grid_y, gridded):
-        contour_fig = plt.figure()
+        contour_fig = plt.figure(figsize=figsize)
 
         cmap = colors.ListedColormap(['green', 'red'])
         bounds = [0, threshold, math.inf]
@@ -177,6 +178,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         plt.clabel(contour, inline=True, fontsize=10)
         return contour_fig
 
+    # TODO .3 mm spacing
     def generate_axial_spacial_mapping():
         # interpolate onto plane at the isocenter to generate contour
         grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
@@ -231,7 +233,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         return figs
 
     def generate_error_table():
-        table_fig = plt.figure()
+        table_fig = plt.figure(figsize=figsize)
         rows = []
 
         # interpolate onto spheres of increasing size to calculate average and max error table
@@ -299,9 +301,9 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         rois = zip(TP_A_S.T[sort_indices], TP_B.T[sort_indices], error_vecs.T[sort_indices], error_mags.T[sort_indices])
 
         figs = []
-        for chunk in chunks(list(rois), 3):
-            roi_fig = plt.figure()
-            subplot_dim = (3, 5)
+        for chunk in chunks(list(rois), 6):
+            roi_fig = plt.figure(figsize=figsize)
+            subplot_dim = (6, 5)
             plt.suptitle('Fiducial ROIs')
             plt.axis('off')
 
@@ -332,11 +334,11 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         return figs
 
     def generate_points():
-        points_fig = scatter3({'A_S': TP_A_S, 'B': TP_B})
+        points_fig = scatter3({'A_S': TP_A_S, 'B': TP_B}, figsize=figsize)
         return points_fig
 
     def generate_quiver():
-        quiver_fig = plt.figure()
+        quiver_fig = plt.figure(figsize=figsize)
         ax = quiver_fig.add_subplot(111, projection='3d')
         ax.quiver(*TP_A_S, *error_vecs)
         return quiver_fig
