@@ -1,9 +1,12 @@
+import os
 import zipfile
 import math
 from collections import OrderedDict
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+from django.conf import settings
 from matplotlib import colors
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy.interpolate.interpnd import LinearNDInterpolator
@@ -107,9 +110,22 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
     # TODO: use the correct isocenter (it is not at the geometric origin)
     isocenter = (np.mean([x_min, x_max]), np.mean([y_min, y_max]), np.mean([z_min, z_max]))
 
+    def add_header():
+        # plt.text(0.5, 0.5, "CIRS Distortion Check")
+        pass
+
+    def generate_cover_page():
+        fig = plt.figure(figsize=figsize)
+        add_header()
+        plt.axis('off')
+        im = mpimg.imread(os.path.join(settings.BASE_DIR, 'client/src/login/logo.png'))
+        plt.imshow(im)
+        return fig
+
     # TODO address row should be taller
     def generate_institution_table():
         table_fig = plt.figure(figsize=figsize)
+        add_header()
         rows = [
             ('Name', institution.name),
             ('Number of Licenses', institution.number_of_licenses),
@@ -124,6 +140,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
     # TODO add missing rows
     def generate_data_acquisition_table():
         table_fig = plt.figure(figsize=figsize)
+        add_header()
         dataset = datasets[0]
         voxel_dims = voxel_spacing(ijk_to_xyz)
         rows = [
@@ -153,6 +170,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
 
     def generate_scatter_plot():
         scatter_fig = plt.figure(figsize=figsize)
+        add_header()
         origins = np.repeat([isocenter], TP_A_S.shape[1], axis=0)
         distances = np.linalg.norm(TP_A_S.T - origins, axis=1)
 
@@ -169,6 +187,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
 
     def generate_spacial_mapping(grid_x, grid_y, gridded):
         contour_fig = plt.figure(figsize=figsize)
+        add_header()
 
         cmap = colors.ListedColormap(['green', 'red'])
         bounds = [0, threshold, math.inf]
@@ -234,6 +253,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
 
     def generate_error_table():
         table_fig = plt.figure(figsize=figsize)
+        add_header()
         rows = []
 
         # interpolate onto spheres of increasing size to calculate average and max error table
@@ -303,6 +323,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         figs = []
         for chunk in chunks(list(rois), 6):
             roi_fig = plt.figure(figsize=figsize)
+            add_header()
             subplot_dim = (6, 5)
             plt.suptitle('Fiducial ROIs')
             plt.axis('off')
@@ -335,47 +356,63 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
 
     def generate_points():
         points_fig = scatter3({'A_S': TP_A_S, 'B': TP_B}, figsize=figsize)
+        add_header()
         return points_fig
 
     def generate_quiver():
         quiver_fig = plt.figure(figsize=figsize)
+        add_header()
         ax = quiver_fig.add_subplot(111, projection='3d')
         ax.quiver(*TP_A_S, *error_vecs)
         return quiver_fig
 
+    cover_page = generate_cover_page()
+    institution_table = generate_institution_table()
+    data_acquisition_table = generate_data_acquisition_table()
+    scatter_plot = generate_scatter_plot()
+    axial_spacial_mapping = generate_axial_spacial_mapping()
+    sagittal_spacial_mapping = generate_sagittal_spacial_mapping()
+    coronal_spacial_mapping = generate_coronal_spacial_mapping()
+    axial_spacial_mapping_series = generate_axial_spacial_mapping_series()
+    error_table = generate_error_table()
+    fiducial_rois = generate_fiducial_rois()
+    points = generate_points()
+
     # TODO write PDF in memory
     with PdfPages(full_report_path) as pdf:
-        save_then_close_figure(pdf, generate_institution_table())
-        save_then_close_figure(pdf, generate_data_acquisition_table())
+        save_then_close_figure(pdf, cover_page)
+        save_then_close_figure(pdf, institution_table)
+        save_then_close_figure(pdf, data_acquisition_table)
 
-        save_then_close_figure(pdf, generate_scatter_plot())
+        save_then_close_figure(pdf, scatter_plot)
 
-        save_then_close_figure(pdf, generate_axial_spacial_mapping())
-        save_then_close_figure(pdf, generate_sagittal_spacial_mapping())
-        save_then_close_figure(pdf, generate_coronal_spacial_mapping())
-        for fig in (generate_axial_spacial_mapping_series()):
+        save_then_close_figure(pdf, axial_spacial_mapping)
+        save_then_close_figure(pdf, sagittal_spacial_mapping)
+        save_then_close_figure(pdf, coronal_spacial_mapping)
+        for fig in axial_spacial_mapping_series:
             save_then_close_figure(pdf, fig)
 
-        save_then_close_figure(pdf, generate_error_table())
+        save_then_close_figure(pdf, error_table)
 
-        for fig in (generate_fiducial_rois()):
+        for fig in fiducial_rois:
             save_then_close_figure(pdf, fig)
 
-        save_then_close_figure(pdf, generate_points())
+        save_then_close_figure(pdf, points)
 
     with PdfPages(executive_report_path) as pdf:
-        save_then_close_figure(pdf, generate_institution_table())
-        save_then_close_figure(pdf, generate_data_acquisition_table())
+        save_then_close_figure(pdf, cover_page)
+        save_then_close_figure(pdf, institution_table)
+        save_then_close_figure(pdf, data_acquisition_table)
 
-        save_then_close_figure(pdf, generate_scatter_plot())
+        save_then_close_figure(pdf, scatter_plot)
 
-        save_then_close_figure(pdf, generate_axial_spacial_mapping())
-        save_then_close_figure(pdf, generate_sagittal_spacial_mapping())
-        save_then_close_figure(pdf, generate_coronal_spacial_mapping())
+        save_then_close_figure(pdf, axial_spacial_mapping)
+        save_then_close_figure(pdf, sagittal_spacial_mapping)
+        save_then_close_figure(pdf, coronal_spacial_mapping)
 
-        save_then_close_figure(pdf, generate_error_table())
+        save_then_close_figure(pdf, error_table)
 
-        save_then_close_figure(pdf, generate_points())
+        save_then_close_figure(pdf, points)
 
 
 def save_then_close_figure(pdf, figure):
