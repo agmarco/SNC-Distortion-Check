@@ -91,11 +91,11 @@ def process_scan(scan_pk):
                 executive_report_path,
             )
 
-            with open(full_report_path) as report:
-                scan.full_report.save(full_report_filename, File(report))
+            with open(full_report_path, 'rb') as report_file:
+                scan.full_report.save(full_report_filename, File(report_file))
 
-            with open(executive_report_path) as report:
-                scan.executive_report.save(executive_report_filename, File(report))
+            with open(executive_report_path, 'rb') as report_file:
+                scan.executive_report.save(executive_report_filename, File(report_file))
 
     except AlgorithmException as e:
         scan = Scan.objects.get(pk=scan_pk)  # fresh instance
