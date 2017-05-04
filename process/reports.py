@@ -4,7 +4,6 @@ from collections import OrderedDict
 
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 from matplotlib import colors
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy.interpolate.interpnd import LinearNDInterpolator
@@ -151,6 +150,22 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         plt.title('Data Acquisition Table')
         return table_fig
 
+    def generate_scatter_plot():
+        scatter_fig = plt.figure()
+        origins = np.repeat([isocenter], TP_A_S.shape[1], axis=0)
+        distances = np.linalg.norm(TP_A_S.T - origins, axis=1)
+
+        cmap = colors.ListedColormap(['green', 'red'])
+        bounds = [0, threshold, math.inf]
+        norm = colors.BoundaryNorm(bounds, cmap.N)
+
+        plt.plot([0, distances.max()], [threshold, threshold], c='red', linestyle='dashed')
+        plt.scatter(distances, error_mags, c=error_mags, cmap=cmap, norm=norm, s=12)
+        plt.xlabel('Distance from Isocenter [mm]')
+        plt.ylabel('Distortion Magnitude [mm]')
+        plt.title('Scatter Plot of Geometric Distortion vs. Distance from Isocenter')
+        return scatter_fig
+
     def generate_spacial_mapping(grid_x, grid_y, gridded):
         contour_fig = plt.figure()
 
@@ -215,22 +230,6 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
                 pass
         return figs
 
-    def generate_scatter_plot():
-        scatter_fig = plt.figure()
-        origins = np.repeat([isocenter], TP_A_S.shape[1], axis=0)
-        distances = np.linalg.norm(TP_A_S.T - origins, axis=1)
-
-        cmap = colors.ListedColormap(['green', 'red'])
-        bounds = [0, threshold, math.inf]
-        norm = colors.BoundaryNorm(bounds, cmap.N)
-
-        plt.plot([0, distances.max()], [threshold, threshold], c='red', linestyle='dashed')
-        plt.scatter(distances, error_mags, c=error_mags, cmap=cmap, norm=norm)
-        plt.xlabel('Distance from Isocenter [mm]')
-        plt.ylabel('Distortion Magnitude [mm]')
-        plt.title('Scatter Plot of Geometric Distortion vs. Distance from Isocenter')
-        return scatter_fig
-
     def generate_error_table():
         table_fig = plt.figure()
         rows = []
@@ -261,22 +260,49 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         plt.title('Error Table')
         return table_fig
 
-    def generate_roi_table():
+    def generate_roi_view(plt, im, x_bounds, y_bounds, A_S_2D, B_2D):
+        plt.imshow(im, cmap='Greys', extent=[*x_bounds, *y_bounds], aspect='auto')
+        plt.scatter([A_S_2D[0]], [A_S_2D[1]], c='gold')
+        plt.scatter([B_2D[0]], [B_2D[1]], c='C0')
+        plt.set_xticks([])
+        plt.set_yticks([])
+        plt.set_xlim(x_bounds)
+        plt.set_ylim(y_bounds)
+
+    def generate_roi_table(plt, A_S, B, error_vec, error_mag):
+        rows = (
+            ('A_S [mm]', f'({str(round(A_S[0], 3))}, {str(round(A_S[1], 3))}, {str(round(A_S[2], 3))})'),
+            ('B [mm]', f'({str(round(B[0], 3))}, {str(round(B[1], 3))}, {str(round(B[2], 3))})'),
+            ('x [mm]', f'{str(round(error_vec[0], 3))}'),
+            ('y [mm]', f'{str(round(error_vec[1], 3))}'),
+            ('z [mm]', f'{str(round(error_vec[2], 3))}'),
+            ('magnitude [mm]', f'{str(round(error_mag, 3))}'),
+        )
+        colors = (
+            ('gold', 'w'),
+            ('C0', 'w'),
+            ('w', 'w'),
+            ('w', 'w'),
+            ('w', 'w'),
+            ('w', 'w'),
+        )
+        plt.table(cellText=rows, cellColours=colors, loc='center')
+        plt.axis('off')
+
+    def generate_fiducial_rois():
         xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
-        rois = zip(TP_A_S.T, TP_B.T, error_vecs.T, error_mags.T)
+        sort_indices = np.argsort(error_mags.T)[::-1]
+        rois = zip(TP_A_S.T[sort_indices], TP_B.T[sort_indices], error_vecs.T[sort_indices], error_mags.T[sort_indices])
 
         figs = []
         for chunk in chunks(list(rois), 3):
             roi_fig = plt.figure()
-            subplot_dim = (3, 4)
+            subplot_dim = (3, 5)
             plt.suptitle('Fiducial ROIs')
             plt.axis('off')
-            A_S_patch = mpatches.Patch(color='gold')
-            B_patch = mpatches.Patch(color='C0')
-            roi_fig.legend([A_S_patch, B_patch], ('A_S', 'B'))
 
             # TODO (x, y, z) coordinates should be in the center of the pixels
-            for i, (A, B, error_vec, error_mag) in enumerate(chunk):
+            for i, (A_S, B, error_vec, error_mag) in enumerate(chunk):
                 B_ijk = apply_affine(xyz_to_ijk, np.array([B]).T).T.squeeze()
                 shape = roi_shape(grid_radius, voxel_spacing(ijk_to_xyz))
                 bounds = roi_bounds(B, shape)
@@ -287,41 +313,16 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
                 # plt.rcParams['ytick.labelsize'] = 4
 
                 plt1 = plt.subplot2grid(subplot_dim, (i, 0))
-                plt1.imshow(axial, cmap='Greys', extent=[*bounds[0], *bounds[1]], aspect='auto')
-                plt1.scatter([A[0]], [A[1]], c='gold')
-                plt1.scatter([B[0]], [B[1]], c='C0')
-                plt1.set_xticks([])
-                plt1.set_yticks([])
-                plt1.set_xlim(bounds[0])
-                plt1.set_ylim(bounds[1])
+                generate_roi_view(plt1, axial, bounds[0], bounds[1], (A_S[0], A_S[1]), (B[0], B[1]))
 
                 plt2 = plt.subplot2grid(subplot_dim, (i, 1))
-                plt2.imshow(sagittal, cmap='Greys', extent=[*bounds[0], *bounds[2]], aspect='auto')
-                plt2.scatter([A[0]], [A[2]], c='gold')
-                plt2.scatter([B[0]], [B[2]], c='C0')
-                plt2.set_xticks([])
-                plt2.set_yticks([])
-                plt2.set_xlim(bounds[0])
-                plt2.set_ylim(bounds[2])
+                generate_roi_view(plt2, sagittal, bounds[0], bounds[2], (A_S[0], A_S[2]), (B[0], B[2]))
 
                 plt3 = plt.subplot2grid(subplot_dim, (i, 2))
-                plt3.imshow(coronal, cmap='Greys', extent=[*bounds[1], *bounds[2]], aspect='auto')
-                plt3.scatter([A[1]], [A[2]], c='gold')
-                plt3.scatter([B[1]], [B[2]], c='C0')
-                plt3.set_xticks([])
-                plt3.set_yticks([])
-                plt3.set_xlim(bounds[1])
-                plt3.set_ylim(bounds[2])
+                generate_roi_view(plt3, coronal, bounds[1], bounds[2], (A_S[1], A_S[2]), (B[1], B[2]))
 
-                plt4 = plt.subplot2grid(subplot_dim, (i, 3))
-                rows = [
-                    ('x', f'{str(round(error_vec[0], 3))} mm'),
-                    ('y', f'{str(round(error_vec[1], 3))} mm'),
-                    ('z', f'{str(round(error_vec[2], 3))} mm'),
-                    ('magnitude', f'{str(round(error_mag, 3))} mm'),
-                ]
-                plt4.table(cellText=rows, loc='center')
-                plt4.axis('off')
+                plt4 = plt.subplot2grid(subplot_dim, (i, 3), colspan=2)
+                generate_roi_table(plt4, A_S, B, error_vec, error_mag)
 
             figs.append(roi_fig)
         return figs
@@ -341,34 +342,34 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         save_then_close_figure(pdf, generate_institution_table())
         save_then_close_figure(pdf, generate_data_acquisition_table())
 
+        save_then_close_figure(pdf, generate_scatter_plot())
+
         save_then_close_figure(pdf, generate_axial_spacial_mapping())
         save_then_close_figure(pdf, generate_sagittal_spacial_mapping())
         save_then_close_figure(pdf, generate_coronal_spacial_mapping())
         for fig in (generate_axial_spacial_mapping_series()):
             save_then_close_figure(pdf, fig)
 
-        save_then_close_figure(pdf, generate_scatter_plot())
         save_then_close_figure(pdf, generate_error_table())
 
-        for fig in (generate_roi_table()):
+        for fig in (generate_fiducial_rois()):
             save_then_close_figure(pdf, fig)
 
         save_then_close_figure(pdf, generate_points())
-        save_then_close_figure(pdf, generate_quiver())
 
     with PdfPages(executive_report_path) as pdf:
         save_then_close_figure(pdf, generate_institution_table())
         save_then_close_figure(pdf, generate_data_acquisition_table())
 
+        save_then_close_figure(pdf, generate_scatter_plot())
+
         save_then_close_figure(pdf, generate_axial_spacial_mapping())
         save_then_close_figure(pdf, generate_sagittal_spacial_mapping())
         save_then_close_figure(pdf, generate_coronal_spacial_mapping())
 
-        save_then_close_figure(pdf, generate_scatter_plot())
         save_then_close_figure(pdf, generate_error_table())
 
         save_then_close_figure(pdf, generate_points())
-        save_then_close_figure(pdf, generate_quiver())
 
 
 def save_then_close_figure(pdf, figure):
