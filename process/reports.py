@@ -194,7 +194,8 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         bounds = [0, threshold, math.inf]
         norm = colors.BoundaryNorm(bounds, cmap.N)
 
-        contour = plt.contour(grid_x.squeeze(), grid_y.squeeze(), gridded.squeeze(), cmap=cmap, norm=norm)
+        levels = np.arange(0, error_mags.T.max() + 0.3, 0.3)
+        contour = plt.contour(grid_x.squeeze(), grid_y.squeeze(), gridded.squeeze(), cmap=cmap, norm=norm, levels=levels)
         plt.clabel(contour, inline=True, fontsize=10)
         return contour_fig
 
@@ -299,8 +300,8 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
 
     def generate_roi_table(plt, A_S, B, error_vec, error_mag):
         rows = (
-            ('Actual [mm]', f'({str(round(A_S[0], 3))}, {str(round(A_S[1], 3))}, {str(round(A_S[2], 3))})'),
-            ('Detected [mm]', f'({str(round(B[0], 3))}, {str(round(B[1], 3))}, {str(round(B[2], 3))})'),
+            ('actual [mm]', f'({str(round(A_S[0], 3))}, {str(round(A_S[1], 3))}, {str(round(A_S[2], 3))})'),
+            ('detected [mm]', f'({str(round(B[0], 3))}, {str(round(B[1], 3))}, {str(round(B[2], 3))})'),
             ('x [mm]', f'{str(round(error_vec[0], 3))}'),
             ('y [mm]', f'{str(round(error_vec[1], 3))}'),
             ('z [mm]', f'{str(round(error_vec[2], 3))}'),
