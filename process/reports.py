@@ -86,7 +86,7 @@ def roi_images(B, voxels, bounds_list):
     )
 
 
-def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_number, threshold, institution, pdf_path):
+def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_number, threshold, institution, full_report_path, executive_report_path):
     """
     Given the set of matched and registered points, generate a NEMA report.
 
@@ -337,7 +337,7 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
         return quiver_fig
 
     # TODO write PDF in memory
-    with PdfPages(pdf_path) as pdf:
+    with PdfPages(full_report_path) as pdf:
         save_then_close_figure(pdf, generate_institution_table())
         save_then_close_figure(pdf, generate_data_acquisition_table())
 
@@ -352,6 +352,20 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
 
         for fig in (generate_roi_table()):
             save_then_close_figure(pdf, fig)
+
+        save_then_close_figure(pdf, generate_points())
+        save_then_close_figure(pdf, generate_quiver())
+
+    with PdfPages(executive_report_path) as pdf:
+        save_then_close_figure(pdf, generate_institution_table())
+        save_then_close_figure(pdf, generate_data_acquisition_table())
+
+        save_then_close_figure(pdf, generate_axial_spacial_mapping())
+        save_then_close_figure(pdf, generate_sagittal_spacial_mapping())
+        save_then_close_figure(pdf, generate_coronal_spacial_mapping())
+
+        save_then_close_figure(pdf, generate_scatter_plot())
+        save_then_close_figure(pdf, generate_error_table())
 
         save_then_close_figure(pdf, generate_points())
         save_then_close_figure(pdf, generate_quiver())
@@ -389,4 +403,4 @@ if __name__ == '__main__':
         address = "3101 Wyman Park Dr.\nBaltimore, MD 21211"
         phone_number = "555-555-5555"
 
-    generate_report(A, B, datasets, voxels, ijk_to_xyz, '603A', 2.5, Institution, 'tmp/report.pdf')
+    generate_reports(A, B, datasets, voxels, ijk_to_xyz, '603A', 2.5, Institution, 'tmp/full_report.pdf', 'tmp/executive_report.pdf')
