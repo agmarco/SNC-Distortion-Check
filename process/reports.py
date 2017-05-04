@@ -141,8 +141,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         ax1.imshow(im, extent=[*x_bounds, *y_bounds])
         color = (0, 95, 152)
         color = tuple(c / 255 for c in color)
-        # TODO why isn't the center at 0.5?
-        ax1.text(0.45, 0.2, report_text, size=24, ha='center', weight='bold', color=color)
+        ax1.text(0.5, 0.2, report_text, size=24, ha='center', weight='bold', color=color)
 
         ax2 = plt.subplot(gs[2])
         plt.axis('off')
