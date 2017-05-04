@@ -105,7 +105,6 @@ class MachineSequenceDetail(DetailView):
         }
 
 
-# TODO handle prepopulated machine and sequence
 # TODO cancel might take the user back to landing, machine-sequences, or machine-sequence-detail
 @login_and_permission_required('common.configuration')
 class UploadScan(FormView):
