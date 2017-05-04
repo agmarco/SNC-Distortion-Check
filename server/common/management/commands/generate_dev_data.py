@@ -199,6 +199,7 @@ class Command(BaseCommand):
             datasets = dicom_import.dicom_datasets_from_zip(zip_file)
         voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
 
+        # TODO: replace this with real datasets
         for i in range(3):
             A = generate_cube(2, 4)
             B = generate_cube(2, 4)
@@ -232,5 +233,5 @@ class Command(BaseCommand):
                 report_path
             )
 
-            with open(report_path, 'rb') as report:
-                scan.full_report.save(report_filename, File(report))
+            with open(report_path, 'rb') as report_file:
+                scan.full_report.save(report_filename, File(report_file))

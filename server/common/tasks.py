@@ -88,8 +88,8 @@ def process_scan(scan_pk):
                 report_path,
             )
 
-            with open(report_path) as report:
-                scan.full_report.save(report_filename, File(report))
+            with open(report_path, 'rb') as report_file:
+                scan.full_report.save(report_filename, File(report_file))
                 # TODO: save executive report too
 
     except AlgorithmException as e:
