@@ -147,11 +147,11 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         ax2 = plt.subplot(gs[2])
         plt.axis('off')
         ax2.add_patch(patches.Rectangle((0, 0), 1, 1))
-        rc('text', usetex=True)
-        ax2.text(0.1, 0.1, r"\textbf{Machine:} " + machine_name +
-                 "\n" + r"\textbf{Sequence:} " + sequence_name +
-                 "\n" + r"\textbf{Phantom:} " + f"{phantom_name} - {phantom_model_number}" +
-                 "\n" + r"\textbf{Scan Acquired On:} " + acquisition_date.strftime("%B %-d, %Y"), size=16, color='w')
+        # rc('text', usetex=True)
+        ax2.text(0.1, 0.1, r"Machine: " + machine_name +
+                 "\n" + r"Sequence: " + sequence_name +
+                 "\n" + r"Phantom: " + f"{phantom_name} - {phantom_model_number}" +
+                 "\n" + r"Scan Acquired On: " + acquisition_date.strftime("%B %-d, %Y"), size=16, color='w')
 
         plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
         return fig
@@ -426,6 +426,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         for fig in fiducial_rois:
             save_then_close_figure(pdf, fig)
         save_then_close_figure(pdf, points)
+
     with PdfPages(executive_report_path) as pdf:
         save_then_close_figure(pdf, executive_cover_page)
         save_then_close_figure(pdf, institution_table)
