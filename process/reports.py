@@ -163,7 +163,6 @@ def generate_report(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_nu
         return contour_fig
 
     def generate_axial_spacial_mapping():
-
         # interpolate onto plane at the isocenter to generate contour
         grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
                                              np.arange(y_min, y_max, GRID_DENSITY_mm),

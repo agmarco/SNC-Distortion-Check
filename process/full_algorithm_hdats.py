@@ -2,9 +2,13 @@ from collections import OrderedDict
 
 import numpy as np
 from scipy.interpolate.interpnd import LinearNDInterpolator
+import matplotlib
+matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 
+
 from . import points_utils
+from .interpolate import interpolate_distortion
 from hdatt.suite import Suite
 from . import slicer
 from . import affine, file_io
@@ -77,7 +81,10 @@ class FullAlgorithmSuite(Suite):
         context['FP_B'] = FP_B
 
         # 4. interpolate
-        # 5. make assertions about the interpolated values
+        distortion_grid = interpolate_distortion(TP_A_S, TP_B, ijk_to_xyz, voxels.shape)
+        context['distortion_grid'] = distortion_grid
+
+        # TODO: add distortion metrics
 
         return metrics, context
 
@@ -133,9 +140,16 @@ class FullAlgorithmSuite(Suite):
             },
         ]
 
+        distortion_magnitude = np.linalg.norm(context['distortion_grid'], axis=3)
+        min_value = np.nanmin(distortion_magnitude)
+        max_value = np.nanmax(distortion_magnitude)
+        nan_value = min_value - 0.1*abs(max_value - min_value)
+        distortion_magnitude[np.isnan(distortion_magnitude)] = nan_value
+
         s = slicer.PointsSlicer(context['preprocessed_image'], context['ijk_to_xyz'], descriptors)
         s.add_renderer(slicer.render_points)
         s.add_renderer(slicer.render_cursor)
         s.add_renderer(slicer.render_legend)
+        s.add_renderer(slicer.render_overlay(distortion_magnitude, cmap='cool', alpha=0.8))
         s.draw()
         plt.show()
