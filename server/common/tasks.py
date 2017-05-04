@@ -87,6 +87,10 @@ def process_scan(scan_pk):
                 scan.golden_fiducials.phantom.model.model_number,
                 scan.tolerance,
                 scan.institution,
+                scan.machine_sequence_pair.machine.name,
+                scan.machine_sequence_pair.sequence.name,
+                scan.golden_fiducials.phantom.name,
+                scan.dicom_series.acquisition_date,
                 full_report_path,
                 executive_report_path,
             )

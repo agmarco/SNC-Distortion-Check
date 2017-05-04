@@ -401,51 +401,51 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
     full_cover_page = generate_cover_page("FULL REPORT")
     executive_cover_page = generate_cover_page("EXECUTIVE REPORT")
     institution_table = generate_institution_table()
-    data_acquisition_table = generate_data_acquisition_table()
-    scatter_plot = generate_scatter_plot()
-    axial_spacial_mapping = generate_axial_spacial_mapping()
-    sagittal_spacial_mapping = generate_sagittal_spacial_mapping()
-    coronal_spacial_mapping = generate_coronal_spacial_mapping()
-    axial_spacial_mapping_series = generate_axial_spacial_mapping_series()
-    error_table = generate_error_table()
-    fiducial_rois = generate_fiducial_rois()
-    points = generate_points()
+    # data_acquisition_table = generate_data_acquisition_table()
+    # scatter_plot = generate_scatter_plot()
+    # axial_spacial_mapping = generate_axial_spacial_mapping()
+    # sagittal_spacial_mapping = generate_sagittal_spacial_mapping()
+    # coronal_spacial_mapping = generate_coronal_spacial_mapping()
+    # axial_spacial_mapping_series = generate_axial_spacial_mapping_series()
+    # error_table = generate_error_table()
+    # fiducial_rois = generate_fiducial_rois()
+    # points = generate_points()
 
     # TODO write PDF in memory
     with PdfPages(full_report_path) as pdf:
         save_then_close_figure(pdf, full_cover_page)
         save_then_close_figure(pdf, institution_table)
-        save_then_close_figure(pdf, data_acquisition_table)
-
-        save_then_close_figure(pdf, scatter_plot)
-
-        save_then_close_figure(pdf, axial_spacial_mapping)
-        save_then_close_figure(pdf, sagittal_spacial_mapping)
-        save_then_close_figure(pdf, coronal_spacial_mapping)
-        for fig in axial_spacial_mapping_series:
-            save_then_close_figure(pdf, fig)
-
-        save_then_close_figure(pdf, error_table)
-
-        for fig in fiducial_rois:
-            save_then_close_figure(pdf, fig)
-
-        save_then_close_figure(pdf, points)
-
-    with PdfPages(executive_report_path) as pdf:
-        save_then_close_figure(pdf, executive_cover_page)
-        save_then_close_figure(pdf, institution_table)
-        save_then_close_figure(pdf, data_acquisition_table)
-
-        save_then_close_figure(pdf, scatter_plot)
-
-        save_then_close_figure(pdf, axial_spacial_mapping)
-        save_then_close_figure(pdf, sagittal_spacial_mapping)
-        save_then_close_figure(pdf, coronal_spacial_mapping)
-
-        save_then_close_figure(pdf, error_table)
-
-        save_then_close_figure(pdf, points)
+    #     save_then_close_figure(pdf, data_acquisition_table)
+#
+    #     save_then_close_figure(pdf, scatter_plot)
+#
+    #     save_then_close_figure(pdf, axial_spacial_mapping)
+    #     save_then_close_figure(pdf, sagittal_spacial_mapping)
+    #     save_then_close_figure(pdf, coronal_spacial_mapping)
+    #     for fig in axial_spacial_mapping_series:
+    #         save_then_close_figure(pdf, fig)
+#
+    #     save_then_close_figure(pdf, error_table)
+#
+    #     for fig in fiducial_rois:
+    #         save_then_close_figure(pdf, fig)
+#
+    #     save_then_close_figure(pdf, points)
+#
+    # with PdfPages(executive_report_path) as pdf:
+    #     save_then_close_figure(pdf, executive_cover_page)
+    #     save_then_close_figure(pdf, institution_table)
+    #     save_then_close_figure(pdf, data_acquisition_table)
+#
+    #     save_then_close_figure(pdf, scatter_plot)
+#
+    #     save_then_close_figure(pdf, axial_spacial_mapping)
+    #     save_then_close_figure(pdf, sagittal_spacial_mapping)
+    #     save_then_close_figure(pdf, coronal_spacial_mapping)
+#
+    #     save_then_close_figure(pdf, error_table)
+#
+    #     save_then_close_figure(pdf, points)
 
 
 def save_then_close_figure(pdf, figure):
