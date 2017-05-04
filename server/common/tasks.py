@@ -13,7 +13,7 @@ from django.conf import settings
 from process import dicom_import, affine, phantoms, fp_rejector
 from process.feature_detection import FeatureDetector
 from process.registration import rigidly_register_and_categorize
-from process.reports import generate_report, generate_cube
+from process.reports import generate_reports, generate_cube
 
 from .models import Scan, Fiducials, GoldenFiducials, DicomSeries
 
@@ -73,10 +73,12 @@ def process_scan(scan_pk):
             scan.TP_B = Fiducials.objects.create(fiducials=TP_B)
 
             # TODO: come up with better filename
-            report_filename = f'{uuid.uuid4()}.pdf'
-            report_path = os.path.join(settings.BASE_DIR, 'tmp', report_filename)
+            full_report_filename = f'{uuid.uuid4()}.pdf'
+            executive_report_filename = f'{uuid.uuid4()}.pdf'
+            full_report_path = os.path.join(settings.BASE_DIR, 'tmp', full_report_filename)
+            executive_report_path = os.path.join(settings.BASE_DIR, 'tmp', executive_report_filename)
 
-            generate_report(
+            generate_reports(
                 TP_A_S,
                 TP_B,
                 datasets,
@@ -85,12 +87,15 @@ def process_scan(scan_pk):
                 scan.golden_fiducials.phantom.model.model_number,
                 scan.tolerance,
                 scan.institution,
-                report_path,
+                full_report_path,
+                executive_report_path,
             )
 
-            with open(report_path, 'rb') as report_file:
-                scan.full_report.save(report_filename, File(report_file))
-                # TODO: save executive report too
+            with open(full_report_path, 'rb') as report_file:
+                scan.full_report.save(full_report_filename, File(report_file))
+
+            with open(executive_report_path, 'rb') as report_file:
+                scan.executive_report.save(executive_report_filename, File(report_file))
 
     except AlgorithmException as e:
         scan = Scan.objects.get(pk=scan_pk)  # fresh instance

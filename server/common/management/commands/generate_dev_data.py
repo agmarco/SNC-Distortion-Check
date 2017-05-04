@@ -15,7 +15,7 @@ from server.common.models import GoldenFiducials, Fiducials
 
 from process import affine, dicom_import
 from process.affine import apply_affine
-from process.reports import generate_cube, generate_report
+from process.reports import generate_cube, generate_reports
 from process.file_io import load_points
 
 
@@ -219,9 +219,12 @@ class Command(BaseCommand):
                 tolerance=2.25,
             )
 
-            report_filename = f'{uuid.uuid4()}.pdf'
-            report_path = os.path.join(settings.BASE_DIR, 'tmp', report_filename)
-            generate_report(
+            full_report_filename = f'{uuid.uuid4()}.pdf'
+            executive_report_filename = f'{uuid.uuid4()}.pdf'
+            full_report_path = os.path.join(settings.BASE_DIR, 'tmp', full_report_filename)
+            executive_report_path = os.path.join(settings.BASE_DIR, 'tmp', executive_report_filename)
+
+            generate_reports(
                 A,
                 B,
                 datasets,
@@ -230,8 +233,12 @@ class Command(BaseCommand):
                 '603A',
                 scan.tolerance,
                 johns_hopkins,
-                report_path
+                full_report_path,
+                executive_report_path
             )
 
-            with open(report_path, 'rb') as report_file:
-                scan.full_report.save(report_filename, File(report_file))
+            with open(full_report_path, 'rb') as report_file:
+                scan.full_report.save(full_report_filename, File(report_file))
+
+            with open(executive_report_path, 'rb') as report_file:
+                scan.executive_report.save(executive_report_filename, File(report_file))
