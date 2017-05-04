@@ -12,7 +12,20 @@ MRI_SOP = '1.2.840.10008.5.1.4.1.1.4'  # MR Image Storage
 CT_SOP = '1.2.840.10008.5.1.4.1.1.2'  # CT Image Storage
 
 
-class CreatePhantomForm(forms.ModelForm):
+
+class CIRSForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('label_suffix', '')
+        super().__init__(*args, **kwargs)
+
+
+class CIRSModelForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('label_suffix', '')
+        super().__init__(*args, **kwargs)
+
+
+class CreatePhantomForm(CIRSModelForm):
     class Meta:
         model = Phantom
         fields = ('name', 'serial_number')
@@ -27,7 +40,7 @@ class CreatePhantomForm(forms.ModelForm):
         return self.cleaned_data['serial_number']
 
 
-class UploadScanForm(forms.Form):
+class UploadScanForm(CIRSForm):
     machine = forms.IntegerField()
     sequence = forms.IntegerField()
     phantom = forms.IntegerField()
@@ -50,7 +63,7 @@ class UploadScanForm(forms.Form):
         return self.cleaned_data['dicom_archive']
 
 
-class UploadCTForm(forms.Form):
+class UploadCTForm(CIRSForm):
     dicom_archive = forms.FileField(label="File Browser")
 
     def clean_dicom_archive(self):
@@ -69,7 +82,7 @@ class UploadCTForm(forms.Form):
         return self.cleaned_data['dicom_archive']
 
 
-class UploadRawForm(forms.Form):
+class UploadRawForm(CIRSForm):
     csv = forms.FileField(label="File Browser")
 
     @staticmethod
@@ -100,7 +113,7 @@ class UploadRawForm(forms.Form):
         return self.cleaned_data['csv']
 
 
-class InstitutionForm(forms.ModelForm):
+class InstitutionForm(CIRSModelForm):
     class Meta:
         model = Institution
         fields = ('name', 'address', 'phone_number')
@@ -111,7 +124,7 @@ class InstitutionForm(forms.ModelForm):
         }
 
 
-class DicomOverlayForm(forms.Form):
+class DicomOverlayForm(CIRSForm):
     series_instance_uid = forms.CharField(label="SeriesInstanceUID")
     study_instance_uid = forms.CharField(label="StudyInstanceUID")
     patient_uid = forms.CharField(label="PatientUID")

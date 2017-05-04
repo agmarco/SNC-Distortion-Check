@@ -5,12 +5,12 @@ table {
 }
 
 th {
-  padding: $small-spacing * (2 / 3);
+  padding: $small-spacing * (2 / 3) $small-spacing;
   text-align: left;
 }
 
 td {
-  padding: $small-spacing * (2 / 3);
+  padding: $small-spacing * (2 / 3) $small-spacing;
 }
 
 tr,
