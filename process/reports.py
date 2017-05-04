@@ -332,7 +332,6 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
             plt.suptitle('Fiducial ROIs')
             plt.axis('off')
 
-            # TODO (x, y, z) coordinates should be in the center of the pixels
             for i, (A_S, B, error_vec, error_mag) in enumerate(chunk):
                 B_ijk = apply_affine(xyz_to_ijk, np.array([B]).T).T.squeeze()
                 shape = roi_shape(grid_radius, voxel_spacing(ijk_to_xyz))
