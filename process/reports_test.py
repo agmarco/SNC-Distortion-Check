@@ -1,6 +1,6 @@
 import numpy as np
 
-from process.reports import generate_equidistant_sphere, roi_shape, roi_bounds, roi_image
+from process.reports import generate_equidistant_sphere, roi_shape, roi_bounds, roi_image, roi_images
 
 
 def test_evenly_sampled_sphere_equidistant():
@@ -44,9 +44,25 @@ def test_roi_shape_rounding():
     assert shape == (25, 25, 25)
 
 
-def test_roi_fiducial_near_top_left_corner_size():
+def test_roi_images_shape():
     """
-    Asserts the ROI image generated from a fiducial near (0, 0, 0) is the right size.
+    Asserts that the 3 images have the right shape.
+    """
+
+    voxels_size = 100
+    voxels = np.ones((voxels_size, voxels_size, voxels_size))
+    shape = (9, 10, 11)
+
+    B_ijk = (50, 50, 50)
+    axial, sagittal, coronal = roi_images(B_ijk, voxels, roi_bounds(B_ijk, shape))
+    assert axial.shape == (9, 10)
+    assert sagittal.shape == (9, 11)
+    assert coronal.shape == (10, 11)
+
+
+def test_roi_fiducial_near_top_left_corner_shape():
+    """
+    Asserts the ROI image generated from a fiducial near (0, 0, 0) is the right shape.
     """
 
     voxels_size = 100
@@ -83,9 +99,9 @@ def test_roi_fiducial_near_top_left_corner_overflow():
     assert (coronal_image[0:4, :] == 0).all() and (coronal_image[:, 0:4] == 0).all()
 
 
-def test_roi_fiducial_near_bottom_right_corner_size():
+def test_roi_fiducial_near_bottom_right_corner_shape():
     """
-    Asserts the ROI image generated from a fiducial near (n, m, l) is the right size.
+    Asserts the ROI image generated from a fiducial near (n, m, l) is the right shape.
     """
 
     voxels_size = 100
