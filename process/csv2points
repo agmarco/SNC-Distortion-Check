@@ -16,6 +16,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     points = np.genfromtxt(args.csvfile)
-    file_io.save_points(args.pointsfile, {
+    process.file_io.save_points(args.pointsfile, {
         'points': points.T,
     })

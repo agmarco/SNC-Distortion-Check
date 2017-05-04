@@ -4,6 +4,7 @@
 
 html {
   height: 100%;
+  font-size: 14px;
 }
 
 body {
@@ -43,21 +44,49 @@ form {
   }
 }
 
-#site-header {
+#site-header,
+#site-footer {
   background-color: $primary-color;
-  color: white;
-  overflow: auto;
-  height: $header-height;
+  color: $muted-on-primary-color;
   position: absolute;
-  top: 0;
   right: 0;
   left: 0;
+  font-size: 12px;
+  padding: 8px $base-spacing;
 
-  .container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px $base-spacing;
+  a {
+    color: white;
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+
+    li {
+      display: inline-block;
+      margin-right: 16px;
+
+      &:not(:first-child)::before {
+        content: " | ";
+        margin-right: 16px;
+      }
+
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+}
+
+#site-header {
+  // ensures the header displays when the user is not logged in
+  min-height: $footer-height;
+  overflow: auto;
+  top: 0;
+
+  ul {
+    margin-top: 6px;
+    float: right;
   }
 
   h1 {
@@ -78,71 +107,24 @@ form {
       .logo {
         font-size: 0;
         background-image: url(./logo_header.png);
-        height: 28px;
-        width: 807px / 210px * 28px;
+        height: 20px;
+        width: 807px / 210px * 20px;
         background-size: contain;
-        margin-right: 8px;
+        margin-right: 8px + 16px;
       }
     }
   }
-
-  a {
-    color: white;
-  }
-
-  ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-
-    li {
-      display: inline-block;
-      margin-left: $small-spacing;
-    }
-  }
 }
 
 #site-footer {
-  background-color: $primary-color;
-  height: $footer-height;
-  color: white;
   overflow: auto;
-  position: absolute;
-  right: 0;
   bottom: 0;
-  left: 0;
-  font-size: 14px;
-
-  .container {
-    display: flex;
-    align-items: center;
-    padding: 8px $base-spacing;
-  }
-
-  a {
-    color: white;
-  }
-
-  ul {
-    margin: 0;
-    padding: 0;
-
-    li {
-      display: inline-block;
-      margin-right: 16px;
-    }
-  }
-}
-
-#site-header,
-#site-footer {
-  a {
-    color: #ef1;
-  }
+  height: $footer-height;
 }
 
 #site-breadcrumbs {
   margin: 0 $base-spacing $small-spacing $base-spacing;
+  color: $primary-muted-color;
 }
 
 h2,
@@ -154,13 +136,15 @@ h6 {
 }
 
 .cirs-table {
+  margin-bottom: 1.5 * $base-spacing;
+
   tr.a {
     background-color: rgb(241, 241, 241);
   }
 
   th {
     font-weight: normal;
-    color: $heading-color;
+    color: $muted-color;
   }
 
   th,
@@ -239,7 +223,8 @@ h6 {
 }
 
 .cirs-form {
-  margin: 0 $base-spacing $base-spacing;
+  margin: $base-spacing;
+  margin-bottom: 1.5 * $base-spacing;
   width: 500px;
 
   p {
@@ -261,6 +246,7 @@ h6 {
   margin-bottom: $base-spacing;
   position: relative;
   display: flex;
+  color: $muted-color;
 
   & > * {
     margin-right: $small-spacing;

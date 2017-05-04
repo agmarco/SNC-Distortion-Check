@@ -144,6 +144,8 @@ class UploadScan(FormView):
             ijk_to_xyz=ijk_to_xyz,
             shape=voxels.shape,
             series_uid=dicom_datasets[0].SeriesInstanceUID,
+
+            # TODO: handle a missing AcquisitionDate
             acquisition_date=datetime.strptime(dicom_datasets[0].AcquisitionDate, '%Y%m%d'),
             zipped_dicom_files=self.request.FILES['dicom_archive'],
         )
@@ -399,6 +401,8 @@ class UploadCT(FormView):
             ijk_to_xyz=ijk_to_xyz,
             shape=voxels.shape,
             series_uid=form.cleaned_data['datasets'][0].SeriesInstanceUID,
+
+            # TODO: handle a missing AcquisitionDate
             acquisition_date=datetime.strptime(form.cleaned_data['datasets'][0].AcquisitionDate, '%Y%m%d'),
         )
 

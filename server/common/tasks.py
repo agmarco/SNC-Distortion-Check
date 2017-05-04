@@ -128,14 +128,14 @@ def process_ct_upload(dicom_series_pk, gold_standard_pk):
             dicom_series = DicomSeries.objects.get(pk=dicom_series_pk)
             gold_standard = GoldenFiducials.objects.get(pk=gold_standard_pk)
 
-            points_in_patient_xyz = FeatureDetector(
+            feature_detector = FeatureDetector(
                 gold_standard.phantom.model.model_number,
                 modality,
                 dicom_series.voxels,
                 dicom_series.ijk_to_xyz
-            ).run()
+            )
 
-            fiducials = Fiducials.objects.create(fiducials=points_in_patient_xyz)
+            fiducials = Fiducials.objects.create(fiducials=feature_detector.points_xyz)
             gold_standard.fiducials = fiducials
             gold_standard.processing = False
             gold_standard.save()

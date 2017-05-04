@@ -1,19 +1,15 @@
 <header id="site-header">
-  <div class="container">
-    {% if request.user.is_authenticated %}
-      <h1>
-        <a href="{% url 'landing' %}" class="title">
-          <span class="logo">CIRS</span>
-          <span>Distortion Check</span>
-        </a>
-      </h1>
-      <nav>
-        <ul class="auth-links">
-          <li>Logged in as {{ request.user.username }}</li>
-          <li><a href="{% url 'configuration' %}">Configuration</a></li>
-          <li><a href="{% url 'logout' %}">Logout</a></li>
-        </ul>
-      </nav>
-    {% endif %}
-  </div>
+  {% if request.user.is_authenticated %}
+    <ul>
+      <li>Logged in as {{ request.user.username }}</li>
+      <li><a href="{% url 'configuration' %}">Configuration</a></li>
+      <li><a href="{% url 'logout' %}">Logout</a></li>
+    </ul>
+    <h1>
+      <a href="{% url 'landing' %}" class="title">
+        <span class="logo">CIRS</span>
+        <span>Distortion Check</span>
+      </a>
+    </h1>
+  {% endif %}
 </header>

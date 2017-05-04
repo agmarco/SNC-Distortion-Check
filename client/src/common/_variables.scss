@@ -1,10 +1,18 @@
+@import './bitters/_variables';
+
 $max-site-width: 1200px;
-$header-height: 54px;
-$footer-height: 37px;
+$header-height: 44px;
+$footer-height: 34px;
+
 $primary-color: rgb(0, 95, 152);
+$muted-color: $medium-gray;
 $secondary-color: rgb(150, 7, 47);
 $tertiary-color: rgb(77, 132, 167);
+
 $success-color: rgb(121, 190, 58);
 $error-color: rgb(189, 57, 50);
+
+$muted-on-primary-color: rgb(171, 216, 240);
+$primary-muted-color: darken($primary-color, 10%);
 
 $all-buttons: append($all-buttons, '.btn');

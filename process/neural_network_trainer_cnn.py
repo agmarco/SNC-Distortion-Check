@@ -9,7 +9,7 @@ from keras.layers import Dense, Dropout, Activation, Flatten
 from keras.layers.convolutional import Convolution3D
 from keras.layers.core import SpatialDropout3D
 from keras.layers.normalization import BatchNormalization
-from keras.layers.pooling import MaxPooling3D
+from keras.layers.pooling import MaxPooling3D, GlobalAveragePooling3D
 from keras.models import Sequential
 
 from process import file_io, affine
@@ -20,7 +20,7 @@ from process.slicer import show_slices
 cube_size = 15
 cube_size_half = math.floor(cube_size / 2)
 input_shape = (cube_size,cube_size,cube_size,1)
-num_filters = 32
+num_filters = 16
 kernel_shape = (3,3,3)
 maxpool_size = pool_size=(2, 2, 2)
 nb_classes = 2
@@ -168,19 +168,15 @@ def conv_unit(num_filters, num_convs):
     ] for _ in range(num_convs)), [MaxPooling3D(pool_size)]))
 
 
-feature_layers = conv_unit(num_filters, 2) + conv_unit(num_filters*2, 3) + conv_unit(num_filters*4, 3)
+feature_layers = conv_unit(num_filters, 1) + conv_unit(num_filters*2, 1) + conv_unit(num_filters*4, 1)
 feature_layers[0] = Convolution3D(num_filters, *kernel_shape, border_mode='same', input_shape=input_shape)
 # remove that last maxpool
 feature_layers = feature_layers[:-1]
 feature_layers = [BatchNormalization(input_shape=input_shape)] + feature_layers
 
 classification_layers = [
-    Flatten(),
-    Dense(256),
-    Activation('relu'),
-    BatchNormalization(),
-    Dropout(0.2),
-    Dense(256),
+    GlobalAveragePooling3D(),
+    Dense(128),
     Activation('relu'),
     BatchNormalization(),
     Dropout(0.2),
@@ -209,5 +205,4 @@ batch_gen_validation = batch_generator(512, training_generator("validation"))
 
 # model = load_model('weights/weights.1599.h5')
 save_model_callback = keras.callbacks.ModelCheckpoint('weights/with_spatial_dropout/weights.{epoch:02d}.h5', monitor='accuracy', verbose=3, save_best_only=False, save_weights_only=False, mode='auto', period=10)
-model.fit_generator(batch_gen_train, validation_data=batch_gen_validation, nb_val_samples=512, samples_per_epoch=64000, nb_epoch=10000, verbose=1, callbacks=[save_model_callback], pickle_safe=True, nb_worker=8)
-# import pydevd;pydevd.settrace('localhost', port=63421, stdoutToServer=True, stderrToServer=True)
+model.fit_generator(batch_gen_train, validation_data=batch_gen_validation, nb_val_samples=512, samples_per_epoch=64000, nb_epoch=10000, verbose=1, callbacks=[save_model_callback], pickle_safe=True, nb_worker=16)
