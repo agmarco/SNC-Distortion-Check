@@ -106,7 +106,7 @@ form {
 
       .logo {
         font-size: 0;
-        background-image: url(./logo_header.png);
+        background: url(./logo_header.png) no-repeat;
         height: 20px;
         width: 807px / 210px * 20px;
         background-size: contain;

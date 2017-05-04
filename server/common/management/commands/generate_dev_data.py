@@ -233,6 +233,10 @@ class Command(BaseCommand):
                 '603A',
                 scan.tolerance,
                 johns_hopkins,
+                scan.machine_sequence_pair.machine.name,
+                scan.machine_sequence_pair.sequence.name,
+                scan.golden_fiducials.phantom.name,
+                scan.dicom_series.acquisition_date,
                 full_report_path,
                 executive_report_path
             )

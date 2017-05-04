@@ -2,12 +2,16 @@ import os
 import zipfile
 import math
 from collections import OrderedDict
+from datetime import datetime
 
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from django.conf import settings
 from matplotlib import colors
+from matplotlib import gridspec
+from matplotlib import rc
+import matplotlib.patches as patches
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy.interpolate.interpnd import LinearNDInterpolator
 from scipy.interpolate.ndgriddata import griddata
@@ -88,7 +92,7 @@ def roi_images(B, voxels, bounds_list):
     )
 
 
-def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_number, threshold, institution, full_report_path, executive_report_path):
+def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_number, threshold, institution, machine_name, sequence_name, phantom_name, acquisition_date, full_report_path, executive_report_path):
     """
     Given the set of matched and registered points, generate a NEMA report.
 
@@ -114,12 +118,42 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         # plt.text(0.5, 0.5, "CIRS Distortion Check")
         pass
 
-    def generate_cover_page():
+    def generate_cover_page(report_text):
         fig = plt.figure(figsize=figsize)
-        add_header()
+        plt.axis('off')
+
+        gs = gridspec.GridSpec(3, 1, height_ratios=[1, 8, 14])
+
+        ax0 = plt.subplot(gs[0])
+        plt.axis('off')
+        ax0.add_patch(patches.Rectangle((0, 0), 1, 1))
+
+        ax1 = plt.subplot(gs[1])
+        ax1.set_xlim([0, 1])
+        ax1.set_ylim([0, 1])
         plt.axis('off')
         im = mpimg.imread(os.path.join(settings.BASE_DIR, 'client/src/login/logo.png'))
-        plt.imshow(im)
+        im_width = 0.7
+        im_height = im_width * 499 / 1275
+        center = (0.5, 0.7)
+        x_bounds = [center[0] - im_width / 2, center[0] + im_width / 2]
+        y_bounds = [center[1] - im_height / 2, center[1] + im_height / 2]
+        ax1.imshow(im, extent=[*x_bounds, *y_bounds])
+        color = (0, 95, 152)
+        color = tuple(c / 255 for c in color)
+        # TODO why isn't the center at 0.5?
+        ax1.text(0.45, 0.2, report_text, size=24, ha='center', weight='bold', color=color)
+
+        ax2 = plt.subplot(gs[2])
+        plt.axis('off')
+        ax2.add_patch(patches.Rectangle((0, 0), 1, 1))
+        rc('text', usetex=True)
+        ax2.text(0.1, 0.1, r"\textbf{Machine:} " + machine_name +
+                 "\n" + r"\textbf{Sequence:} " + sequence_name +
+                 "\n" + r"\textbf{Phantom:} " + f"{phantom_name} - {phantom_model_number}" +
+                 "\n" + r"\textbf{Scan Acquired On:} " + acquisition_date.strftime("%B %-d, %Y"), size=16, color='w')
+
+        plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
         return fig
 
     # TODO address row should be taller
@@ -184,8 +218,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         plt.ylabel('Distortion Magnitude [mm]')
         plt.title('Scatter Plot of Geometric Distortion vs. Distance from Isocenter')
         return scatter_fig
-
-    # TODO .3 mm spacing
+#
     def generate_spacial_mapping(grid_x, grid_y, gridded):
         contour_fig = plt.figure(figsize=figsize)
         add_header()
@@ -365,53 +398,54 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         ax.quiver(*TP_A_S, *error_vecs)
         return quiver_fig
 
-    cover_page = generate_cover_page()
+    full_cover_page = generate_cover_page("FULL REPORT")
+    executive_cover_page = generate_cover_page("EXECUTIVE REPORT")
     institution_table = generate_institution_table()
-    data_acquisition_table = generate_data_acquisition_table()
-    scatter_plot = generate_scatter_plot()
-    axial_spacial_mapping = generate_axial_spacial_mapping()
-    sagittal_spacial_mapping = generate_sagittal_spacial_mapping()
-    coronal_spacial_mapping = generate_coronal_spacial_mapping()
-    axial_spacial_mapping_series = generate_axial_spacial_mapping_series()
-    error_table = generate_error_table()
-    fiducial_rois = generate_fiducial_rois()
-    points = generate_points()
+    # data_acquisition_table = generate_data_acquisition_table()
+    # scatter_plot = generate_scatter_plot()
+    # axial_spacial_mapping = generate_axial_spacial_mapping()
+    # sagittal_spacial_mapping = generate_sagittal_spacial_mapping()
+    # coronal_spacial_mapping = generate_coronal_spacial_mapping()
+    # axial_spacial_mapping_series = generate_axial_spacial_mapping_series()
+    # error_table = generate_error_table()
+    # fiducial_rois = generate_fiducial_rois()
+    # points = generate_points()
 
     # TODO write PDF in memory
     with PdfPages(full_report_path) as pdf:
-        save_then_close_figure(pdf, cover_page)
+        save_then_close_figure(pdf, full_cover_page)
         save_then_close_figure(pdf, institution_table)
-        save_then_close_figure(pdf, data_acquisition_table)
-
-        save_then_close_figure(pdf, scatter_plot)
-
-        save_then_close_figure(pdf, axial_spacial_mapping)
-        save_then_close_figure(pdf, sagittal_spacial_mapping)
-        save_then_close_figure(pdf, coronal_spacial_mapping)
-        for fig in axial_spacial_mapping_series:
-            save_then_close_figure(pdf, fig)
-
-        save_then_close_figure(pdf, error_table)
-
-        for fig in fiducial_rois:
-            save_then_close_figure(pdf, fig)
-
-        save_then_close_figure(pdf, points)
-
-    with PdfPages(executive_report_path) as pdf:
-        save_then_close_figure(pdf, cover_page)
-        save_then_close_figure(pdf, institution_table)
-        save_then_close_figure(pdf, data_acquisition_table)
-
-        save_then_close_figure(pdf, scatter_plot)
-
-        save_then_close_figure(pdf, axial_spacial_mapping)
-        save_then_close_figure(pdf, sagittal_spacial_mapping)
-        save_then_close_figure(pdf, coronal_spacial_mapping)
-
-        save_then_close_figure(pdf, error_table)
-
-        save_then_close_figure(pdf, points)
+    #     save_then_close_figure(pdf, data_acquisition_table)
+#
+    #     save_then_close_figure(pdf, scatter_plot)
+#
+    #     save_then_close_figure(pdf, axial_spacial_mapping)
+    #     save_then_close_figure(pdf, sagittal_spacial_mapping)
+    #     save_then_close_figure(pdf, coronal_spacial_mapping)
+    #     for fig in axial_spacial_mapping_series:
+    #         save_then_close_figure(pdf, fig)
+#
+    #     save_then_close_figure(pdf, error_table)
+#
+    #     for fig in fiducial_rois:
+    #         save_then_close_figure(pdf, fig)
+#
+    #     save_then_close_figure(pdf, points)
+#
+    # with PdfPages(executive_report_path) as pdf:
+    #     save_then_close_figure(pdf, executive_cover_page)
+    #     save_then_close_figure(pdf, institution_table)
+    #     save_then_close_figure(pdf, data_acquisition_table)
+#
+    #     save_then_close_figure(pdf, scatter_plot)
+#
+    #     save_then_close_figure(pdf, axial_spacial_mapping)
+    #     save_then_close_figure(pdf, sagittal_spacial_mapping)
+    #     save_then_close_figure(pdf, coronal_spacial_mapping)
+#
+    #     save_then_close_figure(pdf, error_table)
+#
+    #     save_then_close_figure(pdf, points)
 
 
 def save_then_close_figure(pdf, figure):
@@ -446,4 +480,4 @@ if __name__ == '__main__':
         address = "3101 Wyman Park Dr.\nBaltimore, MD 21211"
         phone_number = "555-555-5555"
 
-    generate_reports(A, B, datasets, voxels, ijk_to_xyz, '603A', 2.5, Institution, 'tmp/full_report.pdf', 'tmp/executive_report.pdf')
+    generate_reports(A, B, datasets, voxels, ijk_to_xyz, '603A', 2.5, Institution, 'Machine A', 'Sequence A', 'Phantom A', datetime.now(), 'tmp/full_report.pdf', 'tmp/executive_report.pdf')
