@@ -85,6 +85,16 @@ class FiducialsFactory(factory.django.DjangoModelFactory):
     fiducials = np.random.rand(3, 10)
 
 
+cad_603A_points = file_io.load_points('data/points/603A.mat')['points']
+cad_603A_points.flags.writeable = False
+
+class Fiducials603ACADFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "common.Fiducials"
+
+    fiducials = cad_603A_points
+
+
 class PhantomModelFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.PhantomModel"
@@ -132,7 +142,6 @@ def _get_acquisition_date_generator():
 _get_acquisition_date = _get_acquisition_date_generator()
 
 sample_603A_mri_zip_filename = os.path.abspath('data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
-print(sample_603A_mri_zip_filename)
 sample_603A_mri = file_io.load_voxels('data/voxels/006_mri_603A_UVA_Axial_2ME2SRS5-voxels.mat')
 sample_603A_mri['voxels'].flags.writeable = False
 sample_603A_mri['ijk_to_patient_xyz_transform'].flags.writeable = False
@@ -155,7 +164,7 @@ class GoldenFiducialsFactory(factory.django.DjangoModelFactory):
         model = "common.GoldenFiducials"
 
     phantom = factory.SubFactory(PhantomFactory)
-    fiducials = factory.SubFactory(FiducialsFactory)
+    fiducials = factory.SubFactory(Fiducials603ACADFactory)
 
 
 class ScanFactory(factory.django.DjangoModelFactory):
