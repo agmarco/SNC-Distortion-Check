@@ -354,6 +354,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         ax.axis('off')
         ax.set_title('Error Table')
 
+    # TODO some views are compressed and partially filled with white
     def generate_roi_view(ax, im, x_bounds, y_bounds, A_S_2D, B_2D):
         x_bounds = tuple(b - 0.5 for b in x_bounds)
         y_bounds = tuple(b - 0.5 for b in y_bounds)
