@@ -93,7 +93,7 @@ class Configuration(UpdateView):
         return context
 
 
-# TODO scan table ordering is backwards when the acquisition dates are the same
+# TODO scan table ordering is backwards from chart
 @login_and_permission_required('common.configuration')
 @validate_institution()
 class MachineSequenceDetail(DetailView):
