@@ -251,15 +251,13 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
         # Frame of reference module
         ds.FrameOfReferenceUID = frameOfReferenceUID
 
-        ds.InstanceNumber = slice_num
-
         # Image plane module
         xSpacing_mm, ySpacing_mm, zSpacing_mm = voxelSpacing_tup
         ds.ImageOrientationPatient = _encode_multival([1, 0, 0, 0, 1, 0])  # direction cosines
         ds.ImagePositionPatient = _encode_multival(sliceVoxelPosition)
         ds.PixelSpacing = _encode_multival([xSpacing_mm, ySpacing_mm])
-        if zSpacing_mm != 0:
-            ds.SliceThickness = str(zSpacing_mm)
+        ds.SliceThickness = str(zSpacing_mm)
+        ds.InstanceNumber = slice_num
 
         # image pixel module
         rows, columns = slice_arr.shape
