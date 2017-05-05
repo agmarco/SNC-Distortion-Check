@@ -243,7 +243,15 @@ import { quartiles as getQuartiles } from 'common/utils';
                                 return "whisker max";
                             }
                         })
-                        .attr("dy", ".3em")
+                        .attr("dy", function(d, i) {
+                            // min
+                            if (i === 0) {
+                                return "-.3em";
+                            // max
+                            } else if (i === 1) {
+                                return ".9em";
+                            }
+                        })
                         .attr("dx", 6)
                         .attr("x", width)
                         .attr("y", x0)
