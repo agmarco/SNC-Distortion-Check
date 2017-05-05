@@ -295,6 +295,7 @@ class DicomOverlay(FormView):
         return reverse('machine_sequence_detail', args=(self.scan.machine_sequence_pair.pk,))
 
     def form_valid(self, form):
+        # TODO: Consolidate and split out these constants in the process module.
         GRID_DENSITY_mm = 1
         DISTORTION_SCALE = 1000
         BLUR_SIGMA = 3
