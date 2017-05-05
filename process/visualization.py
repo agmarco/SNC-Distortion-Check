@@ -5,11 +5,8 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D  # import has needed side effect
 
 
-def scatter3(label_to_points, figsize=None):
+def scatter3(label_to_points, ax):
     colors = itertools.cycle(["c", "r", "g", "y", "k"])
-
-    fig = plt.figure(figsize=figsize)
-    ax = fig.add_subplot(111, projection='3d')
 
     for label, points in label_to_points.items():
         color = next(colors)
@@ -19,7 +16,6 @@ def scatter3(label_to_points, figsize=None):
     ax.set_ylabel('y [mm]')
     ax.set_zlabel('z [mm]')
     plt.legend()
-    return fig
 
 
 def slices(data, x, y, z, cmap='Greys_r'):
