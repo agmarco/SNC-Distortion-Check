@@ -50,7 +50,7 @@ def test_roi_images():
     """
 
     voxels_size = 100
-    voxels = np.ones((voxels_size, voxels_size, voxels_size))
+    voxels = np.zeros((voxels_size, voxels_size, voxels_size))
     shape = (9, 11, 13)
 
     B_ijk = (50, 50, 50)
@@ -69,7 +69,7 @@ def test_roi_images():
     voxels[50, B_ijk[1] + 1, B_ijk[2] - 1] = 0.33
     voxels[50, B_ijk[1] + 1, B_ijk[2] + 1] = 0.43
 
-    axial, sagittal, coronal = roi_images(B_ijk, voxels, roi_bounds(B_ijk, shape))
+    axial, sagittal, coronal = roi_images(B_ijk, voxels, roi_bounds(B_ijk, shape), 0, 1)
 
     B_axial = (4, 5)
     B_sagittal = (4, 6)
@@ -94,82 +94,118 @@ def test_roi_images():
     assert coronal[B_coronal[0] + 1, B_coronal[1] + 1] == 0.43
 
 
-def test_roi_fiducial_near_top_left_corner_shape():
-    """
-    Asserts the ROI image generated from a fiducial near (0, 0, 0) is the right shape.
-    """
-
+def test_roi_fiducial_near_x_start():
     voxels_size = 100
-    voxels = np.ones((voxels_size, voxels_size, voxels_size))
+    voxels = np.zeros((voxels_size, voxels_size, voxels_size))
+
     shape = (9, 9, 9)
+    center = (0, 50, 50)
+    bounds = ((-4, 5), (46, 55), (46, 55))
 
-    bounds = ((-4, 5), (-4, 5), (-4, 5))
+    axial, sagittal, coronal = roi_images(center, voxels, bounds, 0, 1)
 
-    axial_image = roi_image(voxels, (bounds[0], bounds[1], (0, 1)))
-    sagittal_image = roi_image(voxels, (bounds[0], (0, 1), bounds[2]))
-    coronal_image = roi_image(voxels, ((0, 1), bounds[1], bounds[2]))
+    assert axial.shape == (shape[0], shape[1])
+    assert sagittal.shape == (shape[0], shape[2])
+    assert coronal.shape == (shape[1], shape[2])
 
-    assert axial_image.shape == (shape[0], shape[1])
-    assert sagittal_image.shape == (shape[0], shape[2])
-    assert coronal_image.shape == (shape[1], shape[2])
+    assert (axial[0:4, :] == 1).all()
+    assert (sagittal[0:4, :] == 1).all()
+    assert (coronal == 0).all()
 
 
-def test_roi_fiducial_near_top_left_corner_overflow():
-    """
-    Asserts the ROI image generated from a fiducial near (0, 0, 0) fills the extra space with black.
-    """
-
+def test_roi_fiducial_near_x_end():
     voxels_size = 100
-    voxels = np.ones((voxels_size, voxels_size, voxels_size))
+    voxels = np.zeros((voxels_size, voxels_size, voxels_size))
 
-    bounds = ((-4, 5), (-4, 5), (-4, 5))
-
-    axial_image = roi_image(voxels, (bounds[0], bounds[1], (0, 1)))
-    sagittal_image = roi_image(voxels, (bounds[0], (0, 1), bounds[2]))
-    coronal_image = roi_image(voxels, ((0, 1), bounds[1], bounds[2]))
-
-    assert (axial_image[0:4, :] == 0).all() and (axial_image[:, 0:4] == 0).all()
-    assert (sagittal_image[0:4, :] == 0).all() and (sagittal_image[:, 0:4] == 0).all()
-    assert (coronal_image[0:4, :] == 0).all() and (coronal_image[:, 0:4] == 0).all()
-
-
-def test_roi_fiducial_near_bottom_right_corner_shape():
-    """
-    Asserts the ROI image generated from a fiducial near (n, m, l) is the right shape.
-    """
-
-    voxels_size = 100
-    voxels = np.ones((voxels_size, voxels_size, voxels_size))
     shape = (9, 9, 9)
+    center = (99, 50, 50)
+    bounds = ((95, 104), (46, 55), (46, 55))
 
-    bounds = ((95, 104), (95, 104), (95, 104))
+    axial, sagittal, coronal = roi_images(center, voxels, bounds, 0, 1)
 
-    axial_image = roi_image(voxels, (bounds[0], bounds[1], (0, 1)))
-    sagittal_image = roi_image(voxels, (bounds[0], (0, 1), bounds[2]))
-    coronal_image = roi_image(voxels, ((0, 1), bounds[1], bounds[2]))
+    assert axial.shape == (shape[0], shape[1])
+    assert sagittal.shape == (shape[0], shape[2])
+    assert coronal.shape == (shape[1], shape[2])
 
-    assert axial_image.shape == (shape[0], shape[1])
-    assert sagittal_image.shape == (shape[0], shape[2])
-    assert coronal_image.shape == (shape[1], shape[2])
+    assert (axial[5:, :] == 1).all()
+    assert (sagittal[5:, :] == 1).all()
+    assert (coronal == 0).all()
 
 
-def test_roi_fiducial_near_bottom_right_corner_overflow():
-    """
-    Asserts the ROI image generated from a fiducial near (n, m, l) fills the extra space with black.
-    """
-
+def test_roi_fiducial_near_y_start():
     voxels_size = 100
-    voxels = np.ones((voxels_size, voxels_size, voxels_size))
+    voxels = np.zeros((voxels_size, voxels_size, voxels_size))
 
-    bounds = ((95, 104), (95, 104), (95, 104))
+    shape = (9, 9, 9)
+    center = (50, 0, 50)
+    bounds = ((46, 55), (-4, 5), (46, 55))
 
-    axial_image = roi_image(voxels, (bounds[0], bounds[1], (0, 1)))
-    sagittal_image = roi_image(voxels, (bounds[0], (0, 1), bounds[2]))
-    coronal_image = roi_image(voxels, ((0, 1), bounds[1], bounds[2]))
+    axial, sagittal, coronal = roi_images(center, voxels, bounds, 0, 1)
 
-    assert (axial_image[95:, :] == 0).all() and (axial_image[:, 95:] == 0).all()
-    assert (sagittal_image[95:, :] == 0).all() and (sagittal_image[:, 95:] == 0).all()
-    assert (coronal_image[95:, :] == 0).all() and (coronal_image[:, 95:] == 0).all()
+    assert axial.shape == (shape[0], shape[1])
+    assert sagittal.shape == (shape[0], shape[2])
+    assert coronal.shape == (shape[1], shape[2])
+
+    assert (axial[:, 0:4] == 1).all()
+    assert (sagittal == 0).all()
+    assert (coronal[0:4, :] == 1).all()
+
+
+def test_roi_fiducial_near_y_end():
+    voxels_size = 100
+    voxels = np.zeros((voxels_size, voxels_size, voxels_size))
+
+    shape = (9, 9, 9)
+    center = (50, 99, 50)
+    bounds = ((46, 55), (95, 104), (46, 55))
+
+    axial, sagittal, coronal = roi_images(center, voxels, bounds, 0, 1)
+
+    assert axial.shape == (shape[0], shape[1])
+    assert sagittal.shape == (shape[0], shape[2])
+    assert coronal.shape == (shape[1], shape[2])
+
+    assert (axial[:, 5:] == 1).all()
+    assert (sagittal == 0).all()
+    assert (coronal[5:, :] == 1).all()
+
+
+def test_roi_fiducial_near_z_start():
+    voxels_size = 100
+    voxels = np.zeros((voxels_size, voxels_size, voxels_size))
+
+    shape = (9, 9, 9)
+    center = (50, 50, 0)
+    bounds = ((46, 55), (46, 55), (-4, 5))
+
+    axial, sagittal, coronal = roi_images(center, voxels, bounds, 0, 1)
+
+    assert axial.shape == (shape[0], shape[1])
+    assert sagittal.shape == (shape[0], shape[2])
+    assert coronal.shape == (shape[1], shape[2])
+
+    assert (axial == 0).all()
+    assert (sagittal[:, 0:4] == 1).all()
+    assert (coronal[:, 0:4] == 1).all()
+
+
+def test_roi_fiducial_near_z_end():
+    voxels_size = 100
+    voxels = np.zeros((voxels_size, voxels_size, voxels_size))
+
+    shape = (9, 9, 9)
+    center = (50, 50, 99)
+    bounds = ((46, 55), (46, 55), (95, 104))
+
+    axial, sagittal, coronal = roi_images(center, voxels, bounds, 0, 1)
+
+    assert axial.shape == (shape[0], shape[1])
+    assert sagittal.shape == (shape[0], shape[2])
+    assert coronal.shape == (shape[1], shape[2])
+
+    assert (axial == 0).all()
+    assert (sagittal[:, 5:] == 1).all()
+    assert (coronal[:, 5:] == 1).all()
 
 
 def test_roi_center_odd_size():

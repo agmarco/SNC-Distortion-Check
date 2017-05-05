@@ -63,34 +63,45 @@ def roi_bounds(B, shape):
     ) for a, b in zip(B, shape))
 
 
-def roi_image(voxels, bounds_list):
-    adjusted_bounds_list = tuple((max(start, 0), min(end, voxels.shape[i])) for i, (start, end) in enumerate(bounds_list))
-    slices = tuple(slice(*bounds) for bounds in adjusted_bounds_list)
-    image = voxels[slices].squeeze()
+def roi_image(voxels, bounds_list, vmin, vmax):
+    adjusted_bounds_list = []
+    for i, bounds in enumerate(bounds_list):
+        if type(bounds) == int:
+            adjusted_bounds_list.append(bounds)
+        else:
+            start, end = bounds
+            adjusted_bounds_list.append((max(start, 0), min(end, voxels.shape[i])))
 
-    v_bounds, h_bounds = [bounds for bounds in bounds_list if bounds[1] - bounds[0] > 1]
+    slices = tuple(bounds if type(bounds) == int else slice(*bounds) for bounds in adjusted_bounds_list)
+    image = voxels[slices]
+
+    v_bounds, h_bounds = [bounds for bounds in bounds_list if type(bounds) != int]
+    voxels_shape_2D = tuple(n for i, n in enumerate(voxels.shape) if type(bounds_list[i]) != int)
 
     if v_bounds[0] < 0:
-        zeros = np.zeros((0 - v_bounds[0], image.shape[1]), dtype=float)
-        image = np.vstack((zeros, image))
-    if v_bounds[1] > voxels.shape[0]:
-        zeros = np.zeros((v_bounds[1] - voxels.shape[0], image.shape[1]), dtype=float)
-        image = np.vstack((image, zeros))
+        overflow = np.full((0 - v_bounds[0], image.shape[1]), vmax, dtype=float)
+        image = np.vstack((overflow, image))
+
+    if v_bounds[1] > voxels_shape_2D[0]:
+        overflow = np.full((v_bounds[1] - voxels_shape_2D[0], image.shape[1]), vmax, dtype=float)
+        image = np.vstack((image, overflow))
+
     if h_bounds[0] < 0:
-        zeros = np.zeros((image.shape[0], 0 - h_bounds[0]), dtype=float)
-        image = np.hstack((zeros, image))
-    if h_bounds[1] > voxels.shape[1]:
-        zeros = np.zeros((image.shape[0], h_bounds[1] - voxels.shape[1]), dtype=float)
-        image = np.hstack((image, zeros))
+        overflow = np.full((image.shape[0], 0 - h_bounds[0]), vmax, dtype=float)
+        image = np.hstack((overflow, image))
+
+    if h_bounds[1] > voxels_shape_2D[1]:
+        overflow = np.full((image.shape[0], h_bounds[1] - voxels_shape_2D[1]), vmax, dtype=float)
+        image = np.hstack((image, overflow))
 
     return image
 
 
-def roi_images(B, voxels, bounds_list):
+def roi_images(B, voxels, bounds_list, vmin, vmax):
     return (
-        roi_image(voxels, (bounds_list[0], bounds_list[1], (int(round(B[2])), int(round(B[2])) + 1))),
-        roi_image(voxels, (bounds_list[0], (int(round(B[1])), int(round(B[1])) + 1), bounds_list[2])),
-        roi_image(voxels, ((int(round(B[0])), int(round(B[0])) + 1), bounds_list[1], bounds_list[2])),
+        roi_image(voxels, (bounds_list[0], bounds_list[1], int(round(B[2]))), vmin, vmax),
+        roi_image(voxels, (bounds_list[0], int(round(B[1])), bounds_list[2]), vmin, vmax),
+        roi_image(voxels, (int(round(B[0])), bounds_list[1], bounds_list[2]), vmin, vmax),
     )
 
 
@@ -354,11 +365,10 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         ax.axis('off')
         ax.set_title('Error Table')
 
-    # TODO some views are compressed and partially filled with white
-    def generate_roi_view(ax, im, x_bounds, y_bounds, A_S_2D, B_2D):
+    def generate_roi_view(ax, im, x_bounds, y_bounds, A_S_2D, B_2D, vmin, vmax):
         x_bounds = tuple(b - 0.5 for b in x_bounds)
         y_bounds = tuple(b - 0.5 for b in y_bounds)
-        ax.imshow(im.T, cmap='Greys', extent=[*x_bounds, *y_bounds], aspect='auto', origin='lower')
+        ax.imshow(im.T, cmap='Greys', extent=[*x_bounds, *y_bounds], aspect='auto', origin='lower', vmin=vmin, vmax=vmax)
         ax.scatter([A_S_2D[0]], [A_S_2D[1]], c='coral')
         ax.scatter([B_2D[0]], [B_2D[1]], c='skyblue')
         ax.set_xticks([])
@@ -390,6 +400,8 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
         sort_indices = np.argsort(error_mags.T)[::-1]
         rois = zip(TP_A_S.T[sort_indices], TP_B.T[sort_indices], error_vecs.T[sort_indices], error_mags.T[sort_indices])
+        vmin = voxels.min()
+        vmax = voxels.max()
 
         pages = []
         for chunk in chunks(list(rois), 5):
@@ -404,16 +416,16 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
                     shape = roi_shape(grid_radius, voxel_spacing(ijk_to_xyz))
                     bounds = roi_bounds(B, shape)
                     bounds_ijk = roi_bounds(B_ijk, shape)
-                    axial, sagittal, coronal = roi_images(B_ijk, voxels, bounds_ijk)
+                    axial, sagittal, coronal = roi_images(B_ijk, voxels, bounds_ijk, vmin, vmax)
 
                     ax0 = plt.subplot(gs[i, 0])
-                    generate_roi_view(ax0, axial, bounds[0], bounds[1], (A_S[0], A_S[1]), (B[0], B[1]))
+                    generate_roi_view(ax0, axial, bounds[0], bounds[1], (A_S[0], A_S[1]), (B[0], B[1]), vmin, vmax)
 
                     ax1 = plt.subplot(gs[i, 1])
-                    generate_roi_view(ax1, sagittal, bounds[0], bounds[2], (A_S[0], A_S[2]), (B[0], B[2]))
+                    generate_roi_view(ax1, sagittal, bounds[0], bounds[2], (A_S[0], A_S[2]), (B[0], B[2]), vmin, vmax)
 
                     ax2 = plt.subplot(gs[i, 2])
-                    generate_roi_view(ax2, coronal, bounds[1], bounds[2], (A_S[1], A_S[2]), (B[1], B[2]))
+                    generate_roi_view(ax2, coronal, bounds[1], bounds[2], (A_S[1], A_S[2]), (B[1], B[2]), vmin, vmax)
 
                     ax3 = plt.subplot(gs[i, 3])
                     generate_roi_table(ax3, A_S, B, error_vec, error_mag)
@@ -440,6 +452,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
             yield i
 
     # TODO write PDF in memory
+    # TODO don't run the generate functions twice
     with PdfPages(full_report_path) as pdf:
         report_text = "Full Report"
         get_page = page_generator()
