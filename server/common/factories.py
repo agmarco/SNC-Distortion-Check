@@ -154,7 +154,10 @@ class DicomSeriesFactory(factory.django.DjangoModelFactory):
     voxels = sample_603A_mri['voxels']
     ijk_to_xyz = sample_603A_mri['ijk_to_xyz']
     shape = sample_603A_mri['voxels'].shape
-    series_uid = '1.2.392.200193.3.1626980217.161129.153348.41538611151089740341'
+    series_uid = '1.2.840.113704.7.32.0.2.18.42499.2016082704404467665110076.0.0.0'
+    study_uid = '1.3.12.2.1107.5.2.18.42499.30000016082707192095400000002'
+    patient_id = '123$$$6650572'
+    frame_of_reference_uid = '1.3.12.2.1107.5.2.18.42499.1.20160827043859866.0.0.0'
     acquisition_date = factory.LazyAttribute(lambda dicom_series: next(_get_acquisition_date))
     zipped_dicom_files = factory.django.FileField(from_path=sample_603A_mri_zip_filename)
 

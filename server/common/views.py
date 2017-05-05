@@ -1,10 +1,15 @@
 import os
 import io
+import tempfile
 import uuid
 import zipfile
 import logging
 from datetime import datetime
-
+import time
+import dicom
+from dicom.UID import generate_uid
+from dicom.dataset import Dataset, FileDataset
+from process.affine import apply_affine
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import HttpResponseRedirect
@@ -18,6 +23,9 @@ from django.conf import settings
 from rest_framework.renderers import JSONRenderer
 
 import scipy.io
+import numpy as np
+from scipy.interpolate.ndgriddata import griddata
+import scipy.ndimage.filters
 
 from process import dicom_import
 from process.file_io import save_voxels
@@ -139,12 +147,15 @@ class UploadScan(FormView):
 
         dicom_datasets = form.cleaned_data['datasets']
         voxels, ijk_to_xyz = dicom_import.combine_slices(dicom_datasets)
+        ds = dicom_datasets[0]
         dicom_series = models.DicomSeries.objects.create(
             voxels=voxels,
             ijk_to_xyz=ijk_to_xyz,
             shape=voxels.shape,
-            series_uid=dicom_datasets[0].SeriesInstanceUID,
-
+            series_uid=ds.SeriesInstanceUID,
+            study_uid=ds.StudyInstanceUID,
+            frame_of_reference_uid=ds.FrameOfReferenceUID,
+            patient_id=ds.PatientID,
             # TODO: handle a missing AcquisitionDate
             acquisition_date=datetime.strptime(dicom_datasets[0].AcquisitionDate, '%Y%m%d'),
             zipped_dicom_files=self.request.FILES['dicom_archive'],
@@ -178,6 +189,93 @@ class ScanErrors(DetailView):
     template_name = 'common/scan_errors.html'
 
 
+def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstanceUID, seriesInstanceUID, frameOfReferenceUID, patientID, output_directory):
+    '''
+    Exports a voxel array to a series of dicom files.
+
+    :param voxel_array: voxels array in x,y,z axis order.
+    :param voxelSpacing_tup: spacing in mm
+    :param voxelPosition_tup: position of first voxel in mm in patient coordinate system
+    :param studyInstanceUID:
+    :param seriesInstanceUID:
+    :param frameOfReferenceUID:
+    :param patientID:
+    :param output_directory: directory to dump the dicoms in
+    :return:
+    '''
+    def _encode_multival(values):
+        '''
+        Encodes a collection of multivalued elements in backslash separated syntax known by dicom spec.
+        '''
+        return '\\'.join(str(val) for val in values)
+
+    def _base_ds():
+        sopinst = generate_uid()
+        file_meta = Dataset()
+        file_meta.MediaStorageSOPClassUID = '1.2.840.10008.5.1.4.1.1.2'  # CT Image Storage
+        file_meta.TransferSyntaxUID = '1.2.840.10008.1.2'  # Implicit VR Little Endian
+        file_meta.MediaStorageSOPInstanceUID = sopinst
+        file_meta.ImplementationClassUID = '1.1.1'
+        ds = FileDataset(None, {}, file_meta=file_meta, preamble=b"\0"*128)
+        ds.SOPInstanceUID = sopinst
+        ds.SOPClassUID = '1.2.840.10008.5.1.4.1.1.2'  # CT Image SOP Class
+        return ds
+
+    def _unstack(voxel_array):
+        '''converts array of x,y,z into one of z,x,y to make it easier to slice.'''
+        return voxel_array.transpose(2, 0, 1)
+
+    if len(voxel_array.shape) != 3:
+        raise Exception('Only 3d arrays are supported for dicom export, got shape {}'.format(voxel_array.shape))
+
+    slices_array = _unstack(voxel_array)
+    for slice_num, slice_arr in enumerate(slices_array):
+        sliceVoxelPosition = (voxelPosition_tup[0],
+                              voxelPosition_tup[1],
+                              voxelPosition_tup[2] + voxelSpacing_tup[2]*slice_num)
+        ds = _base_ds()
+        # Patient Module
+        ds.PatientName = ''
+        ds.PatientID = patientID
+
+        # general study module
+        ds.ContentDate = str(datetime.today()).replace('-','')
+        ds.ContentTime = str(time.time())
+        ds.StudyInstanceUID = studyInstanceUID
+        ds.StudyDescription = 'Distortion Overlay'
+
+        # general series module
+        ds.SeriesInstanceUID = seriesInstanceUID
+        ds.Modality = 'PT'
+
+        # Frame of reference module
+        ds.FrameOfReferenceUID = frameOfReferenceUID
+
+        # Image plane module
+        xSpacing_mm, ySpacing_mm, zSpacing_mm = voxelSpacing_tup
+        ds.ImageOrientationPatient = _encode_multival([1, 0, 0, 0, 1, 0])  # direction cosines
+        ds.ImagePositionPatient = _encode_multival(sliceVoxelPosition)
+        ds.PixelSpacing = _encode_multival([xSpacing_mm, ySpacing_mm])
+        ds.SliceThickness = str(zSpacing_mm)
+        ds.InstanceNumber = slice_num
+
+        # image pixel module
+        rows, columns = slice_arr.shape
+        ds.SamplesPerPixel = 1
+        ds.PhotometricInterpretation = "MONOCHROME2"
+        ds.PixelRepresentation = 0  # unsigned int
+        ds.HighBit = 15
+        ds.BitsStored = 16
+        ds.BitsAllocated = 16
+        ds.Columns = columns
+        ds.Rows = rows
+        ds.NumberOfFrames = 1
+        ds.RescaleIntercept = 0
+        ds.RescaleSlope = 0.01
+        ds.PixelData = slice_arr.astype(np.uint16).tobytes()
+        dicom.write_file(os.path.join(output_directory, '{}.dcm'.format(ds.SOPInstanceUID)), ds)
+
+
 @login_and_permission_required('common.configuration')
 @validate_institution(model_class=models.Scan)
 class DicomOverlay(FormView):
@@ -197,13 +295,43 @@ class DicomOverlay(FormView):
         return reverse('machine_sequence_detail', args=(self.scan.machine_sequence_pair.pk,))
 
     def form_valid(self, form):
-        messages.success(self.request, f"""DICOM overlay for scan for phantom
-            \"{self.scan.golden_fiducials.phantom.model.model_number} —
-            {self.scan.golden_fiducials.phantom.serial_number},\" captured on
-            {formats.date_format(self.scan.dicom_series.acquisition_date)}, has been generated successfully.""")
-        # TODO generate overlay
-        return super(DicomOverlay, self).form_valid(form)
-
+        # TODO: Consolidate and split out these constants in the process module.
+        GRID_DENSITY_mm = 1
+        DISTORTION_SCALE = 1000
+        BLUR_SIGMA = 3
+        ds = self.get_context_data()['scan'].dicom_series
+        ijk_to_xyz = ds.ijk_to_xyz
+        coord_min_xyz, coord_max_xyz = apply_affine(ijk_to_xyz, np.array([(0.0,0.0,0.0), ds.shape]).T).T
+        TP_A = self.get_context_data()['scan'].TP_A_S.fiducials
+        error_mags = self.get_context_data()['scan'].error_mags
+        grid_x, grid_y, grid_z = np.meshgrid(np.arange(coord_min_xyz[0], coord_max_xyz[0], GRID_DENSITY_mm),
+                                             np.arange(coord_min_xyz[1], coord_max_xyz[1], GRID_DENSITY_mm),
+                                             np.arange(coord_min_xyz[2], coord_max_xyz[2], GRID_DENSITY_mm))
+        logger.info("Gridding data for overlay generation.")
+        gridded = griddata(TP_A.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
+        gridded *= DISTORTION_SCALE  # rescale so it looks a bit better
+        gridded = scipy.ndimage.filters.gaussian_filter(gridded, BLUR_SIGMA) # TODO: remove this once we fix interpolation
+        gridded[np.isnan(gridded)] = 0
+        output_dir = tempfile.mkdtemp()
+        logger.info("Exporting overlay to dicoms.")
+        export_overlay(
+            voxel_array=gridded,
+            voxelSpacing_tup=(GRID_DENSITY_mm, GRID_DENSITY_mm, GRID_DENSITY_mm),
+            voxelPosition_tup=coord_min_xyz,
+            studyInstanceUID=form.cleaned_data['study_instance_uid'] or ds.study_uid,
+            seriesInstanceUID=generate_uid(),
+            frameOfReferenceUID=form.cleaned_data['frame_of_reference_uid'] or ds.frame_of_reference_uid,
+            patientID=form.cleaned_data['patient_id'] or ds.patient_id,
+            output_directory=output_dir
+        )
+        zip_bytes = io.BytesIO()
+        with zipfile.ZipFile(zip_bytes, 'w', zipfile.ZIP_DEFLATED) as zf:
+            for dirname, subdirs, files in os.walk(output_dir):
+                zf.write(dirname)
+                for filename in files:
+                    zf.write(os.path.join(dirname, filename), arcname=filename)
+        logger.info("done zipping generated dicoms.")
+        return ZipResponse(zip_bytes, filename='overlay.zip')
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
@@ -395,13 +523,16 @@ class UploadCT(FormView):
 
     def form_valid(self, form):
         voxels, ijk_to_xyz = dicom_import.combine_slices(form.cleaned_data['datasets'])
+        ds = form.cleaned_data['datasets'][0]
         dicom_series = models.DicomSeries.objects.create(
             zipped_dicom_files=self.request.FILES['dicom_archive'],
             voxels=voxels,
             ijk_to_xyz=ijk_to_xyz,
             shape=voxels.shape,
-            series_uid=form.cleaned_data['datasets'][0].SeriesInstanceUID,
-
+            series_uid=ds.SeriesInstanceUID,
+            study_uid=ds.StudyInstanceUID,
+            frame_of_reference_uid=ds.FrameOfReferenceUID,
+            patient_id=ds.PatientID,
             # TODO: handle a missing AcquisitionDate
             acquisition_date=datetime.strptime(form.cleaned_data['datasets'][0].AcquisitionDate, '%Y%m%d'),
         )

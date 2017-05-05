@@ -20,19 +20,14 @@
     {% csrf_token %}
     {{ form.non_field_errors }}
     <div>
-      {{ form.series_instance_uid.errors }}
-      {{ form.series_instance_uid.label_tag }}
-      {{ form.series_instance_uid }}
-    </div>
-    <div>
       {{ form.study_instance_uid.errors }}
       {{ form.study_instance_uid.label_tag }}
       {{ form.study_instance_uid }}
     </div>
     <div>
-      {{ form.patient_uid.errors }}
-      {{ form.patient_uid.label_tag }}
-      {{ form.patient_uid }}
+      {{ form.patient_id.errors }}
+      {{ form.patient_id.label_tag }}
+      {{ form.patient_id }}
     </div>
     <div>
       {{ form.isocenter_x.errors }}
