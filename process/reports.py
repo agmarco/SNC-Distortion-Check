@@ -252,7 +252,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         ax.set_ylabel('Distortion Magnitude [mm]')
         ax.set_title('Scatter Plot of Geometric Distortion vs. Distance from Isocenter')
 
-    def generate_spacial_mapping(ax, grid_x, grid_y, gridded):
+    def generate_spatial_mapping(ax, grid_x, grid_y, gridded):
         cmap = colors.ListedColormap(['green', 'red'])
         bounds = [0, threshold, math.inf]
         norm = colors.BoundaryNorm(bounds, cmap.N)
@@ -261,41 +261,41 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         contour = plt.contour(grid_x.squeeze(), grid_y.squeeze(), gridded.squeeze(), cmap=cmap, norm=norm, levels=levels)
         ax.clabel(contour, inline=True, fontsize=10)
 
-    def generate_axial_spacial_mapping(ax, cell):
+    def generate_axial_spatial_mapping(ax, cell):
         # interpolate onto plane at the isocenter to generate contour
         grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
                                              np.arange(y_min, y_max, GRID_DENSITY_mm),
                                              [isocenter[2]])
         gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
         gridded = scipy.ndimage.filters.gaussian_filter(gridded, 3)
-        generate_spacial_mapping(ax, grid_x, grid_y, gridded)
+        generate_spatial_mapping(ax, grid_x, grid_y, gridded)
         ax.set_xlabel('x [mm]')
         ax.set_ylabel('y [mm]')
         ax.set_title('Axial Contour Plot')
 
-    def generate_sagittal_spacial_mapping(ax, cell):
+    def generate_sagittal_spatial_mapping(ax, cell):
         grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
                                              [isocenter[1]],
                                              np.arange(z_min, z_max, GRID_DENSITY_mm), )
         gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
         gridded = scipy.ndimage.filters.gaussian_filter(gridded, 3)
-        generate_spacial_mapping(ax, grid_x, grid_z, gridded)
+        generate_spatial_mapping(ax, grid_x, grid_z, gridded)
         ax.set_xlabel('x [mm]')
         ax.set_ylabel('z [mm]')
         ax.set_title('Sagittal Contour Plot')
 
-    def generate_coronal_spacial_mapping(ax, cell):
+    def generate_coronal_spatial_mapping(ax, cell):
         grid_x, grid_y, grid_z = np.meshgrid([isocenter[0]],
                                              np.arange(y_min, y_max, GRID_DENSITY_mm),
                                              np.arange(z_min, z_max, GRID_DENSITY_mm))
         gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
         gridded = scipy.ndimage.filters.gaussian_filter(gridded, 3)
-        generate_spacial_mapping(ax, grid_y, grid_z, gridded)
+        generate_spatial_mapping(ax, grid_y, grid_z, gridded)
         ax.set_xlabel('y [mm]')
         ax.set_ylabel('z [mm]')
         ax.set_title('Coronal Contour Plot')
 
-    def generate_axial_spacial_mapping_series(report_text, get_page):
+    def generate_axial_spatial_mapping_series(report_text, get_page):
         pages = []
 
         for z in np.arange(z_min, z_max, CONTOUR_SERIES_STEP_mm):
@@ -305,12 +305,12 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
             gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
 
             try:
-                def generate_axial_spacial_mapping_slice(ax, cell):
-                    generate_spacial_mapping(ax, grid_x, grid_y, gridded)
+                def generate_axial_spatial_mapping_slice(ax, cell):
+                    generate_spatial_mapping(ax, grid_x, grid_y, gridded)
                     ax.set_xlabel('x [mm]')
                     ax.set_ylabel('y [mm]')
                     ax.set_title(f'Axial Contour Plot Series (z = {round(z, 3)} mm)')
-                pages.append(generate_page(generate_axial_spacial_mapping_slice, report_text, get_page))
+                pages.append(generate_page(generate_axial_spatial_mapping_slice, report_text, get_page))
             except ValueError:
                 pass
         return pages
@@ -446,10 +446,10 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         save_then_close_figure(pdf, generate_page(generate_institution_table, report_text, get_page))
         save_then_close_figure(pdf, generate_page(generate_data_acquisition_table, report_text, get_page))
         save_then_close_figure(pdf, generate_page(generate_scatter_plot, report_text, get_page))
-        save_then_close_figure(pdf, generate_page(generate_axial_spacial_mapping, report_text, get_page))
-        save_then_close_figure(pdf, generate_page(generate_sagittal_spacial_mapping, report_text, get_page))
-        save_then_close_figure(pdf, generate_page(generate_coronal_spacial_mapping, report_text, get_page))
-        for fig in generate_axial_spacial_mapping_series(report_text, get_page):
+        save_then_close_figure(pdf, generate_page(generate_axial_spatial_mapping, report_text, get_page))
+        save_then_close_figure(pdf, generate_page(generate_sagittal_spatial_mapping, report_text, get_page))
+        save_then_close_figure(pdf, generate_page(generate_coronal_spatial_mapping, report_text, get_page))
+        for fig in generate_axial_spatial_mapping_series(report_text, get_page):
             save_then_close_figure(pdf, fig)
         save_then_close_figure(pdf, generate_page(generate_error_table, report_text, get_page))
         for fig in generate_fiducial_rois(report_text, get_page):
@@ -463,9 +463,9 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         save_then_close_figure(pdf, generate_page(generate_institution_table, report_text, get_page))
         save_then_close_figure(pdf, generate_page(generate_data_acquisition_table, report_text, get_page))
         save_then_close_figure(pdf, generate_page(generate_scatter_plot, report_text, get_page))
-        save_then_close_figure(pdf, generate_page(generate_axial_spacial_mapping, report_text, get_page))
-        save_then_close_figure(pdf, generate_page(generate_sagittal_spacial_mapping, report_text, get_page))
-        save_then_close_figure(pdf, generate_page(generate_coronal_spacial_mapping, report_text, get_page))
+        save_then_close_figure(pdf, generate_page(generate_axial_spatial_mapping, report_text, get_page))
+        save_then_close_figure(pdf, generate_page(generate_sagittal_spatial_mapping, report_text, get_page))
+        save_then_close_figure(pdf, generate_page(generate_coronal_spatial_mapping, report_text, get_page))
         save_then_close_figure(pdf, generate_page(generate_error_table, report_text, get_page))
         save_then_close_figure(pdf, generate_page(generate_points, report_text, get_page))
 
