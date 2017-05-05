@@ -11,7 +11,7 @@ from django.core.files import File
 from django.core.management.base import BaseCommand
 
 from server.common import factories
-from server.common.models import GoldenFiducials, Fiducials
+from server.common.models import GoldenFiducials, Fiducials, create_scan
 from server.common.tasks import process_scan
 
 from process import affine, dicom_import
@@ -79,11 +79,11 @@ class Command(BaseCommand):
         )
 
         machine_a = factories.MachineFactory.create(
-            name='MRI Scanner East',
+            name='MRI Scanner Example Scan Sequence',
             institution=johns_hopkins,
         )
         machine_b = factories.MachineFactory.create(
-            name='MRI Scanner West',
+            name='MRI Scanner Example Full PDF Reports',
             institution=johns_hopkins,
         )
         machine_c = factories.MachineFactory.create(
@@ -123,19 +123,19 @@ class Command(BaseCommand):
         phantom_d = factories.PhantomFactory(
             name='Head Phantom With Various Gold Standards',
             model=phantom_model_603A,
-            serial_number='A123',
+            serial_number='D123',
             institution=johns_hopkins,
         )
         phantom_e = factories.PhantomFactory(
             name='Head Phantom 2',
             model=phantom_model_603A,
-            serial_number='B123',
+            serial_number='E123',
             institution=johns_hopkins,
         )
         phantom_f = factories.PhantomFactory(
             name='Body Phantom',
             model=phantom_model_604,
-            serial_number='C123',
+            serial_number='F123',
             institution=johns_hopkins,
         )
 
@@ -154,7 +154,9 @@ class Command(BaseCommand):
 
         self.generate_gold_standard_points_demo(phantom_d)
         self.generate_scan_progression_demo(manager, machine_a, sequence_a, 9)
-        self.generate_real_reports_demo(manager, machine_a, sequence_b)
+        self.generate_real_report_demo(machine_b, sequence_b, phantom_a, manager, 'data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
+        self.generate_real_report_demo(machine_b, sequence_b, phantom_a, manager, 'data/dicom/yyy_mri_603A_t1_vibe_tra_FS_ND.zip')
+
 
     def generate_gold_standard_points_demo(self, phantom):
         '''
@@ -180,22 +182,14 @@ class Command(BaseCommand):
             type=GoldenFiducials.CSV,
         )
 
-    def generate_real_reports_demo(self, creator, machine, sequence):
+    def generate_real_report_demo(self, machine, sequence, phantom, creator, zip_filename):
         '''
         Run the process scan task so that we have real pdf reports to
         demonstrate.
         '''
-        machine_sequence = factories.MachineSequencePairFactory(
-            machine=machine,
-            sequence=sequence,
-        )
 
-        # the factories default to the 006 data set
-        scan = factories.ScanFactory(
-            creator=creator,
-            machine_sequence_pair=machine_sequence,
-            tolerance=2.25,
-        )
+        with open(zip_filename, 'rb') as dicom_archive:
+            scan = create_scan(machine, sequence, phantom, creator, dicom_archive)
         process_scan(scan.pk)
 
     def generate_scan_progression_demo(self, creator, machine, sequence, sequence_length):

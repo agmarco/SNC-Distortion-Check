@@ -137,38 +137,14 @@ class UploadScan(FormView):
         sequence = models.Sequence.objects.get(pk=form.cleaned_data['sequence'])
         phantom = models.Phantom.objects.get(pk=form.cleaned_data['phantom'])
 
-        # TODO: grab tolerance from the sequence (will need to add a tolerance
-        # field to the sequence)
-        machine_sequence_pair, _ = models.MachineSequencePair.objects.get_or_create(
-            machine=machine,
-            sequence=sequence,
-            defaults={'tolerance': 3},
-        )
-
-        dicom_datasets = form.cleaned_data['datasets']
-        voxels, ijk_to_xyz = dicom_import.combine_slices(dicom_datasets)
-        ds = dicom_datasets[0]
-        dicom_series = models.DicomSeries.objects.create(
-            voxels=voxels,
-            ijk_to_xyz=ijk_to_xyz,
-            shape=voxels.shape,
-            series_uid=ds.SeriesInstanceUID,
-            study_uid=ds.StudyInstanceUID,
-            frame_of_reference_uid=ds.FrameOfReferenceUID,
-            patient_id=ds.PatientID,
-            # TODO: handle a missing AcquisitionDate
-            acquisition_date=datetime.strptime(dicom_datasets[0].AcquisitionDate, '%Y%m%d'),
-            zipped_dicom_files=self.request.FILES['dicom_archive'],
-        )
-
-        scan = models.Scan.objects.create(
-            machine_sequence_pair=machine_sequence_pair,
-            dicom_series=dicom_series,
-            golden_fiducials=phantom.active_gold_standard,
-            tolerance=machine_sequence_pair.tolerance,
-            processing=True,
-            creator=self.request.user,
-            notes=form.cleaned_data['notes'],
+        scan = models.create_scan(
+            machine,
+            sequence,
+            phantom,
+            self.request.user,
+            self.request.FILES['dicom_archive'],
+            form.cleaned_data['notes'],
+            form.cleaned_data['datasets'],
         )
 
         process_scan.delay(scan.pk)

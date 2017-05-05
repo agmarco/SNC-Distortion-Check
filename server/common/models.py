@@ -1,8 +1,10 @@
 import os
 from datetime import datetime
+import zipfile
 
 import numpy as np
 
+from django.core.files import File
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import UserManager
@@ -275,3 +277,45 @@ class Global(models.Model):
             ('configuration', 'Configuration'),
             ('manage_users', 'Manage Users'),
         )
+
+
+def create_scan(machine, sequence, phantom, creator, dicom_archive, notes='', dicom_datasets=None):
+    # TODO: grab tolerance from the sequence (will need to add a tolerance
+    # field to the sequence)
+    machine_sequence_pair, _ = MachineSequencePair.objects.get_or_create(
+        machine=machine,
+        sequence=sequence,
+        defaults={'tolerance': 3},
+    )
+
+    if dicom_datasets is None:
+        with zipfile.ZipFile(dicom_archive, 'r') as dicom_archive_zipfile:
+            dicom_datasets = dicom_import.dicom_datasets_from_zip(dicom_archive_zipfile)
+
+    voxels, ijk_to_xyz = dicom_import.combine_slices(dicom_datasets)
+    ds = dicom_datasets[0]
+    dicom_series = DicomSeries.objects.create(
+        voxels=voxels,
+        ijk_to_xyz=ijk_to_xyz,
+        shape=voxels.shape,
+        series_uid=ds.SeriesInstanceUID,
+        study_uid=ds.StudyInstanceUID,
+        frame_of_reference_uid=ds.FrameOfReferenceUID,
+        patient_id=ds.PatientID,
+        # TODO: handle a missing AcquisitionDate
+        acquisition_date=datetime.strptime(dicom_datasets[0].AcquisitionDate, '%Y%m%d'),
+    )
+
+    dicom_series.zipped_dicom_files.save('dicom_archive', File(dicom_archive))
+
+    scan = Scan.objects.create(
+        machine_sequence_pair=machine_sequence_pair,
+        dicom_series=dicom_series,
+        golden_fiducials=phantom.active_gold_standard,
+        tolerance=machine_sequence_pair.tolerance,
+        processing=True,
+        creator=creator,
+        notes=notes,
+    )
+
+    return scan
