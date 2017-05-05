@@ -18,6 +18,7 @@ INTERSECTION_PROB_THRESHOLD = 0.4
 
 keras_models = {}
 
+
 def get_keras_model(phantom_name):
     if phantom_name not in keras_models:
         import sys
@@ -35,7 +36,7 @@ def get_keras_model(phantom_name):
 
 
 def remove_fps(points_ijk_unfiltered, voxels, voxel_spacing, phantom_name):
-    if phantom_name not in phantoms:
+    if phantom_name not in phantoms.paramaters:
         logger.warn(f'Unable to remove false positives from unknown phantom type "{phantom_name}"')
         return points_ijk_unfiltered
 

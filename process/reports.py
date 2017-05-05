@@ -184,7 +184,6 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
         return fig
 
-    # TODO address row should be taller
     def generate_institution_table(ax, cell):
         rows = [
             ('Name', institution.name),
@@ -192,7 +191,17 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
             ('Address', institution.address),
             ('Phone Number', institution.phone_number),
         ]
-        ax.table(cellText=rows, loc='center')
+        table = ax.table(cellText=rows, loc='center')
+        table_props = table.properties()
+        table_cells = table_props['child_artists']
+
+        # TODO auto-determine height based on text height?
+        for i, cell in enumerate(table_cells):
+            if i in (4, 5):
+                cell.set_height(0.075)
+            else:
+                cell.set_height(0.05)
+
         ax.axis('off')
         ax.set_title('Institution Table')
 
@@ -220,7 +229,11 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
             ('Slice thickness', f'{str(round(voxel_dims[2], 3))} mm'),
             ('Direction of phase encoding', dataset.InPlanePhaseEncodingDirection),
         ]
-        ax.table(cellText=rows, loc='center')
+        table = ax.table(cellText=rows, loc='center')
+        table_props = table.properties()
+        table_cells = table_props['child_artists']
+        for i, cell in enumerate(table_cells):
+            cell.set_height(0.05)
         ax.axis('off')
         ax.set_title('Data Acquisition Table')
 
@@ -307,7 +320,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
 
         origins = np.repeat([isocenter], TP_A_S.shape[1], axis=0)
         distances = np.linalg.norm(TP_A_S.T - origins, axis=1)
-        step = max(distances.max() // 20, SPHERE_STEP_mm)
+        step = max(math.ceil(distances.max() / 20), SPHERE_STEP_mm)
 
         r = step
         while True:
@@ -325,8 +338,15 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         for r, (max_value, mean_value) in radius2max_mean_error.items():
             rows.append((r, np.round(max_value, 3), np.round(mean_value, 3)))
 
-        ax.table(cellText=rows, colLabels=['Distance from Isocenter [mm]', 'Maximum Error [mm]', 'Average Error [mm]'],
-                  loc='center')
+        table = ax.table(
+            cellText=rows,
+            colLabels=['Distance from Isocenter [mm]', 'Maximum Error [mm]', 'Average Error [mm]'],
+            loc='center',
+        )
+        table_props = table.properties()
+        table_cells = table_props['child_artists']
+        for i, cell in enumerate(table_cells):
+            cell.set_height(0.05)
         ax.axis('off')
         ax.set_title('Error Table')
 
@@ -403,7 +423,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         return points_fig
 
     def generate_quiver():
-        quiver_fig = plt.figure(figsize=figsize)
+        quiver_fig = plt.figure()
         ax = quiver_fig.add_subplot(111, projection='3d')
         ax.quiver(*TP_A_S, *error_vecs)
         return quiver_fig
