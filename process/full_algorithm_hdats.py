@@ -52,7 +52,7 @@ class FullAlgorithmSuite(Suite):
         context['preprocessed_image'] = feature_detector.preprocessed_image
 
         # 2. fp rejector
-        pruned_points_ijk = remove_fps(feature_detector.points_ijk, voxels, voxel_spacing)
+        pruned_points_ijk = remove_fps(feature_detector.points_ijk, voxels, voxel_spacing, phantom_name)
         pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
 
         # 3. rigidly register

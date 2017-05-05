@@ -15,11 +15,13 @@ paramaters = {
         'points_file': 'data/points/603A.mat',
         'grid_radius': 1.5,
         'grid_spacing': 15,
+        'keras_model': 'data/keras_models/model.h5',
     },
     '604': {
         'points_file': 'TBD',
         'grid_radius': 1.5,
         'grid_spacing': 20,
+        # TODO: add a model for the 604 phantom
     },
     '1540': {
         'points_file': 'data/points/1540.mat',

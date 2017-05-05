@@ -79,7 +79,7 @@ class FeatureDetectionSuite(Suite):
         rho = lambda bmag: 3
         metrics['raw'], context['raw'] = self._process_points(golden_points, feature_detector.points_xyz, rho)
 
-        pruned_points_ijk = remove_fps(feature_detector.points_ijk, voxels, voxel_spacing)
+        pruned_points_ijk = remove_fps(feature_detector.points_ijk, voxels, voxel_spacing, phantom_name)
         pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
         metrics['pruned'], context['pruned'] = self._process_points(golden_points, pruned_points_xyz, rho)
 

@@ -35,6 +35,7 @@ def process_scan(scan_pk):
     try:
         with transaction.atomic():
             modality = 'mri'
+            phantom_name = scan.phantom.name
 
             # TODO: save condensed DICOM tags onto `dicom_series` on upload so
             # we don't need to load all the zip files just to get at the
@@ -55,7 +56,7 @@ def process_scan(scan_pk):
                 ijk_to_xyz,
             )
 
-            pruned_points_ijk = fp_rejector.remove_fps(feature_detector.points_ijk, voxels, voxel_spacing)
+            pruned_points_ijk = fp_rejector.remove_fps(feature_detector.points_ijk, voxels, voxel_spacing, phantom_name)
             pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
 
             scan.detected_fiducials = Fiducials.objects.create(fiducials=pruned_points_xyz)

@@ -1,6 +1,12 @@
 import math
+import logging
+
 import numpy as np
 from scipy.ndimage.interpolation import zoom
+
+from . import phantoms
+
+logger = logging.getLogger(__name__)
 
 model = None
 
@@ -10,22 +16,30 @@ input_shape = (cube_size_ijk, cube_size_ijk, cube_size_ijk, 1)
 
 INTERSECTION_PROB_THRESHOLD = 0.4
 
-model = None
+keras_models = {}
 
-def get_model():
-    global model
-    if model is None:
+def get_keras_model(phantom_name):
+    if phantom_name not in keras_models:
         import sys
         stdout = sys.stdout
         sys.stdout = open('/dev/null', 'w')
+
         from keras.models import load_model
-        model = load_model('data/keras_models/model.h5')
+        model_location = phantoms[phantom_name]['keras_model']
+        model = load_model(model_location)
+        keras_models[phantom_name] = model
+
         sys.stdout = stdout
-    return model
+
+    return keras_models[phantom_name]
 
 
-def remove_fps(points_ijk_unfiltered, voxels, voxel_spacing):
-    model = get_model()
+def remove_fps(points_ijk_unfiltered, voxels, voxel_spacing, phantom_name):
+    if phantom_name not in phantoms:
+        logger.warn(f'Unable to remove false positives from unknown phantom type "{phantom_name}"')
+        return points_ijk_unfiltered
+
+    model = get_keras_model(phantom_name)
 
     num_points = points_ijk_unfiltered.shape[1]
     is_fp = np.zeros((num_points,), dtype=bool)
