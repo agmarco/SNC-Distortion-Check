@@ -267,7 +267,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
                                              np.arange(y_min, y_max, GRID_DENSITY_mm),
                                              [isocenter[2]])
         gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
-        gridded = scipy.ndimage.filters.gaussian_filter(gridded, 3)
+        gridded = scipy.ndimage.filters.gaussian_filter(gridded, 2, truncate=2)
         generate_spatial_mapping(ax, grid_x, grid_y, gridded)
         ax.set_xlabel('x [mm]')
         ax.set_ylabel('y [mm]')
@@ -278,7 +278,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
                                              [isocenter[1]],
                                              np.arange(z_min, z_max, GRID_DENSITY_mm), )
         gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
-        gridded = scipy.ndimage.filters.gaussian_filter(gridded, 3)
+        gridded = scipy.ndimage.filters.gaussian_filter(gridded, 2, truncate=2)
         generate_spatial_mapping(ax, grid_x, grid_z, gridded)
         ax.set_xlabel('x [mm]')
         ax.set_ylabel('z [mm]')
@@ -289,7 +289,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
                                              np.arange(y_min, y_max, GRID_DENSITY_mm),
                                              np.arange(z_min, z_max, GRID_DENSITY_mm))
         gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
-        gridded = scipy.ndimage.filters.gaussian_filter(gridded, 3)
+        gridded = scipy.ndimage.filters.gaussian_filter(gridded, 2, truncate=2)
         generate_spatial_mapping(ax, grid_y, grid_z, gridded)
         ax.set_xlabel('y [mm]')
         ax.set_ylabel('z [mm]')
@@ -303,7 +303,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
                                                  np.arange(y_min, y_max, GRID_DENSITY_mm),
                                                  np.array([z]))
             gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
-            gridded = scipy.ndimage.filters.gaussian_filter(gridded, 3)
+            gridded = scipy.ndimage.filters.gaussian_filter(gridded, 2, truncate=2)
             try:
                 def generate_axial_spatial_mapping_slice(ax, cell):
                     generate_spatial_mapping(ax, grid_x, grid_y, gridded)
