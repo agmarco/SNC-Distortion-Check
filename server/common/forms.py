@@ -125,10 +125,9 @@ class InstitutionForm(CIRSModelForm):
 
 
 class DicomOverlayForm(CIRSForm):
-    series_instance_uid = forms.CharField(label="SeriesInstanceUID")
-    study_instance_uid = forms.CharField(label="StudyInstanceUID")
-    patient_uid = forms.CharField(label="PatientUID")
-    isocenter_x = forms.FloatField(label="x", widget=forms.NumberInput(attrs={'step': '0.01'}))
-    isocenter_y = forms.FloatField(label="y", widget=forms.NumberInput(attrs={'step': '0.01'}))
-    isocenter_z = forms.FloatField(label="z", widget=forms.NumberInput(attrs={'step': '0.01'}))
-    frame_of_reference_uid = forms.CharField(label="FrameOfReferenceUID")
+    study_instance_uid = forms.CharField(label="StudyInstanceUID", required=False)
+    patient_id = forms.CharField(label="PatientID", required=False)
+    isocenter_x = forms.FloatField(label="x", widget=forms.NumberInput(attrs={'step': '0.01'}), required=False)
+    isocenter_y = forms.FloatField(label="y", widget=forms.NumberInput(attrs={'step': '0.01'}), required=False)
+    isocenter_z = forms.FloatField(label="z", widget=forms.NumberInput(attrs={'step': '0.01'}), required=False)
+    frame_of_reference_uid = forms.CharField(label="FrameOfReferenceUID", required=False)

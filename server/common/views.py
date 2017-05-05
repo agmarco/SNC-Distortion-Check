@@ -320,10 +320,10 @@ class DicomOverlay(FormView):
             voxel_array=gridded,
             voxelSpacing_tup=(GRID_DENSITY_mm, GRID_DENSITY_mm, GRID_DENSITY_mm),
             voxelPosition_tup=coord_min_xyz,
-            studyInstanceUID=ds.study_uid,
+            studyInstanceUID=form.cleaned_data['study_instance_uid'] or ds.study_uid,
             seriesInstanceUID=generate_uid(),
-            frameOfReferenceUID=ds.frame_of_reference_uid,
-            patientID=ds.patient_id,
+            frameOfReferenceUID=form.cleaned_data['frame_of_reference_uid'] or ds.frame_of_reference_uid,
+            patientID=form.cleaned_data['patient_id'] or ds.patient_id,
             output_directory=output_dir
         )
         zip_bytes = io.BytesIO()
