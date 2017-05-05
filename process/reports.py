@@ -303,7 +303,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
                                                  np.arange(y_min, y_max, GRID_DENSITY_mm),
                                                  np.array([z]))
             gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
-
+            gridded = scipy.ndimage.filters.gaussian_filter(gridded, 3)
             try:
                 def generate_axial_spatial_mapping_slice(ax, cell):
                     generate_spatial_mapping(ax, grid_x, grid_y, gridded)
