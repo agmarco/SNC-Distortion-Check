@@ -141,7 +141,7 @@ def _get_acquisition_date_generator():
 
 _get_acquisition_date = _get_acquisition_date_generator()
 
-sample_603A_mri_zip_filename = os.path.abspath('data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
+sample_603A_mri_zip_filename = 'data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip'
 sample_603A_mri = file_io.load_voxels('data/voxels/006_mri_603A_UVA_Axial_2ME2SRS5-voxels.mat')
 sample_603A_mri['voxels'].flags.writeable = False
 sample_603A_mri['ijk_to_xyz'].flags.writeable = False
