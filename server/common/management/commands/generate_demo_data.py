@@ -12,6 +12,7 @@ from django.core.management.base import BaseCommand
 
 from server.common import factories
 from server.common.models import GoldenFiducials, Fiducials
+from server.common.tasks import process_scan
 
 from process import affine, dicom_import
 from process.affine import apply_affine
@@ -20,7 +21,7 @@ from process.file_io import load_points
 
 
 class Command(BaseCommand):
-    help = 'Load some test data into the database.'
+    help = 'Load the demo data into the database.'
 
     def handle(self, *args, **options):
         configuration_permission = Permission.objects.get(codename='configuration')
@@ -120,7 +121,7 @@ class Command(BaseCommand):
             serial_number='C123',
         )
         phantom_d = factories.PhantomFactory(
-            name='Head Phantom 1',
+            name='Head Phantom With Various Gold Standards',
             model=phantom_model_603A,
             serial_number='A123',
             institution=johns_hopkins,
@@ -151,98 +152,79 @@ class Command(BaseCommand):
             institution=johns_hopkins,
         )
 
-        machine_sequence_pair_a = factories.MachineSequencePairFactory(
-            machine=machine_a,
-            sequence=sequence_a,
-            tolerance=2.25
-        )
-        machine_sequence_pair_b = factories.MachineSequencePairFactory(
-            machine=machine_a,
-            sequence=sequence_b,
-        )
-        machine_sequence_pair_c = factories.MachineSequencePairFactory(
-            machine=machine_b,
-            sequence=sequence_a,
-        )
-        machine_sequence_pair_d = factories.MachineSequencePairFactory(
-            machine=machine_c,
-            sequence=sequence_a,
-        )
-        machine_sequence_pair_e = factories.MachineSequencePairFactory(
-            machine=machine_c,
-            sequence=sequence_c,
-        )
+        self.generate_gold_standard_points_demo(phantom_d)
+        self.generate_scan_progression_demo(manager, machine_a, sequence_a, 9)
+        self.generate_real_reports_demo(manager, machine_a, sequence_b)
 
+    def generate_gold_standard_points_demo(self, phantom):
+        '''
+        Attach several types of gold standard points to a particular phantom to
+        demonstate the various types of uploads we have available.
+        '''
         ct_dicom_files = os.path.join(settings.BASE_DIR, 'data/dicom/001_ct_603A_E3148_ST1.25.zip')
         dicom_series_ct = factories.DicomSeriesFactory()
 
         with open(ct_dicom_files, 'rb') as f:
             dicom_series_ct.zipped_dicom_files.save(f'{uuid.uuid4()}.zip', f)
 
-        golden_fiducials_a = factories.GoldenFiducialsFactory(
-            phantom=phantom_d,
+        # TODO: make this have real CT-based fiducials
+        factories.GoldenFiducialsFactory(
+            phantom=phantom,
             dicom_series=dicom_series_ct,
             type=GoldenFiducials.CT,
         )
-        golden_fiducials_b = factories.GoldenFiducialsFactory(
-            phantom=phantom_d,
+
+        # TODO: make this have real CSV-based fiducials
+        factories.GoldenFiducialsFactory(
+            phantom=phantom,
             type=GoldenFiducials.CSV,
         )
 
-        mri_dicom_files = os.path.join(settings.BASE_DIR, 'data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
-        dicom_series_mri = factories.DicomSeriesFactory()
+    def generate_real_reports_demo(self, creator, machine, sequence):
+        '''
+        Run the process scan task so that we have real pdf reports to
+        demonstrate.
+        '''
+        machine_sequence = factories.MachineSequencePairFactory(
+            machine=machine,
+            sequence=sequence,
+        )
 
-        with open(mri_dicom_files, 'rb') as f:
-            dicom_series_mri.zipped_dicom_files.save(f'{uuid.uuid4()}.zip', f)
+        # the factories default to the 006 data set
+        scan = factories.ScanFactory(
+            creator=creator,
+            machine_sequence_pair=machine_sequence,
+            tolerance=2.25,
+        )
+        process_scan(scan.pk)
 
-        with zipfile.ZipFile(mri_dicom_files, 'r') as zip_file:
-            datasets = dicom_import.dicom_datasets_from_zip(zip_file)
-        voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
+    def generate_scan_progression_demo(self, creator, machine, sequence, sequence_length):
+        '''
+        Create a MachineSequencePair that demonstrates our nice SVG graph.
 
-        # TODO: replace this with real datasets
-        for i in range(3):
+        NOTE: the pdf reports will all be invalid.
+        '''
+        machine_sequence = factories.MachineSequencePairFactory(
+            machine=machine,
+            sequence=sequence,
+            tolerance=2.25
+        )
+
+        for i in range(sequence_length):
             A = generate_cube(2, 4)
             B = generate_cube(2, 4)
 
-            error = randint(6, 10)
-            affine_matrix = affine.translation_rotation(0, 0, 0, np.pi / 180 * error, np.pi / 180 * error, np.pi / 180 * error)
+            random_angle = randint(6, 10)*np.pi/180
+            affine_matrix = affine.translation_rotation(0, 0, 0, random_angle, random_angle, random_angle)
 
             A = apply_affine(affine_matrix, A)
 
             scan = factories.ScanFactory(
-                creator=manager,
-                machine_sequence_pair=machine_sequence_pair_a,
+                creator=creator,
+                machine_sequence_pair=machine_sequence,
                 detected_fiducials=factories.FiducialsFactory(fiducials=A),
                 TP_A_S=factories.FiducialsFactory(fiducials=A),
                 TP_B=factories.FiducialsFactory(fiducials=B),
-                dicom_series=dicom_series_mri,
-                tolerance=2.25,
+                tolerance=machine_sequence.tolerance,
+                processing=False,
             )
-
-            full_report_filename = f'{uuid.uuid4()}.pdf'
-            executive_report_filename = f'{uuid.uuid4()}.pdf'
-            full_report_path = os.path.join(settings.BASE_DIR, 'tmp', full_report_filename)
-            executive_report_path = os.path.join(settings.BASE_DIR, 'tmp', executive_report_filename)
-
-            generate_reports(
-                A,
-                B,
-                datasets,
-                voxels,
-                ijk_to_xyz,
-                '603A',
-                scan.tolerance,
-                johns_hopkins,
-                scan.machine_sequence_pair.machine.name,
-                scan.machine_sequence_pair.sequence.name,
-                scan.golden_fiducials.phantom.name,
-                scan.dicom_series.acquisition_date,
-                full_report_path,
-                executive_report_path
-            )
-
-            with open(full_report_path, 'rb') as report_file:
-                scan.full_report.save(full_report_filename, File(report_file))
-
-            with open(executive_report_path, 'rb') as report_file:
-                scan.executive_report.save(executive_report_filename, File(report_file))

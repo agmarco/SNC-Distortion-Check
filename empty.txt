@@ -1,2 +1,0 @@
-Link DicomSeries instances to this file in generate_dev_data instead of actual DICOM files,
-since they aren't uploaded to heroku.
