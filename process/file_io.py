@@ -23,18 +23,18 @@ def load_voxels(path):
 
     # the `savemat` automatically places strings into an array, so we need to
     # unpack it here
-    data['phantom_name'] = data['phantom_name'][0]
+    data['phantom_model'] = data['phantom_model'][0]
     data['modality'] = data['modality'][0]
 
     return data
 
 
 def save_voxels(path, data):
-    phantom_name = data['phantom_name']
-    valid_phantom_names = list(process.phantoms.paramaters.keys())
-    if phantom_name not in valid_phantom_names:
+    phantom_model = data['phantom_model']
+    valid_phantom_models = list(process.phantoms.paramaters.keys())
+    if phantom_model not in valid_phantom_models:
         msg = 'Invalid phantom name "{}". Must be one of:\n- {}'
-        raise ValueError(msg.format(phantom_name, '\n- '.join(valid_phantom_names)))
+        raise ValueError(msg.format(phantom_model, '\n- '.join(valid_phantom_models)))
 
     modality = data['modality']
     valid_modalities = ['ct', 'mri']

@@ -13,9 +13,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     voxels_data = file_io.load_voxels(args.input_voxels)
-    ijk_to_patient_xyz_transform = voxels_data['ijk_to_patient_xyz_transform']
+    ijk_to_xyz = voxels_data['ijk_to_xyz']
     input_voxels = voxels_data['voxels']
-    phantom_name = voxels_data['phantom_name']
+    phantom_model = voxels_data['phantom_model']
 
     if args.decimation_factor == 1:
         output_voxels = input_voxels
@@ -29,6 +29,6 @@ if __name__ == '__main__':
 
     file_io.save_voxels(args.output_voxels, {
         'voxels': output_voxels,
-        'ijk_to_patient_xyz_transform': ijk_to_patient_xyz_transform,
-        'phantom_name': phantom_name,
+        'ijk_to_xyz': ijk_to_xyz,
+        'phantom_model': phantom_model,
     })

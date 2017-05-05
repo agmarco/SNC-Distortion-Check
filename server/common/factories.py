@@ -144,7 +144,7 @@ _get_acquisition_date = _get_acquisition_date_generator()
 sample_603A_mri_zip_filename = os.path.abspath('data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
 sample_603A_mri = file_io.load_voxels('data/voxels/006_mri_603A_UVA_Axial_2ME2SRS5-voxels.mat')
 sample_603A_mri['voxels'].flags.writeable = False
-sample_603A_mri['ijk_to_patient_xyz_transform'].flags.writeable = False
+sample_603A_mri['ijk_to_xyz'].flags.writeable = False
 
 
 class DicomSeriesFactory(factory.django.DjangoModelFactory):
@@ -152,7 +152,7 @@ class DicomSeriesFactory(factory.django.DjangoModelFactory):
         model = "common.DicomSeries"
 
     voxels = sample_603A_mri['voxels']
-    ijk_to_xyz = sample_603A_mri['ijk_to_patient_xyz_transform']
+    ijk_to_xyz = sample_603A_mri['ijk_to_xyz']
     shape = sample_603A_mri['voxels'].shape
     series_uid = '1.2.392.200193.3.1626980217.161129.153348.41538611151089740341'
     acquisition_date = factory.LazyAttribute(lambda dicom_series: next(_get_acquisition_date))

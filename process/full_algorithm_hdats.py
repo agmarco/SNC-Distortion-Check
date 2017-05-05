@@ -27,7 +27,7 @@ class FullAlgorithmSuite(Suite):
                 'dicom': 'data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip',
                 'golden_points': 'data/points/603A.mat',
                 'modality': 'mri',
-                'phantom_name': '603A',
+                'phantom_model': '603A',
             }
         }
 
@@ -40,19 +40,19 @@ class FullAlgorithmSuite(Suite):
 
         # 0. generate voxel data from zip file
         voxels, ijk_to_xyz = combined_series_from_zip(case_input['dicom'])
-        phantom_name = case_input['phantom_name']
+        phantom_model = case_input['phantom_model']
         modality = case_input['modality']
         voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
 
         context['ijk_to_xyz'] = ijk_to_xyz
 
         # 1. feature detector
-        feature_detector = FeatureDetector(phantom_name, modality, voxels, ijk_to_xyz)
+        feature_detector = FeatureDetector(phantom_model, modality, voxels, ijk_to_xyz)
 
         context['preprocessed_image'] = feature_detector.preprocessed_image
 
         # 2. fp rejector
-        pruned_points_ijk = remove_fps(feature_detector.points_ijk, voxels, voxel_spacing, phantom_name)
+        pruned_points_ijk = remove_fps(feature_detector.points_ijk, voxels, voxel_spacing, phantom_model)
         pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
 
         # 3. rigidly register

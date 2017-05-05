@@ -107,7 +107,7 @@ if __name__ == '__main__':
 
     voxel_data = file_io.load_voxels(args.voxels)
     voxels = voxel_data['voxels']
-    ijk_to_xyz = voxel_data['ijk_to_patient_xyz_transform']
+    ijk_to_xyz = voxel_data['ijk_to_xyz']
 
     try:
         points_xyz = file_io.load_points(args.points)['points']

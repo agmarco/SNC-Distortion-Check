@@ -72,9 +72,9 @@ def affine_transform_func(x, y, z, theta, phi, xi):
     return distort_func, undistort_func
 
 
-def to_xyz(voxels, ijk_to_patient_xyz_transform):
-    to_xyz = ijk_to_patient_xyz_transform
-    from_ijk = np.linalg.inv(ijk_to_patient_xyz_transform)
+def to_xyz(voxels, ijk_to_xyz):
+    to_xyz = ijk_to_xyz
+    from_ijk = np.linalg.inv(ijk_to_xyz)
     def distort_func(ijk_out_coord):
         return affine_point(to_xyz, ijk_out_coord)
 
@@ -107,13 +107,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
     voxel_data = file_io.load_voxels(args.undistorted_voxels)
     voxels = voxel_data['voxels']
-    ijk_to_patient_xyz_transform = voxel_data['ijk_to_patient_xyz_transform']
-    phantom_name = voxel_data['phantom_name']
+    ijk_to_xyz = voxel_data['ijk_to_xyz']
+    phantom_model = voxel_data['phantom_model']
 
     if args.reduction_factor:
         voxels = voxels[::args.reduction_factor, ::args.reduction_factor, ::args.reduction_factor]
 
-    to_xyz_func, from_xyz_func = to_xyz(voxels, ijk_to_patient_xyz_transform)
+    to_xyz_func, from_xyz_func = to_xyz(voxels, ijk_to_xyz)
     undistorters = [from_xyz_func]
     distorters = [to_xyz_func]
     if args.xyz_tpx and args.distort_factor:
@@ -138,9 +138,9 @@ if __name__ == '__main__':
 
     print('distorting points for {}'.format(args.distorted_points))
     undistorted_points_xyz = file_io.load_points(args.undistorted_points)['points']
-    undistorted_points_ijk = apply_affine(np.linalg.inv(ijk_to_patient_xyz_transform), undistorted_points_xyz)
+    undistorted_points_ijk = apply_affine(np.linalg.inv(ijk_to_xyz), undistorted_points_xyz)
     distorted_points_ijk = np.array(list(map(distort_func, undistorted_points_ijk.T))).T
-    distorted_points_xyz = apply_affine(ijk_to_patient_xyz_transform, distorted_points_ijk)
+    distorted_points_xyz = apply_affine(ijk_to_xyz, distorted_points_ijk)
     file_io.save_points(args.distorted_points, {
         'points': distorted_points_xyz,
         'undistorted_points': undistorted_points_xyz,
@@ -151,7 +151,7 @@ if __name__ == '__main__':
     voxels_distorted = geometric_transform(voxels, progress_indicator(voxels.size, undistort_func))
     file_io.save_voxels(args.distorted_voxels, {
         'voxels': voxels_distorted,
-        'ijk_to_patient_xyz_transform': ijk_to_patient_xyz_transform,
-        'phantom_name': phantom_name,
+        'ijk_to_xyz': ijk_to_xyz,
+        'phantom_model': phantom_model,
     })
     print('Done distorting voxels')

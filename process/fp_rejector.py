@@ -18,29 +18,28 @@ INTERSECTION_PROB_THRESHOLD = 0.4
 
 keras_models = {}
 
-
-def get_keras_model(phantom_name):
-    if phantom_name not in keras_models:
+def get_keras_model(phantom_model):
+    if phantom_model not in keras_models:
         import sys
         stdout = sys.stdout
         sys.stdout = open('/dev/null', 'w')
 
         from keras.models import load_model
-        model_location = phantoms[phantom_name]['keras_model']
+        model_location = phantoms[phantom_model]['keras_model']
         model = load_model(model_location)
-        keras_models[phantom_name] = model
+        keras_models[phantom_model] = model
 
         sys.stdout = stdout
 
-    return keras_models[phantom_name]
+    return keras_models[phantom_model]
 
 
-def remove_fps(points_ijk_unfiltered, voxels, voxel_spacing, phantom_name):
-    if phantom_name not in phantoms.paramaters:
-        logger.warn(f'Unable to remove false positives from unknown phantom type "{phantom_name}"')
+def remove_fps(points_ijk_unfiltered, voxels, voxel_spacing, phantom_model):
+    if phantom_model not in phantoms:
+        logger.warn(f'Unable to remove false positives from unknown phantom model "{phantom_model}"')
         return points_ijk_unfiltered
 
-    model = get_keras_model(phantom_name)
+    model = get_keras_model(phantom_model)
 
     num_points = points_ijk_unfiltered.shape[1]
     is_fp = np.zeros((num_points,), dtype=bool)

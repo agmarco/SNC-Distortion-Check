@@ -506,7 +506,7 @@ def raw_data(request, pk=None):
 def dump_raw_data(scan):
     voxels_path = os.path.join(settings.BASE_DIR, f'tmp/{uuid.uuid4()}.mat')
     voxels_data = {
-        'phantom_name': scan.phantom.model.model_number,
+        'phantom_model': scan.phantom.model.model_number,
         'modality': 'mri',
         'voxels': scan.dicom_series.voxels,
     }

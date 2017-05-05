@@ -11,8 +11,8 @@ if __name__ == '__main__':
     parser.add_argument('output', help='Output path to write m_s-file')
     args = parser.parse_args()
 
-    phantom_name = file_io.load_voxels(args.voxels)['phantom_name']
-    a_file = phantoms.paramaters[phantom_name]['points_file']
+    phantom_model = file_io.load_voxels(args.voxels)['phantom_model']
+    a_file = phantoms.paramaters[phantom_model]['points_file']
 
     cmd = ['./register', a_file, args.b, args.output]
     print(' '.join(cmd))

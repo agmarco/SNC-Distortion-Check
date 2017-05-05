@@ -62,14 +62,14 @@ class FeatureDetectionSuite(Suite):
 
         voxel_data = file_io.load_voxels(case_input['voxels'])
         voxels = voxel_data['voxels']
-        ijk_to_xyz = voxel_data['ijk_to_patient_xyz_transform']
+        ijk_to_xyz = voxel_data['ijk_to_xyz']
         voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
-        phantom_name = voxel_data['phantom_name']
+        phantom_model = voxel_data['phantom_model']
         modality = voxel_data['modality']
 
-        feature_detector = FeatureDetector(phantom_name, modality, voxels, ijk_to_xyz)
+        feature_detector = FeatureDetector(phantom_model, modality, voxels, ijk_to_xyz)
 
-        context['phantom_name'] = phantom_name
+        context['phantom_model'] = phantom_model
         context['label_image'] = feature_detector.label_image
         context['preprocessed_image'] = feature_detector.preprocessed_image
         context['feature_image'] = feature_detector.feature_image
@@ -79,7 +79,7 @@ class FeatureDetectionSuite(Suite):
         rho = lambda bmag: 3
         metrics['raw'], context['raw'] = self._process_points(golden_points, feature_detector.points_xyz, rho)
 
-        pruned_points_ijk = remove_fps(feature_detector.points_ijk, voxels, voxel_spacing, phantom_name)
+        pruned_points_ijk = remove_fps(feature_detector.points_ijk, voxels, voxel_spacing, phantom_model)
         pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
         metrics['pruned'], context['pruned'] = self._process_points(golden_points, pruned_points_xyz, rho)
 
@@ -166,8 +166,8 @@ class FeatureDetectionSuite(Suite):
 
         voxel_data = file_io.load_voxels(context['case_input']['voxels'])
         raw_voxels = voxel_data['voxels']
-        ijk_to_xyz = voxel_data['ijk_to_patient_xyz_transform']
-        phantom_name = voxel_data['phantom_name']
+        ijk_to_xyz = voxel_data['ijk_to_xyz']
+        phantom_model = voxel_data['phantom_model']
 
         kernel_big = np.zeros_like(raw_voxels)
         kernel_small = context['kernel']

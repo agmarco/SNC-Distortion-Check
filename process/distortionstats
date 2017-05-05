@@ -22,7 +22,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     voxel_data = file_io.load_voxels(args.voxels)
-    voxel_spacing = affine.voxel_spacing(voxel_data['ijk_to_patient_xyz_transform'])
+    voxel_spacing = affine.voxel_spacing(voxel_data['ijk_to_xyz'])
 
     distortion_mm = file_io.load_distortion(args.distortion)['distortion']
     magnitude_mm = np.linalg.norm(distortion_mm, axis=3)

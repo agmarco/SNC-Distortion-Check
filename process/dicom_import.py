@@ -90,7 +90,7 @@ def combine_slices(slice_datasets):
     validate_slices_form_uniform_grid(slice_datasets)
 
     voxels = merge_slice_pixel_arrays(slice_datasets)
-    transform = ijk_to_patient_xyz_transform_matrix(slice_datasets)
+    transform = ijk_to_xyz_matrix(slice_datasets)
 
     return voxels, transform
 
@@ -115,7 +115,7 @@ def merge_slice_pixel_arrays(slice_datasets):
     return voxels
 
 
-def ijk_to_patient_xyz_transform_matrix(slice_datasets):
+def ijk_to_xyz_matrix(slice_datasets):
     first_slice_dataset = _sort_by_slice_spacing(slice_datasets)[0]
     row_cosine, column_cosine, slice_cosine = _extract_cosines(first_slice_dataset.ImageOrientationPatient)
 

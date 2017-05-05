@@ -95,7 +95,7 @@ def load_case(case_voxels, case_points):
     print("loading {}".format(case_voxels))
     voxel_data = file_io.load_voxels(case_voxels)
     voxels = voxel_data['voxels']
-    ijk_to_xyz = voxel_data['ijk_to_patient_xyz_transform']
+    ijk_to_xyz = voxel_data['ijk_to_xyz']
     xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
     golden_points = file_io.load_points(case_points)['points']
     points_ijk = apply_affine(xyz_to_ijk, golden_points)

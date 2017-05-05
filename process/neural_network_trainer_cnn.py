@@ -69,7 +69,7 @@ def real_intersection_generator(train_or_validation, min_offset, offset_mag):
         case = random.choice(list(cases.values()))
         voxel_data = file_io.load_voxels(case['voxels'])
         voxels = voxel_data['voxels']
-        ijk_to_xyz = voxel_data['ijk_to_patient_xyz_transform']
+        ijk_to_xyz = voxel_data['ijk_to_xyz']
         xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
         voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
         golden_points = file_io.load_points(case['points'])['points']
@@ -88,7 +88,7 @@ def non_intersection_generator(min_dist_from_annotated=5, num_samples=1000):
         case = random.choice(list(cases.values()))
         voxel_data = file_io.load_voxels(case['voxels'])
         voxels = voxel_data['voxels']
-        ijk_to_xyz = voxel_data['ijk_to_patient_xyz_transform']
+        ijk_to_xyz = voxel_data['ijk_to_xyz']
         voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
         xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
         golden_points = file_io.load_points(case['points'])['points']

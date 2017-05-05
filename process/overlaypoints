@@ -16,7 +16,7 @@ if __name__ == '__main__':
 
     input_data = file_io.load_voxels(args.voxels)
     voxels = input_data['voxels']
-    ijk_to_xyz = input_data['ijk_to_patient_xyz_transform']
+    ijk_to_xyz = input_data['ijk_to_xyz']
 
     colors = itertools.cycle(["c", "g", "r", "y", "k"])
     descriptors = []

@@ -22,20 +22,20 @@ modality_grid_radius_factors = {
 
 
 class FeatureDetector:
-    def __init__(self, phantom_name, modality, image, ijk_to_xyz):
+    def __init__(self, phantom_model, modality, image, ijk_to_xyz):
         logger.info('starting feature detection')
         self.image = image.copy()
-        self.phantom_name = phantom_name
+        self.phantom_model = phantom_model
         self.modality = modality
 
         self.ijk_to_xyz = ijk_to_xyz
         self.voxel_spacing = affine.voxel_spacing(self.ijk_to_xyz)
 
-        actual_grid_radius = phantoms.paramaters[phantom_name]['grid_radius']
+        actual_grid_radius = phantoms.paramaters[phantom_model]['grid_radius']
         modality_grid_radius_factor = modality_grid_radius_factors[self.modality]
         self.grid_radius = actual_grid_radius*modality_grid_radius_factor
 
-        self.grid_spacing = phantoms.paramaters[phantom_name]['grid_spacing']
+        self.grid_spacing = phantoms.paramaters[phantom_model]['grid_spacing']
 
         logger.info('building kernel')
         self.kernel = self._build_kernel()

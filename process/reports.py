@@ -93,7 +93,7 @@ def roi_images(B, voxels, bounds_list):
     )
 
 
-def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_number, threshold, institution, machine_name, sequence_name, phantom_name, acquisition_date, full_report_path, executive_report_path):
+def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, threshold, institution, machine_name, sequence_name, phantom_name, acquisition_date, full_report_path, executive_report_path):
     """
     Given the set of matched and registered points, generate a NEMA report.
 
@@ -109,7 +109,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
     x_min, y_min, z_min = np.min(TP_A_S, axis=1)
     x_max, y_max, z_max = np.max(TP_A_S, axis=1)
 
-    grid_radius = phantoms.paramaters[phantom_model_number]['grid_radius']
+    grid_radius = phantoms.paramaters[phantom_model]['grid_radius']
     figsize = (8.5, 11)
 
     # TODO: use the correct isocenter (it is not at the geometric origin)
@@ -178,7 +178,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model_n
         # rc('text', usetex=True)
         ax2.text(0.1, 0.2, r"Machine: " + machine_name +
                  "\n" + r"Sequence: " + sequence_name +
-                 "\n" + r"Phantom: " + f"{phantom_name} - {phantom_model_number}" +
+                 "\n" + r"Phantom: " + f"{phantom_name} - {phantom_model}" +
                  "\n" + r"Scan Acquired On: " + acquisition_date.strftime("%B %-d, %Y"), size=16, color='w')
 
         plt.subplots_adjust(left=0, right=1, top=1, bottom=0)

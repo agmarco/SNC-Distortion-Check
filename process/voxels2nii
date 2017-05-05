@@ -16,5 +16,5 @@ if __name__ == '__main__':
 
     voxels_data = file_io.load_voxels(args.voxels)
 
-    nii_data = nib.Nifti1Image(voxels_data['voxels'], voxels_data['ijk_to_patient_xyz_transform'])
+    nii_data = nib.Nifti1Image(voxels_data['voxels'], voxels_data['ijk_to_xyz'])
     nib.save(nii_data, args.nii)
