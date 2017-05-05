@@ -25,7 +25,7 @@ def get_keras_model(phantom_model):
         sys.stdout = open('/dev/null', 'w')
 
         from keras.models import load_model
-        model_location = phantoms[phantom_model]['keras_model']
+        model_location = phantoms.paramaters[phantom_model]['keras_model']
         model = load_model(model_location)
         keras_models[phantom_model] = model
 
@@ -35,7 +35,7 @@ def get_keras_model(phantom_model):
 
 
 def remove_fps(points_ijk_unfiltered, voxels, voxel_spacing, phantom_model):
-    if phantom_model not in phantoms:
+    if phantom_model not in phantoms.paramaters:
         logger.warn(f'Unable to remove false positives from unknown phantom model "{phantom_model}"')
         return points_ijk_unfiltered
 

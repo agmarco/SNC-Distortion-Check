@@ -35,7 +35,7 @@ def process_scan(scan_pk):
     try:
         with transaction.atomic():
             modality = 'mri'
-            phantom_model = scan.phantom.model_number
+            phantom_model = scan.phantom.model.model_number
 
             # TODO: save condensed DICOM tags onto `dicom_series` on upload so
             # we don't need to load all the zip files just to get at the
@@ -50,7 +50,7 @@ def process_scan(scan_pk):
             voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
 
             feature_detector = FeatureDetector(
-                scan.phantom.model.model_number,
+                phantom_model,
                 modality,
                 voxels,
                 ijk_to_xyz,
