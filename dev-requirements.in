@@ -6,7 +6,6 @@ nbstripout
 honcho
 gitpython
 pylint
-factory_boy
 ipywidgets
 pyqt5
 tabulate
