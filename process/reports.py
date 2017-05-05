@@ -142,8 +142,8 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         ax2 = plt.subplot(gs[2])
         plt.axis('off')
         ax2.add_patch(patches.Rectangle((0, 0), 1, 1))
-        ax2.text(0.02, 0.46, f"{machine_name} / {sequence_name} / {acquisition_date.strftime('%B %-d, %Y')}", weight='bold', color='w', va='center', size=14)
-        ax2.text(0.98, 0.46, f"Page {next(get_page)}", weight='bold', color='w', va='center', ha='right', size=14)
+        ax2.text(0.02, 0.46, f"{machine_name} / {sequence_name} / {acquisition_date.strftime('%B %-d, %Y')}", weight='bold', color='w', va='center', size=12)
+        ax2.text(0.98, 0.46, f"Page {next(get_page)}", weight='bold', color='w', va='center', ha='right', size=12)
 
         plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
         return fig
@@ -380,7 +380,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
             ('w', 'w'),
             ('w', 'w'),
             ('w', 'w'),
-            ('w', 'w'),
+            ('w', 'w' if error_mag < threshold else 'tomato'),
         )
         ax.table(cellText=rows, cellColours=colors, loc='center')
         ax.axis('off')
