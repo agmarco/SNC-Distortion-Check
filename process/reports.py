@@ -472,7 +472,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
 
 def save_then_close_figure(pdf, figure):
     pdf.savefig(figure)
-    plt.close(figure)
+    plt.close('all')
 
 
 def generate_cube(size, spacing=1, x0=0):
