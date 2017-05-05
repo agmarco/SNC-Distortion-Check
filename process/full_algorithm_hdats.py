@@ -4,8 +4,8 @@ import numpy as np
 from scipy.interpolate.interpnd import LinearNDInterpolator
 import matplotlib.pyplot as plt
 
-
 from . import points_utils
+from .visualization import scatter3
 from .interpolate import interpolate_distortion
 from hdatt.suite import Suite
 from . import slicer
@@ -23,8 +23,14 @@ class FullAlgorithmSuite(Suite):
 
     def collect(self):
         return {
-            'demo': {
+            '006': {
                 'dicom': 'data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip',
+                'golden_points': 'data/points/603A.mat',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
+            'yyy_t1_ND': {
+                'dicom': 'data/dicom/yyy_mri_603A_t1_vibe_tra_FS_ND.zip',
                 'golden_points': 'data/points/603A.mat',
                 'modality': 'mri',
                 'phantom_model': '603A',
@@ -150,4 +156,13 @@ class FullAlgorithmSuite(Suite):
         s.add_renderer(slicer.render_legend)
         s.add_renderer(slicer.render_overlay(distortion_magnitude, cmap='cool', alpha=0.8))
         s.draw()
+        plt.show()
+
+        scatter3({
+            'A': context['A'],
+            'FN_A_S': context['FN_A_S'],
+            'TP_A_S': context['TP_A_S'],
+            'TP_B': context['TP_B'],
+            'FP_B': context['FP_B'],
+        })
         plt.show()
