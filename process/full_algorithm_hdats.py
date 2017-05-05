@@ -103,14 +103,6 @@ class FullAlgorithmSuite(Suite):
 
         descriptors = [
             {
-                'points_xyz': context['A'],
-                'scatter_kwargs': {
-                    'color': 'b',
-                    'label': 'A',
-                    'marker': 'o'
-                }
-            },
-            {
                 'points_xyz': context['TP_B'],
                 'scatter_kwargs': {
                     'color': 'm',
@@ -159,7 +151,6 @@ class FullAlgorithmSuite(Suite):
         plt.show()
 
         scatter3({
-            'A': context['A'],
             'FN_A_S': context['FN_A_S'],
             'TP_A_S': context['TP_A_S'],
             'TP_B': context['TP_B'],
