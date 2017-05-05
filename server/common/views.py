@@ -299,7 +299,7 @@ class DicomOverlay(FormView):
     def form_valid(self, form):
         GRID_DENSITY_mm = 1
         DISTORTION_SCALE = 1000
-        BLUR_SIGMA = 5
+        BLUR_SIGMA = 3
         ds = self.get_context_data()['scan'].dicom_series
         ijk_to_xyz = ds.ijk_to_xyz
         coord_min_xyz, coord_max_xyz = apply_affine(ijk_to_xyz, np.array([(0.0,0.0,0.0), ds.shape]).T).T
@@ -310,10 +310,9 @@ class DicomOverlay(FormView):
                                              np.arange(coord_min_xyz[2], coord_max_xyz[2], GRID_DENSITY_mm))
         logger.info("Gridding data for overlay generation.")
         gridded = griddata(TP_A.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
-        gridded[np.isnan(gridded)] = 0
         gridded *= DISTORTION_SCALE  # rescale so it looks a bit better
-
         gridded = scipy.ndimage.filters.gaussian_filter(gridded, BLUR_SIGMA) # TODO: remove this once we fix interpolation
+        gridded[np.isnan(gridded)] = 0
         output_dir = tempfile.mkdtemp()
         logger.info("Exporting overlay to dicoms.")
         export_overlay(
