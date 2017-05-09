@@ -12,7 +12,6 @@ import matplotlib.image as mpimg
 from django.conf import settings
 from matplotlib import colors
 from matplotlib import gridspec
-from matplotlib import rc
 import matplotlib.patches as patches
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy.interpolate.interpnd import LinearNDInterpolator
@@ -72,20 +71,20 @@ def fill_image(image, voxels, bounds_list, vmax):
     max_a, max_b = tuple(n for i, n in enumerate(voxels.shape) if type(bounds_list[i]) != int)
 
     if bounds_a[0] < 0:
-        overflow = np.full((0 - bounds_a[0], image.shape[1]), vmax, dtype=float)
-        image = np.vstack((overflow, image))
+        border = np.full((0 - bounds_a[0], image.shape[1]), vmax, dtype=float)
+        image = np.vstack((border, image))
 
     if bounds_a[1] > max_a:
-        overflow = np.full((bounds_a[1] - max_a, image.shape[1]), vmax, dtype=float)
-        image = np.vstack((image, overflow))
+        border = np.full((bounds_a[1] - max_a, image.shape[1]), vmax, dtype=float)
+        image = np.vstack((image, border))
 
     if bounds_b[0] < 0:
-        overflow = np.full((image.shape[0], 0 - bounds_b[0]), vmax, dtype=float)
-        image = np.hstack((overflow, image))
+        border = np.full((image.shape[0], 0 - bounds_b[0]), vmax, dtype=float)
+        image = np.hstack((border, image))
 
     if bounds_b[1] > max_b:
-        overflow = np.full((image.shape[0], bounds_b[1] - max_b), vmax, dtype=float)
-        image = np.hstack((image, overflow))
+        border = np.full((image.shape[0], bounds_b[1] - max_b), vmax, dtype=float)
+        image = np.hstack((image, border))
 
     return image
 
@@ -135,6 +134,9 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
     # TODO: use the correct isocenter (it is not at the geometric origin)
     isocenter = (np.mean([x_min, x_max]), np.mean([y_min, y_max]), np.mean([z_min, z_max]))
 
+    brand_color = (0, 95, 152)
+    brand_color = tuple(c / 255 for c in brand_color)
+
     def create_page(pdf, report_title, get_page, draw):
         fig = plt.figure(figsize=figsize)
         plt.axis('off')
@@ -143,13 +145,15 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
 
         ax0 = plt.subplot(gs[0])
         plt.axis('off')
-        ax0.add_patch(patches.Rectangle((0, 0), 1, 1))
+        ax0.add_patch(patches.Rectangle((0, 0), 1, 1, color=brand_color))
+
         im = mpimg.imread(os.path.join(settings.BASE_DIR, 'client/src/base/logo_header.png'))
         im_width = 0.1
         im_height = im_width * 210 / 807
         x_bounds = [0, im_width]
         y_bounds = [0, im_height]
         # ax0.imshow(im, extent=[*x_bounds, *y_bounds])
+
         ax0.text(0.02, 0.46, "CIRS Distortion Check", weight='bold', color='w', va='center', size=18)
         ax0.text(0.98, 0.46, report_title, weight='bold', color='w', va='center', ha='right', size=18)
 
@@ -163,7 +167,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
 
         ax2 = plt.subplot(gs[2])
         plt.axis('off')
-        ax2.add_patch(patches.Rectangle((0, 0), 1, 1))
+        ax2.add_patch(patches.Rectangle((0, 0), 1, 1, color=brand_color))
         t = f"{machine_name} / {sequence_name} / {acquisition_date.strftime('%B %-d, %Y')}"
         ax2.text(0.02, 0.46, t, weight='bold', color='w', va='center', size=12)
         ax2.text(0.98, 0.46, f"Page {next(get_page)}", weight='bold', color='w', va='center', ha='right', size=12)
@@ -179,12 +183,13 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
 
         ax0 = plt.subplot(gs[0])
         plt.axis('off')
-        ax0.add_patch(patches.Rectangle((0, 0), 1, 1))
+        ax0.add_patch(patches.Rectangle((0, 0), 1, 1, color=brand_color))
 
         ax1 = plt.subplot(gs[1])
         ax1.set_xlim([0, 1])
         ax1.set_ylim([0, 1])
         plt.axis('off')
+
         im = mpimg.imread(os.path.join(settings.BASE_DIR, 'client/src/login/logo.png'))
         im_width = 0.7
         im_height = im_width * 499 / 1275
@@ -192,14 +197,12 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         x_bounds = [center[0] - im_width / 2, center[0] + im_width / 2]
         y_bounds = [center[1] - im_height / 2, center[1] + im_height / 2]
         ax1.imshow(im, extent=[*x_bounds, *y_bounds])
-        color = (0, 95, 152)
-        color = tuple(c / 255 for c in color)
-        ax1.text(0.5, 0.2, report_title, size=24, ha='center', weight='bold', color=color)
+
+        ax1.text(0.5, 0.2, report_title, size=24, ha='center', weight='bold', color=brand_color)
 
         ax2 = plt.subplot(gs[2])
         plt.axis('off')
-        ax2.add_patch(patches.Rectangle((0, 0), 1, 1))
-        # rc('text', usetex=True)
+        ax2.add_patch(patches.Rectangle((0, 0), 1, 1, color=brand_color))
         ax2.text(0.1, 0.2, r"Machine: " + machine_name +
                  "\n" + r"Sequence: " + sequence_name +
                  "\n" + r"Phantom: " + f"{phantom_name} - {phantom_model}" +
