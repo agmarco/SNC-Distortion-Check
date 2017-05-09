@@ -129,7 +129,9 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
     x_max, y_max, z_max = np.max(TP_A_S, axis=1)
 
     grid_radius = phantoms.paramaters[phantom_model]['grid_radius']
-    figsize = (8.5, 11)
+    fig_width = 8.5
+    fig_height = 11
+    figsize = (fig_width, fig_height)
 
     # TODO: use the correct isocenter (it is not at the geometric origin)
     isocenter = (np.mean([x_min, x_max]), np.mean([y_min, y_max]), np.mean([z_min, z_max]))
@@ -141,21 +143,28 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         fig = plt.figure(figsize=figsize)
         plt.axis('off')
 
-        gs = gridspec.GridSpec(3, 1, height_ratios=[1, 20, 1])
+        gs_ratios = [1, 20, 1]
+        gs = gridspec.GridSpec(3, 1, height_ratios=gs_ratios)
+
+        ax0_width = fig_width * (sum(gs_ratios) + 3) / fig_height
 
         ax0 = plt.subplot(gs[0])
         plt.axis('off')
-        ax0.add_patch(patches.Rectangle((0, 0), 1, 1, color=brand_color))
+        ax0.set_xlim([0, ax0_width])
+        ax0.set_ylim([0, 1])
+        ax0.add_patch(patches.Rectangle((0, 0), ax0_width, 1, color=brand_color, zorder=0))
 
         im = mpimg.imread(os.path.join(settings.BASE_DIR, 'client/src/base/logo_header.png'))
-        im_width = 0.1
-        im_height = im_width * 210 / 807
-        x_bounds = [0, im_width]
-        y_bounds = [0, im_height]
-        # ax0.imshow(im, extent=[*x_bounds, *y_bounds])
+        im_height = 0.5
+        im_width = im_height * 807 / 210
+        margin = (1 - im_height) / 2
+        x_bounds = [margin, im_width + margin]
+        y_bounds = [margin, im_height + margin]
+        ax0.imshow(im, extent=[*x_bounds, *y_bounds], zorder=1)
 
-        ax0.text(0.02, 0.46, "CIRS Distortion Check", weight='bold', color='w', va='center', size=18)
-        ax0.text(0.98, 0.46, report_title, weight='bold', color='w', va='center', ha='right', size=18)
+        # TODO swap out logo with SVG containing "CIRS Distortion Check"
+        ax0.text(2.4, 0.46, "Distortion Check", weight='bold', color='w', va='center', size=18)
+        ax0.text(0.98 * ax0_width, 0.46, report_title, weight='bold', color='w', va='center', ha='right', size=18)
 
         # TODO figure out better way to add padding
         gs_inner = gridspec.GridSpecFromSubplotSpec(3, 3,
