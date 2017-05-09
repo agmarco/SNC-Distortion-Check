@@ -57,4 +57,4 @@ def allowed_access(client, url, method, data):
 
 
 def denied_access(client, url, method, data):
-    return getattr(client, method.lower())(url, data).status_code == 403
+    return getattr(client, method.lower())(url, data).status_code in (403, 405)

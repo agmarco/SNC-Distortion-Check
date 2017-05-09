@@ -40,6 +40,7 @@ export interface IScanDTO {
     delete_url: string;
     dicom_overlay_url: string;
     raw_data_url: string;
+    refresh_url: string;
     full_report_url: string | null;
     executive_report_url: string | null;
     error_mags: number[] | null;

@@ -60,7 +60,7 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
         } else {
             return [
                 <td key={0} className="action">
-                    <a href="#"><i className="fa fa-refresh" aria-hidden="true" /></a>
+                    <a href={scan.refresh_url}><i className="fa fa-refresh" aria-hidden="true" /></a>
                 </td>,
                 <td key={1} className="action">
                     <a href={scan.dicom_overlay_url}>DICOM Overlay</a>

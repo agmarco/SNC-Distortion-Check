@@ -114,6 +114,20 @@ def dicom_overlay_data(user):
     }
 
 
+def refresh_scan_data(user):
+    machine = factories.MachineFactory(institution=user.institution)
+    sequence = factories.SequenceFactory(institution=user.institution)
+    machine_sequence_pair = factories.MachineSequencePairFactory(machine=machine, sequence=sequence)
+    scan = factories.ScanFactory(
+        creator=user,
+        machine_sequence_pair=machine_sequence_pair,
+        tolerance=2,
+    )
+    return {
+        'scan': scan,
+    }
+
+
 def update_tolerance_data(user):
     machine = factories.MachineFactory(institution=user.institution)
     sequence = factories.SequenceFactory(institution=user.institution)
@@ -137,7 +151,7 @@ def raw_data_data(user):
         'scan': scan,
     }
 
-    
+
 VIEWS = (
     {
         'view': views.landing,
@@ -378,6 +392,14 @@ VIEWS = (
             'pk': data['machine_sequence_pair'].pk,
             'tolerance': 1,
         }},
+    }, {
+        'view': views.refresh_scan,
+        'data': refresh_scan_data,
+        'url': lambda data: reverse('refresh_scan', args=(data['scan'].pk,)),
+        'login_required': True,
+        'permissions': ('common.configuration',),
+        'validate_institution': True,
+        'methods': {'POST': None},
     }, {
         'view': views.terms_of_use,
         'url': reverse('terms_of_use'),

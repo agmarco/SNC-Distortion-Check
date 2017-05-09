@@ -58,6 +58,7 @@ export const scanFixture = (phantom?: IPhantomDTO): IScanDTO => {
         delete_url: `/scans/${pk}/delete/`,
         dicom_overlay_url: `/scans/${pk}/dicom-overlay/`,
         raw_data_url: `/scans/${pk}/raw-data/`,
+        refresh_url: `/scans/${pk}/refresh/`,
         full_report_url: null,
         executive_report_url: null,
         error_mags: [],

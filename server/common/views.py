@@ -12,7 +12,7 @@ from dicom.UID import generate_uid
 from dicom.dataset import Dataset, FileDataset
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseNotAllowed
 from django.urls import reverse, reverse_lazy
 from django.utils import formats
 from django.utils.functional import cached_property
@@ -675,3 +675,17 @@ def terms_of_use(request):
 
 def privacy_policy(request):
     return render(request, 'common/privacy_policy.html')
+
+
+@login_and_permission_required('common.configuration')
+@validate_institution(model_class=models.Scan)
+def refresh_scan(request, pk=None):
+    if request.method == 'POST':
+        scan = get_object_or_404(models.Scan, pk=pk)
+        scan.processing = True
+        scan.save()
+        process_scan.delay(scan.pk)
+        messages.success(request, "Your scan is processing.")
+        return redirect('machine_sequence_detail', scan.machine_sequence_pair.pk)
+    else:
+        return HttpResponseNotAllowed(['GET'])
