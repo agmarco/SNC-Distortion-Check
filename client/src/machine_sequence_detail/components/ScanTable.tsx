@@ -3,7 +3,7 @@ import format from 'date-fns/format';
 import uniqBy from 'lodash/uniqBy';
 
 import { IScanDTO, IPhantomDTO } from 'common/service';
-import { BoolIcon } from 'common/components';
+import { BoolIcon, CSRFToken } from 'common/components';
 
 import './ScanTable.scss';
 
@@ -18,6 +18,8 @@ export interface IScanTableState {
 }
 
 export default class extends React.Component<IScanTableProps, IScanTableState> {
+    refreshScanForm: HTMLFormElement;
+
     constructor(props: IScanTableProps) {
         super();
 
@@ -44,6 +46,10 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
         this.setState({phantomFilterValue: value === 'all' ? value : Number(value)});
     }
 
+    handleRefreshScanSubmit(event: React.FormEvent<HTMLAnchorElement>) {
+        this.refreshScanForm.submit();
+    }
+
     // TODO hook up executive report
     renderScanActions(scan: IScanDTO) {
         if (scan.processing) {
@@ -60,7 +66,12 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
         } else {
             return [
                 <td key={0} className="action">
-                    <a href={scan.refresh_url}><i className="fa fa-refresh" aria-hidden="true" /></a>
+                    <form action={scan.refresh_url} method="post" ref={(e) => this.refreshScanForm = e}>
+                        <CSRFToken />
+                        <a href="javascript:void(0)" onClick={this.handleRefreshScanSubmit.bind(this)}>
+                            <i className="fa fa-refresh" aria-hidden="true" />
+                        </a>
+                    </form>
                 </td>,
                 <td key={1} className="action">
                     <a href={scan.dicom_overlay_url}>DICOM Overlay</a>
