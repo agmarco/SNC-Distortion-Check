@@ -105,12 +105,10 @@ form {
       align-items: center;
 
       .logo {
-        font-size: 0;
-        background: url(./logo_header.png) no-repeat;
-        height: 20px;
-        width: 807px / 210px * 20px;
-        background-size: contain;
-        margin-right: 8px;
+        font-size: 0;  // hide the text (kept for accessibility)
+        background: url(../images/logo-horizontal.svg) no-repeat;
+        height: 31px;  // from logo-horizonta.svg
+        width: 447px;  // from logo-horizonta.svg
       }
     }
   }
