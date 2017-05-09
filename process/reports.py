@@ -406,12 +406,12 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
 
     def generate_roi_table(ax, A_S, B, error_vec, error_mag):
         rows = (
-            ('actual [mm]', f'({str(round(A_S[0], 3))}, {str(round(A_S[1], 3))}, {str(round(A_S[2], 3))})'),
-            ('detected [mm]', f'({str(round(B[0], 3))}, {str(round(B[1], 3))}, {str(round(B[2], 3))})'),
-            ('x [mm]', f'{str(round(error_vec[0], 3))}'),
-            ('y [mm]', f'{str(round(error_vec[1], 3))}'),
-            ('z [mm]', f'{str(round(error_vec[2], 3))}'),
-            ('magnitude [mm]', f'{str(round(error_mag, 3))}'),
+            ('actual [mm]', ', '.join(str(round(a, 3)) for a in A_S)),
+            ('detected [mm]', ', '.join(str(round(b, 3)) for b in B)),
+            ('x [mm]', str(round(error_vec[0], 3))),
+            ('y [mm]', str(round(error_vec[1], 3))),
+            ('z [mm]', str(round(error_vec[2], 3))),
+            ('magnitude [mm]', str(round(error_mag, 3))),
         )
         colors = (
             ('coral', 'w'),
@@ -436,18 +436,18 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         for i, (A_S, B, error_vec, error_mag) in enumerate(chunk):
             B_ijk = apply_affine(xyz_to_ijk, np.array([B]).T).T.squeeze()
             shape = roi_shape(grid_radius, voxel_spacing(ijk_to_xyz))
-            bounds = roi_bounds(B, shape)
+            bounds_xyz = roi_bounds(B, shape)
             bounds_ijk = roi_bounds(B_ijk, shape)
             axial, sagittal, coronal = roi_images(B_ijk, voxels, bounds_ijk, vmax)
 
             ax0 = plt.subplot(gs[i, 0])
-            generate_roi_view(ax0, axial, bounds[0], bounds[1], (A_S[0], A_S[1]), (B[0], B[1]), vmin, vmax)
+            generate_roi_view(ax0, axial, bounds_xyz[0], bounds_xyz[1], (A_S[0], A_S[1]), (B[0], B[1]), vmin, vmax)
 
             ax1 = plt.subplot(gs[i, 1])
-            generate_roi_view(ax1, sagittal, bounds[0], bounds[2], (A_S[0], A_S[2]), (B[0], B[2]), vmin, vmax)
+            generate_roi_view(ax1, sagittal, bounds_xyz[0], bounds_xyz[2], (A_S[0], A_S[2]), (B[0], B[2]), vmin, vmax)
 
             ax2 = plt.subplot(gs[i, 2])
-            generate_roi_view(ax2, coronal, bounds[1], bounds[2], (A_S[1], A_S[2]), (B[1], B[2]), vmin, vmax)
+            generate_roi_view(ax2, coronal, bounds_xyz[1], bounds_xyz[2], (A_S[1], A_S[2]), (B[1], B[2]), vmin, vmax)
 
             ax3 = plt.subplot(gs[i, 3])
             generate_roi_table(ax3, A_S, B, error_vec, error_mag)
@@ -567,4 +567,5 @@ if __name__ == '__main__':
         address = "3101 Wyman Park Dr.\nBaltimore, MD 21211"
         phone_number = "555-555-5555"
 
-    generate_reports(A, B, datasets, voxels, ijk_to_xyz, '603A', 2.5, Institution, 'Machine A', 'Sequence A', 'Phantom A', datetime.now(), 'tmp/full_report.pdf', 'tmp/executive_report.pdf')
+    generate_reports(A, B, datasets, voxels, ijk_to_xyz, '603A', 2.5, Institution, 'Machine A', 'Sequence A', 'Phantom A',
+                     datetime.now(), 'tmp/full_report.pdf', 'tmp/executive_report.pdf')
