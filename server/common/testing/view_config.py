@@ -362,7 +362,7 @@ VIEWS = (
     }, {
         'view': api.ValidateSerial,
         'data': lambda user: {'phantom': factories.PhantomFactory(serial_number='A123')},
-        'url': lambda data: reverse('validate_serial'),
+        'url': reverse('validate_serial'),
         'login_required': True,
         'permissions': ('common.configuration',),
         'validate_institution': False,
@@ -370,7 +370,7 @@ VIEWS = (
     }, {
         'view': api.UpdateTolerance,
         'data': update_tolerance_data,
-        'url': lambda data: reverse('update_tolerance'),
+        'url': reverse('update_tolerance'),
         'login_required': True,
         'permissions': ('common.configuration',),
         'validate_institution': True,
@@ -380,14 +380,14 @@ VIEWS = (
         }},
     }, {
         'view': views.terms_of_use,
-        'url': lambda data: reverse('terms_of_use'),
+        'url': reverse('terms_of_use'),
         'login_required': False,
         'permissions': (),
         'validate_institution': False,
         'methods': {'GET': None},
     }, {
         'view': views.privacy_policy,
-        'url': lambda data: reverse('privacy_policy'),
+        'url': reverse('privacy_policy'),
         'login_required': False,
         'permissions': (),
         'validate_institution': False,
