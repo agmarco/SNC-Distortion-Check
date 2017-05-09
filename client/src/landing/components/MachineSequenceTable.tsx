@@ -19,6 +19,12 @@ export interface IMachineSequenceTableState {
     sequenceFilterValue: 'all' | number;
 }
 
+const acquisitionDateHelp = 'The acquisition date for the latest scan on this particular machine and scan sequence.';
+const latestScanFailHelp = 'The maximum distortion detected on this machine/sequence combination\'s most recent scan ' +
+    'was outside the allowed tolerance.';
+const latestScanPassHelp = 'The maximum distortion detected on this machine/sequence combination\'s most recent scan ' +
+   ' was within the allowed tolerance.';
+
 export default class extends React.Component<IMachineSequenceTableProps, IMachineSequenceTableState> {
     constructor(props: IMachineSequenceTableProps) {
         super();
@@ -89,7 +95,7 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
                             <th>Machine</th>
                             <th>Sequence</th>
                             <th>Date of Latest Scan</th>
-                            <th>Latest Scan Within Tolerance?</th>
+                            <th title={acquisitionDateHelp}>Latest Scan Within Tolerance?</th>
                             <th className="sep" />
                             <th>Actions</th>
                         </tr>
@@ -99,11 +105,14 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
                             <tr key={pair.pk} className={i % 2 === 0 ? 'a' : 'b'}>
                                 <td>{pair.machine.name}</td>
                                 <td>{pair.sequence.name}</td>
-                                <td>
+                                <td title={acquisitionDateHelp}>
                                     {pair.latest_scan_date && format(new Date(pair.latest_scan_date), 'MMMM D, YYYY')}
                                 </td>
                                 <td>
-                                    {pair.latest_scan_passed !== null && <BoolIcon value={pair.latest_scan_passed} />}
+                                    {pair.latest_scan_passed !== null && <BoolIcon
+                                        value={pair.latest_scan_passed}
+                                        title={pair.latest_scan_passed ? latestScanPassHelp : latestScanFailHelp}
+                                    />}
                                 </td>
                                 <td className="sep" />
                                 <td className="action"><a href={pair.detail_url}>View Details</a></td>
