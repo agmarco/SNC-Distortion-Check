@@ -4,6 +4,9 @@ from . import views
 from . import api
 
 urlpatterns = [
+    url(r'^terms-of-use/', views.terms_of_use, name='terms_of_use'),
+    url(r'^privacy-policy/', views.privacy_policy, name='privacy_policy'),
+
     url(r'^api/', include([
         url(r'^validate-serial/$', api.ValidateSerial.as_view(), name='validate_serial'),
         url(r'^update-tolerance/$', api.UpdateTolerance.as_view(), name='update_tolerance'),
