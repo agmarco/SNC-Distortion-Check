@@ -245,6 +245,16 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
     def draw_data_acquisition_table(ax, cell):
         dataset = datasets[0]
         voxel_dims = voxel_spacing(ijk_to_xyz)
+
+        data_acquisition_matrix_size = None
+        if dataset.AcquisitionMatrix:
+            a, b = dataset.AcquisitionMatrix[:2], dataset.AcquisitionMatrix[2:]
+            if all(x == 0 for x in a) or all(x != 0 for x in a):
+                raise ValueError("The first 2 numbers in the AcquisitionMatrix must contain one zero and one non-zero value.")
+            if all(x == 0 for x in b) or all(x != 0 for x in b):
+                raise ValueError("The second 2 numbers in the AcquisitionMatrix must contain one zero and one non-zero value.")
+            data_acquisition_matrix_size = (str(max(a)), str(max(b)))
+
         rows = [
             (r'Phantom filler T$_1$', ''),
             (r'Phantom filler T$_2$', ''),
@@ -255,8 +265,8 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
             ('Sequence repetition time (TR)', f'{dataset.RepetitionTime} ms'),
             ('Echo delay time (TE)', f'{dataset.EchoTime} ms'),
             ('Number of signals averaged (NSA)', dataset.NumberOfAverages),
-            ('Data acquisition matrix size', ', '.join([str(i) for i in dataset.AcquisitionMatrix])),
-            ('Image matrix size', ' x '.join([str(n) for n in voxels.shape])),
+            ('Data acquisition matrix size', ' x '.join(data_acquisition_matrix_size) if data_acquisition_matrix_size else 'unknown'),
+            ('Image matrix size', ' x '.join([str(n) for n in voxels.shape[:2]])),
             ('Field of view size', ' x '.join([f'{n * x} mm' for n, x in zip(voxels.shape, voxel_dims)])),
             ('Type of acquisition', dataset.MRAcquisitionType),
             ('Number of slices', len(datasets)),
