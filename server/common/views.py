@@ -6,10 +6,10 @@ import zipfile
 import logging
 from datetime import datetime
 import time
+
 import dicom
 from dicom.UID import generate_uid
 from dicom.dataset import Dataset, FileDataset
-from process.affine import apply_affine
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import HttpResponseRedirect
@@ -18,7 +18,7 @@ from django.utils import formats
 from django.utils.functional import cached_property
 from django.views.generic import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404, render_to_response
 from django.conf import settings
 from rest_framework.renderers import JSONRenderer
 
@@ -28,6 +28,7 @@ from scipy.interpolate.ndgriddata import griddata
 import scipy.ndimage.filters
 
 from process import dicom_import
+from process.affine import apply_affine
 from process.file_io import save_voxels
 from . import models
 from . import serializers
@@ -666,3 +667,11 @@ def dump_raw_data(scan):
             zf.writestr(zip_path, stream.getvalue())
 
     return s
+
+
+def terms_of_use(request):
+    return render_to_response('common/terms_of_use.html')
+
+
+def privacy_policy(request):
+    return render_to_response('common/privacy_policy.html')

@@ -15,13 +15,13 @@ from ..models import Phantom, GoldenFiducials, Machine, Sequence, User
 #     (3) a dict containing the POST data for the request. This can also be a function that returns a dict, in which
 #         case it will receive the data specified by the 'data' key as an argument.
 # 'url': the url for the view. This can also be a function that receives the data specified by the 'data' key and
-# returns the url.
+#     returns the url.
 # 'login_required': a boolean representing whether the user must be authenticated.
 # 'permissions': a list of permissions that are required to access the view.
 # 'validate_institution': a boolean representing whether the user's institution must be validated against the view.
 # 'methods': a dict containing as keys the HTTP methods that should be tested, and as values the GET or POST data to
-# send with the request. The values may also be functions that receive the data specified by the 'data' key and return
-# the GET or POST data.
+#     send with the request. The values may also be functions that receive the data specified by the 'data' key and return
+#     the GET or POST data.
 
 
 class Crud:
@@ -362,7 +362,7 @@ VIEWS = (
     }, {
         'view': api.ValidateSerial,
         'data': lambda user: {'phantom': factories.PhantomFactory(serial_number='A123')},
-        'url': lambda data: reverse('validate_serial'),
+        'url': reverse('validate_serial'),
         'login_required': True,
         'permissions': ('common.configuration',),
         'validate_institution': False,
@@ -370,7 +370,7 @@ VIEWS = (
     }, {
         'view': api.UpdateTolerance,
         'data': update_tolerance_data,
-        'url': lambda data: reverse('update_tolerance'),
+        'url': reverse('update_tolerance'),
         'login_required': True,
         'permissions': ('common.configuration',),
         'validate_institution': True,
@@ -378,5 +378,19 @@ VIEWS = (
             'pk': data['machine_sequence_pair'].pk,
             'tolerance': 1,
         }},
+    }, {
+        'view': views.terms_of_use,
+        'url': reverse('terms_of_use'),
+        'login_required': False,
+        'permissions': (),
+        'validate_institution': False,
+        'methods': {'GET': None},
+    }, {
+        'view': views.privacy_policy,
+        'url': reverse('privacy_policy'),
+        'login_required': False,
+        'permissions': (),
+        'validate_institution': False,
+        'methods': {'GET': None},
     },
 )

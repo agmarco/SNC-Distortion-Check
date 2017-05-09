@@ -1,6 +1,6 @@
-import pytest
 from urllib.parse import urlparse
 
+import pytest
 from django.contrib.auth.models import Permission
 from django.urls import RegexURLPattern, reverse
 from django.urls import RegexURLResolver
@@ -11,6 +11,27 @@ from ..urls import urlpatterns
 from .view_config import VIEWS, Crud
 from .utils import validate_create_view, validate_update_view, validate_delete_view, allowed_access, denied_access
 from .fixtures import permissions_data, institution_data
+
+
+def _view_data(view, user):
+    if 'data' in view:
+        return view['data'](user)
+    else:
+        return None
+
+
+def _url(view, view_data=None):
+    if callable(view['url']):
+        return view['url'](view_data)
+    else:
+        return view['url']
+
+
+def _methods(view, view_data=None):
+    for method, method_data in view['methods'].items():
+        if callable(method_data):
+            method_data = method_data(view_data)
+        yield method, method_data
 
 
 def _get_view_names_from_urlpatterns(url_patterns):
@@ -33,6 +54,19 @@ def test_regression():
     assert view_names == tested_view_names, f"The following views are not tested: {view_names - tested_view_names}"
 
 
+@pytest.mark.parametrize('view', (view for view in VIEWS if not view['login_required']))
+@pytest.mark.django_db
+def test_login_not_required(client, view):
+    """
+    For each public page, assert that visiting the view results in a 200.
+    """
+    url = _url(view)
+
+    for method, method_data in _methods(view):
+        response = getattr(client, method.lower())(url, method_data)
+        assert response.status_code == 200
+
+
 @pytest.mark.parametrize('view', (view for view in VIEWS if view['login_required']))
 @pytest.mark.django_db
 def test_login_required(client, view):
@@ -44,24 +78,18 @@ def test_login_required(client, view):
     johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
     current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
-    view_data = view['data'](current_user) if 'data' in view else None
-    url = view['url'](view_data) if callable(view['url']) else view['url']
+    view_data = _view_data(view, current_user)
+    url = _url(view, view_data)
 
-    for method, method_data in view['methods'].items():
-        if callable(method_data):
-            method_data = method_data(view_data)
-
-        res = getattr(client, method.lower())(url, method_data)
-        if res.status_code == 302:
-            assert urlparse(res['Location']).path == reverse(settings.LOGIN_URL)
+    for method, method_data in _methods(view, view_data):
+        response = getattr(client, method.lower())(url, method_data)
+        if response.status_code == 302:
+            assert urlparse(response['Location']).path == reverse(settings.LOGIN_URL)
         else:
-            assert res.status_code == 403
+            assert response.status_code == 403
 
     client.force_login(current_user)
-    for method, method_data in view['methods'].items():
-        if callable(method_data):
-            method_data = method_data(view_data)
-
+    for method, method_data in _methods(view, view_data):
         assert allowed_access(client, url, method, method_data)
 
 
@@ -73,20 +101,16 @@ def test_permissions(client, permissions_data, view):
     """
 
     current_user = permissions_data['current_user']
-    view_data = view['data'](current_user) if 'data' in view else None
-    url = view['url'](view_data) if callable(view['url']) else view['url']
+    view_data = _view_data(view, current_user)
+    url = _url(view, view_data)
 
     client.force_login(current_user)
 
     if all(current_user.has_perm(permission) for permission in view['permissions']):
-        for method, method_data in view['methods'].items():
-            if callable(method_data):
-                method_data = method_data(view_data)
+        for method, method_data in _methods(view, view_data):
             assert allowed_access(client, url, method, method_data)
     else:
-        for method, method_data in view['methods'].items():
-            if callable(method_data):
-                method_data = method_data(view_data)
+        for method, method_data in _methods(view, view_data):
             assert denied_access(client, url, method, method_data)
 
 
@@ -98,15 +122,13 @@ def test_institution(client, institution_data, view):
     """
 
     current_user = institution_data['current_user']
-    view_data = view['data'](current_user) if 'data' in view else None
-    url = view['url'](view_data) if callable(view['url']) else view['url']
+    view_data = _view_data(view, current_user)
+    url = _url(view, view_data)
 
     client.force_login(current_user)
 
     if current_user.institution == institution_data['institution']:
-        for method, method_data in view['methods'].items():
-            if callable(method_data):
-                method_data = method_data(view_data)
+        for method, method_data in _methods(view, view_data):
             assert allowed_access(client, url, method, method_data)
     else:
         new_user = factories.UserFactory.create(
@@ -115,9 +137,7 @@ def test_institution(client, institution_data, view):
             groups=current_user.groups.all(),
         )
         client.force_login(new_user)
-        for method, method_data in view['methods'].items():
-            if callable(method_data):
-                method_data = method_data(view_data)
+        for method, method_data in _methods(view, view_data):
             assert denied_access(client, url, method, method_data)
 
 
@@ -135,8 +155,8 @@ def test_crud(client, view):
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
     current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
 
-    view_data = view['data'](current_user) if 'data' in view else None
-    url = view['url'](view_data) if callable(view['url']) else view['url']
+    view_data = _view_data(view, current_user)
+    url = _url(view, view_data)
     operation, model, _ = view['crud']
     post_data = view['crud'][2](view_data) if callable(view['crud'][2]) else view['crud'][2]
 
