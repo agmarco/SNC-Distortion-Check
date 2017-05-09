@@ -18,7 +18,7 @@ from django.utils import formats
 from django.utils.functional import cached_property
 from django.views.generic import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
-from django.shortcuts import render, redirect, get_object_or_404, render_to_response
+from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
 from rest_framework.renderers import JSONRenderer
 
@@ -670,8 +670,8 @@ def dump_raw_data(scan):
 
 
 def terms_of_use(request):
-    return render_to_response('common/terms_of_use.html')
+    return render(request, 'common/terms_of_use.html')
 
 
 def privacy_policy(request):
-    return render_to_response('common/privacy_policy.html')
+    return render(request, 'common/privacy_policy.html')
