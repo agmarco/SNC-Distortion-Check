@@ -54,6 +54,19 @@ def test_regression():
     assert view_names == tested_view_names, f"The following views are not tested: {view_names - tested_view_names}"
 
 
+@pytest.mark.parametrize('view', (view for view in VIEWS if not view['login_required']))
+@pytest.mark.django_db
+def test_login_not_required(client, view):
+    """
+    For each public page, assert that visiting the view results in a 200.
+    """
+    url = _url(view)
+
+    for method, method_data in _methods(view):
+        response = getattr(client, method.lower())(url, method_data)
+        assert response.status_code == 200
+
+
 @pytest.mark.parametrize('view', (view for view in VIEWS if view['login_required']))
 @pytest.mark.django_db
 def test_login_required(client, view):
