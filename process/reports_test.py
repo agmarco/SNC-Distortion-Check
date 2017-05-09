@@ -69,7 +69,7 @@ def test_roi_images():
     voxels[50, B_ijk[1] + 1, B_ijk[2] - 1] = 0.33
     voxels[50, B_ijk[1] + 1, B_ijk[2] + 1] = 0.43
 
-    axial, sagittal, coronal = roi_images(B_ijk, voxels, roi_bounds(B_ijk, shape), 0, 1)
+    axial, sagittal, coronal = roi_images(B_ijk, voxels, roi_bounds(B_ijk, shape), 1)
 
     B_axial = (4, 5)
     B_sagittal = (4, 6)
@@ -102,7 +102,7 @@ def test_roi_fiducial_near_x_start():
     center = (0, 50, 50)
     bounds = ((-4, 5), (46, 55), (46, 55))
 
-    axial, sagittal, coronal = roi_images(center, voxels, bounds, 0, 1)
+    axial, sagittal, coronal = roi_images(center, voxels, bounds, 1)
 
     assert axial.shape == (shape[0], shape[1])
     assert sagittal.shape == (shape[0], shape[2])
@@ -121,7 +121,7 @@ def test_roi_fiducial_near_x_end():
     center = (99, 50, 50)
     bounds = ((95, 104), (46, 55), (46, 55))
 
-    axial, sagittal, coronal = roi_images(center, voxels, bounds, 0, 1)
+    axial, sagittal, coronal = roi_images(center, voxels, bounds, 1)
 
     assert axial.shape == (shape[0], shape[1])
     assert sagittal.shape == (shape[0], shape[2])
@@ -140,7 +140,7 @@ def test_roi_fiducial_near_y_start():
     center = (50, 0, 50)
     bounds = ((46, 55), (-4, 5), (46, 55))
 
-    axial, sagittal, coronal = roi_images(center, voxels, bounds, 0, 1)
+    axial, sagittal, coronal = roi_images(center, voxels, bounds, 1)
 
     assert axial.shape == (shape[0], shape[1])
     assert sagittal.shape == (shape[0], shape[2])
@@ -159,7 +159,7 @@ def test_roi_fiducial_near_y_end():
     center = (50, 99, 50)
     bounds = ((46, 55), (95, 104), (46, 55))
 
-    axial, sagittal, coronal = roi_images(center, voxels, bounds, 0, 1)
+    axial, sagittal, coronal = roi_images(center, voxels, bounds, 1)
 
     assert axial.shape == (shape[0], shape[1])
     assert sagittal.shape == (shape[0], shape[2])
@@ -178,7 +178,7 @@ def test_roi_fiducial_near_z_start():
     center = (50, 50, 0)
     bounds = ((46, 55), (46, 55), (-4, 5))
 
-    axial, sagittal, coronal = roi_images(center, voxels, bounds, 0, 1)
+    axial, sagittal, coronal = roi_images(center, voxels, bounds, 1)
 
     assert axial.shape == (shape[0], shape[1])
     assert sagittal.shape == (shape[0], shape[2])
@@ -197,7 +197,7 @@ def test_roi_fiducial_near_z_end():
     center = (50, 50, 99)
     bounds = ((46, 55), (46, 55), (95, 104))
 
-    axial, sagittal, coronal = roi_images(center, voxels, bounds, 0, 1)
+    axial, sagittal, coronal = roi_images(center, voxels, bounds, 1)
 
     assert axial.shape == (shape[0], shape[1])
     assert sagittal.shape == (shape[0], shape[2])

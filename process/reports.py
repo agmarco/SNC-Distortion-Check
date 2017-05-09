@@ -4,6 +4,7 @@ import math
 from collections import OrderedDict
 from datetime import datetime
 from textwrap import wrap
+from functools import partial
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -64,7 +65,32 @@ def roi_bounds(B, shape):
     ) for a, b in zip(B, shape))
 
 
-def roi_image(voxels, bounds_list, vmin, vmax):
+def fill_image(image, voxels, bounds_list, vmax):
+    """Fill the image with black borders if necessary."""
+
+    bounds_a, bounds_b = [bounds for bounds in bounds_list if type(bounds) != int]
+    max_a, max_b = tuple(n for i, n in enumerate(voxels.shape) if type(bounds_list[i]) != int)
+
+    if bounds_a[0] < 0:
+        overflow = np.full((0 - bounds_a[0], image.shape[1]), vmax, dtype=float)
+        image = np.vstack((overflow, image))
+
+    if bounds_a[1] > max_a:
+        overflow = np.full((bounds_a[1] - max_a, image.shape[1]), vmax, dtype=float)
+        image = np.vstack((image, overflow))
+
+    if bounds_b[0] < 0:
+        overflow = np.full((image.shape[0], 0 - bounds_b[0]), vmax, dtype=float)
+        image = np.hstack((overflow, image))
+
+    if bounds_b[1] > max_b:
+        overflow = np.full((image.shape[0], bounds_b[1] - max_b), vmax, dtype=float)
+        image = np.hstack((image, overflow))
+
+    return image
+
+
+def roi_image(voxels, bounds_list, vmax):
     adjusted_bounds_list = []
     for i, bounds in enumerate(bounds_list):
         if type(bounds) == int:
@@ -75,38 +101,19 @@ def roi_image(voxels, bounds_list, vmin, vmax):
 
     slices = tuple(bounds if type(bounds) == int else slice(*bounds) for bounds in adjusted_bounds_list)
     image = voxels[slices]
-
-    v_bounds, h_bounds = [bounds for bounds in bounds_list if type(bounds) != int]
-    voxels_shape_2D = tuple(n for i, n in enumerate(voxels.shape) if type(bounds_list[i]) != int)
-
-    if v_bounds[0] < 0:
-        overflow = np.full((0 - v_bounds[0], image.shape[1]), vmax, dtype=float)
-        image = np.vstack((overflow, image))
-
-    if v_bounds[1] > voxels_shape_2D[0]:
-        overflow = np.full((v_bounds[1] - voxels_shape_2D[0], image.shape[1]), vmax, dtype=float)
-        image = np.vstack((image, overflow))
-
-    if h_bounds[0] < 0:
-        overflow = np.full((image.shape[0], 0 - h_bounds[0]), vmax, dtype=float)
-        image = np.hstack((overflow, image))
-
-    if h_bounds[1] > voxels_shape_2D[1]:
-        overflow = np.full((image.shape[0], h_bounds[1] - voxels_shape_2D[1]), vmax, dtype=float)
-        image = np.hstack((image, overflow))
-
-    return image
+    return fill_image(image, voxels, bounds_list, vmax)
 
 
-def roi_images(B, voxels, bounds_list, vmin, vmax):
+def roi_images(B, voxels, bounds_list, vmax):
     return (
-        roi_image(voxels, (bounds_list[0], bounds_list[1], int(round(B[2]))), vmin, vmax),
-        roi_image(voxels, (bounds_list[0], int(round(B[1])), bounds_list[2]), vmin, vmax),
-        roi_image(voxels, (int(round(B[0])), bounds_list[1], bounds_list[2]), vmin, vmax),
+        roi_image(voxels, (bounds_list[0], bounds_list[1], int(round(B[2]))), vmax),
+        roi_image(voxels, (bounds_list[0], int(round(B[1])), bounds_list[2]), vmax),
+        roi_image(voxels, (int(round(B[0])), bounds_list[1], bounds_list[2]), vmax),
     )
 
 
-def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, threshold, institution, machine_name, sequence_name, phantom_name, acquisition_date, full_report_path, executive_report_path):
+def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, threshold, institution, machine_name,
+                     sequence_name, phantom_name, acquisition_date, full_report_path, executive_report_path):
     """
     Given the set of matched and registered points, generate a NEMA report.
 
@@ -128,7 +135,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
     # TODO: use the correct isocenter (it is not at the geometric origin)
     isocenter = (np.mean([x_min, x_max]), np.mean([y_min, y_max]), np.mean([z_min, z_max]))
 
-    def generate_page(content, report_text, get_page):
+    def create_page(pdf, report_title, get_page, draw):
         fig = plt.figure(figsize=figsize)
         plt.axis('off')
 
@@ -144,23 +151,27 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         y_bounds = [0, im_height]
         # ax0.imshow(im, extent=[*x_bounds, *y_bounds])
         ax0.text(0.02, 0.46, "CIRS Distortion Check", weight='bold', color='w', va='center', size=18)
-        ax0.text(0.98, 0.46, report_text, weight='bold', color='w', va='center', ha='right', size=18)
+        ax0.text(0.98, 0.46, report_title, weight='bold', color='w', va='center', ha='right', size=18)
 
         # TODO figure out better way to add padding
-        gs_inner = gridspec.GridSpecFromSubplotSpec(3, 3, width_ratios=[1, 20, 1], height_ratios=[1, 20, 1], subplot_spec=gs[1])
+        gs_inner = gridspec.GridSpecFromSubplotSpec(3, 3,
+                                                    width_ratios=[1, 20, 1],
+                                                    height_ratios=[1, 20, 1],
+                                                    subplot_spec=gs[1])
         ax_inner = plt.subplot(gs_inner[1, 1])
-        content(ax_inner, gs_inner[1, 1])
+        draw(ax_inner, gs_inner[1, 1])
 
         ax2 = plt.subplot(gs[2])
         plt.axis('off')
         ax2.add_patch(patches.Rectangle((0, 0), 1, 1))
-        ax2.text(0.02, 0.46, f"{machine_name} / {sequence_name} / {acquisition_date.strftime('%B %-d, %Y')}", weight='bold', color='w', va='center', size=12)
+        t = f"{machine_name} / {sequence_name} / {acquisition_date.strftime('%B %-d, %Y')}"
+        ax2.text(0.02, 0.46, t, weight='bold', color='w', va='center', size=12)
         ax2.text(0.98, 0.46, f"Page {next(get_page)}", weight='bold', color='w', va='center', ha='right', size=12)
 
         plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
-        return fig
+        save_then_close_figure(pdf, fig)
 
-    def generate_cover_page(report_text):
+    def create_cover_page(pdf, report_title):
         fig = plt.figure(figsize=figsize)
         plt.axis('off')
 
@@ -183,7 +194,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         ax1.imshow(im, extent=[*x_bounds, *y_bounds])
         color = (0, 95, 152)
         color = tuple(c / 255 for c in color)
-        ax1.text(0.5, 0.2, report_text, size=24, ha='center', weight='bold', color=color)
+        ax1.text(0.5, 0.2, report_title, size=24, ha='center', weight='bold', color=color)
 
         ax2 = plt.subplot(gs[2])
         plt.axis('off')
@@ -195,9 +206,9 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
                  "\n" + r"Scan Acquired On: " + acquisition_date.strftime("%B %-d, %Y"), size=16, color='w')
 
         plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
-        return fig
+        save_then_close_figure(pdf, fig)
 
-    def generate_institution_table(ax, cell):
+    def draw_institution_table(ax, cell):
         rows = [
             ('Name', institution.name),
             ('Number of Licenses', institution.number_of_licenses),
@@ -219,7 +230,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         ax.set_title('Institution Table')
 
     # TODO add missing rows
-    def generate_data_acquisition_table(ax, cell):
+    def draw_data_acquisition_table(ax, cell):
         dataset = datasets[0]
         voxel_dims = voxel_spacing(ijk_to_xyz)
         rows = [
@@ -250,14 +261,14 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         ax.axis('off')
         ax.set_title('Data Acquisition Table')
 
-    def generate_phantom_description(ax, cell):
+    def draw_phantom_description(ax, cell):
         ax.set_title('Phantom Description')
         ax.axis('off')
         desc = phantoms.paramaters[phantom_model]['description']
         t = "\n\n".join("\n".join(wrap(p, 95)) for p in desc.split("\n"))
         ax.text(0, 0.5, t)
 
-    def generate_scatter_plot(ax, cell):
+    def draw_scatter_plot(ax, cell):
         origins = np.repeat([isocenter], TP_A_S.shape[1], axis=0)
         distances = np.linalg.norm(TP_A_S.T - origins, axis=1)
 
@@ -271,70 +282,73 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         ax.set_ylabel('Distortion Magnitude [mm]')
         ax.set_title('Scatter Plot of Geometric Distortion vs. Distance from Isocenter')
 
-    def generate_spatial_mapping(ax, grid_x, grid_y, gridded):
+    def draw_spacial_mapping(grid_a, grid_b, gridded, ax):
         cmap = colors.ListedColormap(['green', 'red'])
         bounds = [0, threshold, math.inf]
         norm = colors.BoundaryNorm(bounds, cmap.N)
 
         levels = np.arange(0, error_mags.T.max() + 0.3, 0.3)
-        contour = plt.contour(grid_x.squeeze(), grid_y.squeeze(), gridded.squeeze(), cmap=cmap, norm=norm, levels=levels)
+        contour = plt.contour(grid_a.squeeze(), grid_b.squeeze(), gridded.squeeze(), cmap=cmap, norm=norm, levels=levels)
         ax.clabel(contour, inline=True, fontsize=10)
 
-    def generate_axial_spatial_mapping(ax, cell):
+    def axial_spatial_mapping_data():
         # interpolate onto plane at the isocenter to generate contour
         grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
                                              np.arange(y_min, y_max, GRID_DENSITY_mm),
                                              [isocenter[2]])
         gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
         gridded = scipy.ndimage.filters.gaussian_filter(gridded, 2, truncate=2)
-        generate_spatial_mapping(ax, grid_x, grid_y, gridded)
+        return grid_x, grid_y, gridded
+
+    def draw_axial_spatial_mapping(grid_a, grid_b, gridded, ax, cell):
+        draw_spacial_mapping(grid_a, grid_b, gridded, ax)
         ax.set_xlabel('x [mm]')
         ax.set_ylabel('y [mm]')
         ax.set_title('Axial Contour Plot')
 
-    def generate_sagittal_spatial_mapping(ax, cell):
+    def sagittal_spatial_mapping_data():
         grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
                                              [isocenter[1]],
                                              np.arange(z_min, z_max, GRID_DENSITY_mm), )
         gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
         gridded = scipy.ndimage.filters.gaussian_filter(gridded, 2, truncate=2)
-        generate_spatial_mapping(ax, grid_x, grid_z, gridded)
+        return grid_x, grid_z, gridded
+
+    def draw_sagittal_spatial_mapping(grid_a, grid_b, gridded, ax, cell):
+        draw_spacial_mapping(grid_a, grid_b, gridded, ax)
         ax.set_xlabel('x [mm]')
         ax.set_ylabel('z [mm]')
         ax.set_title('Sagittal Contour Plot')
 
-    def generate_coronal_spatial_mapping(ax, cell):
+    def coronal_spatial_mapping_data():
         grid_x, grid_y, grid_z = np.meshgrid([isocenter[0]],
                                              np.arange(y_min, y_max, GRID_DENSITY_mm),
                                              np.arange(z_min, z_max, GRID_DENSITY_mm))
         gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
         gridded = scipy.ndimage.filters.gaussian_filter(gridded, 2, truncate=2)
-        generate_spatial_mapping(ax, grid_y, grid_z, gridded)
+        return grid_y, grid_z, gridded
+
+    def draw_coronal_spatial_mapping(grid_a, grid_b, gridded, ax, cell):
+        draw_spacial_mapping(grid_a, grid_b, gridded, ax)
         ax.set_xlabel('y [mm]')
         ax.set_ylabel('z [mm]')
         ax.set_title('Coronal Contour Plot')
 
-    def generate_axial_spatial_mapping_series(report_text, get_page):
-        pages = []
+    def axial_spacial_mapping_slice_data(z):
+        grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
+                                             np.arange(y_min, y_max, GRID_DENSITY_mm),
+                                             np.array([z]))
+        gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
+        gridded = scipy.ndimage.filters.gaussian_filter(gridded, 2, truncate=2)
+        return grid_x, grid_y, gridded
 
-        for z in np.arange(z_min, z_max, CONTOUR_SERIES_STEP_mm):
-            grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
-                                                 np.arange(y_min, y_max, GRID_DENSITY_mm),
-                                                 np.array([z]))
-            gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
-            gridded = scipy.ndimage.filters.gaussian_filter(gridded, 2, truncate=2)
-            try:
-                def generate_axial_spatial_mapping_slice(ax, cell):
-                    generate_spatial_mapping(ax, grid_x, grid_y, gridded)
-                    ax.set_xlabel('x [mm]')
-                    ax.set_ylabel('y [mm]')
-                    ax.set_title(f'Axial Contour Plot Series (z = {round(z, 3)} mm)')
-                pages.append(generate_page(generate_axial_spatial_mapping_slice, report_text, get_page))
-            except ValueError:
-                pass
-        return pages
+    def draw_axial_spatial_mapping_slice(z, grid_a, grid_b, gridded, ax, cell):
+        draw_spacial_mapping(grid_a, grid_b, gridded, ax)
+        ax.set_xlabel('x [mm]')
+        ax.set_ylabel('y [mm]')
+        ax.set_title(f'Axial Contour Plot Series (z = {round(z, 3)} mm)')
 
-    def generate_error_table(ax, cell):
+    def error_table_data():
         rows = []
 
         # interpolate onto spheres of increasing size to calculate average and max error table
@@ -361,6 +375,9 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         for r, (max_value, mean_value) in radius2max_mean_error.items():
             rows.append((r, np.round(max_value, 3), np.round(mean_value, 3)))
 
+        return rows
+
+    def draw_error_table(rows, ax, cell):
         table = ax.table(
             cellText=rows,
             colLabels=['Distance from Isocenter [mm]', 'Maximum Error [mm]', 'Average Error [mm]'],
@@ -368,7 +385,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         )
         table_props = table.properties()
         table_cells = table_props['child_artists']
-        for i, cell in enumerate(table_cells):
+        for cell in table_cells:
             cell.set_height(0.05)
         ax.axis('off')
         ax.set_title('Error Table')
@@ -404,44 +421,35 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         ax.table(cellText=rows, cellColours=colors, loc='center')
         ax.axis('off')
 
-    def generate_fiducial_rois(report_text, get_page):
+    def draw_fiducial_rois(chunk, ax, cell):
         xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
-        sort_indices = np.argsort(error_mags.T)[::-1]
-        rois = zip(TP_A_S.T[sort_indices], TP_B.T[sort_indices], error_vecs.T[sort_indices], error_mags.T[sort_indices])
         vmin = voxels.min()
         vmax = voxels.max()
+        ax.set_title('Fiducial ROIs')
+        ax.axis('off')
 
-        pages = []
-        for chunk in chunks(list(rois), 5):
-            def generate_fiducial_roi_page(ax, cell):
-                ax.set_title('Fiducial ROIs')
-                ax.axis('off')
+        gs = gridspec.GridSpecFromSubplotSpec(5, 4, width_ratios=[1, 1, 1, 2], subplot_spec=cell)
 
-                gs = gridspec.GridSpecFromSubplotSpec(5, 4, width_ratios=[1, 1, 1, 2], subplot_spec=cell)
+        for i, (A_S, B, error_vec, error_mag) in enumerate(chunk):
+            B_ijk = apply_affine(xyz_to_ijk, np.array([B]).T).T.squeeze()
+            shape = roi_shape(grid_radius, voxel_spacing(ijk_to_xyz))
+            bounds = roi_bounds(B, shape)
+            bounds_ijk = roi_bounds(B_ijk, shape)
+            axial, sagittal, coronal = roi_images(B_ijk, voxels, bounds_ijk, vmax)
 
-                for i, (A_S, B, error_vec, error_mag) in enumerate(chunk):
-                    B_ijk = apply_affine(xyz_to_ijk, np.array([B]).T).T.squeeze()
-                    shape = roi_shape(grid_radius, voxel_spacing(ijk_to_xyz))
-                    bounds = roi_bounds(B, shape)
-                    bounds_ijk = roi_bounds(B_ijk, shape)
-                    axial, sagittal, coronal = roi_images(B_ijk, voxels, bounds_ijk, vmin, vmax)
+            ax0 = plt.subplot(gs[i, 0])
+            generate_roi_view(ax0, axial, bounds[0], bounds[1], (A_S[0], A_S[1]), (B[0], B[1]), vmin, vmax)
 
-                    ax0 = plt.subplot(gs[i, 0])
-                    generate_roi_view(ax0, axial, bounds[0], bounds[1], (A_S[0], A_S[1]), (B[0], B[1]), vmin, vmax)
+            ax1 = plt.subplot(gs[i, 1])
+            generate_roi_view(ax1, sagittal, bounds[0], bounds[2], (A_S[0], A_S[2]), (B[0], B[2]), vmin, vmax)
 
-                    ax1 = plt.subplot(gs[i, 1])
-                    generate_roi_view(ax1, sagittal, bounds[0], bounds[2], (A_S[0], A_S[2]), (B[0], B[2]), vmin, vmax)
+            ax2 = plt.subplot(gs[i, 2])
+            generate_roi_view(ax2, coronal, bounds[1], bounds[2], (A_S[1], A_S[2]), (B[1], B[2]), vmin, vmax)
 
-                    ax2 = plt.subplot(gs[i, 2])
-                    generate_roi_view(ax2, coronal, bounds[1], bounds[2], (A_S[1], A_S[2]), (B[1], B[2]), vmin, vmax)
+            ax3 = plt.subplot(gs[i, 3])
+            generate_roi_table(ax3, A_S, B, error_vec, error_mag)
 
-                    ax3 = plt.subplot(gs[i, 3])
-                    generate_roi_table(ax3, A_S, B, error_vec, error_mag)
-
-            pages.append(generate_page(generate_fiducial_roi_page, report_text, get_page))
-        return pages
-
-    def generate_points(ax, cell):
+    def draw_points(ax, cell):
         gs = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=cell)
         ax_inner = plt.subplot(gs[0], projection='3d')
         points_fig = scatter3({'Actual': TP_A_S, 'Detected': TP_B}, ax_inner)
@@ -453,45 +461,75 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         ax.quiver(*TP_A_S, *error_vecs)
         return quiver_fig
 
-    def page_generator():
-        i = 0
-        while True:
-            i += 1
-            yield i
+    grid_a, grid_b, gridded = axial_spatial_mapping_data()
+    draw_axial_spatial_mapping = partial(draw_axial_spatial_mapping, grid_a, grid_b, gridded)
+
+    grid_a, grid_b, gridded = sagittal_spatial_mapping_data()
+    draw_sagittal_spatial_mapping = partial(draw_sagittal_spatial_mapping, grid_a, grid_b, gridded)
+
+    grid_a, grid_b, gridded = coronal_spatial_mapping_data()
+    draw_coronal_spatial_mapping = partial(draw_coronal_spatial_mapping, grid_a, grid_b, gridded)
+
+    rows = error_table_data()
+    draw_error_table = partial(draw_error_table, rows)
 
     # TODO write PDF in memory
-    # TODO don't run the generate functions twice
     with PdfPages(full_report_path) as pdf:
-        report_text = "Full Report"
+        report_title = "Full Report"
         get_page = page_generator()
-        save_then_close_figure(pdf, generate_cover_page("FULL REPORT"))
-        save_then_close_figure(pdf, generate_page(generate_institution_table, report_text, get_page))
-        save_then_close_figure(pdf, generate_page(generate_data_acquisition_table, report_text, get_page))
-        save_then_close_figure(pdf, generate_page(generate_phantom_description, report_text, get_page))
-        save_then_close_figure(pdf, generate_page(generate_scatter_plot, report_text, get_page))
-        save_then_close_figure(pdf, generate_page(generate_axial_spatial_mapping, report_text, get_page))
-        save_then_close_figure(pdf, generate_page(generate_sagittal_spatial_mapping, report_text, get_page))
-        save_then_close_figure(pdf, generate_page(generate_coronal_spatial_mapping, report_text, get_page))
-        for fig in generate_axial_spatial_mapping_series(report_text, get_page):
-            save_then_close_figure(pdf, fig)
-        save_then_close_figure(pdf, generate_page(generate_error_table, report_text, get_page))
-        for fig in generate_fiducial_rois(report_text, get_page):
-            save_then_close_figure(pdf, fig)
-        save_then_close_figure(pdf, generate_page(generate_points, report_text, get_page))
+        create_page_full = partial(create_page, pdf, report_title, get_page)
+
+        create_cover_page(pdf, report_title.upper())
+
+        create_page_full(draw_institution_table)
+        create_page_full(draw_data_acquisition_table)
+        create_page_full(draw_phantom_description)
+        create_page_full(draw_scatter_plot)
+        create_page_full(draw_axial_spatial_mapping)
+        create_page_full(draw_sagittal_spatial_mapping)
+        create_page_full(draw_coronal_spatial_mapping)
+
+        for z in np.arange(z_min, z_max, CONTOUR_SERIES_STEP_mm):
+            grid_a, grid_b, gridded = axial_spacial_mapping_slice_data(z)
+            draw_slice = partial(draw_axial_spatial_mapping_slice, z, grid_a, grid_b, gridded)
+            try:
+                create_page_full(draw_slice)
+            except ValueError:
+                pass
+
+        create_page_full(draw_error_table)
+
+        sort_indices = np.argsort(error_mags.T)[::-1]
+        rois = zip(TP_A_S.T[sort_indices], TP_B.T[sort_indices], error_vecs.T[sort_indices], error_mags.T[sort_indices])
+        for chunk in chunks(list(rois), 5):
+            draw_chunk = partial(draw_fiducial_rois, chunk)
+            create_page_full(draw_chunk)
+
+        create_page_full(draw_points)
 
     with PdfPages(executive_report_path) as pdf:
-        report_text = "Executive Report"
+        report_title = "Executive Report"
         get_page = page_generator()
-        save_then_close_figure(pdf, generate_cover_page("EXECUTIVE REPORT"))
-        save_then_close_figure(pdf, generate_page(generate_institution_table, report_text, get_page))
-        save_then_close_figure(pdf, generate_page(generate_data_acquisition_table, report_text, get_page))
-        save_then_close_figure(pdf, generate_page(generate_phantom_description, report_text, get_page))
-        save_then_close_figure(pdf, generate_page(generate_scatter_plot, report_text, get_page))
-        save_then_close_figure(pdf, generate_page(generate_axial_spatial_mapping, report_text, get_page))
-        save_then_close_figure(pdf, generate_page(generate_sagittal_spatial_mapping, report_text, get_page))
-        save_then_close_figure(pdf, generate_page(generate_coronal_spatial_mapping, report_text, get_page))
-        save_then_close_figure(pdf, generate_page(generate_error_table, report_text, get_page))
-        save_then_close_figure(pdf, generate_page(generate_points, report_text, get_page))
+        create_page_executive = partial(create_page, pdf, report_title, get_page)
+
+        create_cover_page(pdf, report_title.upper())
+
+        create_page_executive(draw_institution_table)
+        create_page_executive(draw_data_acquisition_table)
+        create_page_executive(draw_phantom_description)
+        create_page_executive(draw_scatter_plot)
+        create_page_executive(draw_axial_spatial_mapping)
+        create_page_executive(draw_sagittal_spatial_mapping)
+        create_page_executive(draw_coronal_spatial_mapping)
+        create_page_executive(draw_error_table)
+        create_page_executive(draw_points)
+
+
+def page_generator():
+    i = 1
+    while True:
+        yield i
+        i += 1
 
 
 def save_then_close_figure(pdf, figure):
