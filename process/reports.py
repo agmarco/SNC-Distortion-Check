@@ -3,6 +3,7 @@ import zipfile
 import math
 from collections import OrderedDict
 from datetime import datetime
+from textwrap import wrap
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -233,11 +234,11 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
             ('Number of signals averaged (NSA)', dataset.NumberOfAverages),
             ('Data acquisition matrix size', ', '.join([str(i) for i in dataset.AcquisitionMatrix])),
             ('Image matrix size', ''),
-            ('Field of view size', ''),
+            ('Field of view size', ' x '.join([f'{n * x} mm' for n, x in zip(voxels.shape, voxel_dims)])),
             ('Type of acquisition', dataset.MRAcquisitionType),
             ('Number of slices', len(datasets)),
             ('Slice orientation', ', '.join([str(round(i, 3)) for i in dataset.ImageOrientationPatient])),
-            ('Slice position', ', '.join([str(round(i, 3)) for i in dataset.ImagePositionPatient])),
+            ('Slice position', ', '.join([f'{str(round(i, 3))} mm' for i in dataset.ImagePositionPatient])),
             ('Slice thickness', f'{str(round(voxel_dims[2], 3))} mm'),
             ('Direction of phase encoding', dataset.InPlanePhaseEncodingDirection),
         ]
@@ -248,6 +249,13 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
             cell.set_height(0.05)
         ax.axis('off')
         ax.set_title('Data Acquisition Table')
+
+    def generate_phantom_description(ax, cell):
+        ax.set_title('Phantom Description')
+        ax.axis('off')
+        desc = phantoms.paramaters[phantom_model]['description']
+        t = "\n\n".join("\n".join(wrap(p, 95)) for p in desc.split("\n"))
+        ax.text(0, 0.5, t)
 
     def generate_scatter_plot(ax, cell):
         origins = np.repeat([isocenter], TP_A_S.shape[1], axis=0)
@@ -459,6 +467,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         save_then_close_figure(pdf, generate_cover_page("FULL REPORT"))
         save_then_close_figure(pdf, generate_page(generate_institution_table, report_text, get_page))
         save_then_close_figure(pdf, generate_page(generate_data_acquisition_table, report_text, get_page))
+        save_then_close_figure(pdf, generate_page(generate_phantom_description, report_text, get_page))
         save_then_close_figure(pdf, generate_page(generate_scatter_plot, report_text, get_page))
         save_then_close_figure(pdf, generate_page(generate_axial_spatial_mapping, report_text, get_page))
         save_then_close_figure(pdf, generate_page(generate_sagittal_spatial_mapping, report_text, get_page))
@@ -476,6 +485,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         save_then_close_figure(pdf, generate_cover_page("EXECUTIVE REPORT"))
         save_then_close_figure(pdf, generate_page(generate_institution_table, report_text, get_page))
         save_then_close_figure(pdf, generate_page(generate_data_acquisition_table, report_text, get_page))
+        save_then_close_figure(pdf, generate_page(generate_phantom_description, report_text, get_page))
         save_then_close_figure(pdf, generate_page(generate_scatter_plot, report_text, get_page))
         save_then_close_figure(pdf, generate_page(generate_axial_spatial_mapping, report_text, get_page))
         save_then_close_figure(pdf, generate_page(generate_sagittal_spatial_mapping, report_text, get_page))
