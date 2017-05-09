@@ -48,7 +48,10 @@ export default (env) => ({
                     use: ['css-loader', 'sass-loader'],
                 }),
             }, {
-                test: /\.(ico|jpg|png|gif|eot|otf|webp|svg|ttf|woff|woff2)$/,
+                test: /\.(svg)$/,
+                loader: 'svg-url-loader',
+            }, {
+                test: /\.(ico|jpg|png|gif|eot|otf|webp|ttf|woff|woff2)$/,
                 loader: 'url-loader',
                 query: {limit: 8192},
             },
