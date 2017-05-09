@@ -688,4 +688,4 @@ def refresh_scan(request, pk=None):
         messages.success(request, "Your scan is processing.")
         return redirect('machine_sequence_detail', scan.machine_sequence_pair.pk)
     else:
-        return HttpResponseNotAllowed(['GET'])
+        return HttpResponseNotAllowed(['POST'])
