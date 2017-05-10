@@ -6,11 +6,10 @@ import numpy as np
 from django.core.exceptions import ObjectDoesNotExist
 
 from process import dicom_import
-from .models import Phantom, Institution
+from .models import Phantom, Institution, User
 
 MRI_SOP = '1.2.840.10008.5.1.4.1.1.4'  # MR Image Storage
 CT_SOP = '1.2.840.10008.5.1.4.1.1.2'  # CT Image Storage
-
 
 
 class CIRSForm(forms.Form):
@@ -23,6 +22,12 @@ class CIRSModelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('label_suffix', '')
         super().__init__(*args, **kwargs)
+
+
+class UserForm(CIRSModelForm):
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'email')
 
 
 class CreatePhantomForm(CIRSModelForm):
