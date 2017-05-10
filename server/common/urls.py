@@ -7,14 +7,15 @@ urlpatterns = [
     url(r'^terms-of-use/', views.terms_of_use, name='terms_of_use'),
     url(r'^privacy-policy/', views.privacy_policy, name='privacy_policy'),
 
+    url(r'^$', views.landing, name='landing'),
+    url(r'^configuration/$', views.Configuration.as_view(), name='configuration'),
+    url(r'^account/$', views.Account.as_view(), name='account'),
+    url(r'^machine-sequences/(?P<pk>\d+)/', views.MachineSequenceDetail.as_view(), name='machine_sequence_detail'),
+
     url(r'^api/', include([
         url(r'^validate-serial/$', api.ValidateSerial.as_view(), name='validate_serial'),
         url(r'^update-tolerance/$', api.UpdateTolerance.as_view(), name='update_tolerance'),
     ])),
-
-    url(r'^$', views.landing, name='landing'),
-    url(r'^configuration/$', views.Configuration.as_view(), name='configuration'),
-    url(r'^machine-sequences/(?P<pk>\d+)/', views.MachineSequenceDetail.as_view(), name='machine_sequence_detail'),
 
     url(r'^scans/', include([
         url(r'^add/$', views.UploadScan.as_view(), name='upload_scan'),
