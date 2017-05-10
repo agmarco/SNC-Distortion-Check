@@ -24,6 +24,8 @@ const latestScanFailHelp = 'The maximum distortion detected on this machine/sequ
     'was outside the allowed tolerance.';
 const latestScanPassHelp = 'The maximum distortion detected on this machine/sequence combination\'s most recent scan ' +
    ' was within the allowed tolerance.';
+const noScansAvailableHelp = 'No scans have been uploaded.';
+const noScansMatchHelp = 'No scans match your current filter settings.';
 
 export default class extends React.Component<IMachineSequenceTableProps, IMachineSequenceTableState> {
     constructor(props: IMachineSequenceTableProps) {
@@ -63,8 +65,9 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
     }
 
     render() {
-        const { uploadScanUrl } = this.props;
+        const { uploadScanUrl, machineSequencePairs } = this.props;
         const { machines, sequences, machineFilterValue, sequenceFilterValue } = this.state;
+        const noScansAvailable = machineSequencePairs.length === 0;
         const filteredMachineSequencePairs = this.filteredMachineSequencePairs();
 
         return (
@@ -101,9 +104,14 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredMachineSequencePairs.map((pair, i) => (
-                            machineSequenceTableRow(pair)
-                        ))}
+                        {filteredMachineSequencePairs.length > 0 ?
+                            filteredMachineSequencePairs.map(machineSequenceTableRow) :
+                            <tr className="empty">
+                                <td colSpan={6}>
+                                    {noScansAvailable ? noScansAvailableHelp : noScansMatchHelp}
+                                </td>
+                            </tr>
+                        }
                     </tbody>
                 </table>
             </div>
