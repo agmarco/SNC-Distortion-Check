@@ -8,7 +8,7 @@
 
 {% block content %}
   <h1>Delete User</h1>
-  <form action="{% url 'delete_user' user.pk %}" method="post" class="cirs-form">
+  <form method="post" class="cirs-form">
     {% csrf_token %}
     <p>Are you sure you want to delete "{{ user.get_full_name }}"?</p>
     <div class="form-links">

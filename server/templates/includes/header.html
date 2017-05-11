@@ -11,5 +11,9 @@
         <span class="logo">CIRS Distortion Check</span>
       </a>
     </h1>
+  {% else %}
+    <ul>
+      <li><a href="{% url 'login' %}">Login</a></li>
+    </ul>
   {% endif %}
 </header>

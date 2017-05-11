@@ -10,7 +10,6 @@ interface IUploadScanFormProps {
     phantoms: IPhantomDTO[];
     initialMachinePk: number | null;
     initialSequencePk: number | null;
-    uploadScanUrl: string;
     cancelUrl: string;
     formErrors: {[field: string]: string[]};
 }
@@ -49,7 +48,7 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
     }
 
     render() {
-        const { machines, sequences, phantoms, uploadScanUrl, cancelUrl, formErrors } = this.props;
+        const { machines, sequences, phantoms, cancelUrl, formErrors } = this.props;
         const { machineFilterValue, sequenceFilterValue, phantomFilterValue } = this.state;
 
         const currentMachine = machineFilterValue && (
@@ -64,7 +63,7 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
 
         return (
             <div>
-                <form action={uploadScanUrl} encType="multipart/form-data" method="post" className="cirs-form">
+                <form encType="multipart/form-data" method="post" className="cirs-form">
                     <CSRFToken />
 
                     <div>

@@ -222,3 +222,9 @@ AUTH_USER_MODEL = 'common.User'
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'landing'
+
+
+# Email
+
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

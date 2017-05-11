@@ -16,7 +16,7 @@
 
 {% block content %}
   <h1>DICOM Overlay</h1>
-  <form action="{% url 'dicom_overlay' scan.pk %}" method="post" class="cirs-form">
+  <form method="post" class="cirs-form">
     {% csrf_token %}
     {{ form.non_field_errors }}
     <div>

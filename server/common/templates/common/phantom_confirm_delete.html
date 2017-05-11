@@ -8,7 +8,7 @@
 
 {% block content %}
   <h1>Delete Phantom</h1>
-  <form action="{% url 'delete_phantom' phantom.pk %}" method="post" class="cirs-form">
+  <form method="post" class="cirs-form">
     {% csrf_token %}
     <p>Are you sure you want to delete "{{ phantom.name }}"?</p>
     <div class="form-links">
