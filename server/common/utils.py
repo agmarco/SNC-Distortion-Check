@@ -1,6 +1,7 @@
 import os
 import io
 import zipfile
+import uuid
 
 import scipy.io
 from django.conf import settings
