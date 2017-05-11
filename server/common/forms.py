@@ -24,7 +24,7 @@ class CIRSModelForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
 
-class UserForm(CIRSModelForm):
+class AccountForm(CIRSModelForm):
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'email')
@@ -136,3 +136,19 @@ class DicomOverlayForm(CIRSForm):
     isocenter_y = forms.FloatField(label="y", widget=forms.NumberInput(attrs={'step': '0.01'}), required=False)
     isocenter_z = forms.FloatField(label="z", widget=forms.NumberInput(attrs={'step': '0.01'}), required=False)
     frame_of_reference_uid = forms.CharField(label="FrameOfReferenceUID", required=False)
+
+
+class CreateUserForm(CIRSModelForm):
+    ADMIN = 'A'
+    MEDICAL_PHYSICIST = 'MP'
+    THERAPIST = 'T'
+    GROUP_CHOICES = (
+        (ADMIN, 'Admin'),
+        (MEDICAL_PHYSICIST, 'Medical Physicist'),
+        (THERAPIST, 'Therapist'),
+    )
+
+    group = forms.ChoiceField(choices=GROUP_CHOICES)
+
+    class Meta:
+        fields = ('first_name', 'last_name', 'email', 'group')

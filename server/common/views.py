@@ -22,15 +22,15 @@ from rest_framework.renderers import JSONRenderer
 
 import scipy.io
 import numpy as np
-from scipy.interpolate.ndgriddata import griddata
 import scipy.ndimage.filters
+from scipy.interpolate.ndgriddata import griddata
 
 from process import dicom_import
 from process.affine import apply_affine
 from . import models
 from . import serializers
+from . import forms
 from .tasks import process_scan, process_ct_upload
-from .forms import UploadScanForm, UploadCTForm, UploadRawForm, CreatePhantomForm, InstitutionForm, DicomOverlayForm, UserForm
 from .decorators import validate_institution, login_and_permission_required
 from .http import CSVResponse, ZipResponse
 from .utils import dump_raw_data
@@ -67,7 +67,7 @@ def landing(request):
 @login_and_permission_required('common.configuration')
 class Configuration(UpdateView):
     model = models.Institution
-    form_class = InstitutionForm
+    form_class = forms.InstitutionForm
     success_url = reverse_lazy('configuration')
     template_name = 'common/configuration.html'
 
@@ -94,7 +94,7 @@ class Configuration(UpdateView):
 @login_and_permission_required('common.configuration')
 class Account(UpdateView):
     model = models.User
-    form_class = UserForm
+    form_class = forms.AccountForm
     success_url = reverse_lazy('account')
     template_name = 'common/account.html'
 
@@ -130,7 +130,7 @@ class MachineSequenceDetail(DetailView):
 # TODO cancel might take the user back to landing, machine-sequences, or machine-sequence-detail
 @login_and_permission_required('common.configuration')
 class UploadScan(FormView):
-    form_class = UploadScanForm
+    form_class = forms.UploadScanForm
     template_name = 'common/upload_scan.html'
 
     def get_context_data(self, **kwargs):
@@ -269,7 +269,7 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
 @login_and_permission_required('common.configuration')
 @validate_institution(model_class=models.Scan)
 class DicomOverlay(FormView):
-    form_class = DicomOverlayForm
+    form_class = forms.DicomOverlayForm
     template_name = 'common/dicom_overlay.html'
 
     @cached_property
@@ -323,6 +323,7 @@ class DicomOverlay(FormView):
         logger.info("done zipping generated dicoms.")
         return ZipResponse(zip_bytes, filename='overlay.zip')
 
+
 @login_and_permission_required('common.configuration')
 @validate_institution()
 class DeleteScan(CirsDeleteView):
@@ -342,7 +343,7 @@ class DeleteScan(CirsDeleteView):
 
 @login_and_permission_required('common.configuration')
 class CreatePhantom(FormView):
-    form_class = CreatePhantomForm
+    form_class = forms.CreatePhantomForm
     success_url = reverse_lazy('configuration')
     template_name = 'common/phantom_create.html'
 
@@ -481,7 +482,7 @@ class DeleteSequence(CirsDeleteView):
 @login_and_permission_required('common.manage_users')
 class CreateUser(CreateView):
     model = models.User
-    fields = ('username', 'first_name', 'last_name', 'email')
+    form_class = forms.CreateUserForm
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_create'
 
@@ -508,7 +509,7 @@ class DeleteUser(CirsDeleteView):
 @login_and_permission_required('common.configuration')
 @validate_institution(model_class=models.Phantom, pk_url_kwarg='phantom_pk')
 class UploadCT(FormView):
-    form_class = UploadCTForm
+    form_class = forms.UploadCTForm
     template_name = 'common/upload_ct.html'
 
     def form_valid(self, form):
@@ -551,7 +552,7 @@ class UploadCT(FormView):
 @login_and_permission_required('common.configuration')
 @validate_institution(model_class=models.Phantom, pk_url_kwarg='phantom_pk')
 class UploadRaw(FormView):
-    form_class = UploadRawForm
+    form_class = forms.UploadRawForm
     template_name = 'common/upload_raw.html'
 
     def form_valid(self, form):
