@@ -1,13 +1,17 @@
 import React from 'react';
+import classNames from 'classnames';
 
 interface IBoolIconProps {
     value: boolean;
+    title?: string;
 }
 
-export default ({ value }: IBoolIconProps) => {
-    if (value) {
-        return <i className="fa fa-check success" aria-hidden="true" />;
-    } else {
-        return <i className="fa fa-times error" aria-hidden="true" />;
-    }
+export default ({ value, title }: IBoolIconProps) => {
+    const classes = classNames(
+        'fa',
+        value ? 'fa-check' : 'fa-times',
+        value ? 'success' : 'error',
+    );
+
+    return <i className={classes} aria-hidden="true" title={title} />;
 };
