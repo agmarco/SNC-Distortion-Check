@@ -116,7 +116,7 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
                     </thead>
                     <tbody>
                         {filteredScans.map((scan, i) => (
-                            <tr key={scan.pk} className={i % 2 === 0 ? 'a' : 'b'}>
+                            <tr key={scan.pk}>
                                 <td>{scan.passed !== null && <BoolIcon value={scan.passed} />}</td>
                                 <td>{format(scan.acquisition_date, 'MMMM D, YYYY')}</td>
                                 <td>{scan.phantom.model_number} &mdash; {scan.phantom.serial_number}</td>

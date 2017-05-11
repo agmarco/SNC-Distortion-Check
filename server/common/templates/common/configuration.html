@@ -37,7 +37,7 @@
       </thead>
       <tbody>
         {% for phantom in phantoms %}
-          <tr class="{% if forloop.counter0|divisibleby:2 %}a{% else %}b{% endif %}">
+          <tr>
             <td>{{ phantom.name }}</td>
             <td>{{ phantom.model }}</td>
             <td>{{ phantom.serial_number }}</td>
@@ -68,7 +68,7 @@
       </thead>
       <tbody>
         {% for machine in machines %}
-          <tr class="{% if forloop.counter0|divisibleby:2 %}a{% else %}b{% endif %}">
+          <tr>
             <td>{{ machine.name }}</td>
             <td>{{ machine.model }}</td>
             <td>{{ machine.manufacturer }}</td>
@@ -97,7 +97,7 @@
       </thead>
       <tbody>
         {% for sequence in sequences %}
-          <tr class="{% if forloop.counter0|divisibleby:2 %}a{% else %}b{% endif %}">
+          <tr>
             <td>{{ sequence.name }}</td>
             <td>{{ sequence.instructions|truncatechars:60 }}</td>
             <td class="sep"></td>
@@ -127,7 +127,7 @@
         </thead>
         <tbody>
           {% for user in users %}
-            <tr class="{% if forloop.counter0|divisibleby:2 %}a{% else %}b{% endif %}">
+            <tr>
               <td>{{ user.get_full_name }}</td>
               <td><a href="mailto:{{ user.email }}">{{ user.email }}</a></td>
               <td>{{ user.groups.all|join:", " }}</td>

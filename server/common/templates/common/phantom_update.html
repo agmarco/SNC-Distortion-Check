@@ -48,7 +48,7 @@
     </thead>
     <tbody>
       {% for golden_fiducials in view.golden_fiducials %}
-        <tr class="{% if forloop.counter0|divisibleby:2 %}a{% else %}b{% endif %}">
+        <tr>
           <td>{% if golden_fiducials.is_active %}<i class="fa fa-check success" aria-hidden="true"></i>{% endif %}</td>
           <td>{{ golden_fiducials.created_on|date }}</td>
           <td>{{ golden_fiducials.type }}</td>
