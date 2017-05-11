@@ -20,8 +20,8 @@ from ..models import Phantom, GoldenFiducials, Machine, Sequence, User
 # 'permissions': a list of permissions that are required to access the view.
 # 'validate_institution': a boolean representing whether the user's institution must be validated against the view.
 # 'methods': a dict containing as keys the HTTP methods that should be tested, and as values the GET or POST data to
-#     send with the request. The values may also be functions that receive the data specified by the 'data' key and return
-#     the GET or POST data.
+#     send with the request. The values may also be functions that receive the data specified by the 'data' key and
+#     return the GET or POST data.
 
 
 class Crud:
@@ -389,6 +389,13 @@ VIEWS = (
         'view': views.privacy_policy,
         'url': reverse('privacy_policy'),
         'login_required': False,
+        'permissions': (),
+        'validate_institution': False,
+        'methods': {'GET': None},
+    }, {
+        'view': views.Account,
+        'url': reverse('account'),
+        'login_required': True,
         'permissions': (),
         'validate_institution': False,
         'methods': {'GET': None},
