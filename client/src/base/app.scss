@@ -136,8 +136,21 @@ h6 {
 .cirs-table {
   margin-bottom: 1.5 * $base-spacing;
 
-  tr.a {
-    background-color: rgb(241, 241, 241);
+  tbody {
+    tr {
+      &:nth-child(odd) {
+        background-color: rgb(241, 241, 241);
+      }
+
+      &.empty {
+        font-size: 1.5rem;
+        text-align: center;
+
+        td {
+          padding: 2 * $base-spacing;
+        }
+      }
+    }
   }
 
   th {
