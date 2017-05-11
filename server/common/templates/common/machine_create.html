@@ -8,7 +8,7 @@
 
 {% block content %}
   <h1>Add MRI Scanner</h1>
-  <form action="{% url 'create_machine' %}" method="post" class="cirs-form">
+  <form method="post" class="cirs-form">
     {% csrf_token %}
     {% include 'includes/form_fields.html' %}
     <div class="form-links">

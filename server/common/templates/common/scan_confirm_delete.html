@@ -10,7 +10,7 @@
 
 {% block content %}
   <h1>Delete Scan</h1>
-  <form action="{% url 'delete_scan' scan.pk %}" method="post" class="cirs-form">
+  <form method="post" class="cirs-form">
     {% csrf_token %}
     <p>Are you sure you want to delete the scan for phantom "{{ scan.golden_fiducials.phantom.model.model_number }} &mdash; {{ scan.golden_fiducials.phantom.serial_number }}", captured on {{ scan.dicom_series.acquisition_date }}?</p>
     <div class="form-links">

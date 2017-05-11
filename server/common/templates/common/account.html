@@ -7,7 +7,7 @@
 
 {% block content %}
   <h1>Account</h1>
-  <form action="{% url 'account' %}" method="post" class="cirs-form">
+  <form method="post" class="cirs-form">
     {% csrf_token %}
     {% include 'includes/form_fields.html' %}
     <input type="submit" value="Save Account Info" class="btn tertiary">

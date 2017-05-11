@@ -7,21 +7,21 @@
 {% endblock %}
 
 {% block content %}
-<div id="login">
-  <h1>CIRS Distortion Check</h1>
-  <form action="{% url 'login' %}" method="post">
-    {% csrf_token %}
-    {% for field in form %}
-      <div>
-        {{ field.errors }}
-        {{ field.label_tag }}
-        {{ field }}
-      </div>
-    {% endfor %}
-    <input type="submit" value="Login" class="btn secondary" />
-    <p class="forgot-password"><a href="#">Forgot your Password?</a></p>
-    {{ form.non_field_errors }}
-    <a href="#" class="btn primary register">Register New Account</a>
-  </form>
-</div>
+  <div id="login">
+    <h1>CIRS Distortion Check</h1>
+    <form action="{% url 'login' %}" method="post">
+      {% csrf_token %}
+      {% for field in form %}
+        <div>
+          {{ field.errors }}
+          {{ field.label_tag }}
+          {{ field }}
+        </div>
+      {% endfor %}
+      <input type="submit" value="Login" class="btn secondary" />
+      <p class="forgot-password"><a href="{% url 'password_reset' %}">Forgot your Password?</a></p>
+      {{ form.non_field_errors }}
+      <a href="#" class="btn primary register">Register New Account</a>
+    </form>
+  </div>
 {% endblock %}
