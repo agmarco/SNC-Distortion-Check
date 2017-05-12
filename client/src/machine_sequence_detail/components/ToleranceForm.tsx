@@ -103,7 +103,7 @@ export default class extends React.Component<IToleranceFormProps, IToleranceForm
                                 onChange={handleToleranceChange}
                             />
                             <input type="submit" value="Save" className="btn tertiary" />
-                            {fetching ? <LoadingIcon /> : (success !== null && <BoolIcon value={success} />)}
+                            {fetching ? <LoadingIcon /> : (success !== null && <BoolIcon success={success} />)}
                         </div>
                     </div>
                 </form>

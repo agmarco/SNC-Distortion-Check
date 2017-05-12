@@ -1,17 +1,16 @@
 import React from 'react';
 import classNames from 'classnames';
 
-interface IBoolIconProps {
-    value: boolean;
-    title?: string;
+interface IBoolIconProps extends React.HTMLAttributes<HTMLElement> {
+    success: boolean;
 }
 
-export default ({ value, title }: IBoolIconProps) => {
+export default ({ success, ...iconAttributes }: IBoolIconProps) => {
     const classes = classNames(
         'fa',
-        value ? 'fa-check' : 'fa-times',
-        value ? 'success' : 'error',
+        success ? ['fa-check', 'success'] : ['fa-times', 'error'],
+        iconAttributes.className,
     );
 
-    return <i className={classes} aria-hidden="true" title={title} />;
+    return <i className={classes} aria-hidden="true" {...iconAttributes} />;
 };

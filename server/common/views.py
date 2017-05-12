@@ -106,7 +106,6 @@ class Account(UpdateView):
         return super(Account, self).form_valid(form)
 
 
-# TODO scan table ordering is backwards when the acquisition dates are the same
 @login_and_permission_required('common.configuration')
 @validate_institution()
 class MachineSequenceDetail(DetailView):
