@@ -84,7 +84,7 @@ export default class extends React.Component<IScanChartProps, IScanChartState> {
 
     getSettings(props: IScanChartProps) {
         const { machineSequencePair, scans } = props;
-        const processedScans = scans.filter(s => !s.processing && !s.errors);
+        const processedScans = scans.filter(s => !s.processing && !s.errors).reverse();
 
         const labels = true;
         const margin = {top: 10, right: 10, bottom: 60, left: 60};

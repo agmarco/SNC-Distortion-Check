@@ -28,7 +28,7 @@ paramaters = {
                        "co-registration of CT and MR image sets."
                        "\n" 
                        "The phantom includes right and left air voids, 3 mm in diameter by 17 mm long to simulate each ear canal for "
-                       "evaluation of potential distortions commonly found in clinical settings."
+                       "evaluation of potential distortions commonly found in clinical settings.",
     },
     '604': {
         'points_file': 'data/points/604.mat',
@@ -38,11 +38,12 @@ paramaters = {
         'description': """The phantom is comprised of a leak-proof PMMA cylinder and measures 330 mm in diameter by 300
             mm long. The entire volume is filled with a unique orthogonal 3D grid of 3 mm diameter rods spaced 20 mm
             apart to provide complete geometric data throughout the imaging volume.  The phantom is marked for ease of
-            alignment to positioning lasers and is designed for use with both curved and flat gantry tables."""
+            alignment to positioning lasers and is designed for use with both curved and flat gantry tables.""",
     },
     '1540': {
         'points_file': 'data/points/1540.mat',
         'grid_radius': 1.5,
         'grid_spacing': 15,
+        'description': "This phantom was specially constructed by CIRS to help validate the image processing algorithm.",
     }
 }
