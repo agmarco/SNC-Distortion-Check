@@ -129,7 +129,7 @@ const machineSequenceTableRow = (pair: IMachineSequencePairDTO) => {
             </td>
             <td>
                 {pair.latest_scan_passed !== null && <BoolIcon
-                    value={pair.latest_scan_passed}
+                    success={pair.latest_scan_passed}
                     title={pair.latest_scan_passed ? latestScanPassHelp : latestScanFailHelp}
                 />}
             </td>
