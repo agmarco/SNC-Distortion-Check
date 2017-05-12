@@ -103,7 +103,7 @@ class MachineSequenceDetail(DetailView):
     def get_context_data(self, **kwargs):
         machine_sequence_pair_json = serializers.MachineSequencePairSerializer(self.object)
         scans_json = models.Scan.objects.filter(machine_sequence_pair=self.object)
-        scans_json = scans_json.active().order_by('-dicom_series__acquisition_date')
+        scans_json = scans_json.active().order_by('-dicom_series__acquisition_date', '-created_on')
         scans_json = serializers.ScanSerializer(scans_json, many=True)
 
         renderer = JSONRenderer()
@@ -287,7 +287,7 @@ class DicomOverlay(FormView):
         logger.info("Gridding data for overlay generation.")
         gridded = griddata(TP_A.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
         gridded *= DISTORTION_SCALE  # rescale so it looks a bit better
-        gridded = scipy.ndimage.filters.gaussian_filter(gridded, BLUR_SIGMA, truncate=2) # TODO: remove this once we fix interpolation
+        gridded = scipy.ndimage.filters.gaussian_filter(gridded, BLUR_SIGMA, truncate=2)  # TODO: remove this once we fix interpolation
         gridded[np.isnan(gridded)] = 0
         output_dir = tempfile.mkdtemp()
         logger.info("Exporting overlay to dicoms.")
@@ -309,6 +309,7 @@ class DicomOverlay(FormView):
                     zf.write(os.path.join(dirname, filename), arcname=filename)
         logger.info("done zipping generated dicoms.")
         return ZipResponse(zip_bytes, filename='overlay.zip')
+
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
@@ -682,10 +683,19 @@ def privacy_policy(request):
 def refresh_scan(request, pk=None):
     if request.method == 'POST':
         scan = get_object_or_404(models.Scan, pk=pk)
-        scan.processing = True
-        scan.save()
-        process_scan.delay(scan.pk)
-        messages.success(request, "Your scan is processing.")
-        return redirect('machine_sequence_detail', scan.machine_sequence_pair.pk)
+        # TODO new image processing algorithm
+        new_scan = models.Scan.objects.create(
+            machine_sequence_pair=scan.machine_sequence_pair,
+            dicom_series=scan.dicom_series,
+            golden_fiducials=scan.golden_fiducials.phantom.active_gold_standard,
+            tolerance=scan.machine_sequence_pair.tolerance,
+            processing=True,
+            creator=request.user,
+            notes=scan.notes,
+        )
+        process_scan.delay(new_scan.pk)
+        messages.success(request, "Scan is being re-run using the current tolerance threshold, phantom gold standard "
+                                  "grid intersection locations, and image processing algorithm.")
+        return redirect('machine_sequence_detail', new_scan.machine_sequence_pair.pk)
     else:
         return HttpResponseNotAllowed(['POST'])

@@ -88,6 +88,7 @@ class FiducialsFactory(factory.django.DjangoModelFactory):
 cad_603A_points = file_io.load_points('data/points/603A.mat')['points']
 cad_603A_points.flags.writeable = False
 
+
 class Fiducials603ACADFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.Fiducials"
@@ -111,6 +112,15 @@ class PhantomFactory(factory.django.DjangoModelFactory):
     name = factory.Sequence("Machine {0}".format)
     model = factory.SubFactory(PhantomModelFactory)
     serial_number = factory.Sequence("SN{0}".format)
+
+    @factory.post_generation
+    def golden_fiducials(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for golden_fiducials in extracted:
+                self.goldenfiducials_set.add(golden_fiducials)
 
 
 class SequenceFactory(factory.django.DjangoModelFactory):
