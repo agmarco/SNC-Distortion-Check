@@ -53,9 +53,9 @@ class Command(BaseCommand):
 
         manager = factories.UserFactory.create(
             username="manager",
-            first_name="Sergei",
-            last_name="Rachmaninoff",
-            email="sergei.rachmaninoff@johnhopkins.edu",
+            first_name="Edsger",
+            last_name="Dijkstra",
+            email="edsger.dijkstra@johnhopkins.edu",
             institution=johns_hopkins,
             groups=[managers],
         )

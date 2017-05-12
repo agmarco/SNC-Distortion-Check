@@ -93,7 +93,6 @@ class Configuration(UpdateView):
         return context
 
 
-# TODO scan table ordering is backwards when the acquisition dates are the same
 @login_and_permission_required('common.configuration')
 @validate_institution()
 class MachineSequenceDetail(DetailView):
@@ -309,6 +308,7 @@ class DicomOverlay(FormView):
                     zf.write(os.path.join(dirname, filename), arcname=filename)
         logger.info("done zipping generated dicoms.")
         return ZipResponse(zip_bytes, filename='overlay.zip')
+
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
