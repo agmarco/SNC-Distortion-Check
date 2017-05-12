@@ -4,6 +4,7 @@ import tempfile
 import zipfile
 import logging
 import time
+import uuid
 from datetime import datetime
 
 import dicom
@@ -11,6 +12,7 @@ from dicom.UID import generate_uid
 from dicom.dataset import Dataset, FileDataset
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
+from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.utils import formats
@@ -27,13 +29,13 @@ from scipy.interpolate.ndgriddata import griddata
 
 from process import dicom_import
 from process.affine import apply_affine
+from process.file_io import save_voxels
 from . import models
 from . import serializers
 from . import forms
 from .tasks import process_scan, process_ct_upload
 from .decorators import validate_institution, login_and_permission_required
 from .http import CSVResponse, ZipResponse
-from .utils import dump_raw_data
 
 logger = logging.getLogger(__name__)
 
@@ -621,6 +623,65 @@ def raw_data(request, pk=None):
     scan = get_object_or_404(models.Scan, pk=pk)
     zipfile = dump_raw_data(scan)
     return ZipResponse(zipfile, filename=f'raw_data.zip')
+
+
+# TODO write MAT files in memory?
+def dump_raw_data(scan):
+    voxels_path = os.path.join(settings.BASE_DIR, f'tmp/{uuid.uuid4()}.mat')
+    voxels_data = {
+        'phantom_model': scan.phantom.model.model_number,
+        'modality': 'mri',
+        'voxels': scan.dicom_series.voxels,
+    }
+    save_voxels(voxels_path, voxels_data)
+
+    raw_points_path = os.path.join(settings.BASE_DIR, f'tmp/{uuid.uuid4()}.mat')
+    raw_points_data = {
+        'all': scan.detected_fiducials.fiducials,
+        'TP': scan.TP_B.fiducials,
+    }
+    scipy.io.savemat(raw_points_path, raw_points_data)
+
+    renderer = JSONRenderer()
+
+    phantom = serializers.PhantomSerializer(scan.phantom)
+    phantom_s = io.BytesIO()
+    phantom_s.write(renderer.render(phantom.data))
+
+    machine = serializers.MachineSerializer(scan.machine_sequence_pair.machine)
+    machine_s = io.BytesIO()
+    machine_s.write(renderer.render(machine.data))
+
+    sequence = serializers.SequenceSerializer(scan.machine_sequence_pair.sequence)
+    sequence_s = io.BytesIO()
+    sequence_s.write(renderer.render(sequence.data))
+
+    institution = serializers.InstitutionSerializer(scan.institution)
+    institution_s = io.BytesIO()
+    institution_s.write(renderer.render(institution.data))
+
+    files = {
+        'dicom.zip': scan.dicom_series.zipped_dicom_files.path,
+        'voxels.mat': voxels_path,
+        'raw_points.mat': raw_points_path,
+    }
+
+    streams = {
+        'phantom.json': phantom_s,
+        'machine.json': machine_s,
+        'sequence.json': sequence_s,
+        'institution.json': institution_s,
+    }
+
+    s = io.BytesIO()
+    with zipfile.ZipFile(s, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for zip_path, path in files.items():
+            zf.write(path, zip_path)
+
+        for zip_path, stream in streams.items():
+            zf.writestr(zip_path, stream.getvalue())
+
+    return s
 
 
 def terms_of_use(request):
