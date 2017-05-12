@@ -3,7 +3,7 @@ import format from 'date-fns/format';
 import uniqBy from 'lodash/uniqBy';
 
 import { IScanDTO, IPhantomDTO } from 'common/service';
-import { BoolIcon, CSRFToken, AnchorForm } from 'common/components';
+import { BoolIcon, AnchorForm } from 'common/components';
 
 import './ScanTable.scss';
 
