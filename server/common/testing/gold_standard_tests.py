@@ -26,7 +26,7 @@ def _generate_csv(ndarray):
 def test_upload_ct(client):
     johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
-    current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
+    current_user = factories.UserFactory.create(email='current_user@johnshopkins.edu', institution=johns_hopkins, groups=[group])
     phantom = factories.PhantomFactory(institution=johns_hopkins)
 
     client.force_login(current_user)
@@ -46,7 +46,7 @@ def test_upload_ct(client):
 def test_upload_csv(client):
     johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
-    current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
+    current_user = factories.UserFactory.create(email='current_user@johnshopkins.edu', institution=johns_hopkins, groups=[group])
     phantom = factories.PhantomFactory(institution=johns_hopkins)
 
     client.force_login(current_user)
@@ -74,7 +74,7 @@ def test_upload_csv(client):
 def test_upload_ct_form(client):
     johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
-    current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
+    current_user = factories.UserFactory.create(email='current_user@johnshopkins.edu', institution=johns_hopkins, groups=[group])
 
     client.force_login(current_user)
 
@@ -93,7 +93,7 @@ def test_upload_ct_form(client):
 def test_upload_raw_form(client):
     johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
-    current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
+    current_user = factories.UserFactory.create(email='current_user@johnshopkins.edu', institution=johns_hopkins, groups=[group])
 
     client.force_login(current_user)
 

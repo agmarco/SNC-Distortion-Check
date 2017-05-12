@@ -20,9 +20,8 @@ class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.User"
 
-    username = factory.Sequence("user{0}".format)
+    email = factory.LazyAttribute(lambda u: f'user{u.pk}@example.com')
     password = "password"
-    email = factory.LazyAttribute(lambda u: '{}@example.com'.format(u.username))
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):

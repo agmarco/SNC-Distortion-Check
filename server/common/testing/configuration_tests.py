@@ -12,8 +12,8 @@ def test_configuration_context(client):
     utexas = factories.InstitutionFactory.create(name='University of Texas')
     managers = factories.GroupFactory.create(name="Manager", permissions=Permission.objects.all())
     medical_physicists = factories.GroupFactory.create(name="Medical Physicist", permissions=[Permission.objects.get(codename='configuration')])
-    manager = factories.UserFactory.create(username="manager", institution=johns_hopkins, groups=[managers])
-    medical_physicist = factories.UserFactory.create(username="medical_physicist", institution=johns_hopkins, groups=[medical_physicists])
+    manager = factories.UserFactory.create(email="manager@johnshopkins.edu", institution=johns_hopkins, groups=[managers])
+    medical_physicist = factories.UserFactory.create(email="medical_physicist@johnshopkins.edu", institution=johns_hopkins, groups=[medical_physicists])
 
     factories.PhantomFactory(institution=johns_hopkins)
     factories.PhantomFactory(institution=johns_hopkins, deleted=True)
@@ -27,9 +27,9 @@ def test_configuration_context(client):
     factories.SequenceFactory(institution=johns_hopkins, deleted=True)
     factories.SequenceFactory(institution=utexas)
 
-    factories.UserFactory.create(username="user_a", institution=johns_hopkins)
-    factories.UserFactory.create(username="user_b", institution=johns_hopkins, deleted=True)
-    factories.UserFactory.create(username="user_c", institution=utexas)
+    factories.UserFactory.create(email="user_a@johnshopkins.edu", institution=johns_hopkins)
+    factories.UserFactory.create(email="user_b@johnshopkins.edu", institution=johns_hopkins, deleted=True)
+    factories.UserFactory.create(email="user_c@johnshopkins.edu", institution=utexas)
 
     url = reverse('configuration')
 

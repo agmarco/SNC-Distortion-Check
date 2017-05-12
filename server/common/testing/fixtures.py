@@ -14,7 +14,7 @@ def permissions_data(db, request):
 
     if request.param:
         group.permissions.add(Permission.objects.get(codename=request.param))
-    current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
+    current_user = factories.UserFactory.create(email='current_user@johnshopkins.edu', institution=johns_hopkins, groups=[group])
 
     return {
         'current_user': current_user,
@@ -26,7 +26,7 @@ def institution_data(db, request):
     johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
     utexas = factories.InstitutionFactory.create(name="University of Texas")
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
-    current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
+    current_user = factories.UserFactory.create(email='current_user@johnshopkins.edu', institution=johns_hopkins, groups=[group])
 
     return {
         'current_user': current_user,

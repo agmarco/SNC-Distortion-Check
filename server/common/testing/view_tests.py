@@ -77,7 +77,7 @@ def test_login_required(client, view):
 
     johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
-    current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
+    current_user = factories.UserFactory.create(email='current_user@johnshopkins.edu', institution=johns_hopkins, groups=[group])
     view_data = _view_data(view, current_user)
     url = _url(view, view_data)
 
@@ -132,7 +132,7 @@ def test_institution(client, institution_data, view):
             assert allowed_access(client, url, method, method_data)
     else:
         new_user = factories.UserFactory.create(
-            username='new_user',
+            email='new_user@example.com',
             institution=institution_data['institution'],
             groups=current_user.groups.all(),
         )
@@ -153,7 +153,7 @@ def test_crud(client, view):
 
     johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
-    current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
+    current_user = factories.UserFactory.create(email='current_user@johnshopkins.edu', institution=johns_hopkins, groups=[group])
 
     view_data = _view_data(view, current_user)
     url = _url(view, view_data)

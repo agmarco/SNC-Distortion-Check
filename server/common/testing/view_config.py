@@ -283,7 +283,6 @@ VIEWS = (
     }, {
         'view': views.CreateUser,
         'crud': (Crud.CREATE, User, {
-            'username': 'create_user',
             'first_name': 'Create First Name',
             'last_name': 'Create Last Name',
             'email': 'create_user@example.com',
