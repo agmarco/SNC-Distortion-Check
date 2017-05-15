@@ -1,5 +1,3 @@
-import six
-from django.contrib.auth.validators import UnicodeUsernameValidator, ASCIIUsernameValidator
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.core.mail import send_mail
@@ -39,14 +37,13 @@ class UserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 
-class User(AbstractBaseUser, PermissionsMixin):
+class AbstractUser(AbstractBaseUser, PermissionsMixin):
     """
     An abstract base class implementing a fully featured User model with
     admin-compliant permissions.
 
     Email and password are required. Other fields are optional.
     """
-    username_validator = UnicodeUsernameValidator() if six.PY3 else ASCIIUsernameValidator()
 
     email = models.EmailField(
         _('email address'),
@@ -54,18 +51,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         help_text=_('Required.'),
         error_messages={
             'unique': _("A user with that email already exists."),
-        },
-    )
-    username = models.CharField(
-        _('username'),
-        max_length=150,
-        unique=True,
-        null=True,
-        blank=True,
-        help_text=_('150 characters or fewer. Letters, digits and @/./+/-/_ only.'),
-        validators=[username_validator],
-        error_messages={
-            'unique': _("A user with that username already exists."),
         },
     )
     first_name = models.CharField(_('first name'), max_length=30, blank=True)

@@ -4,6 +4,7 @@ from django import forms
 
 import numpy as np
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.safestring import mark_safe
 
 from process import dicom_import
 from .models import Phantom, Institution, User
@@ -139,16 +140,21 @@ class DicomOverlayForm(CIRSForm):
 
 
 class CreateUserForm(CIRSModelForm):
-    ADMIN = 'A'
-    MEDICAL_PHYSICIST = 'MP'
-    THERAPIST = 'T'
+    ADMIN = 'manager'
+    MEDICAL_PHYSICIST = 'medical_physicist'
+    THERAPIST = 'therapist'
     GROUP_CHOICES = (
         (ADMIN, 'Admin'),
         (MEDICAL_PHYSICIST, 'Medical Physicist'),
         (THERAPIST, 'Therapist'),
     )
 
-    group = forms.ChoiceField(choices=GROUP_CHOICES)
+    user_type_ht = """The user type determines what permissions the account will have. Therapist users can upload new MR
+        scans for analysis. Medical Physicist users can do everyting therapists can do, and can also add and configure
+        phantoms, machines, and sequences. Admin users can do everything Medical Physicists can do, and can also add and
+        delete new users. Please note that once a user type is set, it cannot be changed (except by CIRS support)."""
+    user_type = forms.ChoiceField(choices=GROUP_CHOICES, widget=forms.RadioSelect, help_text=user_type_ht)
 
     class Meta:
-        fields = ('first_name', 'last_name', 'email', 'group')
+        model = User
+        fields = ('first_name', 'last_name', 'email', 'user_type')

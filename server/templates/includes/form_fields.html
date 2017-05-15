@@ -1,8 +1,10 @@
 {{ form.non_field_errors }}
 {% for field in form %}
   <div>
+    {# TODO move errors below field (+ other templates that don't use this tag) #}
     {{ field.errors }}
     {{ field.label_tag }}
     {{ field }}
+    <p>{{ field.help_text }}</p>
   </div>
 {% endfor %}

@@ -47,6 +47,7 @@ ALLOWED_HOSTS = [os.getenv('HOSTNAME', '*')]
 
 INSTALLED_APPS = [
     'server.common',
+    'server.emailauth',
     'server.django_numpy',
     'storages',
     'django.contrib.admin',

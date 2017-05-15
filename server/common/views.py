@@ -10,10 +10,12 @@ from datetime import datetime
 import dicom
 from dicom.UID import generate_uid
 from dicom.dataset import Dataset, FileDataset
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.conf import settings
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse, reverse_lazy
 from django.utils import formats
 from django.utils.functional import cached_property
@@ -408,10 +410,10 @@ class CreateMachine(CreateView):
     template_name_suffix = '_create'
 
     def form_valid(self, form):
-        self.object = form.save(commit=False)
-        self.object.institution = self.request.user.institution
-        self.object.save()
-        messages.success(self.request, f"\"{self.object.name}\" has been created successfully.")
+        machine = form.save(commit=False)
+        machine.institution = self.request.user.institution
+        machine.save()
+        messages.success(self.request, f"\"{machine.name}\" has been created successfully.")
         return super(ModelFormMixin, self).form_valid(form)
 
 
@@ -448,10 +450,10 @@ class CreateSequence(CreateView):
     template_name_suffix = '_create'
 
     def form_valid(self, form):
-        self.object = form.save(commit=False)
-        self.object.institution = self.request.user.institution
-        self.object.save()
-        messages.success(self.request, f"\"{self.object.name}\" has been created successfully.")
+        sequence = form.save(commit=False)
+        sequence.institution = self.request.user.institution
+        sequence.save()
+        messages.success(self.request, f"\"{sequence.name}\" has been created successfully.")
         return super(ModelFormMixin, self).form_valid(form)
 
 
@@ -486,13 +488,35 @@ class CreateUser(CreateView):
     form_class = forms.CreateUserForm
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_create'
+    email_template_name = 'registration/password_reset_email.html'
+    html_email_template_name = None
+    subject_template_name = 'registration/password_reset_subject.txt'
+    extra_email_context = None
+    token_generator = default_token_generator
+    from_email = None
 
     def form_valid(self, form):
-        self.object = form.save(commit=False)
-        self.object.institution = self.request.user.institution
-        self.object.save()
-        messages.success(self.request, f"\"{self.object.get_full_name()}\" has been created successfully.")
-        return super(ModelFormMixin, self).form_valid(form)
+        opts = {
+            'use_https': self.request.is_secure(),
+            'token_generator': self.token_generator,
+            'from_email': self.from_email,
+            'email_template_name': self.email_template_name,
+            'subject_template_name': self.subject_template_name,
+            'request': self.request,
+            'html_email_template_name': self.html_email_template_name,
+            'extra_email_context': self.extra_email_context,
+        }
+        user = form.save(commit=False)
+        user.institution = self.request.user.institution
+        user.save()
+        user.set_unusable_password()
+        password_reset_form = PasswordResetForm({'email': self.request.user.email})
+        if password_reset_form.is_valid():
+            password_reset_form.save(**opts)
+            messages.success(self.request, f"\"{user.get_full_name()}\" has been created successfully.")
+            return super(ModelFormMixin, self).form_valid(form)
+        else:
+            return HttpResponse(status=500)
 
 
 @login_and_permission_required('common.manage_users')

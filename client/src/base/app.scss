@@ -275,3 +275,13 @@ h6 {
     margin: $small-spacing 0;
   }
 }
+
+.inline-radio {
+  label {
+    display: inline-block;
+
+    &:not(:last-child) {
+      margin-right: $small-spacing;
+    }
+  }
+}
