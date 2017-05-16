@@ -72,12 +72,18 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
     objects = UserManager()
 
+    EMAIL_FIELD = 'email'
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
     class Meta:
         verbose_name = _('user')
         verbose_name_plural = _('users')
+        abstract = True
+
+    def clean(self):
+        super(AbstractUser, self).clean()
+        self.email = self.__class__.objects.normalize_email(self.email)
 
     def get_full_name(self):
         """
@@ -87,9 +93,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         return full_name.strip()
 
     def get_short_name(self):
-        """
-        Returns the short name for the user.
-        """
+        "Returns the short name for the user."
         return self.first_name
 
     def email_user(self, subject, message, from_email=None, **kwargs):
