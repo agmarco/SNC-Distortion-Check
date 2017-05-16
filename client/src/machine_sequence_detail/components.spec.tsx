@@ -73,7 +73,7 @@ describe('<ScanChart />', () => {
     });
 
     it('calculates the quartiles correctly', () => {
-        const quartiles = wrapper.find(ScanChartData).prop('data')[0][1].quartiles;
+        const quartiles = wrapper.find(ScanChartData).prop('data')[1][1].quartiles;
 
         assert(quartiles[0] === 1.215615536609391);
         assert(quartiles[1] === 1.5458943770488713);
@@ -84,7 +84,7 @@ describe('<ScanChart />', () => {
         const scanAPlot = app.find('.box-and-whiskers').eq(0);
         const scanBPlot = app.find('.box-and-whiskers').eq(1);
 
-        assert(scanAPlot.hasClass('passed'));
-        assert(scanBPlot.hasClass('failed'));
+        assert(scanAPlot.hasClass('failed'));
+        assert(scanBPlot.hasClass('passed'));
     });
 });

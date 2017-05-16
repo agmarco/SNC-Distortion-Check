@@ -4,11 +4,14 @@ from django.db import models
 def _validate_fields(model, data):
     for field_name in data.keys():
 
-        # if the field is a foreign key, check that the primary key equals the POST data
-        if isinstance(model._meta.get_field(field_name), models.ForeignKey):
-            assert getattr(model, field_name).pk == int(data[field_name])
-        else:
-            assert getattr(model, field_name) == data[field_name]
+        # TODO view config should be able to specify custom way of validating fields, since the POST data keys don't
+        # always directly correspond with model field names
+        if hasattr(model, field_name):
+            # if the field is a foreign key, check that the primary key equals the POST data
+            if isinstance(model._meta.get_field(field_name), models.ForeignKey):
+                assert getattr(model, field_name).pk == int(data[field_name])
+            else:
+                assert getattr(model, field_name) == data[field_name]
 
 
 def validate_create_view(client, user, url, model_class, data=None):

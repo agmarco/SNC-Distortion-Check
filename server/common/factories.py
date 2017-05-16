@@ -20,7 +20,7 @@ class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.User"
 
-    email = factory.LazyAttribute(lambda u: f'user{u.pk}@example.com')
+    email = factory.Sequence('user{0}@example.com'.format)
     password = "password"
 
     @classmethod

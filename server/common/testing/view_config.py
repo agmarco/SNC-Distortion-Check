@@ -150,6 +150,11 @@ def password_create_confirm_data(user):
     }
 
 
+def create_user_data(user):
+    factories.GroupFactory.create(name="Manager")
+    return {}
+
+
 VIEWS = (
     {
         'view': views.landing,
@@ -294,10 +299,12 @@ VIEWS = (
         'methods': {'GET': None, 'POST': None},
     }, {
         'view': views.CreateUser,
+        'data': create_user_data,
         'crud': (Crud.CREATE, User, {
             'first_name': 'Create First Name',
             'last_name': 'Create Last Name',
             'email': 'create_user@example.com',
+            'user_type': "Manager",
         }),
         'url': reverse('create_user'),
         'login_required': True,
