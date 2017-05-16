@@ -44,6 +44,7 @@ def _get_view_names_from_urlpatterns(url_patterns):
     return view_names
 
 
+# TODO also check that all available HTTP methods are tested
 def test_regression():
     """
     Test that each view used in the URLconf is tested.

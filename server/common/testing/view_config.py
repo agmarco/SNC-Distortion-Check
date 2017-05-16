@@ -1,4 +1,7 @@
+from django.contrib.auth.tokens import default_token_generator
 from django.urls import reverse
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 
 from .. import views
 from .. import api
@@ -137,7 +140,16 @@ def raw_data_data(user):
         'scan': scan,
     }
 
-    
+
+def password_create_confirm_data(user):
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    return {
+        'uid': uid,
+        'token': token,
+    }
+
+
 VIEWS = (
     {
         'view': views.landing,
@@ -394,6 +406,21 @@ VIEWS = (
     }, {
         'view': views.Account,
         'url': reverse('account'),
+        'login_required': True,
+        'permissions': (),
+        'validate_institution': False,
+        'methods': {'GET': None},
+    }, {
+        'view': views.PasswordCreateConfirmView,
+        'data': password_create_confirm_data,
+        'url': lambda data: reverse('password_create_confirm', args=(data['uid'], data['token'])),
+        'login_required': True,
+        'permissions': (),
+        'validate_institution': False,
+        'methods': {'GET': None, 'POST': None},
+    }, {
+        'view': views.PasswordCreateCompleteView,
+        'url': reverse('password_create_complete'),
         'login_required': True,
         'permissions': (),
         'validate_institution': False,

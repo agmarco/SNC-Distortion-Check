@@ -456,7 +456,7 @@ class CreateSequence(CreateView):
         self.object = form.save(commit=False)
         self.object.institution = self.request.user.institution
         self.object.save()
-        self.object.success(self.request, f"\"{self.object.name}\" has been created successfully.")
+        messages.success(self.request, f"\"{self.object.name}\" has been created successfully.")
         return super(ModelFormMixin, self).form_valid(form)
 
 
@@ -720,10 +720,12 @@ def privacy_policy(request):
     return render(request, 'common/privacy_policy.html')
 
 
+@method_decorator(login_required, name='dispatch')
 class PasswordCreateConfirmView(PasswordResetConfirmView):
     template_name = 'registration/password_create_confirm.html'
     success_url = reverse_lazy('password_create_complete')
 
 
+@method_decorator(login_required, name='dispatch')
 class PasswordCreateCompleteView(PasswordResetCompleteView):
     template_name = 'registration/password_create_complete.html'
