@@ -10,6 +10,7 @@ import time
 import dicom
 from dicom.UID import generate_uid
 from dicom.dataset import Dataset, FileDataset
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import HttpResponseRedirect, HttpResponseNotAllowed
@@ -678,7 +679,7 @@ def privacy_policy(request):
     return render(request, 'common/privacy_policy.html')
 
 
-@login_and_permission_required('common.configuration')
+@login_required
 @validate_institution(model_class=models.Scan)
 def refresh_scan(request, pk=None):
     if request.method == 'POST':

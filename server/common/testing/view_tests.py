@@ -9,8 +9,8 @@ from django.conf import settings
 from .. import factories
 from ..urls import urlpatterns
 from .view_config import VIEWS, Crud
-from .utils import validate_create_view, validate_update_view, validate_delete_view, allowed_access, denied_access
-from .fixtures import permissions_data, institution_data
+from .utils import validate_create_view, validate_update_view, validate_delete_view, allowed_access, denied_access, get_response
+from .fixtures import permissions_data, institution_data #  import needed for side effect
 
 
 def _view_data(view, user):
@@ -18,6 +18,10 @@ def _view_data(view, user):
         return view['data'](user)
     else:
         return None
+
+
+def _patches(view):
+    return view['patches'] if 'patches' in view else None
 
 
 def _url(view, view_data=None):
@@ -61,9 +65,10 @@ def test_login_not_required(client, view):
     For each public page, assert that visiting the view results in a 200.
     """
     url = _url(view)
+    patches = _patches(view)
 
     for method, method_data in _methods(view):
-        response = getattr(client, method.lower())(url, method_data)
+        response = get_response(client, url, method, method_data, patches)
         assert response.status_code == 200
 
 
@@ -80,9 +85,10 @@ def test_login_required(client, view):
     current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
     view_data = _view_data(view, current_user)
     url = _url(view, view_data)
+    patches = _patches(view)
 
     for method, method_data in _methods(view, view_data):
-        response = getattr(client, method.lower())(url, method_data)
+        response = get_response(client, url, method, method_data, patches)
         if response.status_code == 302:
             assert urlparse(response['Location']).path == reverse(settings.LOGIN_URL)
         else:
@@ -90,7 +96,7 @@ def test_login_required(client, view):
 
     client.force_login(current_user)
     for method, method_data in _methods(view, view_data):
-        assert allowed_access(client, url, method, method_data)
+        assert allowed_access(client, url, method, method_data, patches)
 
 
 @pytest.mark.parametrize('view', (view for view in VIEWS if view['permissions']))
@@ -103,15 +109,16 @@ def test_permissions(client, permissions_data, view):
     current_user = permissions_data['current_user']
     view_data = _view_data(view, current_user)
     url = _url(view, view_data)
+    patches = _patches(view)
 
     client.force_login(current_user)
 
     if all(current_user.has_perm(permission) for permission in view['permissions']):
         for method, method_data in _methods(view, view_data):
-            assert allowed_access(client, url, method, method_data)
+            assert allowed_access(client, url, method, method_data, patches)
     else:
         for method, method_data in _methods(view, view_data):
-            assert denied_access(client, url, method, method_data)
+            assert denied_access(client, url, method, method_data, patches)
 
 
 @pytest.mark.parametrize('view', (view for view in VIEWS if view['validate_institution']))
@@ -124,12 +131,13 @@ def test_institution(client, institution_data, view):
     current_user = institution_data['current_user']
     view_data = _view_data(view, current_user)
     url = _url(view, view_data)
+    patches = _patches(view)
 
     client.force_login(current_user)
 
     if current_user.institution == institution_data['institution']:
         for method, method_data in _methods(view, view_data):
-            assert allowed_access(client, url, method, method_data)
+            assert allowed_access(client, url, method, method_data, patches)
     else:
         new_user = factories.UserFactory.create(
             username='new_user',
@@ -138,7 +146,7 @@ def test_institution(client, institution_data, view):
         )
         client.force_login(new_user)
         for method, method_data in _methods(view, view_data):
-            assert denied_access(client, url, method, method_data)
+            assert denied_access(client, url, method, method_data, patches)
 
 
 @pytest.mark.parametrize('view', (view for view in VIEWS if 'crud' in view))
@@ -157,12 +165,13 @@ def test_crud(client, view):
 
     view_data = _view_data(view, current_user)
     url = _url(view, view_data)
+    patches = _patches(view)
     operation, model, _ = view['crud']
     post_data = view['crud'][2](view_data) if callable(view['crud'][2]) else view['crud'][2]
 
     if operation == Crud.CREATE:
-        validate_create_view(client, current_user, url, model, post_data)
+        validate_create_view(client, current_user, url, model, post_data, patches)
     elif operation == Crud.UPDATE:
-        validate_update_view(client, current_user, url, model, post_data)
+        validate_update_view(client, current_user, url, model, post_data, patches)
     elif operation == Crud.DELETE:
-        validate_delete_view(client, current_user, url, model, post_data)
+        validate_delete_view(client, current_user, url, model, post_data, patches)

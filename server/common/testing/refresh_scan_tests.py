@@ -1,3 +1,4 @@
+from unittest import mock
 import pytest
 
 from django.contrib.auth.models import Permission
@@ -36,7 +37,9 @@ def test_refresh_scan(client):
     current_count = Scan.objects.count()
 
     client.force_login(current_user)
-    client.post(reverse('refresh_scan', args=(scan.pk,)))
+
+    with mock.patch('server.common.tasks.process_scan'):
+        client.post(reverse('refresh_scan', args=(scan.pk,)))
 
     assert Scan.objects.count() == current_count + 1
 

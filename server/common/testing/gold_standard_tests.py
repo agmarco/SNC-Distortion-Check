@@ -1,6 +1,7 @@
 import csv
 import io
 import os
+from unittest import mock
 
 import pytest
 import numpy as np
@@ -31,10 +32,12 @@ def test_upload_ct(client):
 
     client.force_login(current_user)
 
-    url = reverse('upload_ct', args=(phantom.pk,))
     with open(os.path.join(settings.BASE_DIR, 'data/dicom/004_ct_603A_UVA_IYKOQG2M.zip'), 'rb') as file:
         post_data = {'dicom_archive': SimpleUploadedFile(file.name, file.read(), 'application/zip')}
-    client.post(url, post_data)
+
+    with mock.patch('server.common.tasks.process_ct_upload'):
+        url = reverse('upload_ct', args=(phantom.pk,))
+        client.post(url, post_data)
 
     # check that a new gold standard was created and that it is processing
     assert phantom.goldenfiducials_set.count() == 2
@@ -78,15 +81,9 @@ def test_upload_ct_form(client):
 
     client.force_login(current_user)
 
-    # MRI archive should not be valid
-    #with open(os.path.join(settings.BASE_DIR, 'data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip'), 'rb') as file:
-    #    form = UploadCTForm(files={'dicom_archive': SimpleUploadedFile(file.name, file.read(), 'application/zip')})
-    #    assert not form.is_valid()
-
-    # CT archive should be valid
-    #with open(os.path.join(settings.BASE_DIR, 'data/dicom/004_ct_603A_UVA_IYKOQG2M.zip'), 'rb') as file:
-    #    form = UploadCTForm(files={'dicom_archive': SimpleUploadedFile(file.name, file.read(), 'application/zip')})
-    #    assert form.is_valid()
+    with open(os.path.join(settings.BASE_DIR, 'data/dicom/004_ct_603A_UVA_IYKOQG2M.zip'), 'rb') as file:
+        form = UploadCTForm(files={'dicom_archive': SimpleUploadedFile(file.name, file.read(), 'application/zip')})
+        assert form.is_valid()
 
 
 @pytest.mark.django_db

@@ -20,8 +20,9 @@ from ..models import Phantom, GoldenFiducials, Machine, Sequence, User
 # 'permissions': a list of permissions that are required to access the view.
 # 'validate_institution': a boolean representing whether the user's institution must be validated against the view.
 # 'methods': a dict containing as keys the HTTP methods that should be tested, and as values the GET or POST data to
-#     send with the request. The values may also be functions that receive the data specified by the 'data' key and return
-#     the GET or POST data.
+#     send with the request. The values may also be functions that receive the data specified by the 'data' key and
+#     return the GET or POST data.
+# 'patches': a list of strings representing objects to be patched by unittest.mock
 
 
 class Crud:
@@ -182,6 +183,7 @@ VIEWS = (
         'permissions': ('common.configuration',),
         'validate_institution': False,
         'methods': {'GET': None, 'POST': None},
+        'patches': ('server.common.tasks.process_scan',),
     }, {
         'view': views.DeleteScan,
         'data': delete_scan_data,
@@ -324,6 +326,7 @@ VIEWS = (
         'permissions': ('common.configuration',),
         'validate_institution': True,
         'methods': {'GET': None, 'POST': None},
+        'patches': ('server.common.tasks.process_ct_upload',),
     }, {
         'view': views.UploadRaw,
         'data': lambda user: {'phantom': factories.PhantomFactory(institution=user.institution)},
@@ -397,9 +400,10 @@ VIEWS = (
         'data': refresh_scan_data,
         'url': lambda data: reverse('refresh_scan', args=(data['scan'].pk,)),
         'login_required': True,
-        'permissions': ('common.configuration',),
+        'permissions': (),
         'validate_institution': True,
         'methods': {'POST': None},
+        'patches': ('server.common.tasks.process_scan',),
     }, {
         'view': views.terms_of_use,
         'url': reverse('terms_of_use'),
