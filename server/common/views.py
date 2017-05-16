@@ -10,14 +10,17 @@ from datetime import datetime
 import dicom
 from dicom.UID import generate_uid
 from dicom.dataset import Dataset, FileDataset
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetCompleteView
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.conf import settings
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponseServerError
 from django.urls import reverse, reverse_lazy
 from django.utils import formats
+from django.utils.decorators import method_decorator
 from django.utils.functional import cached_property
 from django.views.generic import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
@@ -56,7 +59,7 @@ class CirsDeleteView(DeleteView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-@login_and_permission_required('common.configuration')
+@login_required
 def landing(request):
     machine_sequence_pairs_queryset = models.MachineSequencePair.objects.filter(machine__institution=request.user.institution)
     machine_sequence_pairs_queryset = machine_sequence_pairs_queryset.active().order_by('-last_modified_on')
@@ -95,7 +98,7 @@ class Configuration(UpdateView):
         return context
 
 
-@login_and_permission_required('common.configuration')
+@method_decorator(login_required, name='dispatch')
 class Account(UpdateView):
     model = models.User
     form_class = forms.AccountForm
@@ -110,7 +113,7 @@ class Account(UpdateView):
         return super(Account, self).form_valid(form)
 
 
-@login_and_permission_required('common.configuration')
+@method_decorator(login_required, name='dispatch')
 @validate_institution()
 class MachineSequenceDetail(DetailView):
     model = models.MachineSequencePair
@@ -131,7 +134,7 @@ class MachineSequenceDetail(DetailView):
 
 
 # TODO cancel might take the user back to landing, machine-sequences, or machine-sequence-detail
-@login_and_permission_required('common.configuration')
+@method_decorator(login_required, name='dispatch')
 class UploadScan(FormView):
     form_class = forms.UploadScanForm
     template_name = 'common/upload_scan.html'
@@ -410,10 +413,10 @@ class CreateMachine(CreateView):
     template_name_suffix = '_create'
 
     def form_valid(self, form):
-        machine = form.save(commit=False)
-        machine.institution = self.request.user.institution
-        machine.save()
-        messages.success(self.request, f"\"{machine.name}\" has been created successfully.")
+        self.object = form.save(commit=False)
+        self.object.institution = self.request.user.institution
+        self.object.save()
+        messages.success(self.request, f"\"{self.object.name}\" has been created successfully.")
         return super(ModelFormMixin, self).form_valid(form)
 
 
@@ -450,10 +453,10 @@ class CreateSequence(CreateView):
     template_name_suffix = '_create'
 
     def form_valid(self, form):
-        sequence = form.save(commit=False)
-        sequence.institution = self.request.user.institution
-        sequence.save()
-        messages.success(self.request, f"\"{sequence.name}\" has been created successfully.")
+        self.object = form.save(commit=False)
+        self.object.institution = self.request.user.institution
+        self.object.save()
+        self.object.success(self.request, f"\"{self.object.name}\" has been created successfully.")
         return super(ModelFormMixin, self).form_valid(form)
 
 
@@ -488,9 +491,9 @@ class CreateUser(CreateView):
     form_class = forms.CreateUserForm
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_create'
-    email_template_name = 'registration/password_reset_email.html'
+    email_template_name = 'registration/password_create_email.html'
     html_email_template_name = None
-    subject_template_name = 'registration/password_reset_subject.txt'
+    subject_template_name = 'registration/password_create_subject.txt'
     extra_email_context = None
     token_generator = default_token_generator
     from_email = None
@@ -506,17 +509,18 @@ class CreateUser(CreateView):
             'html_email_template_name': self.html_email_template_name,
             'extra_email_context': self.extra_email_context,
         }
-        user = form.save(commit=False)
-        user.institution = self.request.user.institution
-        user.save()
-        user.set_unusable_password()
-        password_reset_form = PasswordResetForm({'email': self.request.user.email})
-        if password_reset_form.is_valid():
-            password_reset_form.save(**opts)
-            messages.success(self.request, f"\"{user.get_full_name()}\" has been created successfully.")
+        self.object = form.save(commit=False)
+        self.object.institution = self.request.user.institution
+        self.object.save()
+        self.object.set_unusable_password()
+        form.save_m2m()
+        create_password_form = forms.CreatePasswordForm({'email': self.object.email})
+        if create_password_form.is_valid():
+            create_password_form.save(**opts)
+            messages.success(self.request, f"\"{self.object.get_full_name()}\" has been created successfully.")
             return super(ModelFormMixin, self).form_valid(form)
         else:
-            return HttpResponse(status=500)
+            return HttpResponseServerError()
 
 
 @login_and_permission_required('common.manage_users')
@@ -714,3 +718,12 @@ def terms_of_use(request):
 
 def privacy_policy(request):
     return render(request, 'common/privacy_policy.html')
+
+
+class PasswordCreateConfirmView(PasswordResetConfirmView):
+    template_name = 'registration/password_create_confirm.html'
+    success_url = reverse_lazy('password_create_complete')
+
+
+class PasswordCreateCompleteView(PasswordResetCompleteView):
+    template_name = 'registration/password_create_complete.html'

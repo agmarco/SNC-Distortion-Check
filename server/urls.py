@@ -21,13 +21,16 @@ from django.urls import reverse_lazy
 
 admin.site.site_header = 'CIRS Distortion Check Admin'
 
+uidb64_pattern = r'[0-9A-Za-z_\-]+'
+token_pattern = r'[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20}'
+
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^login/$', auth_views.LoginView.as_view(), name='login'),
     url(r'^logout/$', auth_views.LogoutView.as_view(next_page=reverse_lazy('login')), name='logout'),
     url(r'^password-reset/$', auth_views.PasswordResetView.as_view(), name='password_reset'),
     url(r'^password-reset/done/$', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
-    url(r'^password-reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+    url(r'^password-reset/confirm/(?P<uidb64>' + uidb64_pattern + r')/(?P<token>' + token_pattern + r')/$',
         auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     url(r'^password-reset/complete/$', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     url(r'^', include('server.common.urls')),

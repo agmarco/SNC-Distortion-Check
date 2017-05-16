@@ -3,6 +3,9 @@ import zipfile
 from django import forms
 
 import numpy as np
+from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.safestring import mark_safe
 
@@ -11,6 +14,8 @@ from .models import Phantom, Institution, User
 
 MRI_SOP = '1.2.840.10008.5.1.4.1.1.4'  # MR Image Storage
 CT_SOP = '1.2.840.10008.5.1.4.1.1.2'  # CT Image Storage
+
+UserModel = get_user_model()
 
 
 class CIRSForm(forms.Form):
@@ -140,11 +145,11 @@ class DicomOverlayForm(CIRSForm):
 
 
 class CreateUserForm(CIRSModelForm):
-    ADMIN = 'manager'
-    MEDICAL_PHYSICIST = 'medical_physicist'
-    THERAPIST = 'therapist'
+    MANAGER = 'Manager'
+    MEDICAL_PHYSICIST = 'Medical Physicist'
+    THERAPIST = 'Therapist'
     GROUP_CHOICES = (
-        (ADMIN, 'Admin'),
+        (MANAGER, 'Admin'),
         (MEDICAL_PHYSICIST, 'Medical Physicist'),
         (THERAPIST, 'Therapist'),
     )
@@ -158,3 +163,16 @@ class CreateUserForm(CIRSModelForm):
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'email', 'user_type')
+
+    def _save_m2m(self):
+        super(CreateUserForm, self)._save_m2m()
+        self.instance.groups.add(Group.objects.get(name=self.cleaned_data['user_type']))
+
+
+class CreatePasswordForm(PasswordResetForm):
+    def get_users(self, email):
+        active_users = UserModel._default_manager.filter(**{
+            '%s__iexact' % UserModel.get_email_field_name(): email,
+            'is_active': True,
+        })
+        return (u for u in active_users if not u.has_usable_password())

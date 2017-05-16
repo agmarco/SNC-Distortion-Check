@@ -2,8 +2,13 @@ from django.conf.urls import url, include
 
 from . import views
 from . import api
+from ..urls import uidb64_pattern, token_pattern
 
 urlpatterns = [
+    url(r'^password-create/confirm/(?P<uidb64>' + uidb64_pattern + r')/(?P<token>' + token_pattern + r')/$',
+        views.PasswordCreateConfirmView.as_view(), name='password_create_confirm'),
+    url(r'^password-create/complete/$', views.PasswordCreateCompleteView.as_view(), name='password_create_complete'),
+
     url(r'^terms-of-use/', views.terms_of_use, name='terms_of_use'),
     url(r'^privacy-policy/', views.privacy_policy, name='privacy_policy'),
 

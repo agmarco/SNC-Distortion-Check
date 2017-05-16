@@ -143,7 +143,7 @@ VIEWS = (
         'view': views.landing,
         'url': reverse('landing'),
         'login_required': True,
-        'permissions': ('common.configuration',),
+        'permissions': (),
         'validate_institution': False,
         'methods': {'GET': None},
     }, {
@@ -158,14 +158,14 @@ VIEWS = (
         'data': machine_sequence_detail_data,
         'url': lambda data: reverse('machine_sequence_detail', args=(data['machine_sequence_pair'].pk,)),
         'login_required': True,
-        'permissions': ('common.configuration',),
+        'permissions': (),
         'validate_institution': True,
         'methods': {'GET': None},
     }, {
         'view': views.UploadScan,
         'url': reverse('upload_scan'),
         'login_required': True,
-        'permissions': ('common.configuration',),
+        'permissions': (),
         'validate_institution': False,
         'methods': {'GET': None, 'POST': None},
     }, {

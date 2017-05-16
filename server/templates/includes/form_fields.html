@@ -5,6 +5,6 @@
     {{ field.errors }}
     {{ field.label_tag }}
     {{ field }}
-    <p>{{ field.help_text }}</p>
+    <p>{{ field.help_text|safe }}</p>
   </div>
 {% endfor %}
