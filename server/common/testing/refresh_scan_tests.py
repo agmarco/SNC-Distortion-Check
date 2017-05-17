@@ -38,7 +38,7 @@ def test_refresh_scan(client):
 
     client.force_login(current_user)
 
-    with mock.patch('server.common.tasks.process_scan'):
+    with mock.patch('server.common.views.process_scan'):
         client.post(reverse('refresh_scan', args=(scan.pk,)))
 
     assert Scan.objects.count() == current_count + 1

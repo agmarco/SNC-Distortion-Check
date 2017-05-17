@@ -35,8 +35,8 @@ def test_upload_ct(client):
     with open(os.path.join(settings.BASE_DIR, 'data/dicom/004_ct_603A_UVA_IYKOQG2M.zip'), 'rb') as file:
         post_data = {'dicom_archive': SimpleUploadedFile(file.name, file.read(), 'application/zip')}
 
-    with mock.patch('server.common.tasks.process_ct_upload'):
-        url = reverse('upload_ct', args=(phantom.pk,))
+    url = reverse('upload_ct', args=(phantom.pk,))
+    with mock.patch('server.common.views.process_ct_upload'):
         client.post(url, post_data)
 
     # check that a new gold standard was created and that it is processing

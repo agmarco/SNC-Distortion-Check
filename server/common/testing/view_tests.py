@@ -9,8 +9,9 @@ from django.conf import settings
 from .. import factories
 from ..urls import urlpatterns
 from .view_config import VIEWS, Crud
-from .utils import validate_create_view, validate_update_view, validate_delete_view, allowed_access, denied_access, get_response
-from .fixtures import permissions_data, institution_data #  import needed for side effect
+from .utils import validate_create_view, validate_update_view, validate_delete_view, allowed_access, denied_access, \
+    get_response
+from .fixtures import permissions_data, institution_data  # import needed for side effect
 
 
 def _view_data(view, user):
@@ -64,8 +65,12 @@ def test_login_not_required(client, view):
     """
     For each public page, assert that visiting the view results in a 200.
     """
-    url = _url(view)
+    johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
+    group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
+    current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
+    view_data = _view_data(view, current_user)
     patches = _patches(view)
+    url = _url(view, view_data)
 
     for method, method_data in _methods(view):
         response = get_response(client, url, method, method_data, patches)
@@ -84,8 +89,8 @@ def test_login_required(client, view):
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
     current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
     view_data = _view_data(view, current_user)
-    url = _url(view, view_data)
     patches = _patches(view)
+    url = _url(view, view_data)
 
     for method, method_data in _methods(view, view_data):
         response = get_response(client, url, method, method_data, patches)
@@ -108,8 +113,8 @@ def test_permissions(client, permissions_data, view):
 
     current_user = permissions_data['current_user']
     view_data = _view_data(view, current_user)
-    url = _url(view, view_data)
     patches = _patches(view)
+    url = _url(view, view_data)
 
     client.force_login(current_user)
 
@@ -130,8 +135,8 @@ def test_institution(client, institution_data, view):
 
     current_user = institution_data['current_user']
     view_data = _view_data(view, current_user)
-    url = _url(view, view_data)
     patches = _patches(view)
+    url = _url(view, view_data)
 
     client.force_login(current_user)
 
@@ -164,8 +169,8 @@ def test_crud(client, view):
     current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
 
     view_data = _view_data(view, current_user)
-    url = _url(view, view_data)
     patches = _patches(view)
+    url = _url(view, view_data)
     operation, model, _ = view['crud']
     post_data = view['crud'][2](view_data) if callable(view['crud'][2]) else view['crud'][2]
 

@@ -1,3 +1,4 @@
+import contextlib
 from contextlib import ExitStack
 from unittest import mock
 
@@ -64,12 +65,23 @@ def denied_access(client, url, method, data, patches=None):
 
 
 def get_response(client, url, method, data, patches=None):
-    # TODO patches not working
-    # it appears that in order for the patches to work, reverse() must be called with the context manager?
     if patches:
-        with ExitStack() as stack:
-            for manager in map(mock.patch, patches):
-                stack.enter_context(manager)
+        with mock_patches(patches):
             return getattr(client, method.lower())(url, data)
     else:
         return getattr(client, method.lower())(url, data)
+
+
+@contextlib.contextmanager
+def mock_patches(targets):
+    patches = map(mock.patch, targets)
+    mocks = []
+
+    for patch in patches:
+        _mock = patch.start()
+        mocks.append(_mock)
+
+    yield mocks
+
+    for patch in patches:
+        patch.stop()

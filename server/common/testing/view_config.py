@@ -183,7 +183,7 @@ VIEWS = (
         'permissions': ('common.configuration',),
         'validate_institution': False,
         'methods': {'GET': None, 'POST': None},
-        'patches': ('server.common.tasks.process_scan',),
+        'patches': ('server.common.views.process_scan',),
     }, {
         'view': views.DeleteScan,
         'data': delete_scan_data,
@@ -326,7 +326,7 @@ VIEWS = (
         'permissions': ('common.configuration',),
         'validate_institution': True,
         'methods': {'GET': None, 'POST': None},
-        'patches': ('server.common.tasks.process_ct_upload',),
+        'patches': ('server.common.views.process_ct_upload',),
     }, {
         'view': views.UploadRaw,
         'data': lambda user: {'phantom': factories.PhantomFactory(institution=user.institution)},
@@ -403,7 +403,7 @@ VIEWS = (
         'permissions': (),
         'validate_institution': True,
         'methods': {'POST': None},
-        'patches': ('server.common.tasks.process_scan',),
+        'patches': ('server.common.views.process_scan',),
     }, {
         'view': views.terms_of_use,
         'url': reverse('terms_of_use'),
