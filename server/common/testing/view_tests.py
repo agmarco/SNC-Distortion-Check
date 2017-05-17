@@ -43,7 +43,7 @@ def _get_view_names_from_urlpatterns(url_patterns):
     view_names = []
     for pattern in url_patterns:
         if isinstance(pattern, RegexURLPattern):
-            view_names.append(pattern.callback.__name__)
+            view_names.append(getattr(pattern.callback, 'view_class', pattern.callback))
         elif isinstance(pattern, RegexURLResolver):
             view_names.extend(_get_view_names_from_urlpatterns(pattern.url_patterns))
     return view_names
@@ -55,8 +55,9 @@ def test_regression():
     """
 
     view_names = set(_get_view_names_from_urlpatterns(urlpatterns))
-    tested_view_names = set(view['view'].__name__ for view in VIEWS)
-    assert view_names == tested_view_names, f"The following views are not tested: {view_names - tested_view_names}"
+    tested_view_names = set(view['view'] for view in VIEWS)
+    untested_view_names = [view.__name__ for view in view_names - tested_view_names]
+    assert view_names == tested_view_names, f"The following views are not tested: {untested_view_names}"
 
 
 @pytest.mark.parametrize('view', (view for view in VIEWS if not view['login_required']))
