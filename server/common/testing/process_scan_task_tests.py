@@ -21,10 +21,10 @@ def test_working_scan():
     user = UserFactory(institution=institution)
     scan = dicom_overlay_data(user)['scan']
 
-    assert scan.processing == True
+    assert scan.processing
 
     process_scan(scan.pk)
     scan.refresh_from_db()
 
-    assert scan.processing == False
+    assert not scan.processing
     assert scan.errors is None

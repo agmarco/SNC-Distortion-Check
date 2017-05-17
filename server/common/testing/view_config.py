@@ -20,8 +20,9 @@ from ..models import Phantom, GoldenFiducials, Machine, Sequence, User
 # 'permissions': a list of permissions that are required to access the view.
 # 'validate_institution': a boolean representing whether the user's institution must be validated against the view.
 # 'methods': a dict containing as keys the HTTP methods that should be tested, and as values the GET or POST data to
-#     send with the request. The values may also be functions that receive the data specified by the 'data' key and return
-#     the GET or POST data.
+#     send with the request. The values may also be functions that receive the data specified by the 'data' key and
+#     return the GET or POST data.
+# 'patches': a list of strings representing objects to be patched by unittest.mock
 
 
 class Crud:
@@ -114,6 +115,20 @@ def dicom_overlay_data(user):
     }
 
 
+def refresh_scan_data(user):
+    machine = factories.MachineFactory(institution=user.institution)
+    sequence = factories.SequenceFactory(institution=user.institution)
+    machine_sequence_pair = factories.MachineSequencePairFactory(machine=machine, sequence=sequence)
+    scan = factories.ScanFactory(
+        creator=user,
+        machine_sequence_pair=machine_sequence_pair,
+        tolerance=2,
+    )
+    return {
+        'scan': scan,
+    }
+
+
 def update_tolerance_data(user):
     machine = factories.MachineFactory(institution=user.institution)
     sequence = factories.SequenceFactory(institution=user.institution)
@@ -137,7 +152,7 @@ def raw_data_data(user):
         'scan': scan,
     }
 
-    
+
 VIEWS = (
     {
         'view': views.landing,
@@ -168,6 +183,7 @@ VIEWS = (
         'permissions': ('common.configuration',),
         'validate_institution': False,
         'methods': {'GET': None, 'POST': None},
+        'patches': ('server.common.views.process_scan',),
     }, {
         'view': views.DeleteScan,
         'data': delete_scan_data,
@@ -310,6 +326,7 @@ VIEWS = (
         'permissions': ('common.configuration',),
         'validate_institution': True,
         'methods': {'GET': None, 'POST': None},
+        'patches': ('server.common.views.process_ct_upload',),
     }, {
         'view': views.UploadRaw,
         'data': lambda user: {'phantom': factories.PhantomFactory(institution=user.institution)},
@@ -378,6 +395,15 @@ VIEWS = (
             'pk': data['machine_sequence_pair'].pk,
             'tolerance': 1,
         }},
+    }, {
+        'view': views.refresh_scan,
+        'data': refresh_scan_data,
+        'url': lambda data: reverse('refresh_scan', args=(data['scan'].pk,)),
+        'login_required': True,
+        'permissions': (),
+        'validate_institution': True,
+        'methods': {'POST': None},
+        'patches': ('server.common.views.process_scan',),
     }, {
         'view': views.terms_of_use,
         'url': reverse('terms_of_use'),

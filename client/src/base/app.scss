@@ -80,7 +80,7 @@ form {
 
 #site-header {
   // ensures the header displays when the user is not logged in
-  min-height: $footer-height;
+  min-height: $header-height;
   overflow: auto;
   top: 0;
 

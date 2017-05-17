@@ -3,7 +3,7 @@ import format from 'date-fns/format';
 import uniqBy from 'lodash/uniqBy';
 
 import { IScanDTO, IPhantomDTO } from 'common/service';
-import { BoolIcon } from 'common/components';
+import { BoolIcon, AnchorForm } from 'common/components';
 
 import './ScanTable.scss';
 
@@ -18,6 +18,8 @@ export interface IScanTableState {
 }
 
 export default class extends React.Component<IScanTableProps, IScanTableState> {
+    refreshScanForm: HTMLFormElement;
+
     constructor(props: IScanTableProps) {
         super();
 
@@ -44,7 +46,6 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
         this.setState({phantomFilterValue: value === 'all' ? value : Number(value)});
     }
 
-    // TODO hook up executive report
     renderScanActions(scan: IScanDTO) {
         if (scan.processing) {
             return <td colSpan={6}>The Data is Still being Processed...</td>;
@@ -60,7 +61,9 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
         } else {
             return [
                 <td key={0} className="action">
-                    <a href="#"><i className="fa fa-refresh" aria-hidden="true" /></a>
+                    <AnchorForm action={scan.refresh_url}>
+                        <i className="fa fa-refresh" aria-hidden="true" />
+                    </AnchorForm>
                 </td>,
                 <td key={1} className="action">
                     <a href={scan.dicom_overlay_url}>DICOM Overlay</a>

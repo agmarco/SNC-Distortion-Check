@@ -22,6 +22,7 @@ urlpatterns = [
         url(r'^(?P<pk>\d+)/errors/$', views.ScanErrors.as_view(), name='scan_errors'),
         url(r'^(?P<pk>\d+)/dicom-overlay/$', views.DicomOverlay.as_view(), name='dicom_overlay'),
         url(r'^(?P<pk>\d+)/raw-data/$', views.raw_data, name='raw_data'),
+        url(r'^(?P<pk>\d+)/refresh/$', views.refresh_scan, name='refresh_scan'),
     ])),
 
     url(r'^phantoms/', include([
