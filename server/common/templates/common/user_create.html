@@ -12,32 +12,32 @@
     {% csrf_token %}
     {{ form.non_field_errors }}
     <div>
-      {{ form.first_name.errors }}
       {{ form.first_name.label_tag }}
       {{ form.first_name }}
-      <p>{{ form.first_name.help_text }}</p>
+      {{ form.first_name.errors }}
+      {{ form.first_name.help_text|safe }}
     </div>
     <div>
-      {{ form.last_name.errors }}
       {{ form.last_name.label_tag }}
       {{ form.last_name }}
-      <p>{{ form.last_name.help_text }}</p>
+      {{ form.last_name.errors }}
+      {{ form.last_name.help_text|safe }}
     </div>
     <div>
-      {{ form.email.errors }}
       {{ form.email.label_tag }}
       {{ form.email }}
-      <p>{{ form.email.help_text }}</p>
+      {{ form.email.errors }}
+      {{ form.email.help_text|safe }}
     </div>
     <div>
-      {{ form.user_type.errors }}
       {{ form.user_type.label_tag }}
       <div class="inline-radio">
         {% for choice in form.user_type %}
           {{ choice }}
         {% endfor %}
       </div>
-      <p>{{ form.user_type.help_text }}</p>
+      {{ form.user_type.errors }}
+      {{ form.user_type.help_text|safe }}
     </div>
     <div class="form-links">
       <a href="{% url 'configuration' %}" class="btn tertiary">Cancel</a>

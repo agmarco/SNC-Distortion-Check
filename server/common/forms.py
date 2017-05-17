@@ -154,10 +154,10 @@ class CreateUserForm(CIRSModelForm):
         (THERAPIST, 'Therapist'),
     )
 
-    user_type_ht = """The user type determines what permissions the account will have. Therapist users can upload new MR
+    user_type_ht = """<p>The user type determines what permissions the account will have. Therapist users can upload new MR
         scans for analysis. Medical Physicist users can do everyting therapists can do, and can also add and configure
         phantoms, machines, and sequences. Admin users can do everything Medical Physicists can do, and can also add and
-        delete new users. Please note that once a user type is set, it cannot be changed (except by CIRS support)."""
+        delete new users. Please note that once a user type is set, it cannot be changed (except by CIRS support).</p>"""
     user_type = forms.ChoiceField(choices=GROUP_CHOICES, widget=forms.RadioSelect, help_text=user_type_ht)
 
     class Meta:
