@@ -1,4 +1,7 @@
+from django.contrib.auth.tokens import default_token_generator
 from django.urls import reverse
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 
 from .. import views
 from .. import api
@@ -153,12 +156,26 @@ def raw_data_data(user):
     }
 
 
+def password_create_confirm_data(user):
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    return {
+        'uid': uid,
+        'token': token,
+    }
+
+
+def create_user_data(user):
+    factories.GroupFactory.create(name="Manager")
+    return {}
+
+
 VIEWS = (
     {
         'view': views.landing,
         'url': reverse('landing'),
         'login_required': True,
-        'permissions': ('common.configuration',),
+        'permissions': (),
         'validate_institution': False,
         'methods': {'GET': None},
     }, {
@@ -173,14 +190,14 @@ VIEWS = (
         'data': machine_sequence_detail_data,
         'url': lambda data: reverse('machine_sequence_detail', args=(data['machine_sequence_pair'].pk,)),
         'login_required': True,
-        'permissions': ('common.configuration',),
+        'permissions': (),
         'validate_institution': True,
         'methods': {'GET': None},
     }, {
         'view': views.UploadScan,
         'url': reverse('upload_scan'),
         'login_required': True,
-        'permissions': ('common.configuration',),
+        'permissions': (),
         'validate_institution': False,
         'methods': {'GET': None, 'POST': None},
         'patches': ('server.common.views.process_scan',),
@@ -189,7 +206,7 @@ VIEWS = (
         'data': delete_scan_data,
         'url': lambda data: reverse('delete_scan', args=(data['scan'].pk,)),
         'login_required': True,
-        'permissions': ('common.configuration',),
+        'permissions': (),
         'validate_institution': True,
         'methods': {'GET': None, 'POST': None},
     }, {
@@ -197,7 +214,7 @@ VIEWS = (
         'data': scan_errors_data,
         'url': lambda data: reverse('scan_errors', args=(data['scan'].pk,)),
         'login_required': True,
-        'permissions': ('common.configuration',),
+        'permissions': (),
         'validate_institution': True,
         'methods': {'GET': None},
     }, {
@@ -298,11 +315,12 @@ VIEWS = (
         'methods': {'GET': None, 'POST': None},
     }, {
         'view': views.CreateUser,
+        'data': create_user_data,
         'crud': (Crud.CREATE, User, {
-            'username': 'create_user',
             'first_name': 'Create First Name',
             'last_name': 'Create Last Name',
             'email': 'create_user@example.com',
+            'user_type': "Manager",
         }),
         'url': reverse('create_user'),
         'login_required': True,
@@ -365,7 +383,7 @@ VIEWS = (
         'data': raw_data_data,
         'url': lambda data: reverse('raw_data', args=(data['scan'].pk,)),
         'login_required': True,
-        'permissions': ('common.configuration',),
+        'permissions': (),
         'validate_institution': True,
         'methods': {'GET': None},
     }, {
@@ -373,7 +391,7 @@ VIEWS = (
         'data': dicom_overlay_data,
         'url': lambda data: reverse('dicom_overlay', args=(data['scan'].pk,)),
         'login_required': True,
-        'permissions': ('common.configuration',),
+        'permissions': (),
         'validate_institution': True,
         'methods': {'GET': None, 'POST': None},
     }, {
@@ -414,6 +432,28 @@ VIEWS = (
     }, {
         'view': views.privacy_policy,
         'url': reverse('privacy_policy'),
+        'login_required': False,
+        'permissions': (),
+        'validate_institution': False,
+        'methods': {'GET': None},
+    }, {
+        'view': views.Account,
+        'url': reverse('account'),
+        'login_required': True,
+        'permissions': (),
+        'validate_institution': False,
+        'methods': {'GET': None},
+    }, {
+        'view': views.PasswordCreateConfirmView,
+        'data': password_create_confirm_data,
+        'url': lambda data: reverse('password_create_confirm', args=(data['uid'], data['token'])),
+        'login_required': False,
+        'permissions': (),
+        'validate_institution': False,
+        'methods': {'GET': None, 'POST': None},
+    }, {
+        'view': views.PasswordCreateCompleteView,
+        'url': reverse('password_create_complete'),
         'login_required': False,
         'permissions': (),
         'validate_institution': False,

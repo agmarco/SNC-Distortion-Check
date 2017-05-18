@@ -49,6 +49,7 @@ def _get_view_names_from_urlpatterns(url_patterns):
     return view_names
 
 
+# TODO also check that all available HTTP methods are tested
 def test_regression():
     """
     Test that each view used in the URLconf is tested.
@@ -64,18 +65,22 @@ def test_regression():
 @pytest.mark.django_db
 def test_login_not_required(client, view):
     """
-    For each public page, assert that visiting the view results in a 200.
+    For each public page, assert that visiting the view results in a 200 or a 302 redirect to something other than the
+    login page.
     """
     johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
-    current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
+    current_user = factories.UserFactory.create(email='current_user@johnshopkins.edu', institution=johns_hopkins, groups=[group])
     view_data = _view_data(view, current_user)
     patches = _patches(view)
     url = _url(view, view_data)
 
     for method, method_data in _methods(view):
         response = get_response(client, url, method, method_data, patches)
-        assert response.status_code == 200
+        if response.status_code == 302:
+            assert urlparse(response['Location']).path != reverse(settings.LOGIN_URL)
+        else:
+            assert response.status_code == 200
 
 
 @pytest.mark.parametrize('view', (view for view in VIEWS if view['login_required']))
@@ -88,7 +93,7 @@ def test_login_required(client, view):
 
     johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
-    current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
+    current_user = factories.UserFactory.create(email='current_user@johnshopkins.edu', institution=johns_hopkins, groups=[group])
     view_data = _view_data(view, current_user)
     patches = _patches(view)
     url = _url(view, view_data)
@@ -146,7 +151,7 @@ def test_institution(client, institution_data, view):
             assert allowed_access(client, url, method, method_data, patches)
     else:
         new_user = factories.UserFactory.create(
-            username='new_user',
+            email='new_user@example.com',
             institution=institution_data['institution'],
             groups=current_user.groups.all(),
         )
@@ -167,7 +172,7 @@ def test_crud(client, view):
 
     johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
-    current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
+    current_user = factories.UserFactory.create(email='current_user@johnshopkins.edu', institution=johns_hopkins, groups=[group])
 
     view_data = _view_data(view, current_user)
     patches = _patches(view)

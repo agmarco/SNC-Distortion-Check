@@ -3,10 +3,15 @@ import zipfile
 from django import forms
 
 import numpy as np
+from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
 
 from process import dicom_import
 from .models import Phantom, Institution
+
+UserModel = get_user_model()
 
 
 class CIRSForm(forms.Form):
@@ -19,6 +24,12 @@ class CIRSModelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('label_suffix', '')
         super().__init__(*args, **kwargs)
+
+
+class AccountForm(CIRSModelForm):
+    class Meta:
+        model = UserModel
+        fields = ('first_name', 'last_name', 'email')
 
 
 class CreatePhantomForm(CIRSModelForm):
@@ -121,3 +132,37 @@ class DicomOverlayForm(CIRSForm):
     isocenter_y = forms.FloatField(label="y", widget=forms.NumberInput(attrs={'step': '0.01'}), required=False)
     isocenter_z = forms.FloatField(label="z", widget=forms.NumberInput(attrs={'step': '0.01'}), required=False)
     frame_of_reference_uid = forms.CharField(label="FrameOfReferenceUID", required=False)
+
+
+class CreateUserForm(CIRSModelForm):
+    MANAGER = 'Manager'
+    MEDICAL_PHYSICIST = 'Medical Physicist'
+    THERAPIST = 'Therapist'
+    GROUP_CHOICES = (
+        (MANAGER, 'Admin'),
+        (MEDICAL_PHYSICIST, 'Medical Physicist'),
+        (THERAPIST, 'Therapist'),
+    )
+
+    user_type_ht = """<p>The user type determines what permissions the account will have. Therapist users can upload new MR
+        scans for analysis. Medical Physicist users can do everything therapists can do, and can also add and configure
+        phantoms, machines, and sequences. Admin users can do everything Medical Physicists can do, and can also add and
+        delete new users. Please note that once a user type is set, it cannot be changed (except by CIRS support).</p>"""
+    user_type = forms.ChoiceField(choices=GROUP_CHOICES, widget=forms.RadioSelect, help_text=user_type_ht)
+
+    class Meta:
+        model = UserModel
+        fields = ('first_name', 'last_name', 'email', 'user_type')
+
+    def _save_m2m(self):
+        super(CreateUserForm, self)._save_m2m()
+        self.instance.groups.add(Group.objects.get(name=self.cleaned_data['user_type']))
+
+
+class CreatePasswordForm(PasswordResetForm):
+    def get_users(self, email):
+        active_users = UserModel._default_manager.filter(**{
+            '%s__iexact' % UserModel.get_email_field_name(): email,
+            'is_active': True,
+        })
+        return (u for u in active_users if not u.has_usable_password())

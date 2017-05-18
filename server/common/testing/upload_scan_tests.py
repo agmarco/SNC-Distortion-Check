@@ -13,7 +13,7 @@ def test_upload_scan_context(client):
     johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
     utexas = factories.InstitutionFactory.create(name="University of Texas")
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
-    current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
+    current_user = factories.UserFactory.create(email='current_user@johnshopkins.edu', institution=johns_hopkins, groups=[group])
 
     machine_a = factories.MachineFactory.create(
         name='MRI Scanner East',

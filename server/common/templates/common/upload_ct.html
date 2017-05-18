@@ -10,7 +10,7 @@
 
 {% block content %}
   <h1>Upload Gold Standard CT</h1>
-  <form action="{% url 'upload_ct' phantom.pk %}" enctype="multipart/form-data" method="post" class="cirs-form">
+  <form enctype="multipart/form-data" method="post" class="cirs-form">
     {% csrf_token %}
     <p>The uploaded file should be a zip-archive containing CT DICOM slices for the gold standard CT scan of the phantom.</p>
     {% include 'includes/form_fields.html' %}

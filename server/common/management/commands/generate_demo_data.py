@@ -37,7 +37,6 @@ class Command(BaseCommand):
         therapists = factories.GroupFactory.create(name='Therapist')
 
         admin = factories.UserFactory.create(
-            username="admin",
             email="admin@cirs.com",
             first_name="admin",
             last_name="cirs",
@@ -52,28 +51,25 @@ class Command(BaseCommand):
         )
 
         manager = factories.UserFactory.create(
-            username="manager",
             first_name="Edsger",
             last_name="Dijkstra",
-            email="edsger.dijkstra@johnhopkins.edu",
+            email="manager@johnshopkins.edu",
             institution=johns_hopkins,
             groups=[managers],
         )
 
         medical_physicist = factories.UserFactory.create(
-            username="medical_physicist",
             first_name="Mary",
             last_name="Jane",
-            email="mary.jane@johnhopkins.edu",
+            email="medical_physicist@johnshopkins.edu",
             institution=johns_hopkins,
             groups=[medical_physicists],
         )
 
         therapist = factories.UserFactory.create(
-            username="therapist",
             first_name="John",
             last_name="Doe",
-            email="john.doe@johnhopkins.edu",
+            email="therapist@johnshopkins.edu",
             institution=johns_hopkins,
             groups=[therapists],
         )

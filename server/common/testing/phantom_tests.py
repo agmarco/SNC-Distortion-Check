@@ -14,7 +14,7 @@ def test_phantoms(client):
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
     phantom_model = factories.PhantomModelFactory(name='CIRS 603A', model_number='603A')
     initial_phantom = factories.PhantomFactory(model=phantom_model, serial_number='A123')
-    current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
+    current_user = factories.UserFactory.create(email='current_user@johnshopkins.edu', institution=johns_hopkins, groups=[group])
 
     client.force_login(current_user)
 
@@ -57,7 +57,7 @@ def test_phantoms(client):
 def test_gold_standards(client):
     johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
-    current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
+    current_user = factories.UserFactory.create(email='current_user@johnshopkins.edu', institution=johns_hopkins, groups=[group])
     phantom = factories.PhantomFactory()
     cad_gold_standard = phantom.active_gold_standard
     raw_gold_standard = factories.GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.CSV)

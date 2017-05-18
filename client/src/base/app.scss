@@ -123,6 +123,14 @@ form {
 #site-breadcrumbs {
   margin: 0 $base-spacing $small-spacing $base-spacing;
   color: $primary-muted-color;
+
+  li {
+    display: inline-block;
+
+    &:not(:first-child)::before {
+      content: " › ";
+    }
+  }
 }
 
 h2,
@@ -273,5 +281,15 @@ h6 {
     font-size: 0.875rem;
     color: $error-color;
     margin: $small-spacing 0;
+  }
+}
+
+.inline-radio {
+  label {
+    display: inline-block;
+
+    &:not(:last-child) {
+      margin-right: $small-spacing;
+    }
   }
 }

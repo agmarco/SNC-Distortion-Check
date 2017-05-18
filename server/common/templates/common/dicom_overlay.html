@@ -16,23 +16,22 @@
 
 {% block content %}
   <h1>DICOM Overlay</h1>
-  <form action="{% url 'dicom_overlay' scan.pk %}" method="post" class="cirs-form">
+  <form method="post" class="cirs-form">
     {% csrf_token %}
     {{ form.non_field_errors }}
     <div>
-      {{ form.study_instance_uid.errors }}
       {{ form.study_instance_uid.label_tag }}
       {{ form.study_instance_uid }}
+      {{ form.study_instance_uid.errors }}
+      {{ form.study_instance_uid.help_text|safe }}
     </div>
     <div>
-      {{ form.patient_id.errors }}
       {{ form.patient_id.label_tag }}
       {{ form.patient_id }}
+      {{ form.patient_id.errors }}
+      {{ form.patient_id.help_text|safe }}
     </div>
     <div>
-      {{ form.isocenter_x.errors }}
-      {{ form.isocenter_y.errors }}
-      {{ form.isocenter_z.errors }}
       <label>Isocenter (mm)</label>
       <div class="isocenter">
         {{ form.isocenter_x.label_tag }}
@@ -42,11 +41,18 @@
         {{ form.isocenter_z.label_tag }}
         {{ form.isocenter_z }}
       </div>
+      {{ form.isocenter_x.errors }}
+      {{ form.isocenter_y.errors }}
+      {{ form.isocenter_z.errors }}
+      {{ form.isocenter_x.help_text|safe }}
+      {{ form.isocenter_y.help_text|safe }}
+      {{ form.isocenter_z.help_text|safe }}
     </div>
     <div>
-      {{ form.frame_of_reference_uid.errors }}
       {{ form.frame_of_reference_uid.label_tag }}
       {{ form.frame_of_reference_uid }}
+      {{ form.frame_of_reference_uid.errors }}
+      {{ form.frame_of_reference_uid.help_text|safe }}
     </div>
     <div class="form-links">
       <a href="{% url 'machine_sequence_detail' scan.machine_sequence_pair.pk %}" class="btn tertiary">Cancel</a>

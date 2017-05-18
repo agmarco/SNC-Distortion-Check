@@ -1,40 +1,44 @@
 import os
 import io
 import tempfile
-import uuid
 import zipfile
 import logging
 import time
+import uuid
 from datetime import datetime
 
 import dicom
 from dicom.UID import generate_uid
 from dicom.dataset import Dataset, FileDataset
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetCompleteView
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
-from django.http import HttpResponseRedirect, HttpResponseNotAllowed
+from django.conf import settings
+from django.http import HttpResponseRedirect, HttpResponseServerError
 from django.urls import reverse, reverse_lazy
 from django.utils import formats
+from django.utils.decorators import method_decorator
 from django.utils.functional import cached_property
 from django.views.generic import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
 from django.shortcuts import render, redirect, get_object_or_404
-from django.conf import settings
 from rest_framework.renderers import JSONRenderer
 
 import scipy.io
 import numpy as np
-from scipy.interpolate.ndgriddata import griddata
 import scipy.ndimage.filters
+from scipy.interpolate.ndgriddata import griddata
 
 from process import dicom_import
 from process.affine import apply_affine
 from process.file_io import save_voxels
 from . import models
 from . import serializers
+from . import forms
 from .tasks import process_scan, process_ct_upload
-from .forms import UploadScanForm, UploadCTForm, UploadRawForm, CreatePhantomForm, InstitutionForm, DicomOverlayForm
 from .decorators import validate_institution, login_and_permission_required
 from .http import CSVResponse, ZipResponse
 
@@ -55,7 +59,7 @@ class CirsDeleteView(DeleteView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-@login_and_permission_required('common.configuration')
+@login_required
 def landing(request):
     machine_sequence_pairs_queryset = models.MachineSequencePair.objects.filter(machine__institution=request.user.institution)
     machine_sequence_pairs_queryset = machine_sequence_pairs_queryset.active().order_by('-last_modified_on')
@@ -70,7 +74,7 @@ def landing(request):
 @login_and_permission_required('common.configuration')
 class Configuration(UpdateView):
     model = models.Institution
-    form_class = InstitutionForm
+    form_class = forms.InstitutionForm
     success_url = reverse_lazy('configuration')
     template_name = 'common/configuration.html'
 
@@ -94,7 +98,22 @@ class Configuration(UpdateView):
         return context
 
 
-@login_and_permission_required('common.configuration')
+@method_decorator(login_required, name='dispatch')
+class Account(UpdateView):
+    model = models.User
+    form_class = forms.AccountForm
+    success_url = reverse_lazy('account')
+    template_name = 'common/account.html'
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def form_valid(self, form):
+        messages.success(self.request, "Your account has been updated successfully.")
+        return super(Account, self).form_valid(form)
+
+
+@method_decorator(login_required, name='dispatch')
 @validate_institution()
 class MachineSequenceDetail(DetailView):
     model = models.MachineSequencePair
@@ -115,9 +134,9 @@ class MachineSequenceDetail(DetailView):
 
 
 # TODO cancel might take the user back to landing, machine-sequences, or machine-sequence-detail
-@login_and_permission_required('common.configuration')
+@method_decorator(login_required, name='dispatch')
 class UploadScan(FormView):
-    form_class = UploadScanForm
+    form_class = forms.UploadScanForm
     template_name = 'common/upload_scan.html'
 
     def get_context_data(self, **kwargs):
@@ -159,7 +178,7 @@ class UploadScan(FormView):
         return self.render_to_response(context)
 
 
-@login_and_permission_required('common.configuration')
+@method_decorator(login_required, name='dispatch')
 @validate_institution()
 class ScanErrors(DetailView):
     model = models.Scan
@@ -253,10 +272,10 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
         dicom.write_file(os.path.join(output_directory, '{}.dcm'.format(ds.SOPInstanceUID)), ds)
 
 
-@login_and_permission_required('common.configuration')
+@method_decorator(login_required, name='dispatch')
 @validate_institution(model_class=models.Scan)
 class DicomOverlay(FormView):
-    form_class = DicomOverlayForm
+    form_class = forms.DicomOverlayForm
     template_name = 'common/dicom_overlay.html'
 
     @cached_property
@@ -311,7 +330,7 @@ class DicomOverlay(FormView):
         return ZipResponse(zip_bytes, filename='overlay.zip')
 
 
-@login_and_permission_required('common.configuration')
+@method_decorator(login_required, name='dispatch')
 @validate_institution()
 class DeleteScan(CirsDeleteView):
     model = models.Scan
@@ -330,7 +349,7 @@ class DeleteScan(CirsDeleteView):
 
 @login_and_permission_required('common.configuration')
 class CreatePhantom(FormView):
-    form_class = CreatePhantomForm
+    form_class = forms.CreatePhantomForm
     success_url = reverse_lazy('configuration')
     template_name = 'common/phantom_create.html'
 
@@ -469,16 +488,39 @@ class DeleteSequence(CirsDeleteView):
 @login_and_permission_required('common.manage_users')
 class CreateUser(CreateView):
     model = models.User
-    fields = ('username', 'first_name', 'last_name', 'email')
+    form_class = forms.CreateUserForm
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_create'
+    email_template_name = 'registration/password_create_email.html'
+    html_email_template_name = None
+    subject_template_name = 'registration/password_create_subject.txt'
+    extra_email_context = None
+    token_generator = default_token_generator
+    from_email = None
 
     def form_valid(self, form):
+        opts = {
+            'use_https': self.request.is_secure(),
+            'token_generator': self.token_generator,
+            'from_email': self.from_email,
+            'email_template_name': self.email_template_name,
+            'subject_template_name': self.subject_template_name,
+            'request': self.request,
+            'html_email_template_name': self.html_email_template_name,
+            'extra_email_context': self.extra_email_context,
+        }
         self.object = form.save(commit=False)
         self.object.institution = self.request.user.institution
         self.object.save()
-        messages.success(self.request, f"\"{self.object.get_full_name()}\" has been created successfully.")
-        return super(ModelFormMixin, self).form_valid(form)
+        self.object.set_unusable_password()
+        form.save_m2m()
+        create_password_form = forms.CreatePasswordForm({'email': self.object.email})
+        if create_password_form.is_valid():
+            create_password_form.save(**opts)
+            messages.success(self.request, f"\"{self.object.get_full_name()}\" has been created successfully.")
+            return super(ModelFormMixin, self).form_valid(form)
+        else:
+            return HttpResponseServerError()
 
 
 @login_and_permission_required('common.manage_users')
@@ -496,7 +538,7 @@ class DeleteUser(CirsDeleteView):
 @login_and_permission_required('common.configuration')
 @validate_institution(model_class=models.Phantom, pk_url_kwarg='phantom_pk')
 class UploadCT(FormView):
-    form_class = UploadCTForm
+    form_class = forms.UploadCTForm
     template_name = 'common/upload_ct.html'
 
     def form_valid(self, form):
@@ -539,7 +581,7 @@ class UploadCT(FormView):
 @login_and_permission_required('common.configuration')
 @validate_institution(model_class=models.Phantom, pk_url_kwarg='phantom_pk')
 class UploadRaw(FormView):
-    form_class = UploadRawForm
+    form_class = forms.UploadRawForm
     template_name = 'common/upload_raw.html'
 
     def form_valid(self, form):
@@ -603,7 +645,7 @@ def gold_standard_csv(request, phantom_pk=None, gold_standard_pk=None):
     return CSVResponse(gold_standard.fiducials.fiducials, filename=f'{gold_standard.source_summary}.csv')
 
 
-@login_and_permission_required('common.configuration')
+@login_required
 @validate_institution(model_class=models.Scan)
 def raw_data(request, pk=None):
     scan = get_object_or_404(models.Scan, pk=pk)
@@ -699,3 +741,12 @@ def refresh_scan(request, pk=None):
         return redirect('machine_sequence_detail', new_scan.machine_sequence_pair.pk)
     else:
         return HttpResponseNotAllowed(['POST'])
+
+
+class PasswordCreateConfirmView(PasswordResetConfirmView):
+    template_name = 'registration/password_create_confirm.html'
+    success_url = reverse_lazy('password_create_complete')
+
+
+class PasswordCreateCompleteView(PasswordResetCompleteView):
+    template_name = 'registration/password_create_complete.html'

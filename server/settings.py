@@ -47,6 +47,7 @@ ALLOWED_HOSTS = [os.getenv('HOSTNAME', '*')]
 
 INSTALLED_APPS = [
     'server.common',
+    'server.emailauth',
     'server.django_numpy',
     'storages',
     'django.contrib.admin',
@@ -224,6 +225,12 @@ AUTH_USER_MODEL = 'common.User'
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'landing'
+
+
+# Email
+
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 
 # Debug

@@ -16,16 +16,17 @@
 {% block content %}
   <h1>Edit Phantom</h1>
 
-  <form action="{% url 'update_phantom' phantom.pk %}" method="post" class="cirs-form">
+  <form method="post" class="cirs-form">
     {% csrf_token %}
     {{ form.non_field_errors }}
     <div>
-      {{ form.name.errors }}
       {{ form.name.label_tag }}
       <div class="inline-group">
         {{ form.name }}
         <input type="submit" value="Save Name Change" class="btn tertiary">
       </div>
+      {{ form.name.errors }}
+      {{ form.name.help_text|safe }}
     </div>
   </form>
 

@@ -6,7 +6,6 @@ import { handleErrors, encode, fieldErrors } from 'common/utils';
 import { CSRFToken } from 'common/components';
 
 interface IAddPhantomFormProps {
-    createPhantomUrl: string;
     validateSerialUrl: string;
     cancelUrl: string;
     formErrors: {[field: string]: string[]};
@@ -66,12 +65,12 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
     }
 
     render() {
-        const { createPhantomUrl, cancelUrl, formErrors } = this.props;
+        const { cancelUrl, formErrors } = this.props;
         const { fetching, valid, modelNumber } = this.state;
 
         return (
             <div>
-                <form action={createPhantomUrl} method="post" className="cirs-form">
+                <form method="post" className="cirs-form">
                     <CSRFToken />
 
                     <div>

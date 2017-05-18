@@ -2,19 +2,25 @@ from django.conf.urls import url, include
 
 from . import views
 from . import api
+from ..urls import uidb64_pattern, token_pattern
 
 urlpatterns = [
+    url(r'^password-create/confirm/(?P<uidb64>' + uidb64_pattern + r')/(?P<token>' + token_pattern + r')/$',
+        views.PasswordCreateConfirmView.as_view(), name='password_create_confirm'),
+    url(r'^password-create/complete/$', views.PasswordCreateCompleteView.as_view(), name='password_create_complete'),
+
     url(r'^terms-of-use/', views.terms_of_use, name='terms_of_use'),
     url(r'^privacy-policy/', views.privacy_policy, name='privacy_policy'),
+
+    url(r'^$', views.landing, name='landing'),
+    url(r'^configuration/$', views.Configuration.as_view(), name='configuration'),
+    url(r'^account/$', views.Account.as_view(), name='account'),
+    url(r'^machine-sequences/(?P<pk>\d+)/', views.MachineSequenceDetail.as_view(), name='machine_sequence_detail'),
 
     url(r'^api/', include([
         url(r'^validate-serial/$', api.ValidateSerial.as_view(), name='validate_serial'),
         url(r'^update-tolerance/$', api.UpdateTolerance.as_view(), name='update_tolerance'),
     ])),
-
-    url(r'^$', views.landing, name='landing'),
-    url(r'^configuration/$', views.Configuration.as_view(), name='configuration'),
-    url(r'^machine-sequences/(?P<pk>\d+)/', views.MachineSequenceDetail.as_view(), name='machine_sequence_detail'),
 
     url(r'^scans/', include([
         url(r'^add/$', views.UploadScan.as_view(), name='upload_scan'),

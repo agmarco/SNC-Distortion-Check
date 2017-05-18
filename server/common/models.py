@@ -6,12 +6,11 @@ import numpy as np
 
 from django.core.files import File
 from django.db import models
-from django.contrib.auth.models import AbstractUser
-from django.contrib.auth.models import UserManager
 from django.utils.functional import cached_property
 
 from process import dicom_import
 from server.django_numpy.fields import NumpyTextField
+from server.emailauth.models import AbstractUser, UserManager
 
 
 class CommonFieldsSet(models.QuerySet):

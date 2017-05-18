@@ -13,7 +13,7 @@ def test_validate_serial(client):
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
     phantom_model = factories.PhantomModelFactory(name='CIRS 603A', model_number='603A')
     initial_phantom = factories.PhantomFactory(model=phantom_model, serial_number='A123')
-    current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
+    current_user = factories.UserFactory.create(email='current_user@johnshopkins.edu', institution=johns_hopkins, groups=[group])
 
     client.force_login(current_user)
 
@@ -30,7 +30,7 @@ def test_validate_serial(client):
 def test_update_tolerance(client):
     johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
-    current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
+    current_user = factories.UserFactory.create(email='current_user@johnshopkins.edu', institution=johns_hopkins, groups=[group])
     machine = factories.MachineFactory(institution=current_user.institution)
     sequence = factories.SequenceFactory(institution=current_user.institution)
     machine_sequence_pair = factories.MachineSequencePairFactory(machine=machine, sequence=sequence, tolerance=1)

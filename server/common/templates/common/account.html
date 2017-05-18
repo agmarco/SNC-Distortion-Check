@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block breadcrumbs %}
+  <li><a href="{% url 'landing' %}">Home</a></li>
+{% endblock %}
+
+{% block content %}
+  <h1>Account</h1>
+  <form method="post" class="cirs-form">
+    {% csrf_token %}
+    {% include 'includes/form_fields.html' %}
+    <input type="submit" value="Save Account Info" class="btn tertiary">
+  </form>
+{% endblock %}

@@ -12,7 +12,7 @@ from .. import factories
 def test_refresh_scan(client):
     johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
-    current_user = factories.UserFactory.create(username='current_user', institution=johns_hopkins, groups=[group])
+    current_user = factories.UserFactory.create(email='current_user@johnshopkins.edu', institution=johns_hopkins, groups=[group])
 
     machine = factories.MachineFactory(institution=current_user.institution)
     sequence = factories.SequenceFactory(institution=current_user.institution)

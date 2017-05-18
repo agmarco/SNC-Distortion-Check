@@ -1,8 +1,11 @@
 <header id="site-header">
   {% if request.user.is_authenticated %}
     <ul>
-      <li>Logged in as {{ request.user.username }}</li>
-      <li><a href="{% url 'configuration' %}">Configuration</a></li>
+      <li>Logged in as {{ request.user.get_full_name }}</li>
+      {% if perms.common.configuration %}
+        <li><a href="{% url 'configuration' %}">Configuration</a></li>
+      {% endif %}
+      <li><a href="{% url 'account' %}">Account</a></li>
       <li><a href="{% url 'logout' %}">Logout</a></li>
     </ul>
     <h1>
@@ -10,5 +13,9 @@
         <span class="logo">CIRS Distortion Check</span>
       </a>
     </h1>
+  {% else %}
+    <ul>
+      <li><a href="{% url 'login' %}">Login</a></li>
+    </ul>
   {% endif %}
 </header>
