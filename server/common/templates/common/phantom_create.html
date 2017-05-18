@@ -7,9 +7,8 @@
 {% endblock %}
 
 {% block breadcrumbs %}
-  <a href="{% url 'landing' %}">Home</a>
-  {% include 'includes/breadcrumb_sep.html' %}
-  <a href="{% url 'configuration' %}">Configuration</a>
+  <li><a href="{% url 'landing' %}">Home</a></li>
+  <li><a href="{% url 'configuration' %}">Configuration</a></li>
 {% endblock %}
 
 {% block content %}

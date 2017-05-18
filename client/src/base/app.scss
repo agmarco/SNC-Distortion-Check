@@ -123,6 +123,14 @@ form {
 #site-breadcrumbs {
   margin: 0 $base-spacing $small-spacing $base-spacing;
   color: $primary-muted-color;
+
+  li {
+    display: inline-block;
+
+    &:not(:first-child)::before {
+      content: " › ";
+    }
+  }
 }
 
 h2,

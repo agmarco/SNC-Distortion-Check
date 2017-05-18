@@ -14,10 +14,10 @@
     {% include 'includes/header.html' %}
     <section id="site-content">
       <div class="container">
-      <section id="site-breadcrumbs">
+      <ul id="site-breadcrumbs">
         {% block breadcrumbs %}
         {% endblock %}
-      </section>
+      </ul>
       {% if messages %}
         <ul class="messages">
           {% for message in messages %}
