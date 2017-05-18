@@ -2,7 +2,7 @@ from django.urls import reverse
 
 from rest_framework import serializers
 
-from .models import MachineSequencePair, Machine, Sequence, Phantom, Scan, Institution
+from .models import MachineSequencePair, Machine, Sequence, Phantom, Scan, Institution, DicomSeries
 
 
 class InstitutionSerializer(serializers.ModelSerializer):
@@ -94,7 +94,7 @@ class ScanSerializer(serializers.ModelSerializer):
         )
 
     def get_acquisition_date(self, scan):
-        return scan.dicom_series.acquisition_date
+        return DicomSeries.objects.values_list('acquisition_date', flat=True).get(scan=scan)
 
     def get_errors_url(self, scan):
         return reverse('scan_errors', args=(scan.pk,))

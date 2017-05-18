@@ -55,9 +55,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'debug_toolbar',
 ]
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -222,3 +224,8 @@ AUTH_USER_MODEL = 'common.User'
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'landing'
+
+
+# Debug
+
+INTERNAL_IPS = ['127.0.0.1']

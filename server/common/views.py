@@ -4,8 +4,8 @@ import tempfile
 import uuid
 import zipfile
 import logging
-from datetime import datetime
 import time
+from datetime import datetime
 
 import dicom
 from dicom.UID import generate_uid
