@@ -106,7 +106,7 @@ class ScanSerializer(serializers.ModelSerializer):
         return reverse('dicom_overlay', args=(scan.pk,))
 
     def get_raw_data_url(self, scan):
-        return reverse('raw_data', args=(scan.pk,))
+        return scan.raw_data.name and scan.raw_data.url
 
     def get_refresh_url(self, scan):
         return reverse('refresh_scan', args=(scan.pk,))

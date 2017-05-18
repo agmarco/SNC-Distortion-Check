@@ -2,19 +2,22 @@ import logging
 import zipfile
 import uuid
 import os
+import io
 
-import numpy as np
+import scipy.io
 from celery import shared_task
 from celery.signals import task_failure
 from django.core.files import File
 from django.db import transaction
 from django.conf import settings
+from rest_framework.renderers import JSONRenderer
 
-from process import dicom_import, affine, phantoms, fp_rejector
+from process import dicom_import, affine, fp_rejector
 from process.feature_detection import FeatureDetector
+from process.file_io import save_voxels
 from process.registration import rigidly_register_and_categorize
-from process.reports import generate_reports, generate_cube
-
+from process.reports import generate_reports
+from . import serializers
 from .models import Scan, Fiducials, GoldenFiducials, DicomSeries
 
 logger = logging.getLogger(__name__)
@@ -74,8 +77,8 @@ def process_scan(scan_pk):
             scan.TP_B = Fiducials.objects.create(fiducials=TP_B)
 
             # TODO: come up with better filename
-            full_report_filename = f'{uuid.uuid4()}.pdf'
-            executive_report_filename = f'{uuid.uuid4()}.pdf'
+            full_report_filename = 'full_report.pdf'
+            executive_report_filename = 'executive_report.pdf'
             full_report_path = os.path.join(settings.BASE_DIR, 'tmp', full_report_filename)
             executive_report_path = os.path.join(settings.BASE_DIR, 'tmp', executive_report_filename)
 
@@ -101,6 +104,10 @@ def process_scan(scan_pk):
 
             with open(executive_report_path, 'rb') as report_file:
                 scan.executive_report.save(executive_report_filename, File(report_file))
+
+            raw_data_filename = 'raw_data.zip'
+            raw_data = dump_raw_data(scan)
+            scan.raw_data.save(raw_data_filename, File(raw_data))
 
     except AlgorithmException as e:
         scan = Scan.objects.get(pk=scan_pk)  # fresh instance
@@ -151,3 +158,61 @@ def process_ct_upload(dicom_series_pk, gold_standard_pk):
 @task_failure.connect
 def task_failure_handler(task_id=None, exception=None, args=None, **kwargs):
     logging.info("{} {} {}".format(task_id, str(exception), str(args)))
+
+
+def dump_raw_data(scan):
+    voxels_path = os.path.join(settings.BASE_DIR, f'tmp/{uuid.uuid4()}.mat')
+    voxels_data = {
+        'phantom_model': scan.phantom.model.model_number,
+        'modality': 'mri',
+        'voxels': scan.dicom_series.voxels,
+    }
+    save_voxels(voxels_path, voxels_data)
+
+    raw_points_path = os.path.join(settings.BASE_DIR, f'tmp/{uuid.uuid4()}.mat')
+    raw_points_data = {
+        'all': scan.detected_fiducials.fiducials,
+        'TP': scan.TP_B.fiducials,
+    }
+    scipy.io.savemat(raw_points_path, raw_points_data)
+
+    renderer = JSONRenderer()
+
+    phantom = serializers.PhantomSerializer(scan.phantom)
+    phantom_s = io.BytesIO()
+    phantom_s.write(renderer.render(phantom.data))
+
+    machine = serializers.MachineSerializer(scan.machine_sequence_pair.machine)
+    machine_s = io.BytesIO()
+    machine_s.write(renderer.render(machine.data))
+
+    sequence = serializers.SequenceSerializer(scan.machine_sequence_pair.sequence)
+    sequence_s = io.BytesIO()
+    sequence_s.write(renderer.render(sequence.data))
+
+    institution = serializers.InstitutionSerializer(scan.institution)
+    institution_s = io.BytesIO()
+    institution_s.write(renderer.render(institution.data))
+
+    files = {
+        'dicom.zip': scan.dicom_series.zipped_dicom_files.path,
+        'voxels.mat': voxels_path,
+        'raw_points.mat': raw_points_path,
+    }
+
+    streams = {
+        'phantom.json': phantom_s,
+        'machine.json': machine_s,
+        'sequence.json': sequence_s,
+        'institution.json': institution_s,
+    }
+
+    s = io.BytesIO()
+    with zipfile.ZipFile(s, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for zip_path, path in files.items():
+            zf.write(path, zip_path)
+
+        for zip_path, stream in streams.items():
+            zf.writestr(zip_path, stream.getvalue())
+
+    return s
