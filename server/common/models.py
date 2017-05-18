@@ -239,6 +239,7 @@ class Scan(CommonFieldsMixin):
     TP_B = models.ForeignKey(Fiducials, models.CASCADE, null=True, related_name='scan_tp_b_set')
     full_report = models.FileField(upload_to='scan/full_report', null=True)
     executive_report = models.FileField(upload_to='scan/executive_report', null=True)
+    raw_data = models.FileField(upload_to='scan/raw_data', null=True)
     notes = models.TextField(blank=True)
     processing = models.BooleanField(default=True)
     errors = models.TextField(null=True)

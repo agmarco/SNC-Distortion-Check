@@ -361,14 +361,6 @@ VIEWS = (
         'validate_institution': True,
         'methods': {'GET': None},
     }, {
-        'view': views.raw_data,
-        'data': raw_data_data,
-        'url': lambda data: reverse('raw_data', args=(data['scan'].pk,)),
-        'login_required': True,
-        'permissions': ('common.configuration',),
-        'validate_institution': True,
-        'methods': {'GET': None},
-    }, {
         'view': views.DicomOverlay,
         'data': dicom_overlay_data,
         'url': lambda data: reverse('dicom_overlay', args=(data['scan'].pk,)),
