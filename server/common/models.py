@@ -228,6 +228,12 @@ class GoldenFiducials(CommonFieldsMixin):
         verbose_name_plural = 'Golden Fiducials'
 
 
+def scan_upload_path(instance, filename):
+    if not hasattr(instance, 'pk'):
+        raise AttributeError("You must save the model before saving a FileField.")
+    return os.path.join('scan', str(instance.pk), filename)
+
+
 # TODO add help text
 class Scan(CommonFieldsMixin):
     creator = models.ForeignKey(User, models.SET_NULL, null=True)
@@ -237,9 +243,9 @@ class Scan(CommonFieldsMixin):
     golden_fiducials = models.ForeignKey(GoldenFiducials, models.CASCADE)
     TP_A_S = models.ForeignKey(Fiducials, models.CASCADE, null=True, related_name='scan_tp_a_s_set')
     TP_B = models.ForeignKey(Fiducials, models.CASCADE, null=True, related_name='scan_tp_b_set')
-    full_report = models.FileField(upload_to='scan/full_report', null=True)
-    executive_report = models.FileField(upload_to='scan/executive_report', null=True)
-    raw_data = models.FileField(upload_to='scan/raw_data', null=True)
+    full_report = models.FileField(upload_to=scan_upload_path, null=True)
+    executive_report = models.FileField(upload_to=scan_upload_path, null=True)
+    raw_data = models.FileField(upload_to=scan_upload_path, null=True)
     notes = models.TextField(blank=True)
     processing = models.BooleanField(default=True)
     errors = models.TextField(null=True)

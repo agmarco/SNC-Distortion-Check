@@ -77,8 +77,8 @@ def process_scan(scan_pk):
             scan.TP_B = Fiducials.objects.create(fiducials=TP_B)
 
             # TODO: come up with better filename
-            full_report_filename = f'{uuid.uuid4()}.pdf'
-            executive_report_filename = f'{uuid.uuid4()}.pdf'
+            full_report_filename = 'full_report.pdf'
+            executive_report_filename = 'executive_report.pdf'
             full_report_path = os.path.join(settings.BASE_DIR, 'tmp', full_report_filename)
             executive_report_path = os.path.join(settings.BASE_DIR, 'tmp', executive_report_filename)
 
@@ -105,7 +105,7 @@ def process_scan(scan_pk):
             with open(executive_report_path, 'rb') as report_file:
                 scan.executive_report.save(executive_report_filename, File(report_file))
 
-            raw_data_filename = f'{uuid.uuid4()}.zip'
+            raw_data_filename = 'raw_data.zip'
             raw_data = dump_raw_data(scan)
             scan.raw_data.save(raw_data_filename, File(raw_data))
 
