@@ -145,7 +145,7 @@ class MachineSequencePair(CommonFieldsMixin):
 
     @property
     def latest_scan_passed(self):
-        return self.latest_scan.passed if self.latest_scan else None
+        return self.latest_scan.acquisition_date if self.latest_scan else None
 
     @property
     def institution(self):
@@ -273,6 +273,10 @@ class Scan(CommonFieldsMixin):
     def passed(self):
         """Return True if the max error_mags is below the threshold."""
         return self.error_mags.max() < self.tolerance if self.error_mags is not None else None
+
+    @property
+    def acquisition_date(self):
+        return DicomSeries.objects.values_list('acquisition_date', flat=True).get(scan=self)
 
 
 # This table creates permissions that are not associated with a model.

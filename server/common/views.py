@@ -336,7 +336,7 @@ class DeleteScan(CirsDeleteView):
         messages.success(self.request, f"""Scan for phantom
             \"{self.object.golden_fiducials.phantom.model.model_number} —
             {self.object.golden_fiducials.phantom.serial_number}\", captured on
-            {formats.date_format(self.object.dicom_series.acquisition_date)}, has been deleted successfully.""")
+            {formats.date_format(self.object.acquisition_date)}, has been deleted successfully.""")
         return response
 
     def get_success_url(self):

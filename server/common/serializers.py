@@ -64,7 +64,7 @@ class PhantomSerializer(serializers.ModelSerializer):
 class ScanSerializer(serializers.ModelSerializer):
     phantom = PhantomSerializer()
     passed = serializers.ReadOnlyField()
-    acquisition_date = serializers.SerializerMethodField()
+    acquisition_date = serializers.ReadOnlyField()
     errors_url = serializers.SerializerMethodField()
     delete_url = serializers.SerializerMethodField()
     dicom_overlay_url = serializers.SerializerMethodField()
@@ -92,9 +92,6 @@ class ScanSerializer(serializers.ModelSerializer):
             'executive_report_url',
             'error_mags',
         )
-
-    def get_acquisition_date(self, scan):
-        return DicomSeries.objects.values_list('acquisition_date', flat=True).get(scan=scan)
 
     def get_errors_url(self, scan):
         return reverse('scan_errors', args=(scan.pk,))

@@ -12,7 +12,7 @@
   <h1>Delete Scan</h1>
   <form method="post" class="cirs-form">
     {% csrf_token %}
-    <p>Are you sure you want to delete the scan for phantom "{{ scan.golden_fiducials.phantom.model.model_number }} &mdash; {{ scan.golden_fiducials.phantom.serial_number }}", captured on {{ scan.dicom_series.acquisition_date }}?</p>
+    <p>Are you sure you want to delete the scan for phantom "{{ scan.golden_fiducials.phantom.model.model_number }} &mdash; {{ scan.golden_fiducials.phantom.serial_number }}", captured on {{ scan.acquisition_date }}?</p>
     <div class="form-links">
       <a href="{% url 'machine_sequence_detail' scan.machine_sequence_pair.pk %}" class="btn tertiary">Cancel</a>
       <input type="submit" value="Yes" class="btn secondary">
