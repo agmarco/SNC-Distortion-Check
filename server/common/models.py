@@ -141,11 +141,11 @@ class MachineSequencePair(CommonFieldsMixin):
 
     @property
     def latest_scan_date(self):
-        return self.latest_scan.created_on if self.latest_scan else None
+        return self.latest_scan.acquisition_date if self.latest_scan else None
 
     @property
     def latest_scan_passed(self):
-        return self.latest_scan.acquisition_date if self.latest_scan else None
+        return self.latest_scan.passed if self.latest_scan else None
 
     @property
     def institution(self):
