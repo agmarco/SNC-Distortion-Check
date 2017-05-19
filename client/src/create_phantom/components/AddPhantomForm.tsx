@@ -77,6 +77,8 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
                 <form method="post" className="cirs-form">
                     <CSRFToken />
 
+                    {fieldErrors(formErrors, '__all__')}
+
                     <div>
                         <label htmlFor="add-phantom-name">Name</label>
                         <input type="text" id="add-phantom-name" name="name" maxLength={255} required />

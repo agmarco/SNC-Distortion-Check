@@ -66,6 +66,8 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                 <form encType="multipart/form-data" method="post" className="cirs-form">
                     <CSRFToken />
 
+                    {fieldErrors(formErrors, '__all__')}
+
                     <div>
                         <label htmlFor="upload-scan-machine">Machine</label>
                         <select

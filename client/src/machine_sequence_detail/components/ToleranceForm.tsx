@@ -89,6 +89,8 @@ export default class extends React.Component<IToleranceFormProps, IToleranceForm
                 >
                     <CSRFToken />
 
+                    {fieldErrors(formErrors, '__all__')}
+
                     <div>
                         <label htmlFor="tolerance-tolerance">Maximum FLE (mm)</label>
                         <div className="inline-group">
