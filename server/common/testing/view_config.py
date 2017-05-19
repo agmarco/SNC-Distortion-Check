@@ -157,8 +157,9 @@ def raw_data_data(user):
 
 
 def password_create_confirm_data(user):
-    uid = urlsafe_base64_encode(force_bytes(user.pk))
-    token = default_token_generator.make_token(user)
+    new_user = factories.UserFactory.create(email='new_user@johnshopkins.edu')
+    uid = urlsafe_base64_encode(force_bytes(new_user.pk))
+    token = default_token_generator.make_token(new_user)
     return {
         'uid': uid,
         'token': token,

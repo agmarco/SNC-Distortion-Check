@@ -68,10 +68,7 @@ def test_login_not_required(client, view):
     For each public page, assert that visiting the view results in a 200 or a 302 redirect to something other than the
     login page.
     """
-    johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
-    group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
-    current_user = factories.UserFactory.create(email='current_user@johnshopkins.edu', institution=johns_hopkins, groups=[group])
-    view_data = _view_data(view, current_user)
+    view_data = _view_data(view, None)
     patches = _patches(view)
     url = _url(view, view_data)
 
