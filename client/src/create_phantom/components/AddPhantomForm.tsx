@@ -12,8 +12,8 @@ interface IAddPhantomFormProps {
 }
 
 interface IAddPhantomFormState {
-    fetching: boolean;
-    valid: boolean;
+    serialNumberFetching: boolean;
+    serialNumberAvailable: boolean;
     modelNumber: string | null;
     promise: Bluebird<any> | null;
 }
@@ -24,8 +24,8 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
 
         Bluebird.config({cancellation: true});
         this.state = {
-            fetching: false,
-            valid: false,
+            serialNumberFetching: false,
+            serialNumberAvailable: false,
             modelNumber: null,
             promise: null,
         };
@@ -50,23 +50,27 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
             }))
             .then((res) => {
                 handleErrors(res, (async function() {
-                    const { valid, model_number } = await res.json();
+                    const { available, model_number } = await res.json();
 
                     this.setState({
-                        fetching: false,
-                        promise: null,
+                        serialNumberFetching: false,
+                        serialNumberAvailable: available,
                         modelNumber: model_number,
-                        valid,
+                        promise: null,
                     });
                 }).bind(this));
             });
 
-        this.setState({fetching: true, valid: false, promise: newPromise});
+        this.setState({
+            serialNumberFetching: true,
+            serialNumberAvailable: false,
+            promise: newPromise,
+        });
     }
 
     render() {
         const { cancelUrl, formErrors } = this.props;
-        const { fetching, valid, modelNumber } = this.state;
+        const { serialNumberFetching, serialNumberAvailable, modelNumber } = this.state;
 
         return (
             <div>
@@ -74,13 +78,12 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
                     <CSRFToken />
 
                     <div>
-                        {fieldErrors(formErrors, 'name')}
                         <label htmlFor="add-phantom-name">Name</label>
                         <input type="text" id="add-phantom-name" name="name" maxLength={255} required />
+                        {fieldErrors(formErrors, 'name')}
                     </div>
 
                     <div>
-                        {fieldErrors(formErrors, 'serial_number')}
                         <label htmlFor="add-phantom-serial">Serial Number</label>
                         <input
                             type="text"
@@ -90,11 +93,13 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
                             onChange={this.handleSerialChange.bind(this)}
                             required
                         />
+                        {fieldErrors(formErrors, 'serial_number')}
                     </div>
 
                     <div>
                         <label>Model Number</label>
-                        <p>{valid ? modelNumber : (fetching ? "Searching..." : "Invalid Serial Number")}</p>
+                        <p>{serialNumberAvailable ? modelNumber :
+                            (serialNumberFetching ? "Searching..." : "Invalid Serial Number")}</p>
                     </div>
 
                     <div>
@@ -111,7 +116,7 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
                         <input
                             type="submit"
                             value="Add Phantom"
-                            disabled={fetching || !valid}
+                            disabled={serialNumberFetching || !serialNumberAvailable}
                             className="btn secondary"
                         />
                     </div>

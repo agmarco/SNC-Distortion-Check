@@ -9,14 +9,14 @@ from .permissions import login_and_permission_required, validate_institution
 
 
 class ValidateSerial(APIView):
-    permission_classes = (login_and_permission_required('common.configuration'),)
-
     def post(self, request):
+        serial_number = request.data['serial_number']
         try:
-            phantom = Phantom.objects.get(institution=None, serial_number=request.data['serial_number'])
+            phantom = Phantom.objects.get(institution=None, serial_number=serial_number)
         except ObjectDoesNotExist:
-            return Response({'valid': False, 'model_number': None})
-        return Response({'valid': True, 'model_number': phantom.model.model_number})
+            return Response({'exists': False, 'available': False, 'model_number': None})
+        available = not Phantom.objects.filter(serial_number=serial_number).exclude(institution=None).exists()
+        return Response({'exists': True, 'available': available, 'model_number': phantom.model.model_number})
 
 
 class UpdateTolerance(APIView):

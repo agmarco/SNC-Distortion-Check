@@ -15,6 +15,7 @@ export default (env) => ({
         machine_sequence_detail: [path.join(__dirname, 'client/src/machine_sequence_detail/app.tsx')],
         create_phantom: [path.join(__dirname, 'client/src/create_phantom/app.tsx')],
         upload_scan: [path.join(__dirname, 'client/src/upload_scan/app.tsx')],
+        register: [path.join(__dirname, 'client/src/register/app.tsx')],
 
         // CSS only:
         base: [path.join(__dirname, 'client/src/base/app.scss')],

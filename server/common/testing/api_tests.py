@@ -7,6 +7,7 @@ from django.urls import reverse
 from .. import factories
 
 
+# TODO update
 @pytest.mark.django_db
 def test_validate_serial(client):
     johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")

@@ -13,7 +13,7 @@
       {% csrf_token %}
       {% for field in form %}
         <div>
-          {{ field.label_tag }}
+          {{ field.label_tag|title }}
           {{ field }}
           {{ field.errors }}
           {% if field.help_text %}<p>{{ field.help_text|safe }}</p>{% endif %}
@@ -22,7 +22,7 @@
       <input type="submit" value="Login" class="btn secondary" />
       <p class="forgot-password"><a href="{% url 'password_reset' %}">Forgot your Password?</a></p>
       {{ form.non_field_errors }}
-      <a href="#" class="btn primary register">Register New Account</a>
+      <a href="{% url 'register' %}" class="btn primary register">Register New Account</a>
     </form>
   </div>
 {% endblock %}

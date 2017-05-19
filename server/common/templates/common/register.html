@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% load common %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{% webpack 'register.css' %}">
+{% endblock %}
+
+{% block breadcrumbs %}
+  <li><a href="{% url 'landing' %}">Home</a></li>
+{% endblock %}
+
+{% block content %}
+  <div id="register-app"></div>
+{% endblock %}
+
+{% block scripts %}
+  {% chunk_manifest %}
+  {% manifest %}
+  <script src="{% webpack 'vendor.js' %}"></script>
+  <script>
+    var VALIDATE_SERIAL_URL = "{% url 'validate_serial' %}";
+    var CANCEL_URL = "{% url 'login' %}";
+    var FORM_ERRORS = {% if form_errors %}{{ form_errors|safe }}{% else %}null{% endif %};
+  </script>
+  <script src="{% webpack 'register.js' %}"></script>
+{% endblock %}

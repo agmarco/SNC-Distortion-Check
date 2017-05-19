@@ -67,8 +67,6 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                     <CSRFToken />
 
                     <div>
-                        {fieldErrors(formErrors, 'machine')}
-
                         <label htmlFor="upload-scan-machine">Machine</label>
                         <select
                             id="upload-scan-machine"
@@ -80,6 +78,7 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                             <option value="" disabled />
                             {machines.map((m) => <option value={m.pk} key={m.pk}>{m.name}</option>)}
                         </select>
+                        {fieldErrors(formErrors, 'machine')}
 
                         {currentMachine && (
                             <div>
@@ -96,8 +95,6 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                     </div>
 
                     <div>
-                        {fieldErrors(formErrors, 'sequence')}
-
                         <label htmlFor="upload-scan-sequence">Sequence</label>
                         <select
                             id="upload-scan-sequence"
@@ -109,6 +106,7 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                             <option value="" disabled />
                             {sequences.map((s) => <option value={s.pk} key={s.pk}>{s.name}</option>)}
                         </select>
+                        {fieldErrors(formErrors, 'sequence')}
 
                         {currentSequence && (
                             <div>
@@ -121,8 +119,6 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                     </div>
 
                     <div>
-                        {fieldErrors(formErrors, 'phantom')}
-
                         <label htmlFor="upload-scan-phantom">Phantom</label>
                         <select
                             id="upload-scan-phantom"
@@ -134,6 +130,7 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                             <option value="" disabled />
                             {phantoms.map((p) => <option value={p.pk} key={p.pk}>{p.name}</option>)}
                         </select>
+                        {fieldErrors(formErrors, 'phantom')}
 
                         {currentPhantom && (
                             <div>
@@ -154,10 +151,9 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                     </div>
 
                     <div>
-                        {fieldErrors(formErrors, 'dicom_archive')}
-
                         <label htmlFor="upload-scan-dicom-archive">MRI Scan Files</label>
                         <input id="upload-scan-dicom-archive" name="dicom_archive" type="file" required />
+                        {fieldErrors(formErrors, 'dicom_archive')}
                         <p>
                             Please upload a zip-file containing the MRI DICOM files of a scan of the specified phatom,
                             on the specified machine, using the specified sequence.
@@ -165,10 +161,9 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
                     </div>
 
                     <div>
-                        {fieldErrors(formErrors, 'notes')}
-
                         <label htmlFor="upload-scan-notes">Notes</label>
                         <textarea cols={40} rows={10} id="upload-scan-notes" name="notes" />
+                        {fieldErrors(formErrors, 'notes')}
                     </div>
 
                     <div className="form-links">

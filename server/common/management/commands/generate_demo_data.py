@@ -104,34 +104,34 @@ class Command(BaseCommand):
         phantom_a = factories.PhantomFactory(
             name='Head Phantom 1',
             model=phantom_model_603A,
-            serial_number='A123',
+            serial_number='SN1',
         )
         phantom_b = factories.PhantomFactory(
             name='Head Phantom 2',
             model=phantom_model_603A,
-            serial_number='B123',
+            serial_number='SN2',
         )
         phantom_c = factories.PhantomFactory(
             name='Body Phantom',
             model=phantom_model_604,
-            serial_number='C123',
+            serial_number='SN3',
         )
         phantom_d = factories.PhantomFactory(
             name='Head Phantom With Various Gold Standards',
             model=phantom_model_603A,
-            serial_number='D123',
+            serial_number='SN4',
             institution=johns_hopkins,
         )
         phantom_e = factories.PhantomFactory(
             name='Head Phantom 2',
             model=phantom_model_603A,
-            serial_number='E123',
+            serial_number='SN5',
             institution=johns_hopkins,
         )
         phantom_f = factories.PhantomFactory(
             name='Body Phantom',
             model=phantom_model_604,
-            serial_number='F123',
+            serial_number='SN6',
             institution=johns_hopkins,
         )
 

@@ -41,12 +41,12 @@ from .http import CSVResponse, ZipResponse
 logger = logging.getLogger(__name__)
 
 
-class CirsDeleteView(DeleteView):
+class CIRSDeleteView(DeleteView):
     """A view providing the ability to delete objects by setting their 'deleted' attribute."""
 
     def __init__(self, **kwargs):
         self.object = None
-        super(CirsDeleteView, self).__init__(**kwargs)
+        super(CIRSDeleteView, self).__init__(**kwargs)
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -328,7 +328,7 @@ class DicomOverlay(FormView):
 
 @method_decorator(login_required, name='dispatch')
 @validate_institution()
-class DeleteScan(CirsDeleteView):
+class DeleteScan(CIRSDeleteView):
     model = models.Scan
 
     def delete(self, request, *args, **kwargs):
@@ -390,7 +390,7 @@ class UpdatePhantom(UpdateView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class DeletePhantom(CirsDeleteView):
+class DeletePhantom(CIRSDeleteView):
     model = models.Phantom
     success_url = reverse_lazy('configuration')
     pk_url_kwarg = 'phantom_pk'
@@ -431,7 +431,7 @@ class UpdateMachine(UpdateView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class DeleteMachine(CirsDeleteView):
+class DeleteMachine(CIRSDeleteView):
     model = models.Machine
     success_url = reverse_lazy('configuration')
 
@@ -471,7 +471,7 @@ class UpdateSequence(UpdateView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class DeleteSequence(CirsDeleteView):
+class DeleteSequence(CIRSDeleteView):
     model = models.Sequence
     success_url = reverse_lazy('configuration')
 
@@ -521,7 +521,7 @@ class CreateUser(CreateView):
 
 @login_and_permission_required('common.manage_users')
 @validate_institution()
-class DeleteUser(CirsDeleteView):
+class DeleteUser(CIRSDeleteView):
     model = models.User
     success_url = reverse_lazy('configuration')
 
@@ -603,7 +603,7 @@ class UploadRaw(FormView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class DeleteGoldStandard(CirsDeleteView):
+class DeleteGoldStandard(CIRSDeleteView):
     model = models.GoldenFiducials
     pk_url_kwarg = 'gold_standard_pk'
 
@@ -679,3 +679,8 @@ class PasswordCreateConfirmView(PasswordResetConfirmView):
 
 class PasswordCreateCompleteView(PasswordResetCompleteView):
     template_name = 'registration/password_create_complete.html'
+
+
+class Register(FormView):
+    form_class = forms.RegisterForm
+    template_name = 'common/register.html'

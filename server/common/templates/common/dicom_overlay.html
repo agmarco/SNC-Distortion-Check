@@ -20,13 +20,13 @@
     {% csrf_token %}
     {{ form.non_field_errors }}
     <div>
-      {{ form.study_instance_uid.label_tag }}
+      {{ form.study_instance_uid.label_tag|title }}
       {{ form.study_instance_uid }}
       {{ form.study_instance_uid.errors }}
       {{ form.study_instance_uid.help_text|safe }}
     </div>
     <div>
-      {{ form.patient_id.label_tag }}
+      {{ form.patient_id.label_tag|title }}
       {{ form.patient_id }}
       {{ form.patient_id.errors }}
       {{ form.patient_id.help_text|safe }}
@@ -34,11 +34,11 @@
     <div>
       <label>Isocenter (mm)</label>
       <div class="isocenter">
-        {{ form.isocenter_x.label_tag }}
+        {{ form.isocenter_x.label_tag|title }}
         {{ form.isocenter_x }}
-        {{ form.isocenter_y.label_tag }}
+        {{ form.isocenter_y.label_tag|title }}
         {{ form.isocenter_y }}
-        {{ form.isocenter_z.label_tag }}
+        {{ form.isocenter_z.label_tag|title }}
         {{ form.isocenter_z }}
       </div>
       {{ form.isocenter_x.errors }}
@@ -49,7 +49,7 @@
       {{ form.isocenter_z.help_text|safe }}
     </div>
     <div>
-      {{ form.frame_of_reference_uid.label_tag }}
+      {{ form.frame_of_reference_uid.label_tag|title }}
       {{ form.frame_of_reference_uid }}
       {{ form.frame_of_reference_uid.errors }}
       {{ form.frame_of_reference_uid.help_text|safe }}

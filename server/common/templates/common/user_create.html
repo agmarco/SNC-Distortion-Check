@@ -12,25 +12,25 @@
     {% csrf_token %}
     {{ form.non_field_errors }}
     <div>
-      {{ form.first_name.label_tag }}
+      {{ form.first_name.label_tag|title }}
       {{ form.first_name }}
       {{ form.first_name.errors }}
       {{ form.first_name.help_text|safe }}
     </div>
     <div>
-      {{ form.last_name.label_tag }}
+      {{ form.last_name.label_tag|title }}
       {{ form.last_name }}
       {{ form.last_name.errors }}
       {{ form.last_name.help_text|safe }}
     </div>
     <div>
-      {{ form.email.label_tag }}
+      {{ form.email.label_tag|title }}
       {{ form.email }}
       {{ form.email.errors }}
       {{ form.email.help_text|safe }}
     </div>
     <div>
-      {{ form.user_type.label_tag }}
+      {{ form.user_type.label_tag|title }}
       <div class="inline-radio">
         {% for choice in form.user_type %}
           {{ choice }}

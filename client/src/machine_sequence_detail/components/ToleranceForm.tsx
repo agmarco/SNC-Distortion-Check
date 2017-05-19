@@ -90,7 +90,6 @@ export default class extends React.Component<IToleranceFormProps, IToleranceForm
                     <CSRFToken />
 
                     <div>
-                        {fieldErrors(formErrors, 'tolerance')}
                         <label htmlFor="tolerance-tolerance">Maximum FLE (mm)</label>
                         <div className="inline-group">
                             <input
@@ -105,6 +104,7 @@ export default class extends React.Component<IToleranceFormProps, IToleranceForm
                             <input type="submit" value="Save" className="btn tertiary" />
                             {fetching ? <LoadingIcon /> : (success !== null && <BoolIcon success={success} />)}
                         </div>
+                        {fieldErrors(formErrors, 'tolerance')}
                     </div>
                 </form>
             </div>

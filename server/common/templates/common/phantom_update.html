@@ -20,7 +20,7 @@
     {% csrf_token %}
     {{ form.non_field_errors }}
     <div>
-      {{ form.name.label_tag }}
+      {{ form.name.label_tag|title }}
       <div class="inline-group">
         {{ form.name }}
         <input type="submit" value="Save Name Change" class="btn tertiary">

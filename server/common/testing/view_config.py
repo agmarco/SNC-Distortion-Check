@@ -36,7 +36,7 @@ class Crud:
 
 def create_phantom_data(user):
     phantom_model = factories.PhantomModelFactory(name='CIRS 603A', model_number='603A')
-    factories.PhantomFactory(model=phantom_model, serial_number='A123')
+    factories.PhantomFactory(model=phantom_model, serial_number='SN1')
     return {}
 
 
@@ -391,8 +391,8 @@ VIEWS = (
         'view': api.ValidateSerial,
         'data': lambda user: {'phantom': factories.PhantomFactory(serial_number='A123')},
         'url': reverse('validate_serial'),
-        'login_required': True,
-        'permissions': ('common.configuration',),
+        'login_required': False,
+        'permissions': (),
         'validate_institution': False,
         'methods': {'POST': lambda data: {'serial_number': data['phantom'].serial_number}},
     }, {
@@ -451,5 +451,22 @@ VIEWS = (
         'permissions': (),
         'validate_institution': False,
         'methods': {'GET': None},
+    }, {
+        'view': views.Register,
+        'data': lambda user: {'phantom': factories.PhantomFactory(serial_number='SN1')},
+        'url': reverse('register'),
+        'login_required': False,
+        'permissions': (),
+        'validate_institution': False,
+        'methods': {'GET': None, 'POST': lambda data: {
+            'phantom_serial_number': data['phantom'].serial_number,
+            'institution_name': 'Johns Hopkins',
+            'institution_address': '3101 Wyman Park Dr.\nBaltimore, MD 21211',
+            'institution_phone': '555-555-5555',
+            'first_name': 'John',
+            'last_name': 'Doe',
+            'email': 'johndoe@johnshopkins.edu',
+            'email_repeat': 'johndoe@johnshopkins.edu',
+        }},
     },
 )

@@ -7,6 +7,10 @@ import merge from 'webpack-merge';
 import webpackBase from './webpack.config.base.babel';
 
 
+// TODO HMR broken
+// https://github.com/webpack/webpack-dev-server/releases/tag/v2.4.3
+// https://github.com/webpack/webpack-dev-server/issues/533
+// https://github.com/webpack/webpack-dev-server/issues/882
 export default (env) => {
     const config = merge(webpackBase(env), {
         output: {

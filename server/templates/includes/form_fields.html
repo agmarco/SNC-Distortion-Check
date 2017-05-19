@@ -1,7 +1,7 @@
 {{ form.non_field_errors }}
 {% for field in form %}
   <div>
-    {{ field.label_tag }}
+    {{ field.label_tag|title }}
     {{ field }}
     {{ field.errors }}
     {{ field.help_text|safe }}

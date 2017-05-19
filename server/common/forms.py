@@ -6,7 +6,7 @@ import numpy as np
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
 from process import dicom_import
 from .models import Phantom, Institution
@@ -149,6 +149,7 @@ class CreateUserForm(CIRSModelForm):
         phantoms, machines, and sequences. Admin users can do everything Medical Physicists can do, and can also add and
         delete new users. Please note that once a user type is set, it cannot be changed (except by CIRS support).</p>"""
     user_type = forms.ChoiceField(choices=GROUP_CHOICES, widget=forms.RadioSelect, help_text=user_type_ht)
+    email = forms.EmailField()
 
     class Meta:
         model = UserModel
@@ -166,3 +167,22 @@ class CreatePasswordForm(PasswordResetForm):
             'is_active': True,
         })
         return (u for u in active_users if not u.has_usable_password())
+
+
+class RegisterForm(CIRSForm):
+    phantom_serial_number = forms.CharField()
+    institution_name = forms.CharField()
+    institution_address = forms.CharField()
+    institution_phone = forms.CharField(label="Institution Contact Phone Number")
+    first_name = forms.CharField()
+    last_name = forms.CharField()
+    email = forms.EmailField()
+    email_repeat = forms.EmailField()
+
+    def clean(self):
+        cleaned_data = super(RegisterForm, self).clean()
+        email = cleaned_data['email']
+        email_repeat = cleaned_data['email_repeat']
+
+        if email != email_repeat:
+            raise ValidationError("Emails do not match.")
