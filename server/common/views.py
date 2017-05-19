@@ -684,3 +684,9 @@ class PasswordCreateCompleteView(PasswordResetCompleteView):
 class Register(FormView):
     form_class = forms.RegisterForm
     template_name = 'common/register.html'
+
+    def form_invalid(self, form):
+        renderer = JSONRenderer()
+        context = self.get_context_data(form=form)
+        context.update({'form_errors': renderer.render(form.errors)})
+        return self.render_to_response(context)

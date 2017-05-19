@@ -125,13 +125,13 @@ class Command(BaseCommand):
         phantom_e = factories.PhantomFactory(
             name='Head Phantom 2',
             model=phantom_model_603A,
-            serial_number='SN5',
+            serial_number='SN2',
             institution=johns_hopkins,
         )
         phantom_f = factories.PhantomFactory(
             name='Body Phantom',
             model=phantom_model_604,
-            serial_number='SN6',
+            serial_number='SN3',
             institution=johns_hopkins,
         )
 

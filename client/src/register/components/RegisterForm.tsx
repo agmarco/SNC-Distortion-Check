@@ -15,6 +15,7 @@ interface IRegisterFormState {
     serialNumberFetching: boolean;
     serialNumberExists: boolean;
     serialNumberAvailable: boolean;
+    serialNumberPristine: boolean;
     modelNumber: string | null;
     promise: Bluebird<any> | null;
 }
@@ -28,6 +29,7 @@ export default class extends React.Component<IRegisterFormProps, IRegisterFormSt
             serialNumberFetching: false,
             serialNumberExists: false,
             serialNumberAvailable: false,
+            serialNumberPristine: true,
             modelNumber: null,
             promise: null,
         };
@@ -68,6 +70,7 @@ export default class extends React.Component<IRegisterFormProps, IRegisterFormSt
             serialNumberFetching: true,
             serialNumberExists: false,
             serialNumberAvailable: false,
+            serialNumberPristine: false,
             promise: newPromise,
         });
     }
@@ -75,15 +78,37 @@ export default class extends React.Component<IRegisterFormProps, IRegisterFormSt
     // TODO global form errors
     render() {
         const { cancelUrl, formErrors } = this.props;
-        const { serialNumberFetching, serialNumberExists, serialNumberAvailable, modelNumber } = this.state;
+        const {
+            serialNumberPristine,
+            serialNumberFetching,
+            serialNumberExists,
+            serialNumberAvailable,
+            modelNumber,
+        } = this.state;
         const cirs603AUrl = 'http://www.cirsinc.com/products/all/99/mri-distortion-phantom-for-srs/';
         const cirs604Url = 'http://www.cirsinc.com/products/all/118/large-field-mri-distortion-phantom/';
+
+        let serialNumberMessage = null;
+        if (!serialNumberPristine) {
+            if (serialNumberAvailable) {
+                serialNumberMessage = modelNumber as string;
+            } else if (serialNumberExists) {
+                serialNumberMessage = `That phantom is already in use by another institution. Please contact CIRS
+                    support.`;
+            } else if (serialNumberFetching) {
+                serialNumberMessage = "Searching...";
+            } else {
+                serialNumberMessage = `That phantom does not exist in our database. If you believe this is a mistake,
+                    please contact CIRS support.`;
+            }
+        }
+
         return (
             <div>
                 <form method="post" className="cirs-form">
                     <CSRFToken />
 
-                    {fieldErrors(formErrors, '_')}
+                    {fieldErrors(formErrors, '__all__')}
 
                     <p>
                         In order to registerd a new account, you must provide the serial number of
@@ -109,8 +134,7 @@ export default class extends React.Component<IRegisterFormProps, IRegisterFormSt
 
                     <div>
                         <label>Model Number</label>
-                        <p>{serialNumberAvailable ? modelNumber :
-                            (serialNumberFetching ? "Searching..." : "Invalid Serial Number")}</p>
+                        <p>{serialNumberMessage}</p>
                     </div>
 
                     <p>

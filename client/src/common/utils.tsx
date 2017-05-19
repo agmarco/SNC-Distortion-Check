@@ -54,7 +54,7 @@ export const quartiles = (sample: number[]) => {
 
 export const fieldErrors = (formErrors: IFormErrors, field: string) => {
     return formErrors && formErrors[field] && (
-        <ul>
+        <ul className="errorlist">
             {formErrors[field].map((error, i) => <li key={i}>{error}</li>)}
         </ul>
     );
