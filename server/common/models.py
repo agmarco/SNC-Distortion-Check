@@ -41,7 +41,7 @@ class CommonFieldsMixin(models.Model):
 class Institution(CommonFieldsMixin):
     name_ht = 'This is how the institution will be identified within the UI'
     name = models.CharField(max_length=255, help_text=name_ht)
-    number_of_licenses_ht = 'The number of machines that the institution is allowed to add'
+    number_of_licenses_ht = 'The number of machines that the institution is allowed to add'  # TODO enforce this
     number_of_licenses = models.PositiveIntegerField(default=1, help_text=number_of_licenses_ht)
     address = models.TextField()
     phone_number = models.CharField(max_length=255)

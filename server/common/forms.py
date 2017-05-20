@@ -14,25 +14,19 @@ from .models import Phantom, Institution
 UserModel = get_user_model()
 
 
-class CIRSForm(forms.Form):
+class CIRSFormMixin:
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('label_suffix', '')
-        super().__init__(*args, **kwargs)
+        super(CIRSFormMixin, self).__init__(*args, **kwargs)
 
 
-class CIRSModelForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        kwargs.setdefault('label_suffix', '')
-        super().__init__(*args, **kwargs)
-
-
-class AccountForm(CIRSModelForm):
+class AccountForm(CIRSFormMixin, forms.ModelForm):
     class Meta:
         model = UserModel
         fields = ('first_name', 'last_name', 'email')
 
 
-class CreatePhantomForm(CIRSModelForm):
+class CreatePhantomForm(CIRSFormMixin, forms.ModelForm):
     class Meta:
         model = Phantom
         fields = ('name', 'serial_number')
@@ -47,7 +41,7 @@ class CreatePhantomForm(CIRSModelForm):
         return self.cleaned_data['serial_number']
 
 
-class UploadScanForm(CIRSForm):
+class UploadScanForm(CIRSFormMixin, forms.Form):
     machine = forms.IntegerField()
     sequence = forms.IntegerField()
     phantom = forms.IntegerField()
@@ -67,7 +61,7 @@ class UploadScanForm(CIRSForm):
         return self.cleaned_data['dicom_archive']
 
 
-class UploadCTForm(CIRSForm):
+class UploadCTForm(CIRSFormMixin, forms.Form):
     dicom_archive = forms.FileField(label="File Browser")
 
     def clean_dicom_archive(self):
@@ -83,7 +77,7 @@ class UploadCTForm(CIRSForm):
         return self.cleaned_data['dicom_archive']
 
 
-class UploadRawForm(CIRSForm):
+class UploadRawForm(CIRSFormMixin, forms.Form):
     csv = forms.FileField(label="File Browser")
 
     @staticmethod
@@ -114,7 +108,7 @@ class UploadRawForm(CIRSForm):
         return self.cleaned_data['csv']
 
 
-class InstitutionForm(CIRSModelForm):
+class InstitutionForm(CIRSFormMixin, forms.ModelForm):
     class Meta:
         model = Institution
         fields = ('name', 'address', 'phone_number')
@@ -125,7 +119,7 @@ class InstitutionForm(CIRSModelForm):
         }
 
 
-class DicomOverlayForm(CIRSForm):
+class DicomOverlayForm(CIRSFormMixin, forms.Form):
     study_instance_uid = forms.CharField(label="StudyInstanceUID", required=False)
     patient_id = forms.CharField(label="PatientID", required=False)
     isocenter_x = forms.FloatField(label="x", widget=forms.NumberInput(attrs={'step': '0.01'}), required=False)
@@ -134,7 +128,7 @@ class DicomOverlayForm(CIRSForm):
     frame_of_reference_uid = forms.CharField(label="FrameOfReferenceUID", required=False)
 
 
-class CreateUserForm(CIRSModelForm):
+class CreateUserForm(CIRSFormMixin, PasswordResetForm):
     MANAGER = 'Manager'
     MEDICAL_PHYSICIST = 'Medical Physicist'
     THERAPIST = 'Therapist'
@@ -144,40 +138,46 @@ class CreateUserForm(CIRSModelForm):
         (THERAPIST, 'Therapist'),
     )
 
+    field_order = ('first_name', 'last_name', 'email', 'user_type')
+
+    first_name = forms.CharField()
+    last_name = forms.CharField()
     user_type_ht = """<p>The user type determines what permissions the account will have. Therapist users can upload new MR
-        scans for analysis. Medical Physicist users can do everything therapists can do, and can also add and configure
-        phantoms, machines, and sequences. Admin users can do everything Medical Physicists can do, and can also add and
-        delete new users. Please note that once a user type is set, it cannot be changed (except by CIRS support).</p>"""
+            scans for analysis. Medical Physicist users can do everything therapists can do, and can also add and configure
+            phantoms, machines, and sequences. Admin users can do everything Medical Physicists can do, and can also add and
+            delete new users. Please note that once a user type is set, it cannot be changed (except by CIRS support).</p>"""
     user_type = forms.ChoiceField(choices=GROUP_CHOICES, widget=forms.RadioSelect, help_text=user_type_ht)
-    email = forms.EmailField()
 
-    class Meta:
-        model = UserModel
-        fields = ('first_name', 'last_name', 'email', 'user_type')
-
-    def _save_m2m(self):
-        super(CreateUserForm, self)._save_m2m()
-        self.instance.groups.add(Group.objects.get(name=self.cleaned_data['user_type']))
-
-
-class CreatePasswordForm(PasswordResetForm):
     def get_users(self, email):
-        active_users = UserModel._default_manager.filter(**{
+        active_users = UserModel.objects.filter(**{
             '%s__iexact' % UserModel.get_email_field_name(): email,
             'is_active': True,
         })
         return (u for u in active_users if not u.has_usable_password())
 
+    def save(self, **kwargs):
+        user = UserModel(first_name=self.cleaned_data['first_name'],
+                         last_name=self.cleaned_data['last_name'],
+                         email=self.cleaned_data['email'])
+        user.set_unusable_password()
+        user.save()
+        user.groups.add(Group.objects.get(name=self.cleaned_data['user_type']))
+        super(CreateUserForm, self).save(**kwargs)
+        return user
 
-class RegisterForm(CIRSForm):
+
+class RegisterForm(CIRSFormMixin, CreateUserForm):
+    field_order = ('first_name', 'last_name', 'email', 'user_type')
+
     phantom_serial_number = forms.CharField()
     institution_name = forms.CharField()
     institution_address = forms.CharField()
     institution_phone = forms.CharField(label="Institution Contact Phone Number")
-    first_name = forms.CharField()
-    last_name = forms.CharField()
-    email = forms.EmailField()
     email_repeat = forms.EmailField()
+
+    def __init__(self, *args, **kwargs):
+        super(RegisterForm, self).__init__(*args, **kwargs)
+        self.fields.pop('user_type')
 
     def clean(self):
         cleaned_data = super(RegisterForm, self).clean()
@@ -186,3 +186,19 @@ class RegisterForm(CIRSForm):
 
         if email != email_repeat:
             raise ValidationError("Emails do not match.")
+        return cleaned_data
+
+    def clean_phantom_serial_number(self):
+        serial_number = self.cleaned_data['phantom_serial_number']
+        try:
+            model = Phantom.objects.get(institution=None, serial_number=serial_number).model
+        except ObjectDoesNotExist:
+            raise ValidationError("That phantom does not exist in our database. If you believe this is a mistake, "
+                                  "please contact CIRS support.")
+        available = not Phantom.objects.filter(serial_number=serial_number).exclude(institution=None).exists()
+        if not available:
+            raise ValidationError("That phantom is already in use by another institution. If you believe this is a "
+                                  "mistake, please contact CIRS support.")
+
+        self.cleaned_data['phantom_model'] = model
+        return serial_number

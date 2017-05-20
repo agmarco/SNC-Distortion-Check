@@ -93,8 +93,8 @@ export default class extends React.Component<IRegisterFormProps, IRegisterFormSt
             if (serialNumberAvailable) {
                 serialNumberMessage = modelNumber as string;
             } else if (serialNumberExists) {
-                serialNumberMessage = `That phantom is already in use by another institution. Please contact CIRS
-                    support.`;
+                serialNumberMessage = `That phantom is already in use by another institution. If you believe this is a
+                mistake, please contact CIRS support.`;
             } else if (serialNumberFetching) {
                 serialNumberMessage = "Searching...";
             } else {

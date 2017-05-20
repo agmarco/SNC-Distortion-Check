@@ -9,6 +9,7 @@ from datetime import datetime
 import dicom
 from dicom.UID import generate_uid
 from dicom.dataset import Dataset, FileDataset
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetCompleteView
@@ -39,6 +40,7 @@ from .decorators import validate_institution, login_and_permission_required
 from .http import CSVResponse, ZipResponse
 
 logger = logging.getLogger(__name__)
+UserModel = get_user_model()
 
 
 class CIRSDeleteView(DeleteView):
@@ -96,7 +98,7 @@ class Configuration(UpdateView):
 
 @method_decorator(login_required, name='dispatch')
 class Account(UpdateView):
-    model = models.User
+    model = UserModel
     form_class = forms.AccountForm
     success_url = reverse_lazy('account')
     template_name = 'common/account.html'
@@ -483,7 +485,7 @@ class DeleteSequence(CIRSDeleteView):
 
 @login_and_permission_required('common.manage_users')
 class CreateUser(CreateView):
-    model = models.User
+    model = UserModel
     form_class = forms.CreateUserForm
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_create'
@@ -505,24 +507,17 @@ class CreateUser(CreateView):
             'html_email_template_name': self.html_email_template_name,
             'extra_email_context': self.extra_email_context,
         }
-        self.object = form.save(commit=False)
+        self.object = form.save(**opts)
         self.object.institution = self.request.user.institution
         self.object.save()
-        self.object.set_unusable_password()
-        form.save_m2m()
-        create_password_form = forms.CreatePasswordForm({'email': self.object.email})
-        if create_password_form.is_valid():
-            create_password_form.save(**opts)
-            messages.success(self.request, f"\"{self.object.get_full_name()}\" has been created successfully.")
-            return super(ModelFormMixin, self).form_valid(form)
-        else:
-            return HttpResponseServerError()
+        messages.success(self.request, f"\"{self.object.get_full_name()}\" has been created successfully.")
+        return super(ModelFormMixin, self).form_valid(form)
 
 
 @login_and_permission_required('common.manage_users')
 @validate_institution()
 class DeleteUser(CIRSDeleteView):
-    model = models.User
+    model = UserModel
     success_url = reverse_lazy('configuration')
 
     def delete(self, request, *args, **kwargs):
@@ -684,6 +679,22 @@ class PasswordCreateCompleteView(PasswordResetCompleteView):
 class Register(FormView):
     form_class = forms.RegisterForm
     template_name = 'common/register.html'
+    success_url = 'password_create_complete'
+
+    def form_valid(self, form):
+        institution = models.Institution.objects.create(name=form.cleaned_data['institution_name'],
+                                                        address=form.cleaned_data['institution_address'],
+                                                        phone_number=form.cleaned_data['institution_phone'])
+        models.Phantom.objects.create(serial_number=form.cleaned_data['phantom_serial_number'],
+                                      model=form.cleaned_data['phantom_model'],
+                                      institution=institution)
+        create_user_form = forms.CreateUserForm({
+            'first_name': form.cleaned_data['first_name'],
+            'last_name': form.cleaned_data['last_name'],
+            'email': form.cleaned_data['email'],
+            'user_type': forms.CreateUserForm.MANAGER,
+        })
+        return super(Register, self).form_valid(form)
 
     def form_invalid(self, form):
         renderer = JSONRenderer()
