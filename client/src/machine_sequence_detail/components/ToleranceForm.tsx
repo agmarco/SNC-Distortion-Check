@@ -2,7 +2,7 @@ import React from 'react';
 import * as Cookies from 'js-cookie';
 import * as Bluebird from 'bluebird';
 
-import { encode, fieldErrors } from 'common/utils';
+import { encode } from 'common/utils';
 import { CSRFToken, BoolIcon, LoadingIcon } from 'common/components';
 import { IMachineSequencePairDTO } from 'common/service';
 
@@ -11,7 +11,6 @@ import './ToleranceForm.scss';
 interface IToleranceFormProps {
     updateToleranceUrl: string;
     machineSequencePair: IMachineSequencePairDTO;
-    formErrors: {[field: string]: string[]};
     tolerance: number;
     handleToleranceChange: (event: React.FormEvent<HTMLInputElement>) => void;
 }
@@ -76,7 +75,7 @@ export default class extends React.Component<IToleranceFormProps, IToleranceForm
     }
 
     render() {
-        const { updateToleranceUrl, tolerance, handleToleranceChange, formErrors } = this.props;
+        const { updateToleranceUrl, tolerance, handleToleranceChange } = this.props;
         const { fetching, success } = this.state;
 
         return (
@@ -88,8 +87,6 @@ export default class extends React.Component<IToleranceFormProps, IToleranceForm
                     onSubmit={this.handleSubmit.bind(this)}
                 >
                     <CSRFToken />
-
-                    {fieldErrors(formErrors, '__all__')}
 
                     <div>
                         <label htmlFor="tolerance-tolerance">Maximum FLE (mm)</label>
@@ -106,7 +103,6 @@ export default class extends React.Component<IToleranceFormProps, IToleranceForm
                             <input type="submit" value="Save" className="btn tertiary" />
                             {fetching ? <LoadingIcon /> : (success !== null && <BoolIcon success={success} />)}
                         </div>
-                        {fieldErrors(formErrors, 'tolerance')}
                     </div>
                 </form>
             </div>

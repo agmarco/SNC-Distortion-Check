@@ -170,7 +170,11 @@ class UploadScanView(FormView):
     def form_invalid(self, form):
         renderer = JSONRenderer()
         context = self.get_context_data(form=form)
-        context.update({'form_errors': renderer.render(form.errors)})
+        context.update({
+            'form_data': renderer.render(form.data),
+            'form_files': renderer.render(form.files),
+            'form_errors': renderer.render(form.errors),
+        })
         return self.render_to_response(context)
 
 
@@ -361,7 +365,11 @@ class CreatePhantomView(FormView):
     def form_invalid(self, form):
         renderer = JSONRenderer()
         context = self.get_context_data(form=form)
-        context.update({'form_errors': renderer.render(form.errors)})
+        context.update({
+            'form_data': renderer.render(form.data),
+            'form_files': renderer.render(form.files),
+            'form_errors': renderer.render(form.errors),
+        })
         return self.render_to_response(context)
 
 
@@ -688,7 +696,11 @@ class RegisterView(FormView):
     def form_invalid(self, form):
         renderer = JSONRenderer()
         context = self.get_context_data(form=form)
-        context.update({'form_errors': renderer.render(form.errors)})
+        context.update({
+            'form_data': renderer.render(form.data),
+            'form_files': renderer.render(form.files),
+            'form_errors': renderer.render(form.errors),
+        })
         return self.render_to_response(context)
 
 
