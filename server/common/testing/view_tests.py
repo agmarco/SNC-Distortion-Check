@@ -72,7 +72,7 @@ def test_login_not_required(client, view):
     patches = _patches(view)
     url = _url(view, view_data)
 
-    for method, method_data in _methods(view):
+    for method, method_data in _methods(view, view_data):
         response = get_response(client, url, method, method_data, patches)
         if response.status_code == 302:
             assert urlparse(response['Location']).path != reverse(settings.LOGIN_URL)

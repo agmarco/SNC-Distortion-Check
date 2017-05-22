@@ -20,8 +20,8 @@ urlpatterns = [
     url(r'^machine-sequences/(?P<pk>\d+)/$', views.MachineSequenceDetailView.as_view(), name='machine_sequence_detail'),
 
     url(r'^api/', include([
-        url(r'^validate-serial/$', api.ValidateSerial.as_view(), name='validate_serial'),
-        url(r'^update-tolerance/$', api.UpdateTolerance.as_view(), name='update_tolerance'),
+        url(r'^validate-serial/$', api.ValidateSerialView.as_view(), name='validate_serial'),
+        url(r'^update-tolerance/$', api.UpdateToleranceView.as_view(), name='update_tolerance'),
     ])),
 
     url(r'^scans/', include([

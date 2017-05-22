@@ -156,7 +156,7 @@ def raw_data_data(user):
     }
 
 
-def password_create_confirm_data(user):
+def create_password_data(user):
     new_user = factories.UserFactory.create(email='new_user@johnshopkins.edu')
     uid = urlsafe_base64_encode(force_bytes(new_user.pk))
     token = default_token_generator.make_token(new_user)
@@ -169,6 +169,11 @@ def password_create_confirm_data(user):
 def create_user_data(user):
     factories.GroupFactory.create(name="Manager")
     return {}
+
+
+def register_data(user):
+    factories.GroupFactory.create(name="Manager")
+    return {'phantom': factories.PhantomFactory(serial_number='SN1')}
 
 
 VIEWS = (
@@ -223,7 +228,7 @@ VIEWS = (
         'data': create_phantom_data,
         'crud': (Crud.CREATE, Phantom, lambda data: {
             'name': 'Create Phantom',
-            'serial_number': 'A123',
+            'serial_number': 'SN1',
         }),
         'url': reverse('create_phantom'),
         'login_required': True,
@@ -388,15 +393,15 @@ VIEWS = (
         'validate_institution': True,
         'methods': {'GET': None, 'POST': None},
     }, {
-        'view': api.ValidateSerial,
-        'data': lambda user: {'phantom': factories.PhantomFactory(serial_number='A123')},
+        'view': api.ValidateSerialView,
+        'data': lambda user: {'phantom': factories.PhantomFactory(serial_number='SN1')},
         'url': reverse('validate_serial'),
         'login_required': False,
         'permissions': (),
         'validate_institution': False,
         'methods': {'POST': lambda data: {'serial_number': data['phantom'].serial_number}},
     }, {
-        'view': api.UpdateTolerance,
+        'view': api.UpdateToleranceView,
         'data': update_tolerance_data,
         'url': reverse('update_tolerance'),
         'login_required': True,
@@ -437,23 +442,8 @@ VIEWS = (
         'validate_institution': False,
         'methods': {'GET': None},
     }, {
-        'view': views.PasswordCreateConfirmView,
-        'data': password_create_confirm_data,
-        'url': lambda data: reverse('password_create_confirm', args=(data['uid'], data['token'])),
-        'login_required': False,
-        'permissions': (),
-        'validate_institution': False,
-        'methods': {'GET': None, 'POST': None},
-    }, {
-        'view': views.PasswordCreateCompleteView,
-        'url': reverse('password_create_complete'),
-        'login_required': False,
-        'permissions': (),
-        'validate_institution': False,
-        'methods': {'GET': None},
-    }, {
         'view': views.RegisterView,
-        'data': lambda user: {'phantom': factories.PhantomFactory(serial_number='SN1')},
+        'data': register_data,
         'url': reverse('register'),
         'login_required': False,
         'permissions': (),
@@ -468,5 +458,27 @@ VIEWS = (
             'email': 'johndoe@johnshopkins.edu',
             'email_repeat': 'johndoe@johnshopkins.edu',
         }},
+    }, {
+        'view': views.RegisterDoneView,
+        'url': reverse('register_done'),
+        'login_required': False,
+        'permissions': (),
+        'validate_institution': False,
+        'methods': {'GET': None},
+    }, {
+        'view': views.CreatePasswordView,
+        'data': create_password_data,
+        'url': lambda data: reverse('create_password', args=(data['uid'], data['token'])),
+        'login_required': False,
+        'permissions': (),
+        'validate_institution': False,
+        'methods': {'GET': None, 'POST': None},
+    }, {
+        'view': views.CreatePasswordCompleteView,
+        'url': reverse('create_password_complete'),
+        'login_required': False,
+        'permissions': (),
+        'validate_institution': False,
+        'methods': {'GET': None},
     },
 )

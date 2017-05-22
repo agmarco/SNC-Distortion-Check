@@ -8,7 +8,7 @@ from .models import Phantom, MachineSequencePair
 from .permissions import login_and_permission_required, validate_institution
 
 
-class ValidateSerial(APIView):
+class ValidateSerialView(APIView):
     def post(self, request):
         serial_number = request.data['serial_number']
         try:
@@ -19,7 +19,7 @@ class ValidateSerial(APIView):
         return Response({'exists': True, 'available': available, 'model_number': phantom.model.model_number})
 
 
-class UpdateTolerance(APIView):
+class UpdateToleranceView(APIView):
     permission_classes = (
         login_and_permission_required('common.configuration'),
         validate_institution(model_class=MachineSequencePair),

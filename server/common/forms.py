@@ -4,16 +4,13 @@ from functools import partial
 from django import forms
 
 import numpy as np
-from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
 from process import dicom_import
-from .models import Phantom, Institution
+from .models import Phantom, Institution, User
 from .validators import validate_phantom_serial_number
-
-UserModel = get_user_model()
 
 
 class CIRSFormMixin:
@@ -24,7 +21,7 @@ class CIRSFormMixin:
 
 class AccountForm(CIRSFormMixin, forms.ModelForm):
     class Meta:
-        model = UserModel
+        model = User
         fields = ('first_name', 'last_name', 'email')
 
 
@@ -132,8 +129,8 @@ class DicomOverlayForm(CIRSFormMixin, forms.Form):
 
 class CreatePasswordForm(PasswordResetForm):
     def get_users(self, email):
-        active_users = UserModel._default_manager.filter(**{
-            '%s__iexact' % UserModel.get_email_field_name(): email,
+        active_users = User._default_manager.filter(**{
+            '%s__iexact' % User.get_email_field_name(): email,
             'is_active': True,
         })
         return (u for u in active_users if not u.has_usable_password())
@@ -141,7 +138,7 @@ class CreatePasswordForm(PasswordResetForm):
 
 class BaseUserForm(CIRSFormMixin, forms.ModelForm):
     class Meta:
-        model = UserModel
+        model = User
         fields = ('first_name', 'last_name', 'email')
 
     def __init__(self, *args, **kwargs):
@@ -150,9 +147,10 @@ class BaseUserForm(CIRSFormMixin, forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(BaseUserForm, self).clean()
-        self.create_password_form = CreatePasswordForm({'email': cleaned_data['email']})
+        self.create_password_form = CreatePasswordForm({'email': cleaned_data.get('email')})
         if not self.create_password_form.is_valid():
-            raise ValidationError("Something went wrong. Please try again, or contact CIRS support if the problem persists.")
+            raise ValidationError("Something went wrong. Please try again, or contact CIRS support"
+                                  " if the problem persists.")
         return cleaned_data
 
     def save(self, commit=True, **kwargs):
@@ -202,10 +200,11 @@ class CreateUserForm(BaseUserForm):
         'user_type',
     )
 
-    user_type_ht = """<p>The user type determines what permissions the account will have. Therapist users can upload new MR
-                scans for analysis. Medical Physicist users can do everything therapists can do, and can also add and configure
-                phantoms, machines, and sequences. Admin users can do everything Medical Physicists can do, and can also add and
-                delete new users. Please note that once a user type is set, it cannot be changed (except by CIRS support).</p>"""
+    user_type_ht = """<p>The user type determines what permissions the account will have. Therapist users can upload new
+                MR scans for analysis. Medical Physicist users can do everything therapists can do, and can also add and
+                configure phantoms, machines, and sequences. Admin users can do everything Medical Physicists can do,
+                and can also add and delete new users. Please note that once a user type is set, it cannot be changed
+                (except by CIRS support).</p>"""
     user_type = forms.ChoiceField(choices=GROUP_CHOICES, widget=forms.RadioSelect, help_text=user_type_ht)
 
     class Meta(BaseUserForm.Meta):
@@ -237,8 +236,8 @@ class RegisterForm(BaseUserForm):
 
     def clean(self):
         cleaned_data = super(RegisterForm, self).clean()
-        email = cleaned_data['email']
-        email_repeat = cleaned_data['email_repeat']
+        email = cleaned_data.get('email')
+        email_repeat = cleaned_data.get('email_repeat')
 
         if email != email_repeat:
             raise ValidationError("Emails do not match.")

@@ -234,6 +234,7 @@ def scan_upload_path(instance, filename):
 
 
 # TODO add help text
+# TODO make sure FileFields are only accessible by users with the right permissions
 class Scan(CommonFieldsMixin):
     creator = models.ForeignKey(User, models.SET_NULL, null=True)
     machine_sequence_pair = models.ForeignKey(MachineSequencePair, models.CASCADE)

@@ -9,7 +9,6 @@ from datetime import datetime
 import dicom
 from dicom.UID import generate_uid
 from dicom.dataset import Dataset, FileDataset
-from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetCompleteView, PasswordResetDoneView
@@ -40,7 +39,6 @@ from .decorators import validate_institution, login_and_permission_required
 from .http import CSVResponse, ZipResponse
 
 logger = logging.getLogger(__name__)
-UserModel = get_user_model()
 
 
 class CIRSDeleteView(DeleteView):
@@ -98,7 +96,7 @@ class ConfigurationView(UpdateView):
 
 @method_decorator(login_required, name='dispatch')
 class AccountView(UpdateView):
-    model = UserModel
+    model = models.User
     form_class = forms.AccountForm
     success_url = reverse_lazy('account')
     template_name = 'common/account.html'
@@ -517,7 +515,7 @@ class CreateUserView(FormView):
 @login_and_permission_required('common.manage_users')
 @validate_institution()
 class DeleteUserView(CIRSDeleteView):
-    model = UserModel
+    model = models.User
     success_url = reverse_lazy('configuration')
 
     def delete(self, request, *args, **kwargs):

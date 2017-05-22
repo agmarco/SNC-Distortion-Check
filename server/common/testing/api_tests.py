@@ -20,11 +20,11 @@ def test_validate_serial(client):
 
     res = client.post(reverse('validate_serial'), {'serial_number': 'wrong'})
     content = json.loads(res.content)
-    assert not content['valid']
+    assert not content['exists']
 
     res = client.post(reverse('validate_serial'), {'serial_number': initial_phantom.serial_number})
     content = json.loads(res.content)
-    assert content['valid'] and content['model_number'] == initial_phantom.model.model_number
+    assert content['exists'] and content['model_number'] == initial_phantom.model.model_number
 
 
 @pytest.mark.django_db
