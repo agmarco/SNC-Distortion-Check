@@ -129,10 +129,7 @@ class DicomOverlayForm(CIRSFormMixin, forms.Form):
 
 class CreatePasswordForm(PasswordResetForm):
     def get_users(self, email):
-        active_users = User.objects.filter(**{
-            '%s__iexact' % User.get_email_field_name(): email,
-            'is_active': True,
-        })
+        active_users = User.objects.filter(email__iexact=email, is_active=True)
         return (u for u in active_users if not u.has_usable_password())
 
 
@@ -143,29 +140,22 @@ class BaseUserForm(CIRSFormMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.create_password_form = None
+        self.save_m2m = None
         super(BaseUserForm, self).__init__(*args, **kwargs)
 
     def clean(self):
         cleaned_data = super(BaseUserForm, self).clean()
         self.create_password_form = CreatePasswordForm({'email': cleaned_data.get('email')})
         if not self.create_password_form.is_valid():
-            raise ValidationError("Something went wrong. Please try again, or contact CIRS support"
-                                  " if the problem persists.")
+            raise ValidationError("""Something went wrong. Please try again, or contact CIRS support if the problem
+                                  persists.""")
         return cleaned_data
 
     def save(self, commit=True, **kwargs):
-        """
-        Save this form's self.instance object if commit=True. Otherwise, add
-        a save_m2m() method to the form which can be called after the instance
-        is saved manually at a later time. Return the model instance.
-        """
         if self.errors:
-            raise ValueError(
-                "The %s could not be %s because the data didn't validate." % (
-                    self.instance._meta.object_name,
-                    'created' if self.instance._state.adding else 'changed',
-                )
-            )
+            raise ValueError(f"""The {self.instance._meta.object_name} could not be
+                             {'created' if self.instance._state.adding else 'changed'} because the data didn't
+                             validate.""")
 
         self.instance.set_unusable_password()
         if commit:
@@ -200,11 +190,11 @@ class CreateUserForm(BaseUserForm):
         'user_type',
     )
 
-    user_type_ht = """<p>The user type determines what permissions the account will have. Therapist users can upload new
-                MR scans for analysis. Medical Physicist users can do everything therapists can do, and can also add and
-                configure phantoms, machines, and sequences. Admin users can do everything Medical Physicists can do,
-                and can also add and delete new users. Please note that once a user type is set, it cannot be changed
-                (except by CIRS support).</p>"""
+    user_type_ht = """<p>The user type determines what permissions the account will have. Therapist users can upload
+                new MR scans for analysis. Medical Physicist users can do everything therapists can do, and can also
+                add and configure phantoms, machines, and sequences. Admin users can do everything Medical Physicists
+                can do, and can also add and delete new users. Please note that once a user type is set, it cannot be
+                changed (except by CIRS support).</p>"""
     user_type = forms.ChoiceField(choices=GROUP_CHOICES, widget=forms.RadioSelect, help_text=user_type_ht)
 
     class Meta(BaseUserForm.Meta):
