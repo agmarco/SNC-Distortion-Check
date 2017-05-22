@@ -129,7 +129,7 @@ class DicomOverlayForm(CIRSFormMixin, forms.Form):
 
 class CreatePasswordForm(PasswordResetForm):
     def get_users(self, email):
-        active_users = User._default_manager.filter(**{
+        active_users = User.objects.filter(**{
             '%s__iexact' % User.get_email_field_name(): email,
             'is_active': True,
         })
