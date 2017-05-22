@@ -19,18 +19,8 @@
   <form method="post" class="cirs-form">
     {% csrf_token %}
     {{ form.non_field_errors }}
-    <div>
-      {{ form.study_instance_uid.label_tag|title }}
-      {{ form.study_instance_uid }}
-      {{ form.study_instance_uid.errors }}
-      {{ form.study_instance_uid.help_text|safe }}
-    </div>
-    <div>
-      {{ form.patient_id.label_tag|title }}
-      {{ form.patient_id }}
-      {{ form.patient_id.errors }}
-      {{ form.patient_id.help_text|safe }}
-    </div>
+    {% include 'includes/form_field.html' with field=form.study_instance_uid %}
+    {% include 'includes/form_field.html' with field=form.patient_id %}
     <div>
       <label>Isocenter (mm)</label>
       <div class="isocenter">
@@ -48,12 +38,7 @@
       {{ form.isocenter_y.help_text|safe }}
       {{ form.isocenter_z.help_text|safe }}
     </div>
-    <div>
-      {{ form.frame_of_reference_uid.label_tag|title }}
-      {{ form.frame_of_reference_uid }}
-      {{ form.frame_of_reference_uid.errors }}
-      {{ form.frame_of_reference_uid.help_text|safe }}
-    </div>
+    {% include 'includes/form_field.html' with field=form.frame_of_reference_uid %}
     <div class="form-links">
       <a href="{% url 'machine_sequence_detail' scan.machine_sequence_pair.pk %}" class="btn tertiary">Cancel</a>
       <input type="submit" value="Generate DICOM Overlay" class="btn secondary">

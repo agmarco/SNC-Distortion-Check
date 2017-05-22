@@ -12,8 +12,10 @@ interface IAddPhantomFormProps {
 }
 
 interface IAddPhantomFormState {
+    serialNumberPristine: boolean;
     serialNumberFetching: boolean;
-    serialNumberAvailable: boolean;
+    serialNumberValid: boolean;
+    serialNumberMessage: string | null;
     modelNumber: string | null;
     promise: Bluebird<any> | null;
 }
@@ -24,8 +26,10 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
 
         Bluebird.config({cancellation: true});
         this.state = {
+            serialNumberPristine: true,
             serialNumberFetching: false,
-            serialNumberAvailable: false,
+            serialNumberValid: false,
+            serialNumberMessage: null,
             modelNumber: null,
             promise: null,
         };
@@ -50,11 +54,12 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
             }))
             .then((res) => {
                 handleErrors(res, (async function() {
-                    const { available, model_number } = await res.json();
+                    const { valid, model_number, message } = await res.json();
 
                     this.setState({
                         serialNumberFetching: false,
-                        serialNumberAvailable: available,
+                        serialNumberValid: valid,
+                        serialNumberMessage: message,
                         modelNumber: model_number,
                         promise: null,
                     });
@@ -62,15 +67,24 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
             });
 
         this.setState({
+            serialNumberPristine: false,
             serialNumberFetching: true,
-            serialNumberAvailable: false,
+            serialNumberValid: false,
+            serialNumberMessage: null,
+            modelNumber: null,
             promise: newPromise,
         });
     }
 
     render() {
         const { cancelUrl, formErrors } = this.props;
-        const { serialNumberFetching, serialNumberAvailable, modelNumber } = this.state;
+        const {
+            serialNumberPristine,
+            serialNumberFetching,
+            serialNumberValid,
+            serialNumberMessage,
+            modelNumber,
+        } = this.state;
 
         return (
             <div>
@@ -100,8 +114,9 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
 
                     <div>
                         <label>Model Number</label>
-                        <p>{serialNumberAvailable ? modelNumber :
-                            (serialNumberFetching ? "Searching..." : "Invalid Serial Number")}</p>
+                        <p>{!serialNumberPristine && (serialNumberFetching ? "Searching..." :
+                            (serialNumberValid ? <span className="success">{modelNumber}</span> :
+                            <span className="error">{serialNumberMessage}</span>))}</p>
                     </div>
 
                     <div>
@@ -118,7 +133,7 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
                         <input
                             type="submit"
                             value="Add Phantom"
-                            disabled={serialNumberFetching || !serialNumberAvailable}
+                            disabled={serialNumberFetching || !serialNumberValid}
                             className="btn secondary"
                         />
                     </div>
