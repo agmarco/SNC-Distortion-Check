@@ -173,21 +173,21 @@ def create_user_data(user):
 
 VIEWS = (
     {
-        'view': views.landing,
+        'view': views.landing_view,
         'url': reverse('landing'),
         'login_required': True,
         'permissions': (),
         'validate_institution': False,
         'methods': {'GET': None},
     }, {
-        'view': views.Configuration,
+        'view': views.ConfigurationView,
         'url': reverse('configuration'),
         'login_required': True,
         'permissions': ('common.configuration',),
         'validate_institution': False,
         'methods': {'GET': None, 'POST': None},
     }, {
-        'view': views.MachineSequenceDetail,
+        'view': views.MachineSequenceDetailView,
         'data': machine_sequence_detail_data,
         'url': lambda data: reverse('machine_sequence_detail', args=(data['machine_sequence_pair'].pk,)),
         'login_required': True,
@@ -195,7 +195,7 @@ VIEWS = (
         'validate_institution': True,
         'methods': {'GET': None},
     }, {
-        'view': views.UploadScan,
+        'view': views.UploadScanView,
         'url': reverse('upload_scan'),
         'login_required': True,
         'permissions': (),
@@ -203,7 +203,7 @@ VIEWS = (
         'methods': {'GET': None, 'POST': None},
         'patches': ('server.common.views.process_scan',),
     }, {
-        'view': views.DeleteScan,
+        'view': views.DeleteScanView,
         'data': delete_scan_data,
         'url': lambda data: reverse('delete_scan', args=(data['scan'].pk,)),
         'login_required': True,
@@ -211,7 +211,7 @@ VIEWS = (
         'validate_institution': True,
         'methods': {'GET': None, 'POST': None},
     }, {
-        'view': views.ScanErrors,
+        'view': views.ScanErrorsView,
         'data': scan_errors_data,
         'url': lambda data: reverse('scan_errors', args=(data['scan'].pk,)),
         'login_required': True,
@@ -219,7 +219,7 @@ VIEWS = (
         'validate_institution': True,
         'methods': {'GET': None},
     }, {
-        'view': views.CreatePhantom,
+        'view': views.CreatePhantomView,
         'data': create_phantom_data,
         'crud': (Crud.CREATE, Phantom, lambda data: {
             'name': 'Create Phantom',
@@ -231,7 +231,7 @@ VIEWS = (
         'validate_institution': False,
         'methods': {'GET': None, 'POST': None},
     }, {
-        'view': views.UpdatePhantom,
+        'view': views.UpdatePhantomView,
         'data': lambda user: {'phantom': factories.PhantomFactory(institution=user.institution)},
         'crud': (Crud.UPDATE, Phantom, {'name': 'Update Phantom'}),
         'url': lambda data: reverse('update_phantom', args=(data['phantom'].pk,)),
@@ -240,7 +240,7 @@ VIEWS = (
         'validate_institution': True,
         'methods': {'GET': None, 'POST': None},
     }, {
-        'view': views.DeletePhantom,
+        'view': views.DeletePhantomView,
         'data': lambda user: {'phantom': factories.PhantomFactory(institution=user.institution)},
         'crud': (Crud.DELETE, Phantom, None),
         'url': lambda data: reverse('delete_phantom', args=(data['phantom'].pk,)),
@@ -249,7 +249,7 @@ VIEWS = (
         'validate_institution': True,
         'methods': {'GET': None, 'POST': None},
     }, {
-        'view': views.CreateMachine,
+        'view': views.CreateMachineView,
         'crud': (Crud.CREATE, Machine, {
             'name': 'Create Machine',
             'model': 'Create Model',
@@ -261,7 +261,7 @@ VIEWS = (
         'validate_institution': False,
         'methods': {'GET': None, 'POST': None},
     }, {
-        'view': views.UpdateMachine,
+        'view': views.UpdateMachineView,
         'data': lambda user: {'machine': factories.MachineFactory(institution=user.institution)},
         'crud': (Crud.UPDATE, Machine, {
             'name': 'Update Machine',
@@ -274,7 +274,7 @@ VIEWS = (
         'validate_institution': True,
         'methods': {'GET': None, 'POST': None},
     }, {
-        'view': views.DeleteMachine,
+        'view': views.DeleteMachineView,
         'data': lambda user: {'machine': factories.MachineFactory(institution=user.institution)},
         'crud': (Crud.DELETE, Machine, None),
         'url': lambda data: reverse('delete_machine', args=(data['machine'].pk,)),
@@ -283,7 +283,7 @@ VIEWS = (
         'validate_institution': True,
         'methods': {'GET': None, 'POST': None},
     }, {
-        'view': views.CreateSequence,
+        'view': views.CreateSequenceView,
         'crud': (Crud.CREATE, Sequence, {
             'name': 'Create Sequence',
             'instructions': 'Create Instructions',
@@ -294,7 +294,7 @@ VIEWS = (
         'validate_institution': False,
         'methods': {'GET': None, 'POST': None},
     }, {
-        'view': views.UpdateSequence,
+        'view': views.UpdateSequenceView,
         'data': lambda user: {'sequence': factories.SequenceFactory(institution=user.institution)},
         'crud': (Crud.UPDATE, Sequence, {
             'name': 'Update Sequence',
@@ -306,7 +306,7 @@ VIEWS = (
         'validate_institution': True,
         'methods': {'GET': None, 'POST': None},
     }, {
-        'view': views.DeleteSequence,
+        'view': views.DeleteSequenceView,
         'data': lambda user: {'sequence': factories.SequenceFactory(institution=user.institution)},
         'crud': (Crud.DELETE, Sequence, None),
         'url': lambda data: reverse('delete_sequence', args=(data['sequence'].pk,)),
@@ -315,7 +315,7 @@ VIEWS = (
         'validate_institution': True,
         'methods': {'GET': None, 'POST': None},
     }, {
-        'view': views.CreateUser,
+        'view': views.CreateUserView,
         'data': create_user_data,
         'crud': (Crud.CREATE, User, {
             'first_name': 'Create First Name',
@@ -329,7 +329,7 @@ VIEWS = (
         'validate_institution': False,
         'methods': {'GET': None, 'POST': None},
     }, {
-        'view': views.DeleteUser,
+        'view': views.DeleteUserView,
         'data': lambda user: {'user': factories.UserFactory(institution=user.institution)},
         'crud': (Crud.DELETE, User, None),
         'url': lambda data: reverse('delete_user', args=(data['user'].pk,)),
@@ -338,7 +338,7 @@ VIEWS = (
         'validate_institution': True,
         'methods': {'GET': None, 'POST': None},
     }, {
-        'view': views.UploadCT,
+        'view': views.UploadCTView,
         'data': lambda user: {'phantom': factories.PhantomFactory(institution=user.institution)},
         'url': lambda data: reverse('upload_ct', args=(data['phantom'].pk,)),
         'login_required': True,
@@ -347,7 +347,7 @@ VIEWS = (
         'methods': {'GET': None, 'POST': None},
         'patches': ('server.common.views.process_ct_upload',),
     }, {
-        'view': views.UploadRaw,
+        'view': views.UploadRawView,
         'data': lambda user: {'phantom': factories.PhantomFactory(institution=user.institution)},
         'url': lambda data: reverse('upload_raw', args=(data['phantom'].pk,)),
         'login_required': True,
@@ -355,7 +355,7 @@ VIEWS = (
         'validate_institution': True,
         'methods': {'GET': None, 'POST': None},
     }, {
-        'view': views.DeleteGoldStandard,
+        'view': views.DeleteGoldStandardView,
         'data': delete_gold_standard_data,
         'crud': (Crud.DELETE, GoldenFiducials, None),
         'url': lambda data: reverse('delete_gold_standard', args=(data['phantom'].pk, data['gold_standard'].pk)),
@@ -364,7 +364,7 @@ VIEWS = (
         'validate_institution': True,
         'methods': {'GET': None, 'POST': None},
     }, {
-        'view': views.activate_gold_standard,
+        'view': views.activate_gold_standard_view,
         'data': activate_gold_standard_data,
         'url': lambda data: reverse('activate_gold_standard', args=(data['phantom'].pk, data['gold_standard'].pk)),
         'login_required': True,
@@ -372,7 +372,7 @@ VIEWS = (
         'validate_institution': True,
         'methods': {'POST': None},
     }, {
-        'view': views.gold_standard_csv,
+        'view': views.gold_standard_csv_view,
         'data': gold_standard_csv_data,
         'url': lambda data: reverse('gold_standard_csv', args=(data['phantom'].pk, data['gold_standard'].pk)),
         'login_required': True,
@@ -380,7 +380,7 @@ VIEWS = (
         'validate_institution': True,
         'methods': {'GET': None},
     }, {
-        'view': views.DicomOverlay,
+        'view': views.DicomOverlayView,
         'data': dicom_overlay_data,
         'url': lambda data: reverse('dicom_overlay', args=(data['scan'].pk,)),
         'login_required': True,
@@ -407,7 +407,7 @@ VIEWS = (
             'tolerance': 1,
         }},
     }, {
-        'view': views.refresh_scan,
+        'view': views.refresh_scan_view,
         'data': refresh_scan_data,
         'url': lambda data: reverse('refresh_scan', args=(data['scan'].pk,)),
         'login_required': True,
@@ -416,21 +416,21 @@ VIEWS = (
         'methods': {'POST': None},
         'patches': ('server.common.views.process_scan',),
     }, {
-        'view': views.terms_of_use,
+        'view': views.terms_of_use_view,
         'url': reverse('terms_of_use'),
         'login_required': False,
         'permissions': (),
         'validate_institution': False,
         'methods': {'GET': None},
     }, {
-        'view': views.privacy_policy,
+        'view': views.privacy_policy_view,
         'url': reverse('privacy_policy'),
         'login_required': False,
         'permissions': (),
         'validate_institution': False,
         'methods': {'GET': None},
     }, {
-        'view': views.Account,
+        'view': views.AccountView,
         'url': reverse('account'),
         'login_required': True,
         'permissions': (),
@@ -452,7 +452,7 @@ VIEWS = (
         'validate_institution': False,
         'methods': {'GET': None},
     }, {
-        'view': views.Register,
+        'view': views.RegisterView,
         'data': lambda user: {'phantom': factories.PhantomFactory(serial_number='SN1')},
         'url': reverse('register'),
         'login_required': False,

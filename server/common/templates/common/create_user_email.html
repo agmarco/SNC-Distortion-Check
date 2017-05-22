@@ -1,0 +1,8 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <p>Follow the link below to create your password.</p>
+    {# TODO make sure protocol and domain are set correctly in production #}
+    <p><a href="{{ protocol }}://{{ domain }}{% url 'create_password' uid token %}">{{ protocol }}://{{ domain }}{% url 'create_password' uid token %}</a></p>
+  </body>
+</html>

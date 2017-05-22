@@ -1,4 +1,5 @@
 import zipfile
+from functools import partial
 
 from django import forms
 
@@ -10,6 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
 from process import dicom_import
 from .models import Phantom, Institution
+from .validators import validate_phantom_serial_number
 
 UserModel = get_user_model()
 
@@ -128,56 +130,110 @@ class DicomOverlayForm(CIRSFormMixin, forms.Form):
     frame_of_reference_uid = forms.CharField(label="FrameOfReferenceUID", required=False)
 
 
-class CreateUserForm(CIRSFormMixin, PasswordResetForm):
-    MANAGER = 'Manager'
-    MEDICAL_PHYSICIST = 'Medical Physicist'
-    THERAPIST = 'Therapist'
-    GROUP_CHOICES = (
-        (MANAGER, 'Admin'),
-        (MEDICAL_PHYSICIST, 'Medical Physicist'),
-        (THERAPIST, 'Therapist'),
-    )
-
-    field_order = ('first_name', 'last_name', 'email', 'user_type')
-
-    first_name = forms.CharField()
-    last_name = forms.CharField()
-    user_type_ht = """<p>The user type determines what permissions the account will have. Therapist users can upload new MR
-            scans for analysis. Medical Physicist users can do everything therapists can do, and can also add and configure
-            phantoms, machines, and sequences. Admin users can do everything Medical Physicists can do, and can also add and
-            delete new users. Please note that once a user type is set, it cannot be changed (except by CIRS support).</p>"""
-    user_type = forms.ChoiceField(choices=GROUP_CHOICES, widget=forms.RadioSelect, help_text=user_type_ht)
-
+class CreatePasswordForm(PasswordResetForm):
     def get_users(self, email):
-        active_users = UserModel.objects.filter(**{
+        active_users = UserModel._default_manager.filter(**{
             '%s__iexact' % UserModel.get_email_field_name(): email,
             'is_active': True,
         })
         return (u for u in active_users if not u.has_usable_password())
 
-    def save(self, **kwargs):
-        user = UserModel(first_name=self.cleaned_data['first_name'],
-                         last_name=self.cleaned_data['last_name'],
-                         email=self.cleaned_data['email'])
-        user.set_unusable_password()
-        user.save()
-        user.groups.add(Group.objects.get(name=self.cleaned_data['user_type']))
-        super(CreateUserForm, self).save(**kwargs)
-        return user
+
+class BaseUserForm(CIRSFormMixin, forms.ModelForm):
+    class Meta:
+        model = UserModel
+        fields = ('first_name', 'last_name', 'email')
+
+    def __init__(self, *args, **kwargs):
+        self.create_password_form = None
+        super(BaseUserForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super(BaseUserForm, self).clean()
+        self.create_password_form = CreatePasswordForm({'email': cleaned_data['email']})
+        if not self.create_password_form.is_valid():
+            raise ValidationError("Something went wrong. Please try again, or contact CIRS support if the problem persists.")
+        return cleaned_data
+
+    def save(self, commit=True, **kwargs):
+        """
+        Save this form's self.instance object if commit=True. Otherwise, add
+        a save_m2m() method to the form which can be called after the instance
+        is saved manually at a later time. Return the model instance.
+        """
+        if self.errors:
+            raise ValueError(
+                "The %s could not be %s because the data didn't validate." % (
+                    self.instance._meta.object_name,
+                    'created' if self.instance._state.adding else 'changed',
+                )
+            )
+
+        self.instance.set_unusable_password()
+        if commit:
+            # If committing, save the instance and the m2m data immediately.
+            self.instance.save()
+            self._save_m2m(**kwargs)
+        else:
+            # If not committing, add a method to the form to allow deferred
+            # saving of m2m data.
+            self.save_m2m = partial(self._save_m2m, **kwargs)
+        return self.instance
+
+    def _save_m2m(self, **kwargs):
+        super(BaseUserForm, self)._save_m2m()
+        self.create_password_form.save(**kwargs)
 
 
-class RegisterForm(CIRSFormMixin, CreateUserForm):
-    field_order = ('first_name', 'last_name', 'email', 'user_type')
+class CreateUserForm(BaseUserForm):
+    MANAGER = "Manager"
+    MEDICAL_PHYSICIST = "Medical Physicist"
+    THERAPIST = "Therapist"
+    GROUP_CHOICES = (
+        (MANAGER, "Admin"),
+        (MEDICAL_PHYSICIST, "Medical Physicist"),
+        (THERAPIST, "Therapist"),
+    )
 
-    phantom_serial_number = forms.CharField()
+    field_order = (
+        'first_name',
+        'last_name',
+        'email',
+        'user_type',
+    )
+
+    user_type_ht = """<p>The user type determines what permissions the account will have. Therapist users can upload new MR
+                scans for analysis. Medical Physicist users can do everything therapists can do, and can also add and configure
+                phantoms, machines, and sequences. Admin users can do everything Medical Physicists can do, and can also add and
+                delete new users. Please note that once a user type is set, it cannot be changed (except by CIRS support).</p>"""
+    user_type = forms.ChoiceField(choices=GROUP_CHOICES, widget=forms.RadioSelect, help_text=user_type_ht)
+
+    class Meta(BaseUserForm.Meta):
+        fields = ('first_name', 'last_name', 'email', 'user_type')
+
+    def _save_m2m(self, **kwargs):
+        super(CreateUserForm, self)._save_m2m(**kwargs)
+        self.instance.groups.add(Group.objects.get(name=self.cleaned_data['user_type']))
+
+
+class RegisterForm(BaseUserForm):
+    phantom_serial_number = forms.CharField(validators=[validate_phantom_serial_number])
     institution_name = forms.CharField()
     institution_address = forms.CharField()
     institution_phone = forms.CharField(label="Institution Contact Phone Number")
     email_repeat = forms.EmailField()
 
-    def __init__(self, *args, **kwargs):
-        super(RegisterForm, self).__init__(*args, **kwargs)
-        self.fields.pop('user_type')
+    class Meta(BaseUserForm.Meta):
+        fields = (
+            'phantom_serial_number',
+            'institution_name',
+            'institution_address',
+            'institution_phone',
+            'first_name',
+            'last_name',
+            'email',
+            'email_repeat',
+        )
 
     def clean(self):
         cleaned_data = super(RegisterForm, self).clean()
@@ -188,17 +244,19 @@ class RegisterForm(CIRSFormMixin, CreateUserForm):
             raise ValidationError("Emails do not match.")
         return cleaned_data
 
-    def clean_phantom_serial_number(self):
-        serial_number = self.cleaned_data['phantom_serial_number']
-        try:
-            model = Phantom.objects.get(institution=None, serial_number=serial_number).model
-        except ObjectDoesNotExist:
-            raise ValidationError("That phantom does not exist in our database. If you believe this is a mistake, "
-                                  "please contact CIRS support.")
-        available = not Phantom.objects.filter(serial_number=serial_number).exclude(institution=None).exists()
-        if not available:
-            raise ValidationError("That phantom is already in use by another institution. If you believe this is a "
-                                  "mistake, please contact CIRS support.")
+    def save(self, **kwargs):
+        institution = Institution.objects.create(name=self.cleaned_data['institution_name'],
+                                                 address=self.cleaned_data['institution_address'],
+                                                 phone_number=self.cleaned_data['institution_phone'])
+        phantom_model = Phantom.objects.get(institution=None,
+                                            serial_number=self.cleaned_data['phantom_serial_number']).model
+        Phantom.objects.create(serial_number=self.cleaned_data['phantom_serial_number'],
+                               model=phantom_model,
+                               institution=institution)
+        self.instance.institution = institution
+        super(RegisterForm, self).save(**kwargs)
+        return self.instance
 
-        self.cleaned_data['phantom_model'] = model
-        return serial_number
+    def _save_m2m(self, **kwargs):
+        super(RegisterForm, self)._save_m2m(**kwargs)
+        self.instance.groups.add(Group.objects.get(name=CreateUserForm.MANAGER))

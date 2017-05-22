@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='global',
-            options={'managed': False, 'permissions': (('configuration', 'Configuration'), ('manage_users', 'Manage Users'))},
+            options={'managed': False, 'permissions': (('configuration', 'ConfigurationView'), ('manage_users', 'Manage Users'))},
         ),
         migrations.AlterField(
             model_name='goldenfiducials',

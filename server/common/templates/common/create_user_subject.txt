@@ -1,0 +1,4 @@
+{% load i18n %}{% autoescape off %}
+{% blocktrans %}Create password on {{ site_name }}{% endblocktrans %}
+{% endautoescape %}
+s

@@ -284,7 +284,7 @@ class Global(models.Model):
     class Meta:
         managed = False
         permissions = (
-            ('configuration', 'Configuration'),
+            ('configuration', 'ConfigurationView'),
             ('manage_users', 'Manage Users'),
         )
 

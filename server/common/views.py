@@ -12,10 +12,10 @@ from dicom.dataset import Dataset, FileDataset
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetCompleteView
+from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetCompleteView, PasswordResetDoneView
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
-from django.http import HttpResponseRedirect, HttpResponseServerError, HttpResponseNotAllowed
+from django.http import HttpResponseRedirect, HttpResponseNotAllowed
 from django.urls import reverse, reverse_lazy
 from django.utils import formats
 from django.utils.decorators import method_decorator
@@ -58,7 +58,7 @@ class CIRSDeleteView(DeleteView):
 
 
 @login_required
-def landing(request):
+def landing_view(request):
     machine_sequence_pairs_queryset = models.MachineSequencePair.objects.filter(machine__institution=request.user.institution)
     machine_sequence_pairs_queryset = machine_sequence_pairs_queryset.active().order_by('-last_modified_on')
     machine_sequence_pairs_json = serializers.MachineSequencePairSerializer(machine_sequence_pairs_queryset, many=True)
@@ -70,7 +70,7 @@ def landing(request):
 
 
 @login_and_permission_required('common.configuration')
-class Configuration(UpdateView):
+class ConfigurationView(UpdateView):
     model = models.Institution
     form_class = forms.InstitutionForm
     success_url = reverse_lazy('configuration')
@@ -81,10 +81,10 @@ class Configuration(UpdateView):
 
     def form_valid(self, form):
         messages.success(self.request, f"\"{self.object.name}\" has been updated successfully.")
-        return super(Configuration, self).form_valid(form)
+        return super(ConfigurationView, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
-        context = super(Configuration, self).get_context_data(**kwargs)
+        context = super(ConfigurationView, self).get_context_data(**kwargs)
         institution = self.get_object()
         context.update({
             'phantoms': institution.phantom_set.active().order_by('-last_modified_on'),
@@ -97,7 +97,7 @@ class Configuration(UpdateView):
 
 
 @method_decorator(login_required, name='dispatch')
-class Account(UpdateView):
+class AccountView(UpdateView):
     model = UserModel
     form_class = forms.AccountForm
     success_url = reverse_lazy('account')
@@ -108,12 +108,12 @@ class Account(UpdateView):
 
     def form_valid(self, form):
         messages.success(self.request, "Your account has been updated successfully.")
-        return super(Account, self).form_valid(form)
+        return super(AccountView, self).form_valid(form)
 
 
 @method_decorator(login_required, name='dispatch')
 @validate_institution()
-class MachineSequenceDetail(DetailView):
+class MachineSequenceDetailView(DetailView):
     model = models.MachineSequencePair
     template_name = 'common/machine_sequence_detail.html'
 
@@ -133,7 +133,7 @@ class MachineSequenceDetail(DetailView):
 
 # TODO cancel might take the user back to landing, machine-sequences, or machine-sequence-detail
 @method_decorator(login_required, name='dispatch')
-class UploadScan(FormView):
+class UploadScanView(FormView):
     form_class = forms.UploadScanForm
     template_name = 'common/upload_scan.html'
 
@@ -178,7 +178,7 @@ class UploadScan(FormView):
 
 @method_decorator(login_required, name='dispatch')
 @validate_institution()
-class ScanErrors(DetailView):
+class ScanErrorsView(DetailView):
     model = models.Scan
     template_name = 'common/scan_errors.html'
 
@@ -272,7 +272,7 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
 
 @method_decorator(login_required, name='dispatch')
 @validate_institution(model_class=models.Scan)
-class DicomOverlay(FormView):
+class DicomOverlayView(FormView):
     form_class = forms.DicomOverlayForm
     template_name = 'common/dicom_overlay.html'
 
@@ -281,7 +281,7 @@ class DicomOverlay(FormView):
         return get_object_or_404(models.Scan, pk=self.kwargs['pk'])
 
     def get_context_data(self, **kwargs):
-        context = super(DicomOverlay, self).get_context_data(**kwargs)
+        context = super(DicomOverlayView, self).get_context_data(**kwargs)
         context.update({'scan': self.scan})
         return context
 
@@ -330,11 +330,11 @@ class DicomOverlay(FormView):
 
 @method_decorator(login_required, name='dispatch')
 @validate_institution()
-class DeleteScan(CIRSDeleteView):
+class DeleteScanView(CIRSDeleteView):
     model = models.Scan
 
     def delete(self, request, *args, **kwargs):
-        response = super(DeleteScan, self).delete(request, *args, **kwargs)
+        response = super(DeleteScanView, self).delete(request, *args, **kwargs)
         messages.success(self.request, f"""Scan for phantom
             \"{self.object.golden_fiducials.phantom.model.model_number} —
             {self.object.golden_fiducials.phantom.serial_number}\", captured on
@@ -346,14 +346,14 @@ class DeleteScan(CIRSDeleteView):
 
 
 @login_and_permission_required('common.configuration')
-class CreatePhantom(FormView):
+class CreatePhantomView(FormView):
     form_class = forms.CreatePhantomForm
     success_url = reverse_lazy('configuration')
     template_name = 'common/phantom_create.html'
 
     def __init__(self, **kwargs):
         self.object = None
-        super(CreatePhantom, self).__init__(**kwargs)
+        super(CreatePhantomView, self).__init__(**kwargs)
 
     def form_valid(self, form):
         self.object = form.save(commit=False)
@@ -361,7 +361,7 @@ class CreatePhantom(FormView):
         self.object.model = form.cleaned_data['model']
         self.object.save()
         messages.success(self.request, f"\"{self.object.name}\" has been created successfully.")
-        return super(CreatePhantom, self).form_valid(form)
+        return super(CreatePhantomView, self).form_valid(form)
 
     def form_invalid(self, form):
         renderer = JSONRenderer()
@@ -372,7 +372,7 @@ class CreatePhantom(FormView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class UpdatePhantom(UpdateView):
+class UpdatePhantomView(UpdateView):
     model = models.Phantom
     fields = ('name',)
     template_name_suffix = '_update'
@@ -380,7 +380,7 @@ class UpdatePhantom(UpdateView):
 
     def form_valid(self, form):
         messages.success(self.request, f"\"{self.object.name}\" has been updated successfully.")
-        return super(UpdatePhantom, self).form_valid(form)
+        return super(UpdatePhantomView, self).form_valid(form)
 
     def get_success_url(self):
         return reverse('update_phantom', args=(self.kwargs['phantom_pk'],))
@@ -392,19 +392,19 @@ class UpdatePhantom(UpdateView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class DeletePhantom(CIRSDeleteView):
+class DeletePhantomView(CIRSDeleteView):
     model = models.Phantom
     success_url = reverse_lazy('configuration')
     pk_url_kwarg = 'phantom_pk'
 
     def delete(self, request, *args, **kwargs):
-        response = super(DeletePhantom, self).delete(request, *args, **kwargs)
+        response = super(DeletePhantomView, self).delete(request, *args, **kwargs)
         messages.success(self.request, f"\"{self.object.name}\" has been deleted successfully.")
         return response
 
 
 @login_and_permission_required('common.configuration')
-class CreateMachine(CreateView):
+class CreateMachineView(CreateView):
     model = models.Machine
     fields = ('name', 'model', 'manufacturer')
     success_url = reverse_lazy('configuration')
@@ -420,7 +420,7 @@ class CreateMachine(CreateView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class UpdateMachine(UpdateView):
+class UpdateMachineView(UpdateView):
     model = models.Machine
     fields = ('name', 'model', 'manufacturer')
     success_url = reverse_lazy('configuration')
@@ -428,23 +428,23 @@ class UpdateMachine(UpdateView):
 
     def form_valid(self, form):
         messages.success(self.request, f"\"{self.object.name}\" has been updated successfully.")
-        return super(UpdateMachine, self).form_valid(form)
+        return super(UpdateMachineView, self).form_valid(form)
 
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class DeleteMachine(CIRSDeleteView):
+class DeleteMachineView(CIRSDeleteView):
     model = models.Machine
     success_url = reverse_lazy('configuration')
 
     def delete(self, request, *args, **kwargs):
-        response = super(DeleteMachine, self).delete(request, *args, **kwargs)
+        response = super(DeleteMachineView, self).delete(request, *args, **kwargs)
         messages.success(self.request, f"\"{self.object.name}\" has been deleted successfully.")
         return response
 
 
 @login_and_permission_required('common.configuration')
-class CreateSequence(CreateView):
+class CreateSequenceView(CreateView):
     model = models.Sequence
     fields = ('name', 'instructions')
     success_url = reverse_lazy('configuration')
@@ -460,7 +460,7 @@ class CreateSequence(CreateView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class UpdateSequence(UpdateView):
+class UpdateSequenceView(UpdateView):
     model = models.Sequence
     fields = ('name', 'instructions')
     success_url = reverse_lazy('configuration')
@@ -468,30 +468,29 @@ class UpdateSequence(UpdateView):
 
     def form_valid(self, form):
         messages.success(self.request, f"\"{self.object.name}\" has been updated successfully.")
-        return super(UpdateSequence, self).form_valid(form)
+        return super(UpdateSequenceView, self).form_valid(form)
 
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class DeleteSequence(CIRSDeleteView):
+class DeleteSequenceView(CIRSDeleteView):
     model = models.Sequence
     success_url = reverse_lazy('configuration')
 
     def delete(self, request, *args, **kwargs):
-        response = super(DeleteSequence, self).delete(request, *args, **kwargs)
+        response = super(DeleteSequenceView, self).delete(request, *args, **kwargs)
         messages.success(self.request, f"\"{self.object.name}\" has been deleted successfully.")
         return response
 
 
 @login_and_permission_required('common.manage_users')
-class CreateUser(CreateView):
-    model = UserModel
+class CreateUserView(FormView):
     form_class = forms.CreateUserForm
     success_url = reverse_lazy('configuration')
-    template_name_suffix = '_create'
-    email_template_name = 'registration/password_create_email.html'
+    template_name = 'common/user_create.html'
+    email_template_name = 'common/create_user_email.html'
     html_email_template_name = None
-    subject_template_name = 'registration/password_create_subject.txt'
+    subject_template_name = 'common/create_user_subject.txt'
     extra_email_context = None
     token_generator = default_token_generator
     from_email = None
@@ -507,28 +506,29 @@ class CreateUser(CreateView):
             'html_email_template_name': self.html_email_template_name,
             'extra_email_context': self.extra_email_context,
         }
-        self.object = form.save(**opts)
+        self.object = form.save(**opts, commit=False)
         self.object.institution = self.request.user.institution
         self.object.save()
+        form.save_m2m()
         messages.success(self.request, f"\"{self.object.get_full_name()}\" has been created successfully.")
-        return super(ModelFormMixin, self).form_valid(form)
+        return super(CreateUserView, self).form_valid(form)
 
 
 @login_and_permission_required('common.manage_users')
 @validate_institution()
-class DeleteUser(CIRSDeleteView):
+class DeleteUserView(CIRSDeleteView):
     model = UserModel
     success_url = reverse_lazy('configuration')
 
     def delete(self, request, *args, **kwargs):
-        response = super(DeleteUser, self).delete(request, *args, **kwargs)
+        response = super(DeleteUserView, self).delete(request, *args, **kwargs)
         messages.success(self.request, f"\"{self.object.get_full_name()}\" has been deleted successfully.")
         return response
 
 
 @login_and_permission_required('common.configuration')
 @validate_institution(model_class=models.Phantom, pk_url_kwarg='phantom_pk')
-class UploadCT(FormView):
+class UploadCTView(FormView):
     form_class = forms.UploadCTForm
     template_name = 'common/upload_ct.html'
 
@@ -557,10 +557,10 @@ class UploadCT(FormView):
 
         process_ct_upload.delay(dicom_series.pk, gold_standard.pk)
         messages.success(self.request, "Your gold standard CT has been uploaded successfully and is processing.")
-        return super(UploadCT, self).form_valid(form)
+        return super(UploadCTView, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
-        context = super(UploadCT, self).get_context_data(**kwargs)
+        context = super(UploadCTView, self).get_context_data(**kwargs)
         phantom = get_object_or_404(models.Phantom, pk=self.kwargs['phantom_pk'])
         context.update({'phantom': phantom})
         return context
@@ -571,7 +571,7 @@ class UploadCT(FormView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution(model_class=models.Phantom, pk_url_kwarg='phantom_pk')
-class UploadRaw(FormView):
+class UploadRawView(FormView):
     form_class = forms.UploadRawForm
     template_name = 'common/upload_raw.html'
 
@@ -584,10 +584,10 @@ class UploadRaw(FormView):
             type=models.GoldenFiducials.CSV,
         )
         messages.success(self.request, "Your gold standard points have been uploaded successfully.")
-        return super(UploadRaw, self).form_valid(form)
+        return super(UploadRawView, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
-        context = super(UploadRaw, self).get_context_data(**kwargs)
+        context = super(UploadRawView, self).get_context_data(**kwargs)
         phantom = get_object_or_404(models.Phantom, pk=self.kwargs['phantom_pk'])
         context.update({'phantom': phantom})
         return context
@@ -598,7 +598,7 @@ class UploadRaw(FormView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class DeleteGoldStandard(CIRSDeleteView):
+class DeleteGoldStandardView(CIRSDeleteView):
     model = models.GoldenFiducials
     pk_url_kwarg = 'gold_standard_pk'
 
@@ -608,13 +608,13 @@ class DeleteGoldStandard(CIRSDeleteView):
             raise PermissionDenied
         else:
             messages.success(self.request, f"\"{self.object.source_summary}\" has been deleted successfully.")
-            return super(DeleteGoldStandard, self).delete(request, *args, **kwargs)
+            return super(DeleteGoldStandardView, self).delete(request, *args, **kwargs)
 
     def get_success_url(self):
         return reverse('update_phantom', args=(self.kwargs['phantom_pk'],))
 
     def get_context_data(self, **kwargs):
-        context = super(DeleteGoldStandard, self).get_context_data(**kwargs)
+        context = super(DeleteGoldStandardView, self).get_context_data(**kwargs)
         phantom = get_object_or_404(models.Phantom, pk=self.kwargs['phantom_pk'])
         context.update({'phantom': phantom})
         return context
@@ -622,7 +622,7 @@ class DeleteGoldStandard(CIRSDeleteView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution(model_class=models.GoldenFiducials, pk_url_kwarg='gold_standard_pk')
-def activate_gold_standard(request, phantom_pk=None, gold_standard_pk=None):
+def activate_gold_standard_view(request, phantom_pk=None, gold_standard_pk=None):
     gold_standard = get_object_or_404(models.GoldenFiducials, pk=gold_standard_pk)
     gold_standard.activate()
     messages.success(request, f"\"{gold_standard.source_summary}\" has been activated successfully.")
@@ -631,22 +631,22 @@ def activate_gold_standard(request, phantom_pk=None, gold_standard_pk=None):
 
 @login_and_permission_required('common.configuration')
 @validate_institution(model_class=models.GoldenFiducials, pk_url_kwarg='gold_standard_pk')
-def gold_standard_csv(request, phantom_pk=None, gold_standard_pk=None):
+def gold_standard_csv_view(request, phantom_pk=None, gold_standard_pk=None):
     gold_standard = get_object_or_404(models.GoldenFiducials, pk=gold_standard_pk)
     return CSVResponse(gold_standard.fiducials.fiducials, filename=f'{gold_standard.source_summary}.csv')
 
 
-def terms_of_use(request):
+def terms_of_use_view(request):
     return render(request, 'common/terms_of_use.html')
 
 
-def privacy_policy(request):
+def privacy_policy_view(request):
     return render(request, 'common/privacy_policy.html')
 
 
 @login_required
 @validate_institution(model_class=models.Scan)
-def refresh_scan(request, pk=None):
+def refresh_scan_view(request, pk=None):
     if request.method == 'POST':
         scan = get_object_or_404(models.Scan, pk=pk)
         # TODO new image processing algorithm
@@ -667,37 +667,47 @@ def refresh_scan(request, pk=None):
         return HttpResponseNotAllowed(['POST'])
 
 
-class PasswordCreateConfirmView(PasswordResetConfirmView):
-    template_name = 'registration/password_create_confirm.html'
-    success_url = reverse_lazy('password_create_complete')
-
-
-class PasswordCreateCompleteView(PasswordResetCompleteView):
-    template_name = 'registration/password_create_complete.html'
-
-
-class Register(FormView):
+# TODO JSON form errors, repopulate
+class RegisterView(FormView):
     form_class = forms.RegisterForm
     template_name = 'common/register.html'
-    success_url = 'password_create_complete'
+    success_url = reverse_lazy('register_done')
+    email_template_name = 'common/create_user_email.html'
+    html_email_template_name = None
+    subject_template_name = 'common/create_user_subject.txt'
+    extra_email_context = None
+    token_generator = default_token_generator
+    from_email = None
 
     def form_valid(self, form):
-        institution = models.Institution.objects.create(name=form.cleaned_data['institution_name'],
-                                                        address=form.cleaned_data['institution_address'],
-                                                        phone_number=form.cleaned_data['institution_phone'])
-        models.Phantom.objects.create(serial_number=form.cleaned_data['phantom_serial_number'],
-                                      model=form.cleaned_data['phantom_model'],
-                                      institution=institution)
-        create_user_form = forms.CreateUserForm({
-            'first_name': form.cleaned_data['first_name'],
-            'last_name': form.cleaned_data['last_name'],
-            'email': form.cleaned_data['email'],
-            'user_type': forms.CreateUserForm.MANAGER,
-        })
-        return super(Register, self).form_valid(form)
+        opts = {
+            'use_https': self.request.is_secure(),
+            'token_generator': self.token_generator,
+            'from_email': self.from_email,
+            'email_template_name': self.email_template_name,
+            'subject_template_name': self.subject_template_name,
+            'request': self.request,
+            'html_email_template_name': self.html_email_template_name,
+            'extra_email_context': self.extra_email_context,
+        }
+        form.save(**opts)
+        return super(RegisterView, self).form_valid(form)
 
     def form_invalid(self, form):
         renderer = JSONRenderer()
         context = self.get_context_data(form=form)
         context.update({'form_errors': renderer.render(form.errors)})
         return self.render_to_response(context)
+
+
+class RegisterDoneView(PasswordResetDoneView):
+    template_name = 'common/register_done.html'
+
+
+class CreatePasswordView(PasswordResetConfirmView):
+    template_name = 'common/create_password.html'
+    success_url = reverse_lazy('create_password_complete')
+
+
+class CreatePasswordCompleteView(PasswordResetCompleteView):
+    template_name = 'common/create_password_complete.html'

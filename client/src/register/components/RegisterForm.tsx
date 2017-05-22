@@ -88,6 +88,7 @@ export default class extends React.Component<IRegisterFormProps, IRegisterFormSt
         const cirs603AUrl = 'http://www.cirsinc.com/products/all/99/mri-distortion-phantom-for-srs/';
         const cirs604Url = 'http://www.cirsinc.com/products/all/118/large-field-mri-distortion-phantom/';
 
+        // TODO color success/error
         let serialNumberMessage = null;
         if (!serialNumberPristine) {
             if (serialNumberAvailable) {
