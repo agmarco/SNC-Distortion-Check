@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { IMachineSequencePairDTO, IScanDTO } from 'common/service';
-import { IFormErrors } from 'common/forms';
 import ScanChart from '../components/ScanChart';
 import ScanTable from '../components/ScanTable';
 import ToleranceForm from '../components/ToleranceForm';
@@ -10,7 +9,6 @@ declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDTO;
 declare const SCANS: IScanDTO[];
 declare const UPLOAD_SCAN_URL: string;
 declare const UPDATE_TOLERANCE_URL: string;
-declare const FORM_ERRORS: IFormErrors;
 
 interface IAppState {
     tolerance: number;
@@ -35,7 +33,6 @@ export default class extends React.Component<{}, IAppState> {
                 <ToleranceForm
                     updateToleranceUrl={UPDATE_TOLERANCE_URL}
                     machineSequencePair={MACHINE_SEQUENCE_PAIR}
-                    formErrors={FORM_ERRORS}
                     tolerance={tolerance}
                     handleToleranceChange={this.handleToleranceChange.bind(this)}
                 />
