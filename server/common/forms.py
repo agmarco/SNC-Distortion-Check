@@ -29,14 +29,14 @@ class CreatePhantomForm(CIRSFormMixin, forms.Form):
     name = forms.CharField()
     serial_number = forms.CharField(validators=[validate_phantom_serial_number])
 
-    def save(self, institution, commit=True):
+    def save(self, institution=None, commit=True):
         if self.errors:
             raise ValueError(f"""The Phantom could not be created because the data didn't validate.""")
 
         phantom = Phantom.objects.get(serial_number=self.cleaned_data['serial_number'])
         phantom.name = self.cleaned_data['name']
-        phantom.institution = institution
-
+        if institution:
+            phantom.institution = institution
         if commit:
             phantom.save()
         return phantom
@@ -200,6 +200,11 @@ class CreateUserForm(BaseUserForm):
 
     class Meta(BaseUserForm.Meta):
         fields = ('first_name', 'last_name', 'email', 'user_type')
+
+    def save(self, institution=None, **kwargs):
+        if institution:
+            self.instance.institution = institution
+        return super(CreateUserForm, self).save(**kwargs)
 
     def _save_m2m(self, **kwargs):
         super(CreateUserForm, self)._save_m2m(**kwargs)

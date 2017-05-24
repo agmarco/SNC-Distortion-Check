@@ -354,7 +354,7 @@ class CreatePhantomView(FormView):
         super(CreatePhantomView, self).__init__(**kwargs)
 
     def form_valid(self, form):
-        self.object = form.save(self.request.user.institution)
+        self.object = form.save(institution=self.request.user.institution)
         messages.success(self.request, f"\"{self.object.name}\" has been created successfully.")
         return super(CreatePhantomView, self).form_valid(form)
 
@@ -501,10 +501,7 @@ class CreateUserView(FormView):
             'html_email_template_name': self.html_email_template_name,
             'extra_email_context': self.extra_email_context,
         }
-        self.object = form.save(**opts, commit=False)
-        self.object.institution = self.request.user.institution
-        self.object.save()
-        form.save_m2m()
+        self.object = form.save(institution=self.request.user.institution, **opts)
         messages.success(self.request, f"\"{self.object.get_full_name()}\" has been created successfully.")
         return super(CreateUserView, self).form_valid(form)
 
