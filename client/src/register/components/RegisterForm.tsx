@@ -88,6 +88,17 @@ export default class extends React.Component<IRegisterFormProps, IRegisterFormSt
         const cirs603AUrl = 'http://www.cirsinc.com/products/all/99/mri-distortion-phantom-for-srs/';
         const cirs604Url = 'http://www.cirsinc.com/products/all/118/large-field-mri-distortion-phantom/';
 
+        let modelNumberText = null;
+        if (!serialNumberPristine) {
+            if (serialNumberFetching) {
+                modelNumberText = "Searching...";
+            } else if (serialNumberValid) {
+                modelNumberText = <span className="success">{modelNumber}</span>;
+            } else {
+                modelNumberText = <span className="error">{serialNumberMessage}</span>;
+            }
+        }
+
         return (
             <div>
                 <form method="post" className="cirs-form">
@@ -119,9 +130,7 @@ export default class extends React.Component<IRegisterFormProps, IRegisterFormSt
 
                     <div>
                         <label>Model Number</label>
-                        <p>{!serialNumberPristine && (serialNumberFetching ? "Searching..." :
-                            (serialNumberValid ? <span className="success">{modelNumber}</span> :
-                            <span className="error">{serialNumberMessage}</span>))}</p>
+                        <p>{modelNumberText}</p>
                     </div>
 
                     <p>

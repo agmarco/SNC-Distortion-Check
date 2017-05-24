@@ -13,15 +13,10 @@ def validate_phone(phone):
 
 def validate_phantom_serial_number(serial_number):
     try:
-        phantom = Phantom.objects.get(institution=None, serial_number=serial_number)
+        phantom = Phantom.objects.get(serial_number=serial_number)
     except ObjectDoesNotExist:
         raise ValidationError("""That phantom does not exist in our database. If you believe this is a mistake, please
                               contact CIRS support.""")
-
-    try:
-        Phantom.objects.exclude(institution=None).get(serial_number=serial_number)
-    except ObjectDoesNotExist:
-        return phantom
-    else:
+    if phantom.institution is not None:
         raise ValidationError("""That phantom is already in use. If you believe this is a mistake, please contact CIRS
                               support.""")

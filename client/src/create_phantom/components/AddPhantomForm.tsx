@@ -86,6 +86,17 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
             modelNumber,
         } = this.state;
 
+        let modelNumberText = null;
+        if (!serialNumberPristine) {
+            if (serialNumberFetching) {
+                modelNumberText = "Searching...";
+            } else if (serialNumberValid) {
+                modelNumberText = <span className="success">{modelNumber}</span>;
+            } else {
+                modelNumberText = <span className="error">{serialNumberMessage}</span>;
+            }
+        }
+
         return (
             <div>
                 <form method="post" className="cirs-form">
@@ -114,9 +125,7 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
 
                     <div>
                         <label>Model Number</label>
-                        <p>{!serialNumberPristine && (serialNumberFetching ? "Searching..." :
-                            (serialNumberValid ? <span className="success">{modelNumber}</span> :
-                            <span className="error">{serialNumberMessage}</span>))}</p>
+                        <p>{modelNumberText}</p>
                     </div>
 
                     <div>

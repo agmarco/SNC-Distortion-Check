@@ -92,7 +92,7 @@ class Phantom(CommonFieldsMixin):
     model_ht = 'The model of phantom (e.g. the CIRS 603A head phantom)'
     model = models.ForeignKey(PhantomModel, models.CASCADE, help_text=model_ht)
     serial_number_ht = 'The Phantom\'s serial number'
-    serial_number = models.CharField(max_length=255, help_text=serial_number_ht)
+    serial_number = models.CharField(max_length=255, unique=True, help_text=serial_number_ht)
 
     def __str__(self):
         return "Phantom {} {} {}".format(self.institution, self.model, self.name)

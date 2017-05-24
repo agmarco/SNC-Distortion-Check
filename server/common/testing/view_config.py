@@ -34,12 +34,6 @@ class Crud:
     DELETE = 'DELETE'
 
 
-def create_phantom_data(user):
-    phantom_model = factories.PhantomModelFactory(name='CIRS 603A', model_number='603A')
-    factories.PhantomFactory(model=phantom_model, serial_number='SN1')
-    return {}
-
-
 def machine_sequence_detail_data(user):
     machine = factories.MachineFactory(institution=user.institution)
     sequence = factories.SequenceFactory()
@@ -225,11 +219,6 @@ VIEWS = (
         'methods': {'GET': None},
     }, {
         'view': views.CreatePhantomView,
-        'data': create_phantom_data,
-        'crud': (Crud.CREATE, Phantom, lambda data: {
-            'name': 'Create Phantom',
-            'serial_number': 'SN1',
-        }),
         'url': reverse('create_phantom'),
         'login_required': True,
         'permissions': ('common.configuration',),

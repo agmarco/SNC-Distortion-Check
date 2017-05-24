@@ -354,10 +354,7 @@ class CreatePhantomView(FormView):
         super(CreatePhantomView, self).__init__(**kwargs)
 
     def form_valid(self, form):
-        self.object = form.save(commit=False)
-        self.object.institution = self.request.user.institution
-        self.object.model = form.cleaned_data['model']
-        self.object.save()
+        self.object = form.save(self.request.user.institution)
         messages.success(self.request, f"\"{self.object.name}\" has been created successfully.")
         return super(CreatePhantomView, self).form_valid(form)
 

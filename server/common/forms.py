@@ -25,19 +25,21 @@ class AccountForm(CIRSFormMixin, forms.ModelForm):
         fields = ('first_name', 'last_name', 'email')
 
 
-class CreatePhantomForm(CIRSFormMixin, forms.ModelForm):
-    class Meta:
-        model = Phantom
-        fields = ('name', 'serial_number')
+class CreatePhantomForm(CIRSFormMixin, forms.Form):
+    name = forms.CharField()
+    serial_number = forms.CharField(validators=[validate_phantom_serial_number])
 
-    def clean_serial_number(self):
-        try:
-            model = Phantom.objects.get(institution=None, serial_number=self.cleaned_data['serial_number']).model
-        except ObjectDoesNotExist:
-            raise forms.ValidationError("Invalid serial number.")
+    def save(self, institution, commit=True):
+        if self.errors:
+            raise ValueError(f"""The Phantom could not be created because the data didn't validate.""")
 
-        self.cleaned_data['model'] = model
-        return self.cleaned_data['serial_number']
+        phantom = Phantom.objects.get(serial_number=self.cleaned_data['serial_number'])
+        phantom.name = self.cleaned_data['name']
+        phantom.institution = institution
+
+        if commit:
+            phantom.save()
+        return phantom
 
 
 class UploadScanForm(CIRSFormMixin, forms.Form):
@@ -127,7 +129,7 @@ class DicomOverlayForm(CIRSFormMixin, forms.Form):
     frame_of_reference_uid = forms.CharField(label="FrameOfReferenceUID", required=False)
 
 
-class CreatePasswordForm(PasswordResetForm):
+class CreatePasswordForm(CIRSFormMixin, PasswordResetForm):
     def get_users(self, email):
         active_users = User.objects.filter(email__iexact=email, is_active=True)
         return (u for u in active_users if not u.has_usable_password())
@@ -163,8 +165,7 @@ class BaseUserForm(CIRSFormMixin, forms.ModelForm):
             self.instance.save()
             self._save_m2m(**kwargs)
         else:
-            # If not committing, add a method to the form to allow deferred
-            # saving of m2m data.
+            # If not committing, add a method to the form to allow deferred saving of m2m data.
             self.save_m2m = partial(self._save_m2m, **kwargs)
         return self.instance
 
@@ -237,14 +238,11 @@ class RegisterForm(BaseUserForm):
         institution = Institution.objects.create(name=self.cleaned_data['institution_name'],
                                                  address=self.cleaned_data['institution_address'],
                                                  phone_number=self.cleaned_data['institution_phone'])
-        phantom_model = Phantom.objects.get(institution=None,
-                                            serial_number=self.cleaned_data['phantom_serial_number']).model
-        Phantom.objects.create(serial_number=self.cleaned_data['phantom_serial_number'],
-                               model=phantom_model,
-                               institution=institution)
+        phantom = Phantom.objects.get(serial_number=self.cleaned_data['phantom_serial_number'])
+        phantom.institution = institution
+        phantom.save()
         self.instance.institution = institution
-        super(RegisterForm, self).save(**kwargs)
-        return self.instance
+        return super(RegisterForm, self).save(**kwargs)
 
     def _save_m2m(self, **kwargs):
         super(RegisterForm, self)._save_m2m(**kwargs)

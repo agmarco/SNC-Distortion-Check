@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import MachineSequencePair
+from .models import MachineSequencePair, Phantom
 from .permissions import login_and_permission_required, validate_institution
 from .validators import validate_phantom_serial_number
 
@@ -14,10 +14,11 @@ class ValidateSerialView(APIView):
         serial_number = request.data['serial_number']
 
         try:
-            phantom = validate_phantom_serial_number(serial_number)
+            validate_phantom_serial_number(serial_number)
         except ValidationError as err:
             return Response({'valid': False, 'model_number': None, 'message': err})
         else:
+            phantom = Phantom.objects.get(serial_number=serial_number)
             return Response({'valid': True, 'model_number': phantom.model.model_number, 'message': None})
 
 
