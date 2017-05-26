@@ -1,6 +1,10 @@
 import React from 'react';
 import * as Cookies from 'js-cookie';
 import * as Bluebird from 'bluebird';
+import { connect } from 'react-redux';
+import { Control, Form, Errors, FieldState } from 'react-redux-form';
+import uniqueId from 'lodash/uniqueId';
+import keyBy from 'lodash/keyBy';
 
 import { handleErrors, encode, fieldErrors } from 'common/utils';
 import { CSRFToken } from 'common/components';
@@ -9,25 +13,23 @@ interface IAddPhantomFormProps {
     validateSerialUrl: string;
     cancelUrl: string;
     formErrors: {[field: string]: string[]};
+    formAction: string;
+    phantomState?: { [name: string]: FieldState };
 }
 
 interface IAddPhantomFormState {
-    serialNumberPristine: boolean;
-    serialNumberFetching: boolean;
     serialNumberValid: boolean;
     serialNumberMessage: string | null;
     modelNumber: string | null;
     promise: Bluebird<any> | null;
 }
 
-export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFormState> {
+class CreatePhantomFormBase extends React.Component<IAddPhantomFormProps, IAddPhantomFormState> {
     constructor() {
         super();
 
         Bluebird.config({cancellation: true});
         this.state = {
-            serialNumberPristine: true,
-            serialNumberFetching: false,
             serialNumberValid: false,
             serialNumberMessage: null,
             modelNumber: null,
@@ -35,7 +37,8 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
         };
     }
 
-    handleSerialChange(event: React.FormEvent<HTMLInputElement>) {
+    validateSerialNumber(value: string, done: Function) {
+        console.log("validate");
         const { validateSerialUrl } = this.props;
         const { promise } = this.state;
 
@@ -50,25 +53,23 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'X-CSRFToken': Cookies.get('csrftoken'),
                 },
-                body: encode({serial_number: (event.target as any).value}),
+                body: encode({serial_number: value}),
             }))
             .then((res) => {
                 handleErrors(res, (async function() {
                     const { valid, model_number, message } = await res.json();
 
                     this.setState({
-                        serialNumberFetching: false,
                         serialNumberValid: valid,
                         serialNumberMessage: message,
                         modelNumber: model_number,
                         promise: null,
                     });
+                    done(valid);
                 }).bind(this));
             });
 
         this.setState({
-            serialNumberPristine: false,
-            serialNumberFetching: true,
             serialNumberValid: false,
             serialNumberMessage: null,
             modelNumber: null,
@@ -76,19 +77,22 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
         });
     }
 
+    handleSubmit(data: any, event?: Event) {
+        // this.form.submit();
+    }
+
     render() {
-        const { cancelUrl, formErrors } = this.props;
+        const { cancelUrl, formErrors, phantomState, formAction } = this.props;
         const {
-            serialNumberPristine,
-            serialNumberFetching,
             serialNumberValid,
             serialNumberMessage,
             modelNumber,
         } = this.state;
+        const { pristine, validating } = (phantomState as { [name: string]: FieldState }).serial_number;
 
         let modelNumberText = null;
-        if (!serialNumberPristine) {
-            if (serialNumberFetching) {
+        if (!pristine) {
+            if (validating) {
                 modelNumberText = "Searching...";
             } else if (serialNumberValid) {
                 modelNumberText = <span className="success">{modelNumber}</span>;
@@ -99,28 +103,34 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
 
         return (
             <div>
-                <form method="post" className="cirs-form">
+                <Form action={formAction} method="post" model="phantom" className="cirs-form" onSubmit={this.handleSubmit.bind(this)}>
                     <CSRFToken />
 
-                    {fieldErrors(formErrors, '__all__')}
+                    <Errors
+                        model="phantom"
+                        messages={formErrors && formErrors.__all__ ? keyBy<string>(formErrors.__all__, uniqueId) : {}}
+                    />
 
                     <div>
-                        <label htmlFor="add-phantom-name">Name</label>
-                        <input type="text" id="add-phantom-name" name="name" maxLength={255} required />
-                        {fieldErrors(formErrors, 'name')}
+                        <label>Name</label>
+                        <Control.text model=".name" required />
+                        <Errors
+                            model=".name"
+                            messages={formErrors && formErrors.name ? keyBy<string>(formErrors.name, uniqueId) : {}}
+                        />
                     </div>
 
+                    {/* TODO doesn't validate on first change */}
                     <div>
-                        <label htmlFor="add-phantom-serial">Serial Number</label>
-                        <input
-                            type="text"
-                            id="add-phantom-serial"
-                            name="serial_number"
-                            maxLength={255}
-                            onChange={this.handleSerialChange.bind(this)}
+                        <label>Serial Number</label>
+                        <Control.text
+                            model=".serial_number"
                             required
+                            asyncValidators={{
+                                invalid: this.validateSerialNumber.bind(this),
+                            }}
+                            asyncValidateOn="change"
                         />
-                        {fieldErrors(formErrors, 'serial_number')}
                     </div>
 
                     <div>
@@ -142,12 +152,16 @@ export default class extends React.Component<IAddPhantomFormProps, IAddPhantomFo
                         <input
                             type="submit"
                             value="Add Phantom"
-                            disabled={serialNumberFetching || !serialNumberValid}
+                            disabled={validating || !serialNumberValid}
                             className="btn secondary"
                         />
                     </div>
-                </form>
+                </Form>
             </div>
         );
     }
 }
+
+// TODO figure out the types
+const CreatePhantomForm = connect<any, any, any>((store: any) => ({phantomState: store.forms.phantom}))(CreatePhantomFormBase as any);
+export default CreatePhantomForm;

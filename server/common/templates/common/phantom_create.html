@@ -25,6 +25,7 @@
     var FORM_DATA = {% if form_data %}{{ form_data|safe }}{% else %}null{% endif %};
     var FORM_FILES = {% if form_files %}{{ form_files|safe }}{% else %}null{% endif %};
     var FORM_ERRORS = {% if form_errors %}{{ form_errors|safe }}{% else %}null{% endif %};
+    var FORM_ACTION = "{% url 'create_phantom' %}";
   </script>
   <script src="{% webpack 'create_phantom.js' %}"></script>
 {% endblock %}

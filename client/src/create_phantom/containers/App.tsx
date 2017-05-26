@@ -1,19 +1,28 @@
 import React from 'react';
+import { createStore } from 'redux';
+import { Provider } from 'react-redux';
+import { combineForms } from 'react-redux-form';
 
-import { IFormErrors } from 'common/forms';
-import AddPhantomForm from '../components/AddPhantomForm';
+import Root from './Root';
 
-declare const VALIDATE_SERIAL_URL: string;
-declare const CANCEL_URL: string;
-declare const FORM_ERRORS: IFormErrors;
+declare const FORM_DATA: IPhantomForm | null;
+
+interface IPhantomForm {
+    name: string;
+    serial_number: string;
+}
+
+const initialPhantom = FORM_DATA || {
+    name: '',
+    serial_number: '',
+};
+
+const store = createStore(combineForms({
+    phantom: initialPhantom,
+}));
 
 export default () => (
-    <div>
-        <h1>Add Phantom</h1>
-        <AddPhantomForm
-            validateSerialUrl={VALIDATE_SERIAL_URL}
-            cancelUrl={CANCEL_URL}
-            formErrors={FORM_ERRORS}
-        />
-    </div>
+    <Provider store={store}>
+        <Root />
+    </Provider>
 );
