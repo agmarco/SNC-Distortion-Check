@@ -35,6 +35,7 @@ class CreatePhantomForm(CIRSFormMixin, forms.Form):
 
         phantom = Phantom.objects.get(serial_number=self.cleaned_data['serial_number'])
         phantom.name = self.cleaned_data['name']
+        phantom.deleted = False
         if institution:
             phantom.institution = institution
         if commit:

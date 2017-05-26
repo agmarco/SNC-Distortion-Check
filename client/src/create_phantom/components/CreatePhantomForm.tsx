@@ -1,36 +1,36 @@
 import React from 'react';
 import * as Cookies from 'js-cookie';
 import * as Bluebird from 'bluebird';
+import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
-import { Control, Form, Errors, FieldState } from 'react-redux-form';
-import uniqueId from 'lodash/uniqueId';
-import keyBy from 'lodash/keyBy';
+import { FieldState } from 'react-redux-form';
 
-import { handleErrors, encode, fieldErrors } from 'common/utils';
+import { handleErrors, encode } from 'common/utils';
+import { CIRSForm, CIRSControl, CIRSErrors } from 'common/forms';
 import { CSRFToken } from 'common/components';
 
 interface IAddPhantomFormProps {
     validateSerialUrl: string;
     cancelUrl: string;
-    formErrors: {[field: string]: string[]};
+    djangoData: {[field: string]: any};
+    djangoErrors: {[field: string]: string[]};
     formAction: string;
     phantomState?: { [name: string]: FieldState };
+    dispatch?: Dispatch<any>;
 }
 
 interface IAddPhantomFormState {
-    serialNumberValid: boolean;
     serialNumberMessage: string | null;
     modelNumber: string | null;
     promise: Bluebird<any> | null;
 }
 
-class CreatePhantomFormBase extends React.Component<IAddPhantomFormProps, IAddPhantomFormState> {
+class CreatePhantomFormImpl extends React.Component<IAddPhantomFormProps, IAddPhantomFormState> {
     constructor() {
         super();
 
         Bluebird.config({cancellation: true});
         this.state = {
-            serialNumberValid: false,
             serialNumberMessage: null,
             modelNumber: null,
             promise: null,
@@ -38,7 +38,6 @@ class CreatePhantomFormBase extends React.Component<IAddPhantomFormProps, IAddPh
     }
 
     validateSerialNumber(value: string, done: Function) {
-        console.log("validate");
         const { validateSerialUrl } = this.props;
         const { promise } = this.state;
 
@@ -60,7 +59,6 @@ class CreatePhantomFormBase extends React.Component<IAddPhantomFormProps, IAddPh
                     const { valid, model_number, message } = await res.json();
 
                     this.setState({
-                        serialNumberValid: valid,
                         serialNumberMessage: message,
                         modelNumber: model_number,
                         promise: null,
@@ -70,31 +68,25 @@ class CreatePhantomFormBase extends React.Component<IAddPhantomFormProps, IAddPh
             });
 
         this.setState({
-            serialNumberValid: false,
             serialNumberMessage: null,
             modelNumber: null,
             promise: newPromise,
         });
     }
 
-    handleSubmit(data: any, event?: Event) {
-        // this.form.submit();
-    }
-
     render() {
-        const { cancelUrl, formErrors, phantomState, formAction } = this.props;
+        const { cancelUrl, phantomState, formAction, djangoData, djangoErrors } = this.props;
         const {
-            serialNumberValid,
             serialNumberMessage,
             modelNumber,
         } = this.state;
-        const { pristine, validating } = (phantomState as { [name: string]: FieldState }).serial_number;
+        const { pristine, validating, valid } = (phantomState as { [name: string]: FieldState }).serial_number;
 
         let modelNumberText = null;
         if (!pristine) {
             if (validating) {
                 modelNumberText = "Searching...";
-            } else if (serialNumberValid) {
+            } else if (valid) {
                 modelNumberText = <span className="success">{modelNumber}</span>;
             } else {
                 modelNumberText = <span className="error">{serialNumberMessage}</span>;
@@ -103,34 +95,34 @@ class CreatePhantomFormBase extends React.Component<IAddPhantomFormProps, IAddPh
 
         return (
             <div>
-                <Form action={formAction} method="post" model="phantom" className="cirs-form" onSubmit={this.handleSubmit.bind(this)}>
-                    <CSRFToken />
+                <CIRSErrors model="phantom" />
 
-                    <Errors
-                        model="phantom"
-                        messages={formErrors && formErrors.__all__ ? keyBy<string>(formErrors.__all__, uniqueId) : {}}
-                    />
+                <CIRSForm
+                    action={formAction}
+                    method="post"
+                    model="phantom"
+                    className="cirs-form"
+                    djangoData={djangoData}
+                    djangoErrors={djangoErrors}
+                >
+                    <CSRFToken />
 
                     <div>
                         <label>Name</label>
-                        <Control.text model=".name" required />
-                        <Errors
-                            model=".name"
-                            messages={formErrors && formErrors.name ? keyBy<string>(formErrors.name, uniqueId) : {}}
-                        />
+                        <CIRSControl.text model=".name" required />
+                        <CIRSErrors model=".name" />
                     </div>
 
                     {/* TODO doesn't validate on first change */}
                     <div>
                         <label>Serial Number</label>
-                        <Control.text
+                        <CIRSControl.text
                             model=".serial_number"
-                            required
-                            asyncValidators={{
-                                invalid: this.validateSerialNumber.bind(this),
-                            }}
+                            asyncValidators={{valid: this.validateSerialNumber.bind(this)}}
                             asyncValidateOn="change"
+                            required
                         />
+                        <CIRSErrors model=".serial_number" />
                     </div>
 
                     <div>
@@ -152,16 +144,17 @@ class CreatePhantomFormBase extends React.Component<IAddPhantomFormProps, IAddPh
                         <input
                             type="submit"
                             value="Add Phantom"
-                            disabled={validating || !serialNumberValid}
+                            disabled={validating || !valid}
                             className="btn secondary"
                         />
                     </div>
-                </Form>
+                </CIRSForm>
             </div>
         );
     }
 }
 
 // TODO figure out the types
-const CreatePhantomForm = connect<any, any, any>((store: any) => ({phantomState: store.forms.phantom}))(CreatePhantomFormBase as any);
+const CreatePhantomForm = connect<any, any, any>((state: any) => ({phantomState: state.forms.phantom}))
+    (CreatePhantomFormImpl as any);
 export default CreatePhantomForm;

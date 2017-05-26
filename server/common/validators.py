@@ -17,6 +17,6 @@ def validate_phantom_serial_number(serial_number):
     except ObjectDoesNotExist:
         raise ValidationError("""That phantom does not exist in our database. If you believe this is a mistake, please
                               contact CIRS support.""")
-    if phantom.institution is not None:
+    if phantom.institution is not None and not phantom.deleted:
         raise ValidationError("""That phantom is already in use. If you believe this is a mistake, please contact CIRS
                               support.""")

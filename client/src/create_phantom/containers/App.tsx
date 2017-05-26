@@ -5,14 +5,7 @@ import { combineForms } from 'react-redux-form';
 
 import Root from './Root';
 
-declare const FORM_DATA: IPhantomForm | null;
-
-interface IPhantomForm {
-    name: string;
-    serial_number: string;
-}
-
-const initialPhantom = FORM_DATA || {
+const initialPhantom = {
     name: '',
     serial_number: '',
 };

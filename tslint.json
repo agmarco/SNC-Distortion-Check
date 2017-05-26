@@ -12,6 +12,7 @@
     "jsx-wrap-multiline": false,
     "jsx-boolean-value": false,
     "arrow-parens": false,
-    "jsx-no-bind": false
+    "jsx-no-bind": false,
+    "max-classes-per-file": [false]
   }
 }
