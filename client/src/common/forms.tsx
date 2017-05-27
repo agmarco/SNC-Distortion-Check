@@ -105,5 +105,4 @@ class CIRSFormImpl extends React.Component<ICIRSFormProps, {}> {
     }
 }
 
-// TODO figure out the types
 export const CIRSForm = connect()(CIRSFormImpl as any);

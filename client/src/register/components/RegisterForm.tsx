@@ -113,6 +113,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                         information.
                     </p>
 
+                    {/* TODO async validation messed up when value is already populated */}
                     <div>
                         <label htmlFor="register-phantom-serial-number">Phantom Serial Number</label>
                         <CIRSControl.text
