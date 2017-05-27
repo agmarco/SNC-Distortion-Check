@@ -17,11 +17,11 @@ import keyBy from 'lodash/keyBy';
 import mapValues from 'lodash/mapValues';
 import omit from 'lodash/omit';
 
-export interface IDjangoData {
+export interface IDjangoFormData {
     [field: string]: any;
 }
 
-export interface IDjangoErrors {
+export interface IDjangoFormErrors {
     [field: string]: string[];
 }
 
@@ -32,6 +32,7 @@ export const CIRSErrors = (props: ErrorsProps) => {
     return <Errors wrapper={ErrorsWrapper} component={ErrorsComponent} {...props} />;
 };
 
+// Make the field name attribute equal to the last component of the field model
 const controlProps = (props: ControlProps<any>) => {
     const { model } = props;
 
@@ -60,23 +61,25 @@ export class CIRSControl<T> extends React.Component<ControlProps<T>, {}> {
 
 interface ICIRSFormProps extends FormProps {
     dispatch?: Dispatch<any>;
-    djangoData?: IDjangoData;
-    djangoErrors?: IDjangoErrors;
+    djangoData?: IDjangoFormData;
+    djangoErrors?: IDjangoFormErrors;
 }
 
 class CIRSFormImpl extends React.Component<ICIRSFormProps, {}> {
     constructor(props: ICIRSFormProps) {
         super();
-        let { dispatch, djangoData, djangoErrors, model } = props;
-        dispatch = dispatch as Dispatch<any>;
+        const { dispatch, djangoData, djangoErrors, model } = props;
 
-        if (typeof model === 'string') {
+        if (dispatch && typeof model === 'string') {
+
+            // Populate form with initial data. Assumes the field model names are the same as the Django field names.
             if (djangoData) {
                 for (let field of Object.keys(djangoData)) {
                     dispatch(actions.change(`${model}.${field}`, djangoData[field]));
                 }
             }
 
+            // Display errors from Django. Assumes the field model names are the same as the Django field names.
             if (djangoErrors) {
                 if (djangoErrors.__all__) {
                     const formErrors = keyBy<string>(djangoErrors.__all__, s => uniqueId());
@@ -84,7 +87,7 @@ class CIRSFormImpl extends React.Component<ICIRSFormProps, {}> {
                 }
 
                 const fieldErrors = mapValues<string[], ErrorsObject>(
-                    omit<IDjangoErrors, IDjangoErrors>(djangoErrors, '__all__'),
+                    omit<IDjangoFormErrors, IDjangoFormErrors>(djangoErrors, '__all__'),
                     a => keyBy<string>(a, s => uniqueId()),
                 );
                 for (let field of Object.keys(fieldErrors)) {

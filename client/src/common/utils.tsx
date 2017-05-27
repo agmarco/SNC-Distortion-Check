@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { AppContainer } from 'react-hot-loader';
 
-import { IDjangoErrors } from './forms';
+import { IDjangoFormErrors } from './forms';
 
 export const handleErrors = (res: Response, success: () => void) => {
     if (res.ok) {
@@ -52,7 +52,7 @@ export const quartiles = (sample: number[]) => {
     return [median(a), median(sample), median(b)];
 };
 
-export const fieldErrors = (formErrors: IDjangoErrors, field: string) => {
+export const fieldErrors = (formErrors: IDjangoFormErrors, field: string) => {
     return formErrors && formErrors[field] && (
         <ul className="errorlist">
             {formErrors[field].map((error, i) => <li key={i}>{error}</li>)}

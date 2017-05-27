@@ -1,18 +1,14 @@
 import React from 'react';
 
-import { IDjangoErrors } from 'common/forms';
+import { IDjangoFormErrors } from 'common/forms';
 import CreatePhantomForm from '../components/CreatePhantomForm';
+import { IPhantomForm } from '../forms';
 
 declare const VALIDATE_SERIAL_URL: string;
 declare const CANCEL_URL: string;
 declare const FORM_ACTION: string;
 declare const FORM_DATA: IPhantomForm | null;
-declare const FORM_ERRORS: IDjangoErrors;
-
-interface IPhantomForm {
-    name: string;
-    serial_number: string;
-}
+declare const FORM_ERRORS: IDjangoFormErrors;
 
 export default () => (
     <div>
@@ -20,8 +16,8 @@ export default () => (
         <CreatePhantomForm
             validateSerialUrl={VALIDATE_SERIAL_URL}
             cancelUrl={CANCEL_URL}
-            djangoData={FORM_DATA}
-            djangoErrors={FORM_ERRORS}
+            formData={FORM_DATA}
+            formErrors={FORM_ERRORS}
             formAction={FORM_ACTION}
         />
     </div>

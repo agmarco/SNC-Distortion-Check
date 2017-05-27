@@ -1,9 +1,13 @@
 import React from 'react';
 import * as Cookies from 'js-cookie';
 import * as Bluebird from 'bluebird';
+import { connect } from 'react-redux';
+import { FieldState, actions } from 'react-redux-form';
+import { Dispatch } from 'redux';
 
 import { encode } from 'common/utils';
 import { CSRFToken, BoolIcon, LoadingIcon } from 'common/components';
+import { CIRSForm, CIRSControl, CIRSErrors } from 'common/forms';
 import { IMachineSequencePairDTO } from 'common/service';
 
 import './ToleranceForm.scss';
@@ -13,34 +17,36 @@ interface IToleranceFormProps {
     machineSequencePair: IMachineSequencePairDTO;
     tolerance: number;
     handleToleranceChange: (event: React.FormEvent<HTMLInputElement>) => void;
+    formState?: { [name: string]: FieldState };
+    dispatch?: Dispatch<any>;
 }
 
 interface IToleranceFormState {
-    fetching: boolean;
     success: boolean | null;
     promise: Bluebird<any> | null;
 }
 
-export default class extends React.Component<IToleranceFormProps, IToleranceFormState> {
+class ToleranceForm extends React.Component<IToleranceFormProps, IToleranceFormState> {
     constructor() {
         super();
 
         Bluebird.config({cancellation: true});
         this.state = {
-            fetching: false,
             success: null,
             promise: null,
         };
     }
 
-    handleSubmit(event: React.FormEvent<HTMLInputElement>) {
-        const { updateToleranceUrl, tolerance, machineSequencePair } = this.props;
+    handleSubmit(data: any, event: React.FormEvent<HTMLInputElement>) {
+        const { updateToleranceUrl, tolerance, machineSequencePair, dispatch } = this.props;
         const { promise } = this.state;
-
-        event.preventDefault();
 
         if (promise) {
             promise.cancel();
+        }
+
+        if (dispatch) {
+            dispatch(actions.setPending('tolerance', true));
         }
 
         const newPromise = Bluebird.resolve(fetch(updateToleranceUrl, {
@@ -56,56 +62,60 @@ export default class extends React.Component<IToleranceFormProps, IToleranceForm
                 }),
             }))
             .then((res) => {
+                if (dispatch) {
+                    dispatch(actions.setPending('tolerance', false));
+                }
                 if (res.ok) {
                     this.setState({
-                        fetching: false,
                         promise: null,
                         success: true,
                     });
                 } else {
                     this.setState({
-                        fetching: false,
                         promise: null,
                         success: false,
                     });
                 }
             });
 
-        this.setState({fetching: true, success: false, promise: newPromise});
+        this.setState({success: false, promise: newPromise});
     }
 
     render() {
-        const { updateToleranceUrl, tolerance, handleToleranceChange } = this.props;
-        const { fetching, success } = this.state;
+        const { tolerance, handleToleranceChange, formState } = this.props;
+        const { success } = this.state;
+
+        const { pending } = (formState as { [name: string]: FieldState }).$form;
 
         return (
             <div>
-                <form
-                    action={updateToleranceUrl}
-                    method="post"
+                <CIRSForm
                     className="cirs-form"
+                    model="tolerance"
                     onSubmit={this.handleSubmit.bind(this)}
+                    djangoData={{tolerance}}
                 >
                     <CSRFToken />
 
                     <div>
                         <label htmlFor="tolerance-tolerance">Maximum FLE (mm)</label>
                         <div className="inline-group">
-                            <input
+                            <CIRSControl.input
+                                id="tolerance-tolerance"
+                                model=".tolerance"
                                 type="number"
                                 step="0.01"
-                                id="tolerance-tolerance"
-                                name="tolerance"
-                                required
-                                value={tolerance}
                                 onChange={handleToleranceChange}
+                                required
                             />
                             <input type="submit" value="Save" className="btn tertiary" />
-                            {fetching ? <LoadingIcon /> : (success !== null && <BoolIcon success={success} />)}
+                            {pending ? <LoadingIcon /> : (success !== null && <BoolIcon success={success} />)}
                         </div>
                     </div>
-                </form>
+                </CIRSForm>
             </div>
         );
     }
 }
+
+export default connect<any, any, any>((state: any) => ({formState: state.forms.tolerance}))(ToleranceForm as any);

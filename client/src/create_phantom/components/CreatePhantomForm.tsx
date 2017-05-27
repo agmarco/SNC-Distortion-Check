@@ -1,22 +1,20 @@
 import React from 'react';
 import * as Cookies from 'js-cookie';
 import * as Bluebird from 'bluebird';
-import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
 import { FieldState } from 'react-redux-form';
 
 import { handleErrors, encode } from 'common/utils';
-import { CIRSForm, CIRSControl, CIRSErrors } from 'common/forms';
+import { CIRSForm, CIRSControl, CIRSErrors, IDjangoFormData, IDjangoFormErrors } from 'common/forms';
 import { CSRFToken } from 'common/components';
 
 interface IAddPhantomFormProps {
     validateSerialUrl: string;
     cancelUrl: string;
-    djangoData: {[field: string]: any};
-    djangoErrors: {[field: string]: string[]};
+    formData: IDjangoFormData;
+    formErrors: IDjangoFormErrors;
     formAction: string;
-    phantomState?: { [name: string]: FieldState };
-    dispatch?: Dispatch<any>;
+    formState?: { [name: string]: FieldState };
 }
 
 interface IAddPhantomFormState {
@@ -25,7 +23,7 @@ interface IAddPhantomFormState {
     promise: Bluebird<any> | null;
 }
 
-class CreatePhantomFormImpl extends React.Component<IAddPhantomFormProps, IAddPhantomFormState> {
+class CreatePhantomForm extends React.Component<IAddPhantomFormProps, IAddPhantomFormState> {
     constructor() {
         super();
 
@@ -45,6 +43,7 @@ class CreatePhantomFormImpl extends React.Component<IAddPhantomFormProps, IAddPh
             promise.cancel();
         }
 
+        // TODO redux-saga?
         const newPromise = Bluebird.resolve(fetch(validateSerialUrl, {
                 method: 'POST',
                 credentials: 'same-origin',
@@ -75,12 +74,9 @@ class CreatePhantomFormImpl extends React.Component<IAddPhantomFormProps, IAddPh
     }
 
     render() {
-        const { cancelUrl, phantomState, formAction, djangoData, djangoErrors } = this.props;
-        const {
-            serialNumberMessage,
-            modelNumber,
-        } = this.state;
-        const { pristine, validating, valid } = (phantomState as { [name: string]: FieldState }).serial_number;
+        const { cancelUrl, formState, formAction, formData, formErrors } = this.props;
+        const { serialNumberMessage, modelNumber} = this.state;
+        const { pristine, validating, valid } = (formState as { [name: string]: FieldState }).serial_number;
 
         let modelNumberText = null;
         if (!pristine) {
@@ -102,21 +98,22 @@ class CreatePhantomFormImpl extends React.Component<IAddPhantomFormProps, IAddPh
                     method="post"
                     model="phantom"
                     className="cirs-form"
-                    djangoData={djangoData}
-                    djangoErrors={djangoErrors}
+                    djangoData={formData}
+                    djangoErrors={formErrors}
                 >
                     <CSRFToken />
 
                     <div>
-                        <label>Name</label>
-                        <CIRSControl.text model=".name" required />
+                        <label htmlFor="phantom-name">Name</label>
+                        <CIRSControl.text id="phantom-name" model=".name" required />
                         <CIRSErrors model=".name" />
                     </div>
 
                     {/* TODO doesn't validate on first change */}
                     <div>
-                        <label>Serial Number</label>
+                        <label htmlFor="phantom-serial-number">Serial Number</label>
                         <CIRSControl.text
+                            id="phantom-serial-number"
                             model=".serial_number"
                             asyncValidators={{valid: this.validateSerialNumber.bind(this)}}
                             asyncValidateOn="change"
@@ -155,6 +152,4 @@ class CreatePhantomFormImpl extends React.Component<IAddPhantomFormProps, IAddPh
 }
 
 // TODO figure out the types
-const CreatePhantomForm = connect<any, any, any>((state: any) => ({phantomState: state.forms.phantom}))
-    (CreatePhantomFormImpl as any);
-export default CreatePhantomForm;
+export default connect<any, any, any>((state: any) => ({formState: state.forms.phantom}))(CreatePhantomForm as any);

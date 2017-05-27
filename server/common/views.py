@@ -134,6 +134,7 @@ class MachineSequenceDetailView(DetailView):
 class UploadScanView(FormView):
     form_class = forms.UploadScanForm
     template_name = 'common/upload_scan.html'
+    renderer = JSONRenderer()
 
     def get_context_data(self, **kwargs):
         institution = self.request.user.institution
@@ -141,11 +142,11 @@ class UploadScanView(FormView):
         sequences_json = serializers.SequenceSerializer(models.Sequence.objects.filter(institution=institution), many=True)
         phantoms_json = serializers.PhantomSerializer(models.Phantom.objects.filter(institution=institution), many=True)
 
-        renderer = JSONRenderer()
         return {
-            'machines_json': renderer.render(machines_json.data),
-            'sequences_json': renderer.render(sequences_json.data),
-            'phantoms_json': renderer.render(phantoms_json.data),
+            'machines_json': self.renderer.render(machines_json.data),
+            'sequences_json': self.renderer.render(sequences_json.data),
+            'phantoms_json': self.renderer.render(phantoms_json.data),
+            'form_initial': self.renderer.render({name: '' for name in self.form_class.base_fields.keys()}),
         }
 
     def form_valid(self, form):
@@ -168,11 +169,10 @@ class UploadScanView(FormView):
         return redirect('machine_sequence_detail', scan.machine_sequence_pair.pk)
 
     def form_invalid(self, form):
-        renderer = JSONRenderer()
         context = self.get_context_data(form=form)
         context.update({
-            'form_data': renderer.render({**form.data, **form.files}),
-            'form_errors': renderer.render(form.errors),
+            'form_data': self.renderer.render({**form.data, **form.files}),
+            'form_errors': self.renderer.render(form.errors),
         })
         return self.render_to_response(context)
 
@@ -351,6 +351,7 @@ class CreatePhantomView(FormView):
     form_class = forms.CreatePhantomForm
     success_url = reverse_lazy('configuration')
     template_name = 'common/phantom_create.html'
+    renderer = JSONRenderer()
 
     def __init__(self, **kwargs):
         self.object = None
@@ -362,13 +363,19 @@ class CreatePhantomView(FormView):
         return super(CreatePhantomView, self).form_valid(form)
 
     def form_invalid(self, form):
-        renderer = JSONRenderer()
         context = self.get_context_data(form=form)
         context.update({
-            'form_data': renderer.render({**form.data, **form.files}),
-            'form_errors': renderer.render(form.errors),
+            'form_data': self.renderer.render({**form.data, **form.files}),
+            'form_errors': self.renderer.render(form.errors),
         })
         return self.render_to_response(context)
+
+    def get_context_data(self, **kwargs):
+        context = super(CreatePhantomView, self).get_context_data(**kwargs)
+        context.update({
+            'form_initial': self.renderer.render({name: '' for name in self.form_class.base_fields.keys()}),
+        })
+        return context
 
 
 @login_and_permission_required('common.configuration')
@@ -676,6 +683,7 @@ class RegisterView(FormView):
     extra_email_context = None
     token_generator = default_token_generator
     from_email = None
+    renderer = JSONRenderer()
 
     def form_valid(self, form):
         opts = {
@@ -692,13 +700,19 @@ class RegisterView(FormView):
         return super(RegisterView, self).form_valid(form)
 
     def form_invalid(self, form):
-        renderer = JSONRenderer()
         context = self.get_context_data(form=form)
         context.update({
-            'form_data': renderer.render({**form.data, **form.files}),
-            'form_errors': renderer.render(form.errors),
+            'form_data': self.renderer.render({**form.data, **form.files}),
+            'form_errors': self.renderer.render(form.errors),
         })
         return self.render_to_response(context)
+
+    def get_context_data(self, **kwargs):
+        context = super(RegisterView, self).get_context_data(**kwargs)
+        context.update({
+            'form_initial': self.renderer.render({name: '' for name in self.form_class.base_fields.keys()}),
+        })
+        return context
 
 
 class RegisterDoneView(PasswordResetDoneView):

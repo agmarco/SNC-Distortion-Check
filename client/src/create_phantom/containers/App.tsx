@@ -4,14 +4,12 @@ import { Provider } from 'react-redux';
 import { combineForms } from 'react-redux-form';
 
 import Root from './Root';
+import { IPhantomForm } from '../forms';
 
-const initialPhantom = {
-    name: '',
-    serial_number: '',
-};
+declare const FORM_INITIAL: IPhantomForm;
 
 const store = createStore(combineForms({
-    phantom: initialPhantom,
+    phantom: FORM_INITIAL,
 }));
 
 export default () => (

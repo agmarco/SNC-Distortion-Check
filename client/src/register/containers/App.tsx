@@ -1,11 +1,11 @@
 import React from 'react';
 
-import { IDjangoErrors } from 'common/forms';
+import { IDjangoFormErrors } from 'common/forms';
 import RegisterForm from '../components/RegisterForm';
 
 declare const VALIDATE_SERIAL_URL: string;
 declare const CANCEL_URL: string;
-declare const FORM_ERRORS: IDjangoErrors;
+declare const FORM_ERRORS: IDjangoFormErrors;
 
 export default () => (
     <div>
