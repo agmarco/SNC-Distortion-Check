@@ -1,27 +1,19 @@
 import React from 'react';
+import { createStore } from 'redux';
+import { Provider } from 'react-redux';
+import { combineForms } from 'react-redux-form';
 
-import { IMachineDTO, ISequenceDTO, IPhantomDTO } from 'common/service';
-import UploadScanForm from '../components/UploadScanForm';
+import Root from './Root';
+import { IUploadScanForm } from '../forms';
 
-declare const MACHINES: IMachineDTO[];
-declare const SEQUENCES: ISequenceDTO[];
-declare const PHANTOMS: IPhantomDTO[];
-declare const INITIAL_MACHINE_PK: number | null;
-declare const INITIAL_SEQUENCE_PK: number | null;
-declare const CANCEL_URL: string;
-declare const FORM_ERRORS: {[field: string]: string[]};
+declare const FORM_INITIAL: IUploadScanForm;
+
+const store = createStore(combineForms({
+    uploadScan: FORM_INITIAL,
+}));
 
 export default () => (
-    <div>
-        <h1>Upload Scan</h1>
-        <UploadScanForm
-            machines={MACHINES}
-            sequences={SEQUENCES}
-            phantoms={PHANTOMS}
-            initialMachinePk={INITIAL_MACHINE_PK}
-            initialSequencePk={INITIAL_SEQUENCE_PK}
-            cancelUrl={CANCEL_URL}
-            formErrors={FORM_ERRORS}
-        />
-    </div>
+    <Provider store={store}>
+        <Root />
+    </Provider>
 );

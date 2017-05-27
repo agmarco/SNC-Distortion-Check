@@ -7,7 +7,7 @@ import { Dispatch } from 'redux';
 
 import { encode } from 'common/utils';
 import { CSRFToken, BoolIcon, LoadingIcon } from 'common/components';
-import { CIRSForm, CIRSControl, CIRSErrors } from 'common/forms';
+import { CIRSForm, CIRSControl } from 'common/forms';
 import { IMachineSequencePairDTO } from 'common/service';
 
 import './ToleranceForm.scss';

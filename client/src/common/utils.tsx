@@ -51,11 +51,3 @@ export const quartiles = (sample: number[]) => {
     }
     return [median(a), median(sample), median(b)];
 };
-
-export const fieldErrors = (formErrors: IDjangoFormErrors, field: string) => {
-    return formErrors && formErrors[field] && (
-        <ul className="errorlist">
-            {formErrors[field].map((error, i) => <li key={i}>{error}</li>)}
-        </ul>
-    );
-};

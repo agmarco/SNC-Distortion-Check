@@ -91,6 +91,8 @@ class CIRSFormImpl extends React.Component<ICIRSFormProps, {}> {
                     a => keyBy<string>(a, s => uniqueId()),
                 );
                 for (let field of Object.keys(fieldErrors)) {
+                    console.log(`${model}.${field}`);  // TODO errors aren't showing
+                    console.log(fieldErrors[field]);
                     dispatch(actions.setErrors(`${model}.${field}`, fieldErrors[field]));
                 }
             }

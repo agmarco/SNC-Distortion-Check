@@ -1,41 +1,41 @@
 import React from 'react';
 import * as Cookies from 'js-cookie';
 import * as Bluebird from 'bluebird';
+import { connect } from 'react-redux';
+import { FieldState } from 'react-redux-form';
 
-import { handleErrors, encode, fieldErrors } from 'common/utils';
+import { handleErrors, encode } from 'common/utils';
 import { CSRFToken } from 'common/components';
+import { CIRSForm, CIRSControl, CIRSErrors, IDjangoFormData, IDjangoFormErrors } from 'common/forms';
 
 interface IRegisterFormProps {
     validateSerialUrl: string;
     cancelUrl: string;
-    formErrors: {[field: string]: string[]};
+    formData: IDjangoFormData;
+    formErrors: IDjangoFormErrors;
+    formAction: string;
+    formState?: { [name: string]: FieldState };
 }
 
 interface IRegisterFormState {
-    serialNumberPristine: boolean;
-    serialNumberFetching: boolean;
-    serialNumberValid: boolean;
     serialNumberMessage: string | null;
     modelNumber: string | null;
     promise: Bluebird<any> | null;
 }
 
-export default class extends React.Component<IRegisterFormProps, IRegisterFormState> {
+class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormState> {
     constructor() {
         super();
 
         Bluebird.config({cancellation: true});
         this.state = {
-            serialNumberPristine: true,
-            serialNumberFetching: false,
-            serialNumberValid: false,
             serialNumberMessage: null,
             modelNumber: null,
             promise: null,
         };
     }
 
-    handleSerialChange(event: React.FormEvent<HTMLInputElement>) {
+    validateSerialNumber(value: string, done: Function) {
         const { validateSerialUrl } = this.props;
         const { promise } = this.state;
 
@@ -50,26 +50,22 @@ export default class extends React.Component<IRegisterFormProps, IRegisterFormSt
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'X-CSRFToken': Cookies.get('csrftoken'),
                 },
-                body: encode({serial_number: (event.target as any).value}),
+                body: encode({serial_number: value}),
             }))
             .then((res) => {
                 handleErrors(res, (async function() {
                     const { valid, model_number, message } = await res.json();
 
                     this.setState({
-                        serialNumberFetching: false,
-                        serialNumberValid: valid,
                         serialNumberMessage: message,
                         modelNumber: model_number,
                         promise: null,
                     });
+                    done(valid);
                 }).bind(this));
             });
 
         this.setState({
-            serialNumberPristine: false,
-            serialNumberFetching: true,
-            serialNumberValid: false,
             serialNumberMessage: null,
             modelNumber: null,
             promise: newPromise,
@@ -77,22 +73,17 @@ export default class extends React.Component<IRegisterFormProps, IRegisterFormSt
     }
 
     render() {
-        const { cancelUrl, formErrors } = this.props;
-        const {
-            serialNumberPristine,
-            serialNumberFetching,
-            serialNumberValid,
-            serialNumberMessage,
-            modelNumber,
-        } = this.state;
+        const { cancelUrl, formData, formErrors, formAction, formState } = this.props;
+        const { serialNumberMessage, modelNumber } = this.state;
+        const { pristine, validating, valid } = (formState as { [name: string]: FieldState }).phantom_serial_number;
         const cirs603AUrl = 'http://www.cirsinc.com/products/all/99/mri-distortion-phantom-for-srs/';
         const cirs604Url = 'http://www.cirsinc.com/products/all/118/large-field-mri-distortion-phantom/';
 
         let modelNumberText = null;
-        if (!serialNumberPristine) {
-            if (serialNumberFetching) {
+        if (!pristine) {
+            if (validating) {
                 modelNumberText = "Searching...";
-            } else if (serialNumberValid) {
+            } else if (valid) {
                 modelNumberText = <span className="success">{modelNumber}</span>;
             } else {
                 modelNumberText = <span className="error">{serialNumberMessage}</span>;
@@ -101,10 +92,17 @@ export default class extends React.Component<IRegisterFormProps, IRegisterFormSt
 
         return (
             <div>
-                <form method="post" className="cirs-form">
-                    <CSRFToken />
+                <CIRSErrors model="register" />
 
-                    {fieldErrors(formErrors, '__all__')}
+                <CIRSForm
+                    action={formAction}
+                    method="post"
+                    model="register"
+                    className="cirs-form"
+                    djangoData={formData}
+                    djangoErrors={formErrors}
+                >
+                    <CSRFToken />
 
                     <p>
                         In order to registerd a new account, you must provide the serial number of
@@ -117,15 +115,14 @@ export default class extends React.Component<IRegisterFormProps, IRegisterFormSt
 
                     <div>
                         <label htmlFor="register-phantom-serial-number">Phantom Serial Number</label>
-                        <input
-                            type="text"
+                        <CIRSControl.text
                             id="register-phantom-serial-number"
-                            name="phantom_serial_number"
-                            maxLength={255}
-                            onChange={this.handleSerialChange.bind(this)}
+                            model=".phantom_serial_number"
+                            asyncValidators={{valid: this.validateSerialNumber.bind(this)}}
+                            asyncValidateOn="change"
                             required
                         />
-                        {fieldErrors(formErrors, 'phantom_serial_number')}
+                        <CIRSErrors model=".phantom_serial_number" />
                     </div>
 
                     <div>
@@ -141,88 +138,78 @@ export default class extends React.Component<IRegisterFormProps, IRegisterFormSt
 
                     <div>
                         <label htmlFor="register-institution-name">Institution Name</label>
-                        <input
-                            type="text"
+                        <CIRSControl.text
+                            model=".institution_name"
                             id="register-institution-name"
-                            name="institution_name"
-                            maxLength={255}
                             required
                         />
-                        {fieldErrors(formErrors, 'institution_name')}
+                        <CIRSErrors model=".institution_name" />
                     </div>
 
                     <div>
                         <label htmlFor="register-institution-address">Institution Address</label>
-                        <textarea
-                            id="register-institution-name"
-                            name="institution_address"
+                        <CIRSControl.textarea
+                            id="register-institution-address"
+                            model=".institution_address"
                             cols={40}
                             rows={10}
                             required
                         />
-                        {fieldErrors(formErrors, 'institution_address')}
+                        <CIRSErrors model=".institution_address" />
                     </div>
 
                     <div>
                         <label htmlFor="register-institution-phone">Institution Contact Phone Number</label>
-                        <input
-                            type="text"
+                        <CIRSControl.text
+                            model=".institution_phone"
                             id="register-institution-phone"
-                            name="institution_phone"
-                            maxLength={255}
                             required
                         />
-                        {fieldErrors(formErrors, 'institution_phone')}
+                        <CIRSErrors model=".institution_phone" />
                     </div>
 
                     <p>The following details will be used to setup a default admin user account.</p>
 
                     <div>
                         <label htmlFor="register-first-name">First Name</label>
-                        <input
-                            type="text"
+                        <CIRSControl.text
+                            model=".first_name"
                             id="register-first-name"
-                            name="first_name"
-                            maxLength={255}
                             required
                         />
-                        {fieldErrors(formErrors, 'first_name')}
+                        <CIRSErrors model=".first_name" />
                     </div>
 
                     <div>
                         <label htmlFor="register-last-name">Last Name</label>
-                        <input
-                            type="text"
+                        <CIRSControl.text
+                            model=".last_name"
                             id="register-last-name"
-                            name="last_name"
-                            maxLength={255}
                             required
                         />
-                        {fieldErrors(formErrors, 'last_name')}
+                        <CIRSErrors model=".last_name" />
                     </div>
 
                     <div>
                         <label htmlFor="register-email">Email</label>
-                        <input
+                        <CIRSControl.input
+                            model=".email"
                             type="email"
                             id="register-email"
-                            name="email"
-                            maxLength={255}
                             required
                         />
-                        {fieldErrors(formErrors, 'email')}
+                        <CIRSErrors model=".email" />
                     </div>
 
                     <div>
                         <label htmlFor="register-email-repeat">Email Repeat</label>
-                        <input
+                        <CIRSControl.input
+                            model=".email_repeat"
                             type="email"
                             id="register-email-repeat"
-                            name="email_repeat"
-                            maxLength={255}
                             required
                         />
-                        {fieldErrors(formErrors, 'email_repeat')}
+                        <CIRSErrors model=".email_repeat" />
                     </div>
 
                     <div className="form-links">
@@ -230,12 +217,14 @@ export default class extends React.Component<IRegisterFormProps, IRegisterFormSt
                         <input
                             type="submit"
                             value="Register"
-                            disabled={serialNumberFetching || !serialNumberValid}
+                            disabled={validating || !valid}
                             className="btn secondary"
                         />
                     </div>
-                </form>
+                </CIRSForm>
             </div>
         );
     }
 }
+
+export default connect<any, any, any>((state: any) => ({formState: state.forms.register}))(RegisterForm as any);

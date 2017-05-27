@@ -1,19 +1,19 @@
 import React from 'react';
+import { createStore } from 'redux';
+import { Provider } from 'react-redux';
+import { combineForms } from 'react-redux-form';
 
-import { IDjangoFormErrors } from 'common/forms';
-import RegisterForm from '../components/RegisterForm';
+import Root from './Root';
+import { IRegisterForm } from '../forms';
 
-declare const VALIDATE_SERIAL_URL: string;
-declare const CANCEL_URL: string;
-declare const FORM_ERRORS: IDjangoFormErrors;
+declare const FORM_INITIAL: IRegisterForm;
+
+const store = createStore(combineForms({
+    register: FORM_INITIAL,
+}));
 
 export default () => (
-    <div>
-        <h1>Register New Account</h1>
-        <RegisterForm
-            validateSerialUrl={VALIDATE_SERIAL_URL}
-            cancelUrl={CANCEL_URL}
-            formErrors={FORM_ERRORS}
-        />
-    </div>
+    <Provider store={store}>
+        <Root />
+    </Provider>
 );

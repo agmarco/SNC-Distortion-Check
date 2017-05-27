@@ -1,8 +1,12 @@
 import React from 'react';
+import { connect } from 'react-redux';
+import { actions } from 'react-redux-form';
+import { Dispatch } from 'redux';
 
 import { IMachineDTO, ISequenceDTO, IPhantomDTO } from 'common/service';
 import { CSRFToken } from 'common/components';
-import { fieldErrors } from 'common/utils';
+import { CIRSForm, CIRSControl, CIRSErrors, IDjangoFormData, IDjangoFormErrors } from 'common/forms';
+import { IUploadScanForm } from '../forms';
 
 interface IUploadScanFormProps {
     machines: IMachineDTO[];
@@ -11,76 +15,80 @@ interface IUploadScanFormProps {
     initialMachinePk: number | null;
     initialSequencePk: number | null;
     cancelUrl: string;
-    formErrors: {[field: string]: string[]};
+    formData: IDjangoFormData;
+    formErrors: IDjangoFormErrors;
+    formAction: string;
+    form?: IUploadScanForm;
+    dispatch?: Dispatch<any>;
 }
 
-interface IUploadScanFormState {
-    machineFilterValue: '' | number;
-    sequenceFilterValue: '' | number;
-    phantomFilterValue: '' | number;
-}
-
-export default class extends React.Component<IUploadScanFormProps, IUploadScanFormState> {
+class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
     constructor(props: IUploadScanFormProps) {
         super();
 
-        const { initialMachinePk, initialSequencePk } = props;
-        this.state = {
-            machineFilterValue: initialMachinePk || '',
-            sequenceFilterValue: initialSequencePk || '',
-            phantomFilterValue: '',
-        };
+        const { initialMachinePk, initialSequencePk, dispatch } = props;
+        if (dispatch) {
+            dispatch(actions.change('uploadScan.machine', initialMachinePk || ''));
+            dispatch(actions.change('uploadScan.sequence', initialSequencePk || ''));
+            dispatch(actions.change('uploadScan.phantom', ''));
+        }
     }
 
-    handleMachineChange(event: React.FormEvent<HTMLInputElement>) {
-        const value = (event.target as any).value;
-        this.setState({machineFilterValue: value === '' ? value : Number(value)});
-    }
-
-    handleSequenceChange(event: React.FormEvent<HTMLInputElement>) {
-        const value = (event.target as any).value;
-        this.setState({sequenceFilterValue: value === '' ? value : Number(value)});
-    }
-
-    handlePhantomChange(event: React.FormEvent<HTMLInputElement>) {
-        const value = (event.target as any).value;
-        this.setState({phantomFilterValue: value === '' ? value : Number(value)});
-    }
+    // handleMachineChange(event: React.FormEvent<HTMLInputElement>) {
+    //     const value = (event.target as any).value;
+    //     this.setState({machineFilterValue: value === '' ? value : Number(value)});
+    // }
+//
+    // handleSequenceChange(event: React.FormEvent<HTMLInputElement>) {
+    //     const value = (event.target as any).value;
+    //     this.setState({sequenceFilterValue: value === '' ? value : Number(value)});
+    // }
+//
+    // handlePhantomChange(event: React.FormEvent<HTMLInputElement>) {
+    //     const value = (event.target as any).value;
+    //     this.setState({phantomFilterValue: value === '' ? value : Number(value)});
+    // }
 
     render() {
-        const { machines, sequences, phantoms, cancelUrl, formErrors } = this.props;
-        const { machineFilterValue, sequenceFilterValue, phantomFilterValue } = this.state;
+        const { machines, sequences, phantoms, cancelUrl, formData, formErrors, form, formAction } = this.props;
+        const { machine, sequence, phantom } = form as IUploadScanForm;
 
-        const currentMachine = machineFilterValue && (
-            machines.find((m) => m.pk === machineFilterValue)
+        const currentMachine = machine && (
+            machines.find((m) => m.pk === machine)
         );
-        const currentSequence = sequenceFilterValue && (
-            sequences.find((s) => s.pk === sequenceFilterValue)
+        const currentSequence = sequence && (
+            sequences.find((s) => s.pk === sequence)
         );
-        const currentPhantom = phantomFilterValue && (
-            phantoms.find((p) => p.pk === phantomFilterValue)
+        const currentPhantom = phantom && (
+            phantoms.find((p) => p.pk === phantom)
         );
 
         return (
             <div>
-                <form encType="multipart/form-data" method="post" className="cirs-form">
-                    <CSRFToken />
+                <CIRSErrors model="uploadScan" />
 
-                    {fieldErrors(formErrors, '__all__')}
+                <CIRSForm
+                    action={formAction}
+                    encType="multipart/form-data"
+                    method="post"
+                    model="uploadScan"
+                    className="cirs-form"
+                    djangoData={formData}
+                    djangoErrors={formErrors}
+                >
+                    <CSRFToken />
 
                     <div>
                         <label htmlFor="upload-scan-machine">Machine</label>
-                        <select
+                        <CIRSControl.select
                             id="upload-scan-machine"
-                            name="machine"
-                            value={machineFilterValue}
-                            onChange={this.handleMachineChange.bind(this)}
+                            model=".machine"
                             required
                         >
                             <option value="" disabled />
                             {machines.map((m) => <option value={m.pk} key={m.pk}>{m.name}</option>)}
-                        </select>
-                        {fieldErrors(formErrors, 'machine')}
+                        </CIRSControl.select>
+                        <CIRSErrors model=".machine" />
 
                         {currentMachine && (
                             <div>
@@ -98,17 +106,15 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
 
                     <div>
                         <label htmlFor="upload-scan-sequence">Sequence</label>
-                        <select
+                        <CIRSControl.select
                             id="upload-scan-sequence"
-                            name="sequence"
-                            value={sequenceFilterValue}
-                            onChange={this.handleSequenceChange.bind(this)}
+                            model=".sequence"
                             required
                         >
                             <option value="" disabled />
                             {sequences.map((s) => <option value={s.pk} key={s.pk}>{s.name}</option>)}
-                        </select>
-                        {fieldErrors(formErrors, 'sequence')}
+                        </CIRSControl.select>
+                        <CIRSErrors model=".sequence" />
 
                         {currentSequence && (
                             <div>
@@ -122,17 +128,15 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
 
                     <div>
                         <label htmlFor="upload-scan-phantom">Phantom</label>
-                        <select
+                        <CIRSControl.select
                             id="upload-scan-phantom"
-                            name="phantom"
-                            value={phantomFilterValue}
-                            onChange={this.handlePhantomChange.bind(this)}
+                            model=".phantom"
                             required
                         >
                             <option value="" disabled />
                             {phantoms.map((p) => <option value={p.pk} key={p.pk}>{p.name}</option>)}
-                        </select>
-                        {fieldErrors(formErrors, 'phantom')}
+                        </CIRSControl.select>
+                        <CIRSErrors model=".phantom" />
 
                         {currentPhantom && (
                             <div>
@@ -154,8 +158,8 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
 
                     <div>
                         <label htmlFor="upload-scan-dicom-archive">MRI Scan Files</label>
-                        <input id="upload-scan-dicom-archive" name="dicom_archive" type="file" required />
-                        {fieldErrors(formErrors, 'dicom_archive')}
+                        <CIRSControl.file id="upload-scan-dicom-archive" model=".dicom_archive" required />
+                        <CIRSErrors model=".dicom_archive" />
                         <p>
                             Please upload a zip-file containing the MRI DICOM files of a scan of the specified phatom,
                             on the specified machine, using the specified sequence.
@@ -164,16 +168,18 @@ export default class extends React.Component<IUploadScanFormProps, IUploadScanFo
 
                     <div>
                         <label htmlFor="upload-scan-notes">Notes</label>
-                        <textarea cols={40} rows={10} id="upload-scan-notes" name="notes" />
-                        {fieldErrors(formErrors, 'notes')}
+                        <CIRSControl.textarea cols={40} rows={10} id="upload-scan-notes" model=".notes" />
+                        <CIRSErrors model=".notes" />
                     </div>
 
                     <div className="form-links">
                         <a href={cancelUrl} className="btn tertiary">Cancel</a>
                         <input type="submit" value="Process Scan" className="btn secondary" />
                     </div>
-                </form>
+                </CIRSForm>
             </div>
         );
     }
 }
+
+export default connect<any, any, any>((state: any) => ({formState: state.uploadScan}))(UploadScanForm as any);
