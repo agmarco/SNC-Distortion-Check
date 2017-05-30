@@ -28,12 +28,12 @@ export interface IDjangoFormErrors {
 const ErrorsWrapper = (props: ErrorsProps & CustomComponentProps) => <ul className="errorlist">{props.children}</ul>;
 const ErrorsComponent = (props: ErrorsProps & CustomComponentProps) => <li>{props.children}</li>;
 
-interface ICIRSErrorsProps extends ErrorsProps {
+interface ICirsErrorsProps extends ErrorsProps {
     required?: boolean;
     email?: boolean;
 }
 
-export const CIRSErrors = (props: ICIRSErrorsProps) => {
+export const CirsErrors = (props: ICirsErrorsProps) => {
     const { required, email, messages = {}, ...rest } = props;
 
     if (required) {
@@ -64,7 +64,6 @@ const controlProps = (props: ControlProps<any>) => {
         name = model.split('.').slice(-1)[0];
     }
 
-    // TODO https://github.com/davidkpiano/react-redux-form/issues/805
     if (required) {
         validators.required = (value: any) => value !== null && value !== '';
     }
@@ -74,10 +73,10 @@ const controlProps = (props: ControlProps<any>) => {
         validators.isEmail = (value: any) => value !== null && value.match(emailRegex);
     }
 
-    return {name, model, required, type, validators, ...rest};
+    return {name, model, required, type, validators, formNoValidate: true, ...rest};
 };
 
-export class CIRSControl<T> extends React.Component<ControlProps<T>, {}> {
+export class CirsControl<T> extends React.Component<ControlProps<T>, {}> {
     static custom = (props: ControlProps<any>) => <Control.custom {...controlProps(props)} />;
     static input = (props: ControlProps<any>) => <Control.input {...controlProps(props)} />;
     static text = (props: ControlProps<any>) => <Control.text {...controlProps(props)} />;
@@ -93,13 +92,13 @@ export class CIRSControl<T> extends React.Component<ControlProps<T>, {}> {
     }
 }
 
-interface ICIRSFormProps extends FormProps {
+interface ICirsFormProps extends FormProps {
     dispatch?: Dispatch<any>;
     djangoData?: IDjangoFormData;
     djangoErrors?: IDjangoFormErrors;
 }
 
-class CIRSFormImpl extends React.Component<ICIRSFormProps, {}> {
+class CirsFormImpl extends React.Component<ICirsFormProps, {}> {
     componentDidMount() {
         const { dispatch, djangoData, djangoErrors, model } = this.props;
 
@@ -136,4 +135,4 @@ class CIRSFormImpl extends React.Component<ICIRSFormProps, {}> {
     }
 }
 
-export const CIRSForm = connect()(CIRSFormImpl as any);
+export const CirsForm = connect()(CirsFormImpl as any);

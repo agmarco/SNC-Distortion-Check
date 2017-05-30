@@ -7,7 +7,7 @@ import { Dispatch } from 'redux';
 
 import { handleErrors, encode } from 'common/utils';
 import { CSRFToken } from 'common/components';
-import { CIRSForm, CIRSControl, CIRSErrors, IDjangoFormData, IDjangoFormErrors } from 'common/forms';
+import { CirsForm, CirsControl, CirsErrors, IDjangoFormData, IDjangoFormErrors } from 'common/forms';
 
 interface IRegisterFormProps {
     validateSerialUrl: string;
@@ -104,7 +104,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
 
         return (
             <div>
-                <CIRSForm
+                <CirsForm
                     action={formAction}
                     method="post"
                     model="register"
@@ -114,7 +114,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                 >
 
                     {/* TODO global errors aren't showing */}
-                    <CIRSErrors model="register" />
+                    <CirsErrors model="register" />
 
                     <CSRFToken />
 
@@ -136,7 +136,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                             asyncValidateOn="change"
                             required
                         />
-                        <CIRSErrors model=".phantom_serial_number" required />
+                        <CirsErrors model=".phantom_serial_number" required />
                     </div>
 
                     <div>
@@ -157,7 +157,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                             id="register-institution-name"
                             required
                         />
-                        <CIRSErrors model=".institution_name" required />
+                        <CirsErrors model=".institution_name" required />
                     </div>
 
                     <div>
@@ -169,7 +169,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                             rows={10}
                             required
                         />
-                        <CIRSErrors model=".institution_address" required />
+                        <CirsErrors model=".institution_address" required />
                     </div>
 
                     <div>
@@ -179,7 +179,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                             id="register-institution-phone"
                             required
                         />
-                        <CIRSErrors model=".institution_phone" required />
+                        <CirsErrors model=".institution_phone" required />
                     </div>
 
                     <p>The following details will be used to setup a default admin user account.</p>
@@ -191,7 +191,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                             id="register-first-name"
                             required
                         />
-                        <CIRSErrors model=".first_name" required />
+                        <CirsErrors model=".first_name" required />
                     </div>
 
                     <div>
@@ -201,7 +201,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                             id="register-last-name"
                             required
                         />
-                        <CIRSErrors model=".last_name" required />
+                        <CirsErrors model=".last_name" required />
                     </div>
 
                     <div>
@@ -212,7 +212,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                             id="register-email"
                             required
                         />
-                        <CIRSErrors model=".email" required email />
+                        <CirsErrors model=".email" required email />
                     </div>
 
                     <div>
@@ -223,7 +223,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                             id="register-email-repeat"
                             required
                         />
-                        <CIRSErrors model=".email_repeat" required email />
+                        <CirsErrors model=".email_repeat" required email />
                     </div>
 
                     <div className="form-links">
@@ -235,7 +235,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                             className="btn secondary"
                         />
                     </div>
-                </CIRSForm>
+                </CirsForm>
             </div>
         );
     }

@@ -7,7 +7,7 @@ import { Dispatch } from 'redux';
 
 import { encode } from 'common/utils';
 import { CSRFToken, BoolIcon, LoadingIcon } from 'common/components';
-import { CIRSForm, CIRSControl } from 'common/forms';
+import { CirsForm, CirsControl } from 'common/forms';
 import { IMachineSequencePairDTO } from 'common/service';
 
 import './ToleranceForm.scss';
@@ -89,7 +89,7 @@ class ToleranceForm extends React.Component<IToleranceFormProps, IToleranceFormS
 
         return (
             <div>
-                <CIRSForm
+                <CirsForm
                     className="cirs-form"
                     model="tolerance"
                     onSubmit={this.handleSubmit.bind(this)}
@@ -112,7 +112,7 @@ class ToleranceForm extends React.Component<IToleranceFormProps, IToleranceFormS
                             {pending ? <LoadingIcon /> : (success !== null && <BoolIcon success={success} />)}
                         </div>
                     </div>
-                </CIRSForm>
+                </CirsForm>
             </div>
         );
     }

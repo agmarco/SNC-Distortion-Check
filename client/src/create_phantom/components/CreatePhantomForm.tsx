@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { FieldState } from 'react-redux-form';
 
 import { handleErrors, encode } from 'common/utils';
-import { CIRSForm, CIRSControl, CIRSErrors, IDjangoFormData, IDjangoFormErrors } from 'common/forms';
+import { CirsForm, CirsControl, CirsErrors, IDjangoFormData, IDjangoFormErrors } from 'common/forms';
 import { CSRFToken } from 'common/components';
 
 interface IAddPhantomFormProps {
@@ -91,7 +91,7 @@ class CreatePhantomForm extends React.Component<IAddPhantomFormProps, IAddPhanto
 
         return (
             <div>
-                <CIRSForm
+                <CirsForm
                     action={formAction}
                     method="post"
                     model="phantom"
@@ -99,14 +99,14 @@ class CreatePhantomForm extends React.Component<IAddPhantomFormProps, IAddPhanto
                     djangoData={formData}
                     djangoErrors={formErrors}
                 >
-                    <CIRSErrors model="phantom" />
+                    <CirsErrors model="phantom" />
 
                     <CSRFToken />
 
                     <div>
                         <label htmlFor="phantom-name">Name</label>
                         <CIRSControl.text id="phantom-name" model=".name" required />
-                        <CIRSErrors model=".name" />
+                        <CirsErrors model=".name" />
                     </div>
 
                     {/* TODO doesn't validate on first change */}
@@ -119,7 +119,7 @@ class CreatePhantomForm extends React.Component<IAddPhantomFormProps, IAddPhanto
                             asyncValidateOn="change"
                             required
                         />
-                        <CIRSErrors model=".serial_number" />
+                        <CirsErrors model=".serial_number" />
                     </div>
 
                     <div>
@@ -145,7 +145,7 @@ class CreatePhantomForm extends React.Component<IAddPhantomFormProps, IAddPhanto
                             className="btn secondary"
                         />
                     </div>
-                </CIRSForm>
+                </CirsForm>
             </div>
         );
     }

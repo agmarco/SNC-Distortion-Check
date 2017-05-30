@@ -5,7 +5,7 @@ import { Dispatch } from 'redux';
 
 import { IMachineDTO, ISequenceDTO, IPhantomDTO } from 'common/service';
 import { CSRFToken } from 'common/components';
-import { CIRSForm, CIRSControl, CIRSErrors, IDjangoFormData, IDjangoFormErrors } from 'common/forms';
+import { CirsForm, CirsControl, CirsErrors, IDjangoFormData, IDjangoFormErrors } from 'common/forms';
 import { IUploadScanForm } from '../forms';
 
 interface IUploadScanFormProps {
@@ -65,7 +65,7 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
 
         return (
             <div>
-                <CIRSForm
+                <CirsForm
                     action={formAction}
                     encType="multipart/form-data"
                     method="post"
@@ -75,7 +75,7 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
                     djangoErrors={formErrors}
                 >
 
-                    <CIRSErrors model="uploadScan" />
+                    <CirsErrors model="uploadScan" />
 
                     <CSRFToken />
 
@@ -89,7 +89,7 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
                             <option value="" disabled />
                             {machines.map((m) => <option value={m.pk} key={m.pk}>{m.name}</option>)}
                         </CIRSControl.select>
-                        <CIRSErrors model=".machine" />
+                        <CirsErrors model=".machine" />
 
                         {currentMachine && (
                             <div>
@@ -115,7 +115,7 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
                             <option value="" disabled />
                             {sequences.map((s) => <option value={s.pk} key={s.pk}>{s.name}</option>)}
                         </CIRSControl.select>
-                        <CIRSErrors model=".sequence" />
+                        <CirsErrors model=".sequence" />
 
                         {currentSequence && (
                             <div>
@@ -137,7 +137,7 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
                             <option value="" disabled />
                             {phantoms.map((p) => <option value={p.pk} key={p.pk}>{p.name}</option>)}
                         </CIRSControl.select>
-                        <CIRSErrors model=".phantom" />
+                        <CirsErrors model=".phantom" />
 
                         {currentPhantom && (
                             <div>
@@ -160,7 +160,7 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
                     <div>
                         <label htmlFor="upload-scan-dicom-archive">MRI Scan Files</label>
                         <CIRSControl.file id="upload-scan-dicom-archive" model=".dicom_archive" required />
-                        <CIRSErrors model=".dicom_archive" />
+                        <CirsErrors model=".dicom_archive" />
                         <p>
                             Please upload a zip-file containing the MRI DICOM files of a scan of the specified phatom,
                             on the specified machine, using the specified sequence.
@@ -170,14 +170,14 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
                     <div>
                         <label htmlFor="upload-scan-notes">Notes</label>
                         <CIRSControl.textarea cols={40} rows={10} id="upload-scan-notes" model=".notes" />
-                        <CIRSErrors model=".notes" />
+                        <CirsErrors model=".notes" />
                     </div>
 
                     <div className="form-links">
                         <a href={cancelUrl} className="btn tertiary">Cancel</a>
                         <input type="submit" value="Process Scan" className="btn secondary" />
                     </div>
-                </CIRSForm>
+                </CirsForm>
             </div>
         );
     }
