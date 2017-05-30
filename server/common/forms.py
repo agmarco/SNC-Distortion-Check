@@ -13,19 +13,19 @@ from .models import Phantom, Institution, User
 from .validators import validate_phantom_serial_number
 
 
-class CIRSFormMixin:
+class CirsFormMixin:
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('label_suffix', '')
-        super(CIRSFormMixin, self).__init__(*args, **kwargs)
+        super(CirsFormMixin, self).__init__(*args, **kwargs)
 
 
-class AccountForm(CIRSFormMixin, forms.ModelForm):
+class AccountForm(CirsFormMixin, forms.ModelForm):
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'email')
 
 
-class CreatePhantomForm(CIRSFormMixin, forms.Form):
+class CreatePhantomForm(CirsFormMixin, forms.Form):
     name = forms.CharField()
     serial_number = forms.CharField(validators=[validate_phantom_serial_number])
 
@@ -43,7 +43,7 @@ class CreatePhantomForm(CIRSFormMixin, forms.Form):
         return phantom
 
 
-class UploadScanForm(CIRSFormMixin, forms.Form):
+class UploadScanForm(CirsFormMixin, forms.Form):
     machine = forms.IntegerField()
     sequence = forms.IntegerField()
     phantom = forms.IntegerField()
@@ -63,7 +63,7 @@ class UploadScanForm(CIRSFormMixin, forms.Form):
         return self.cleaned_data['dicom_archive']
 
 
-class UploadCTForm(CIRSFormMixin, forms.Form):
+class UploadCTForm(CirsFormMixin, forms.Form):
     dicom_archive = forms.FileField(label="File Browser")
 
     def clean_dicom_archive(self):
@@ -79,7 +79,7 @@ class UploadCTForm(CIRSFormMixin, forms.Form):
         return self.cleaned_data['dicom_archive']
 
 
-class UploadRawForm(CIRSFormMixin, forms.Form):
+class UploadRawForm(CirsFormMixin, forms.Form):
     csv = forms.FileField(label="File Browser")
 
     @staticmethod
@@ -110,7 +110,7 @@ class UploadRawForm(CIRSFormMixin, forms.Form):
         return self.cleaned_data['csv']
 
 
-class InstitutionForm(CIRSFormMixin, forms.ModelForm):
+class InstitutionForm(CirsFormMixin, forms.ModelForm):
     class Meta:
         model = Institution
         fields = ('name', 'address', 'phone_number')
@@ -121,7 +121,7 @@ class InstitutionForm(CIRSFormMixin, forms.ModelForm):
         }
 
 
-class DicomOverlayForm(CIRSFormMixin, forms.Form):
+class DicomOverlayForm(CirsFormMixin, forms.Form):
     study_instance_uid = forms.CharField(label="StudyInstanceUID", required=False)
     patient_id = forms.CharField(label="PatientID", required=False)
     isocenter_x = forms.FloatField(label="x", widget=forms.NumberInput(attrs={'step': '0.01'}), required=False)
@@ -130,13 +130,13 @@ class DicomOverlayForm(CIRSFormMixin, forms.Form):
     frame_of_reference_uid = forms.CharField(label="FrameOfReferenceUID", required=False)
 
 
-class CreatePasswordForm(CIRSFormMixin, PasswordResetForm):
+class CreatePasswordForm(CirsFormMixin, PasswordResetForm):
     def get_users(self, email):
         active_users = User.objects.filter(email__iexact=email, is_active=True)
         return (u for u in active_users if not u.has_usable_password())
 
 
-class BaseUserForm(CIRSFormMixin, forms.ModelForm):
+class BaseUserForm(CirsFormMixin, forms.ModelForm):
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'email')

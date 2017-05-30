@@ -2,7 +2,8 @@ import React from 'react';
 import * as Cookies from 'js-cookie';
 import * as Bluebird from 'bluebird';
 import { connect } from 'react-redux';
-import { FieldState } from 'react-redux-form';
+import { FieldState, actions } from 'react-redux-form';
+import { Dispatch } from 'redux';
 
 import { handleErrors, encode } from 'common/utils';
 import { CSRFToken } from 'common/components';
@@ -15,6 +16,7 @@ interface IRegisterFormProps {
     formErrors: IDjangoFormErrors;
     formAction: string;
     formState?: { [name: string]: FieldState };
+    dispatch?: Dispatch<any>;
 }
 
 interface IRegisterFormState {
@@ -33,6 +35,16 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
             modelNumber: null,
             promise: null,
         };
+    }
+
+    componentDidMount() {
+        const { dispatch } = this.props;
+
+        if (dispatch) {
+            // TODO this should happen automatically
+            // TODO causing error on change
+            dispatch(actions.asyncSetValidity('register.phantom_serial_number', this.validateSerialNumber.bind(this)));
+        }
     }
 
     validateSerialNumber(value: string, done: Function) {
@@ -92,8 +104,6 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
 
         return (
             <div>
-                <CIRSErrors model="register" />
-
                 <CIRSForm
                     action={formAction}
                     method="post"
@@ -102,6 +112,10 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                     djangoData={formData}
                     djangoErrors={formErrors}
                 >
+
+                    {/* TODO global errors aren't showing */}
+                    <CIRSErrors model="register" />
+
                     <CSRFToken />
 
                     <p>
@@ -113,7 +127,6 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                         information.
                     </p>
 
-                    {/* TODO async validation messed up when value is already populated */}
                     <div>
                         <label htmlFor="register-phantom-serial-number">Phantom Serial Number</label>
                         <CIRSControl.text
@@ -123,7 +136,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                             asyncValidateOn="change"
                             required
                         />
-                        <CIRSErrors model=".phantom_serial_number" />
+                        <CIRSErrors model=".phantom_serial_number" required />
                     </div>
 
                     <div>
@@ -144,7 +157,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                             id="register-institution-name"
                             required
                         />
-                        <CIRSErrors model=".institution_name" />
+                        <CIRSErrors model=".institution_name" required />
                     </div>
 
                     <div>
@@ -156,7 +169,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                             rows={10}
                             required
                         />
-                        <CIRSErrors model=".institution_address" />
+                        <CIRSErrors model=".institution_address" required />
                     </div>
 
                     <div>
@@ -166,7 +179,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                             id="register-institution-phone"
                             required
                         />
-                        <CIRSErrors model=".institution_phone" />
+                        <CIRSErrors model=".institution_phone" required />
                     </div>
 
                     <p>The following details will be used to setup a default admin user account.</p>
@@ -178,7 +191,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                             id="register-first-name"
                             required
                         />
-                        <CIRSErrors model=".first_name" />
+                        <CIRSErrors model=".first_name" required />
                     </div>
 
                     <div>
@@ -188,7 +201,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                             id="register-last-name"
                             required
                         />
-                        <CIRSErrors model=".last_name" />
+                        <CIRSErrors model=".last_name" required />
                     </div>
 
                     <div>
@@ -199,7 +212,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                             id="register-email"
                             required
                         />
-                        <CIRSErrors model=".email" />
+                        <CIRSErrors model=".email" required email />
                     </div>
 
                     <div>
@@ -210,7 +223,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                             id="register-email-repeat"
                             required
                         />
-                        <CIRSErrors model=".email_repeat" />
+                        <CIRSErrors model=".email_repeat" required email />
                     </div>
 
                     <div className="form-links">

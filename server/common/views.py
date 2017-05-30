@@ -41,12 +41,32 @@ from .http import CSVResponse, ZipResponse
 logger = logging.getLogger(__name__)
 
 
-class CIRSDeleteView(DeleteView):
+class JsonFormMixin:
+    renderer = JSONRenderer()
+    form_class = None
+
+    def get_context_data(self, **kwargs):
+        context = super(JsonFormMixin, self).get_context_data(**kwargs)
+        context.update({
+            'form_initial': self.renderer.render({name: '' for name in self.form_class.base_fields.keys()}),
+        })
+        return context
+
+    def form_invalid(self, form):
+        context = self.get_context_data(form=form)
+        context.update({
+            'form_data': self.renderer.render({name: form[name].data for name in self.form_class.base_fields.keys()}),
+            'form_errors': self.renderer.render(form.errors),
+        })
+        return self.render_to_response(context)
+
+
+class CirsDeleteView(DeleteView):
     """A view providing the ability to delete objects by setting their 'deleted' attribute."""
 
     def __init__(self, **kwargs):
         self.object = None
-        super(CIRSDeleteView, self).__init__(**kwargs)
+        super(CirsDeleteView, self).__init__(**kwargs)
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -131,7 +151,7 @@ class MachineSequenceDetailView(DetailView):
 
 # TODO cancel might take the user back to landing, machine-sequences, or machine-sequence-detail
 @method_decorator(login_required, name='dispatch')
-class UploadScanView(FormView):
+class UploadScanView(JsonFormMixin, FormView):
     form_class = forms.UploadScanForm
     template_name = 'common/upload_scan.html'
     renderer = JSONRenderer()
@@ -146,7 +166,6 @@ class UploadScanView(FormView):
             'machines_json': self.renderer.render(machines_json.data),
             'sequences_json': self.renderer.render(sequences_json.data),
             'phantoms_json': self.renderer.render(phantoms_json.data),
-            'form_initial': self.renderer.render({name: '' for name in self.form_class.base_fields.keys()}),
         }
 
     def form_valid(self, form):
@@ -167,14 +186,6 @@ class UploadScanView(FormView):
         process_scan.delay(scan.pk)
         messages.success(self.request, "Your scan has been uploaded successfully and is processing.")
         return redirect('machine_sequence_detail', scan.machine_sequence_pair.pk)
-
-    def form_invalid(self, form):
-        context = self.get_context_data(form=form)
-        context.update({
-            'form_data': self.renderer.render({**form.data, **form.files}),
-            'form_errors': self.renderer.render(form.errors),
-        })
-        return self.render_to_response(context)
 
 
 @method_decorator(login_required, name='dispatch')
@@ -331,7 +342,7 @@ class DicomOverlayView(FormView):
 
 @method_decorator(login_required, name='dispatch')
 @validate_institution()
-class DeleteScanView(CIRSDeleteView):
+class DeleteScanView(CirsDeleteView):
     model = models.Scan
 
     def delete(self, request, *args, **kwargs):
@@ -347,7 +358,7 @@ class DeleteScanView(CIRSDeleteView):
 
 
 @login_and_permission_required('common.configuration')
-class CreatePhantomView(FormView):
+class CreatePhantomView(JsonFormMixin, FormView):
     form_class = forms.CreatePhantomForm
     success_url = reverse_lazy('configuration')
     template_name = 'common/phantom_create.html'
@@ -361,21 +372,6 @@ class CreatePhantomView(FormView):
         self.object = form.save(institution=self.request.user.institution)
         messages.success(self.request, f"\"{self.object.name}\" has been created successfully.")
         return super(CreatePhantomView, self).form_valid(form)
-
-    def form_invalid(self, form):
-        context = self.get_context_data(form=form)
-        context.update({
-            'form_data': self.renderer.render({**form.data, **form.files}),
-            'form_errors': self.renderer.render(form.errors),
-        })
-        return self.render_to_response(context)
-
-    def get_context_data(self, **kwargs):
-        context = super(CreatePhantomView, self).get_context_data(**kwargs)
-        context.update({
-            'form_initial': self.renderer.render({name: '' for name in self.form_class.base_fields.keys()}),
-        })
-        return context
 
 
 @login_and_permission_required('common.configuration')
@@ -400,7 +396,7 @@ class UpdatePhantomView(UpdateView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class DeletePhantomView(CIRSDeleteView):
+class DeletePhantomView(CirsDeleteView):
     model = models.Phantom
     success_url = reverse_lazy('configuration')
     pk_url_kwarg = 'phantom_pk'
@@ -441,7 +437,7 @@ class UpdateMachineView(UpdateView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class DeleteMachineView(CIRSDeleteView):
+class DeleteMachineView(CirsDeleteView):
     model = models.Machine
     success_url = reverse_lazy('configuration')
 
@@ -481,7 +477,7 @@ class UpdateSequenceView(UpdateView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class DeleteSequenceView(CIRSDeleteView):
+class DeleteSequenceView(CirsDeleteView):
     model = models.Sequence
     success_url = reverse_lazy('configuration')
 
@@ -521,7 +517,7 @@ class CreateUserView(FormView):
 
 @login_and_permission_required('common.manage_users')
 @validate_institution()
-class DeleteUserView(CIRSDeleteView):
+class DeleteUserView(CirsDeleteView):
     model = models.User
     success_url = reverse_lazy('configuration')
 
@@ -603,7 +599,7 @@ class UploadRawView(FormView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class DeleteGoldStandardView(CIRSDeleteView):
+class DeleteGoldStandardView(CirsDeleteView):
     model = models.GoldenFiducials
     pk_url_kwarg = 'gold_standard_pk'
 
@@ -673,7 +669,7 @@ def refresh_scan_view(request, pk=None):
 
 
 # TODO JSON form errors, repopulate
-class RegisterView(FormView):
+class RegisterView(JsonFormMixin, FormView):
     form_class = forms.RegisterForm
     template_name = 'common/register.html'
     success_url = reverse_lazy('register_done')
@@ -698,21 +694,6 @@ class RegisterView(FormView):
         }
         form.save(**opts)
         return super(RegisterView, self).form_valid(form)
-
-    def form_invalid(self, form):
-        context = self.get_context_data(form=form)
-        context.update({
-            'form_data': self.renderer.render({**form.data, **form.files}),
-            'form_errors': self.renderer.render(form.errors),
-        })
-        return self.render_to_response(context)
-
-    def get_context_data(self, **kwargs):
-        context = super(RegisterView, self).get_context_data(**kwargs)
-        context.update({
-            'form_initial': self.renderer.render({name: '' for name in self.form_class.base_fields.keys()}),
-        })
-        return context
 
 
 class RegisterDoneView(PasswordResetDoneView):

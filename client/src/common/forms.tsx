@@ -28,19 +28,53 @@ export interface IDjangoFormErrors {
 const ErrorsWrapper = (props: ErrorsProps & CustomComponentProps) => <ul className="errorlist">{props.children}</ul>;
 const ErrorsComponent = (props: ErrorsProps & CustomComponentProps) => <li>{props.children}</li>;
 
-export const CIRSErrors = (props: ErrorsProps) => {
-    return <Errors wrapper={ErrorsWrapper} component={ErrorsComponent} {...props} />;
+interface ICIRSErrorsProps extends ErrorsProps {
+    required?: boolean;
+    email?: boolean;
+}
+
+export const CIRSErrors = (props: ICIRSErrorsProps) => {
+    const { required, email, messages = {}, ...rest } = props;
+
+    if (required) {
+        messages.required = "This field is required.";
+    }
+
+    if (email) {
+        messages.isEmail = "Please enter a valid email address.";
+    }
+
+    return (
+        <Errors
+            wrapper={ErrorsWrapper}
+            component={ErrorsComponent}
+            show={{touched: true, focus: false}}
+            messages={messages}
+            {...rest}
+        />
+    );
 };
 
 // Make the field name attribute equal to the last component of the field model
 const controlProps = (props: ControlProps<any>) => {
-    const { model } = props;
+    const { model, required, type, validators = {}, ...rest } = props;
 
     let name;
     if (typeof model === 'string') {
         name = model.split('.').slice(-1)[0];
     }
-    return {name, ...props};
+
+    // TODO https://github.com/davidkpiano/react-redux-form/issues/805
+    if (required) {
+        validators.required = (value: any) => value !== null && value !== '';
+    }
+
+    if (type === 'email') {
+        const emailRegex = /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+        validators.isEmail = (value: any) => value !== null && value.match(emailRegex);
+    }
+
+    return {name, model, required, type, validators, ...rest};
 };
 
 export class CIRSControl<T> extends React.Component<ControlProps<T>, {}> {
@@ -66,9 +100,8 @@ interface ICIRSFormProps extends FormProps {
 }
 
 class CIRSFormImpl extends React.Component<ICIRSFormProps, {}> {
-    constructor(props: ICIRSFormProps) {
-        super();
-        const { dispatch, djangoData, djangoErrors, model } = props;
+    componentDidMount() {
+        const { dispatch, djangoData, djangoErrors, model } = this.props;
 
         if (dispatch && typeof model === 'string') {
 
@@ -82,17 +115,15 @@ class CIRSFormImpl extends React.Component<ICIRSFormProps, {}> {
             // Display errors from Django. Assumes the field model names are the same as the Django field names.
             if (djangoErrors) {
                 if (djangoErrors.__all__) {
-                    const formErrors = keyBy<string>(djangoErrors.__all__, s => uniqueId());
+                    const formErrors = keyBy<string>(djangoErrors.__all__, s => `django${uniqueId()}`);
                     dispatch(actions.setErrors(model, formErrors));
                 }
 
                 const fieldErrors = mapValues<string[], ErrorsObject>(
                     omit<IDjangoFormErrors, IDjangoFormErrors>(djangoErrors, '__all__'),
-                    a => keyBy<string>(a, s => uniqueId()),
+                    a => keyBy<string>(a, s => `django${uniqueId()}`),
                 );
                 for (let field of Object.keys(fieldErrors)) {
-                    console.log(`${model}.${field}`);  // TODO errors aren't showing
-                    console.log(fieldErrors[field]);
                     dispatch(actions.setErrors(`${model}.${field}`, fieldErrors[field]));
                 }
             }
@@ -100,8 +131,8 @@ class CIRSFormImpl extends React.Component<ICIRSFormProps, {}> {
     }
 
     render() {
-        const { dispatch, djangoData, djangoErrors, ...formProps } = this.props;
-        return <Form {...formProps} />;
+        const { dispatch, djangoData, djangoErrors, ...rest } = this.props;
+        return <Form {...rest} />;
     }
 }
 

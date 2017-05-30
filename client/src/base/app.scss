@@ -277,10 +277,15 @@ h6 {
 }
 
 .errorlist {
+  border: 1px solid $error-color;
+  border-radius: 4px;
+  background-color: lighten($error-color, 45%);
+  margin-bottom: $small-spacing;
+
   li {
     font-size: 0.875rem;
     color: $error-color;
-    margin: $small-spacing 0;
+    margin: $small-spacing;
   }
 }
 

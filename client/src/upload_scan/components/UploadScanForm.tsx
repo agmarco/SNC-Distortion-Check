@@ -65,8 +65,6 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
 
         return (
             <div>
-                <CIRSErrors model="uploadScan" />
-
                 <CIRSForm
                     action={formAction}
                     encType="multipart/form-data"
@@ -76,6 +74,9 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
                     djangoData={formData}
                     djangoErrors={formErrors}
                 >
+
+                    <CIRSErrors model="uploadScan" />
+
                     <CSRFToken />
 
                     <div>

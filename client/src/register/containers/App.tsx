@@ -1,5 +1,6 @@
 import React from 'react';
-import { createStore } from 'redux';
+import { createStore, applyMiddleware } from 'redux';
+import thunk from 'redux-thunk';
 import { Provider } from 'react-redux';
 import { combineForms } from 'react-redux-form';
 
@@ -10,7 +11,7 @@ declare const FORM_INITIAL: IRegisterForm;
 
 const store = createStore(combineForms({
     register: FORM_INITIAL,
-}));
+}), applyMiddleware(thunk));
 
 export default () => (
     <Provider store={store}>

@@ -91,8 +91,6 @@ class CreatePhantomForm extends React.Component<IAddPhantomFormProps, IAddPhanto
 
         return (
             <div>
-                <CIRSErrors model="phantom" />
-
                 <CIRSForm
                     action={formAction}
                     method="post"
@@ -101,6 +99,8 @@ class CreatePhantomForm extends React.Component<IAddPhantomFormProps, IAddPhanto
                     djangoData={formData}
                     djangoErrors={formErrors}
                 >
+                    <CIRSErrors model="phantom" />
+
                     <CSRFToken />
 
                     <div>
