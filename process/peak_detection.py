@@ -51,8 +51,8 @@ def detect_peaks(data, voxel_spacing, search_radius):
     """
     Detect peaks using a local maximum filter.  A peak is defined as the
     maximum value within a binary neighborhood.  In order to provide subpixel
-    resolution---once the maximum values are detected, a center-of-mass
-    calculation is calculated within the same neighborhood.
+    resolution---once the maximum values are detected, a subvoxel peak
+    detection is performed within the neighborhood of the maximum.
 
     Inspired by http://stackoverflow.com/a/3689710/1146963
 
@@ -97,7 +97,7 @@ def detect_peaks(data, voxel_spacing, search_radius):
 
 
 def subvoxel_maximum(data, zoom):
-    data_zoomed = ndimage.zoom(data, zoom)
+    data_zoomed = ndimage.zoom(data, zoom, mode='nearest')
 
     # NOTE: if there are multiple maximums, this will return the first
     maximum_indice = np.argmax(data_zoomed)
