@@ -5,15 +5,14 @@ from .fields import NumpyFileField, ndarray_to_bytes, bytes_to_ndarray
 from .models import NumpyFileFieldModel, NumpyTextFieldModel
 
 
-# def test_numpy_file_field_save_and_reload(db):
-    # instance = NumpyFileFieldModel()
-    # array = np.random.rand(5, 10, 3)
-    # instance.array = array
-    # instance.save()
-
-    # reretrieved_instance = NumpyFileFieldModel.objects.get(instance.pk)
-
-    # np.testing.assert_allclose(reretrieved_instance.array, array)
+def test_numpy_file_field_save_and_reload(db):
+    instance = NumpyFileFieldModel()
+    array = np.random.rand(5, 10, 3)
+    instance.array = array
+    instance.save()
+    reretrieved_instance = NumpyFileFieldModel.objects.get(pk=instance.pk)
+    raise Exception(reretrieved_instance.array)
+    np.testing.assert_allclose(reretrieved_instance.array, array)
 
 
 def test_numpy_text_field_save_and_reload(db):

@@ -1,7 +1,11 @@
 import io
+import uuid
 
+import six
+from django.core.files.base import ContentFile
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.db.models.fields.files import FieldFile, FileDescriptor
 from django.utils.translation import ugettext_lazy as _
 import numpy as np
 
@@ -17,8 +21,7 @@ def ndarray_to_bytes(ndarray):
     return f.getvalue()
 
 
-# TODO: finish working on this
-class NumpyDescriptor(object):
+class NumpyDescriptor:
     """
     The descriptor for the numpy array.
     
@@ -27,8 +30,9 @@ class NumpyDescriptor(object):
         django/db/models/fields/files.py
 
     """
-    def __init__(self, field):
+    def __init__(self, field, file_attname):
         self.field = field
+        self.file_attname = file_attname
 
     def __get__(self, instance, cls=None):
         if instance is None:
@@ -41,11 +45,34 @@ class NumpyDescriptor(object):
 
     def __set__(self, instance, value):
         instance.__dict__[self.field.name] = value
+        setattr(self.field, self.file_attname, ContentFile(ndarray_to_bytes(value), name=f'{uuid.uuid4()}.npy'))
 
 
 class NumpyFileField(models.FileField):
     description = _("Numpy Array File")
     descriptor_class = NumpyDescriptor
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        # TODO ?
+        NumpyFileField.file = FileDescriptor(self)
+
+    def contribute_to_class(self, cls, name, **kwargs):
+        super(models.FileField, self).contribute_to_class(cls, name, **kwargs)
+        setattr(cls, self.name, self.descriptor_class(self, 'file'))
+
+    def get_prep_value(self, value):
+        value = super(models.FileField, self).get_prep_value(self.file)
+        if value is None:
+            return None
+        return six.text_type(value)
+
+    def pre_save(self, model_instance, add):
+        file = self.file
+        if file and not file._committed:
+            file.save(file.name, file.file, save=False)
+        return file
 
 
 class NumpyTextField(models.BinaryField):
