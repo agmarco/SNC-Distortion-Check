@@ -30,9 +30,8 @@ class NumpyDescriptor:
         django/db/models/fields/files.py
 
     """
-    def __init__(self, field, file_attname):
+    def __init__(self, field):
         self.field = field
-        self.file_attname = file_attname
 
     def __get__(self, instance, cls=None):
         if instance is None:
@@ -45,7 +44,7 @@ class NumpyDescriptor:
 
     def __set__(self, instance, value):
         instance.__dict__[self.field.name] = value
-        setattr(self.field, self.file_attname, ContentFile(ndarray_to_bytes(value), name=f'{uuid.uuid4()}.npy'))
+        #  TODO committed
 
 
 class NumpyFileField(models.FileField):
@@ -54,25 +53,44 @@ class NumpyFileField(models.FileField):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.field_file = None
+        self._committed = False
 
-        # TODO ?
-        NumpyFileField.file = FileDescriptor(self)
+    def from_db_value(self, value, expression, connection, context):
+        if value is None:
+            return value
+        else:
+            #  TODO None = instance
+            self.field_file = self.attr_class(None, self, value)
+            return np.load(self.field_file.file, allow_pickle=False)
 
-    def contribute_to_class(self, cls, name, **kwargs):
-        super(models.FileField, self).contribute_to_class(cls, name, **kwargs)
-        setattr(cls, self.name, self.descriptor_class(self, 'file'))
+    def to_python(self, value):
+        if isinstance(value, np.ndarray) or value is None:
+            return value
+        else:
+            #  TODO None = instance
+            self.field_file = self.attr_class(None, self, value)
+            return np.load(self.field_file.file, allow_pickle=False)
 
     def get_prep_value(self, value):
-        value = super(models.FileField, self).get_prep_value(self.file)
+        # TODO
+        value = super(models.FileField, self).get_prep_value(value)
         if value is None:
             return None
         return six.text_type(value)
 
     def pre_save(self, model_instance, add):
-        file = self.file
-        if file and not file._committed:
-            file.save(file.name, file.file, save=False)
-        return file
+        ndarray = super(models.FileField, self).pre_save(model_instance, add)
+        if ndarray is not None and not self._committed:
+            filename = self.generate_filename(model_instance, f'{uuid.uuid4()}.npy')
+            file = ContentFile(ndarray_to_bytes(ndarray), filename)
+            self.field_file = self.attr_class(model_instance, self, file.name)
+            self.field_file.file = file
+            self.field_file._committed = self._committed
+            self.field_file.save(file.name, file.file, save=False)
+            return self.field_file.name
+        else:
+            return None
 
 
 class NumpyTextField(models.BinaryField):

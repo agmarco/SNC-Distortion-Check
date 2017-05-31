@@ -11,7 +11,6 @@ def test_numpy_file_field_save_and_reload(db):
     instance.array = array
     instance.save()
     reretrieved_instance = NumpyFileFieldModel.objects.get(pk=instance.pk)
-    raise Exception(reretrieved_instance.array)
     np.testing.assert_allclose(reretrieved_instance.array, array)
 
 
