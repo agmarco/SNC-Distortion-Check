@@ -1,11 +1,8 @@
 import io
 import uuid
 
-import six
 from django.core.files.base import ContentFile
 from django.db import models
-from django.core.exceptions import ValidationError
-from django.db.models.fields.files import FieldFile, FileDescriptor
 from django.utils.translation import ugettext_lazy as _
 import numpy as np
 
@@ -44,7 +41,7 @@ class NumpyDescriptor:
 
     def __set__(self, instance, value):
         instance.__dict__[self.field.name] = value
-        #  TODO committed
+        self.field._committed = False
 
 
 class NumpyFileField(models.FileField):
@@ -54,13 +51,12 @@ class NumpyFileField(models.FileField):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.field_file = None
-        self._committed = False
+        self._committed = True
 
     def from_db_value(self, value, expression, connection, context):
         if value is None:
             return value
         else:
-            #  TODO None = instance
             self.field_file = self.attr_class(None, self, value)
             return np.load(self.field_file.file, allow_pickle=False)
 
@@ -68,16 +64,16 @@ class NumpyFileField(models.FileField):
         if isinstance(value, np.ndarray) or value is None:
             return value
         else:
-            #  TODO None = instance
             self.field_file = self.attr_class(None, self, value)
             return np.load(self.field_file.file, allow_pickle=False)
 
     def get_prep_value(self, value):
-        # TODO
+        # Assume pre_save has been called already.
         value = super(models.FileField, self).get_prep_value(value)
         if value is None:
             return None
-        return six.text_type(value)
+        else:
+            return super().get_prep_value(self.field_file)
 
     def pre_save(self, model_instance, add):
         ndarray = super(models.FileField, self).pre_save(model_instance, add)
@@ -88,9 +84,8 @@ class NumpyFileField(models.FileField):
             self.field_file.file = file
             self.field_file._committed = self._committed
             self.field_file.save(file.name, file.file, save=False)
-            return self.field_file.name
-        else:
-            return None
+            self._committed = True
+        return ndarray
 
 
 class NumpyTextField(models.BinaryField):
