@@ -1,8 +1,10 @@
 import io
 import uuid
 
+import six
 from django.core.files.base import ContentFile
 from django.db import models
+from django.db.models.fields.files import FieldFile
 from django.utils.translation import ugettext_lazy as _
 import numpy as np
 
@@ -34,57 +36,79 @@ class NumpyDescriptor:
         if instance is None:
             return self
 
-        if self.field.name not in instance.__dict__:
+        if self.field.name in instance.__dict__:
+            value = instance.__dict__[self.field.name]
+        else:
             instance.refresh_from_db(fields=[self.field.name])
+            value = getattr(instance, self.field.name)
+
+        # self.field.field_file is updated whenever __get__ is invoked.
+
+        if isinstance(value, six.string_types):
+            self.field.field_file = self.field.attr_class(instance, self.field, value)
+            instance.__dict__[self.field.name] = np.load(self.field.field_file.file, allow_pickle=False)
+
+        elif isinstance(value, np.ndarray) and self.field.field_file is None:
+            filename = f'{uuid.uuid4()}.npy'
+            file = ContentFile(ndarray_to_bytes(value), filename)
+            self.field.field_file = self.field.attr_class(instance, self.field, file.name)
+            self.field.field_file.file = file
+            self.field.field_file._committed = False
 
         return instance.__dict__[self.field.name]
 
     def __set__(self, instance, value):
         instance.__dict__[self.field.name] = value
-        self.field._committed = False
+        self.field.field_file = None
+
+
+class NumpyFieldFile(FieldFile):
+    def save(self, name, content, save=True):
+        name = self.field.generate_filename(self.instance, name)
+        self.name = self.storage.save(name, content, max_length=self.field.max_length)
+        self._committed = True
+
+        # Save the object because it has changed, unless save is False
+        if save:
+            self.instance.save()
+
+    def delete(self, save=True):
+        if not self:
+            return
+        # Only close the file if it's already open, which we know by the
+        # presence of self._file
+        if hasattr(self, '_file'):
+            self.close()
+            del self.file
+
+        self.storage.delete(self.name)
+
+        self.name = None
+        self._committed = False
+
+        if save:
+            self.instance.save()
 
 
 class NumpyFileField(models.FileField):
     description = _("Numpy Array File")
     descriptor_class = NumpyDescriptor
+    attr_class = NumpyFieldFile
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.field_file = None
-        self._committed = True
-
-    def from_db_value(self, value, expression, connection, context):
-        if value is None:
-            return value
-        else:
-            self.field_file = self.attr_class(None, self, value)
-            return np.load(self.field_file.file, allow_pickle=False)
-
-    def to_python(self, value):
-        if isinstance(value, np.ndarray) or value is None:
-            return value
-        else:
-            self.field_file = self.attr_class(None, self, value)
-            return np.load(self.field_file.file, allow_pickle=False)
 
     def get_prep_value(self, value):
-        # Assume pre_save has been called already.
-        value = super(models.FileField, self).get_prep_value(value)
-        if value is None:
+        if self.field_file is None:
             return None
         else:
-            return super().get_prep_value(self.field_file)
+            return six.text_type(self.field_file)
 
     def pre_save(self, model_instance, add):
         ndarray = super(models.FileField, self).pre_save(model_instance, add)
-        if ndarray is not None and not self._committed:
-            filename = self.generate_filename(model_instance, f'{uuid.uuid4()}.npy')
-            file = ContentFile(ndarray_to_bytes(ndarray), filename)
-            self.field_file = self.attr_class(model_instance, self, file.name)
-            self.field_file.file = file
-            self.field_file._committed = self._committed
-            self.field_file.save(file.name, file.file, save=False)
-            self._committed = True
+        if self.field_file and not self.field_file._committed:
+            self.field_file.save(self.field_file.name, self.field_file.file, save=False)
         return ndarray
 
 
