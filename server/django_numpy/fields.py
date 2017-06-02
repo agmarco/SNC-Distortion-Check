@@ -62,6 +62,8 @@ class NumpyDescriptor:
 
         if type(value) is np.ndarray:
             value = FileFieldArray(value, instance)
+        elif type(value) is FileFieldArray:
+            value.instance = instance
 
         instance.__dict__[self.field.name] = value
         return value
