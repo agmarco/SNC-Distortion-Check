@@ -5,9 +5,24 @@ from .fields import NumpyFileField, ndarray_to_bytes, bytes_to_ndarray
 from .models import NumpyFileFieldModel, NumpyTextFieldModel
 
 
+class CustomArray(np.ndarray):
+    def __new__(cls, input_array):
+        obj = np.asarray(input_array).view(cls)
+        return obj
+
+
 def test_numpy_file_field_save_and_reload(db):
     instance = NumpyFileFieldModel()
     array = np.random.rand(5, 10, 3)
+    instance.array = array
+    instance.save()
+    reretrieved_instance = NumpyFileFieldModel.objects.get(pk=instance.pk)
+    np.testing.assert_allclose(reretrieved_instance.array, array)
+
+
+def test_numpy_file_field_custom_ndarray(db):
+    instance = NumpyFileFieldModel()
+    array = CustomArray(np.random.rand(5, 10, 3))
     instance.array = array
     instance.save()
     reretrieved_instance = NumpyFileFieldModel.objects.get(pk=instance.pk)
