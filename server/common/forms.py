@@ -6,10 +6,10 @@ from django import forms
 import numpy as np
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 
 from process import dicom_import
-from .models import Phantom, Institution, User
+from .models import Phantom, Institution, User, Machine
 from .validators import validate_phantom_serial_number
 
 
@@ -252,3 +252,24 @@ class RegisterForm(BaseUserForm):
     def _save_m2m(self, **kwargs):
         super(RegisterForm, self)._save_m2m(**kwargs)
         self.instance.groups.add(Group.objects.get(name=CreateUserForm.MANAGER))
+
+
+class CreateMachineForm(CIRSFormMixin, forms.ModelForm):
+    class Meta:
+        model = Machine
+        fields = ('name', 'model', 'manufacturer')
+
+    def __init__(self, *args, institution=None, **kwargs):
+        super(CreateMachineForm, self).__init__(*args, **kwargs)
+        self.institution = institution
+
+    def clean(self):
+        cleaned_data = super(CreateMachineForm, self).clean()
+        if Machine.objects.filter(institution=self.institution).count() >= self.institution.number_of_licenses:
+            raise ValidationError("""Your institution already has the maximum number of allowed machine licenses.
+                Please contact CIRS support if you believe that this is an error.""")
+        return cleaned_data
+
+    def save(self, commit=True):
+        self.instance.institution = self.institution
+        return super(CreateMachineForm, self).save(commit)

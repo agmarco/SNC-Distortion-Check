@@ -41,7 +41,7 @@ class CommonFieldsMixin(models.Model):
 class Institution(CommonFieldsMixin):
     name_ht = 'This is how the institution will be identified within the UI'
     name = models.CharField(max_length=255, help_text=name_ht)
-    number_of_licenses_ht = 'The number of machines that the institution is allowed to add'  # TODO enforce this
+    number_of_licenses_ht = 'The number of machines that the institution is allowed to add'
     number_of_licenses = models.PositiveIntegerField(default=1, help_text=number_of_licenses_ht)
     address = models.TextField()
     phone_number = models.CharField(max_length=255)
@@ -233,8 +233,8 @@ def scan_upload_path(instance, filename):
     return os.path.join('scan', str(instance.pk), filename)
 
 
-# TODO add help text
 # TODO make sure FileFields are only accessible by users with the right permissions
+# https://stackoverflow.com/questions/28166784/restricting-access-to-private-file-downloads-in-django
 class Scan(CommonFieldsMixin):
     creator = models.ForeignKey(User, models.SET_NULL, null=True)
     machine_sequence_pair = models.ForeignKey(MachineSequencePair, models.CASCADE)

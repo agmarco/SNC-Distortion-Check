@@ -63,5 +63,3 @@ urlpatterns = [
         url(r'^(?P<pk>\d+)/delete/$', views.DeleteUserView.as_view(), name='delete_user'),
     ])),
 ]
-
-# TODO redirect to "next" after logging in

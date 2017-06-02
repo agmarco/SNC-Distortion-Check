@@ -400,15 +400,17 @@ class DeletePhantomView(CIRSDeleteView):
 
 @login_and_permission_required('common.configuration')
 class CreateMachineView(CreateView):
-    model = models.Machine
-    fields = ('name', 'model', 'manufacturer')
+    form_class = forms.CreateMachineForm
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_create'
 
+    def get_form_kwargs(self):
+        kwargs = super(CreateMachineView, self).get_form_kwargs()
+        kwargs.update({'institution': self.request.user.institution})
+        return kwargs
+
     def form_valid(self, form):
-        self.object = form.save(commit=False)
-        self.object.institution = self.request.user.institution
-        self.object.save()
+        self.object = form.save()
         messages.success(self.request, f"\"{self.object.name}\" has been created successfully.")
         return super(ModelFormMixin, self).form_valid(form)
 
@@ -659,7 +661,6 @@ def refresh_scan_view(request, pk=None):
         return HttpResponseNotAllowed(['POST'])
 
 
-# TODO JSON form errors, repopulate
 class RegisterView(FormView):
     form_class = forms.RegisterForm
     template_name = 'common/register.html'

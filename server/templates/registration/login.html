@@ -11,6 +11,7 @@
     <h1>CIRS Distortion Check</h1>
     <form action="{% url 'login' %}" method="post">
       {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.GET.next }}" />
       {% for field in form %}
         <div>
           {{ field.label_tag|title }}

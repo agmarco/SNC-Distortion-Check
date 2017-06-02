@@ -134,7 +134,7 @@ const machineSequenceTableRow = (pair: IMachineSequencePairDTO) => {
                 />}
             </td>
             <td className="sep" />
-            <td className="action"><a href={pair.detail_url}>View Details</a></td>
+            <td className="action view-details"><a href={pair.detail_url}>View Details</a></td>
         </tr>
     );
 };

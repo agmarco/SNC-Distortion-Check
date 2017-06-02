@@ -76,7 +76,6 @@ def process_scan(scan_pk):
             scan.TP_A_S = Fiducials.objects.create(fiducials=TP_A_S)
             scan.TP_B = Fiducials.objects.create(fiducials=TP_B)
 
-            # TODO: come up with better filename
             full_report_filename = 'full_report.pdf'
             executive_report_filename = 'executive_report.pdf'
             full_report_path = os.path.join(settings.BASE_DIR, 'tmp', full_report_filename)
