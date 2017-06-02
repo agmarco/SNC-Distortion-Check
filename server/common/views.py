@@ -129,7 +129,6 @@ class MachineSequenceDetailView(DetailView):
         }
 
 
-# TODO cancel might take the user back to landing, machine-sequences, or machine-sequence-detail
 @method_decorator(login_required, name='dispatch')
 class UploadScanView(FormView):
     form_class = forms.UploadScanForm

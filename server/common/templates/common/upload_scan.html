@@ -23,7 +23,7 @@
     var MACHINES = {{ machines_json|safe }};
     var SEQUENCES = {{ sequences_json|safe }};
     var PHANTOMS = {{ phantoms_json|safe }};
-    var CANCEL_URL = "{% url 'landing' %}";
+    var CANCEL_URL = "{% if request.GET.cancel %}{{ request.GET.cancel }}{% else %}{% url 'landing' %}{% endif %}";
     var FORM_ERRORS = {% if form_errors %}{{ form_errors|safe }}{% else %}null{% endif %};
     var INITIAL_MACHINE_PK = {% if request.GET.machine %}{{ request.GET.machine }}{% else %}null{% endif %};
     var INITIAL_SEQUENCE_PK = {% if request.GET.sequence %}{{ request.GET.sequence }}{% else %}null{% endif %};
