@@ -1,7 +1,6 @@
-from django.db import models
 import numpy as np
 
-from .fields import NumpyFileField, ndarray_to_bytes, bytes_to_ndarray
+from .fields import ndarray_to_bytes, bytes_to_ndarray
 from .models import NumpyFileFieldModel, NumpyTextFieldModel
 
 
