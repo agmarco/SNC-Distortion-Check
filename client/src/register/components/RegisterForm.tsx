@@ -43,6 +43,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
         if (dispatch) {
             // TODO this should happen automatically
             // TODO causing error on change
+            // TODO asyncSetValidity doesn't run on first change
             dispatch(actions.asyncSetValidity('register.phantom_serial_number', this.validateSerialNumber.bind(this)));
         }
     }
@@ -129,7 +130,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
 
                     <div>
                         <label htmlFor="register-phantom-serial-number">Phantom Serial Number</label>
-                        <CIRSControl.text
+                        <CirsControl.text
                             id="register-phantom-serial-number"
                             model=".phantom_serial_number"
                             asyncValidators={{valid: this.validateSerialNumber.bind(this)}}
@@ -152,7 +153,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
 
                     <div>
                         <label htmlFor="register-institution-name">Institution Name</label>
-                        <CIRSControl.text
+                        <CirsControl.text
                             model=".institution_name"
                             id="register-institution-name"
                             required
@@ -162,7 +163,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
 
                     <div>
                         <label htmlFor="register-institution-address">Institution Address</label>
-                        <CIRSControl.textarea
+                        <CirsControl.textarea
                             id="register-institution-address"
                             model=".institution_address"
                             cols={40}
@@ -174,7 +175,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
 
                     <div>
                         <label htmlFor="register-institution-phone">Institution Contact Phone Number</label>
-                        <CIRSControl.text
+                        <CirsControl.text
                             model=".institution_phone"
                             id="register-institution-phone"
                             required
@@ -186,7 +187,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
 
                     <div>
                         <label htmlFor="register-first-name">First Name</label>
-                        <CIRSControl.text
+                        <CirsControl.text
                             model=".first_name"
                             id="register-first-name"
                             required
@@ -196,7 +197,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
 
                     <div>
                         <label htmlFor="register-last-name">Last Name</label>
-                        <CIRSControl.text
+                        <CirsControl.text
                             model=".last_name"
                             id="register-last-name"
                             required
@@ -206,7 +207,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
 
                     <div>
                         <label htmlFor="register-email">Email</label>
-                        <CIRSControl.input
+                        <CirsControl.input
                             model=".email"
                             type="email"
                             id="register-email"
@@ -217,7 +218,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
 
                     <div>
                         <label htmlFor="register-email-repeat">Email Repeat</label>
-                        <CIRSControl.input
+                        <CirsControl.input
                             model=".email_repeat"
                             type="email"
                             id="register-email-repeat"

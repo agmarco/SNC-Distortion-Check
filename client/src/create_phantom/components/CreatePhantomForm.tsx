@@ -105,14 +105,14 @@ class CreatePhantomForm extends React.Component<IAddPhantomFormProps, IAddPhanto
 
                     <div>
                         <label htmlFor="phantom-name">Name</label>
-                        <CIRSControl.text id="phantom-name" model=".name" required />
+                        <CirsControl.text id="phantom-name" model=".name" required />
                         <CirsErrors model=".name" />
                     </div>
 
                     {/* TODO doesn't validate on first change */}
                     <div>
                         <label htmlFor="phantom-serial-number">Serial Number</label>
-                        <CIRSControl.text
+                        <CirsControl.text
                             id="phantom-serial-number"
                             model=".serial_number"
                             asyncValidators={{valid: this.validateSerialNumber.bind(this)}}

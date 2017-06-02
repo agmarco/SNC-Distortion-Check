@@ -100,7 +100,7 @@ class ToleranceForm extends React.Component<IToleranceFormProps, IToleranceFormS
                     <div>
                         <label htmlFor="tolerance-tolerance">Maximum FLE (mm)</label>
                         <div className="inline-group">
-                            <CIRSControl.input
+                            <CirsControl.input
                                 id="tolerance-tolerance"
                                 model=".tolerance"
                                 type="number"
