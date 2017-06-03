@@ -41,13 +41,15 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
         const { dispatch } = this.props;
 
         if (dispatch) {
-            // TODO this should happen automatically
+            // TODO this should happen automatically?
             // TODO causing error on change
-            // TODO asyncSetValidity doesn't run on first change
+            // https://github.com/davidkpiano/react-redux-form/issues/818
             dispatch(actions.asyncSetValidity('register.phantom_serial_number', this.validateSerialNumber.bind(this)));
         }
     }
 
+    // TODO asyncSetValidity doesn't run on first change
+    // https://github.com/davidkpiano/react-redux-form/issues/817
     validateSerialNumber(value: string, done: Function) {
         const { validateSerialUrl } = this.props;
         const { promise } = this.state;
