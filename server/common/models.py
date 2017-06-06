@@ -9,7 +9,7 @@ from django.db import models
 from django.utils.functional import cached_property
 
 from process import dicom_import
-from server.django_numpy.fields import NumpyTextField, NumpyFileField
+from server.django_numpy.fields import NdarrayTextField, NdarrayFileField
 from server.emailauth.models import AbstractUser, UserManager
 
 
@@ -62,7 +62,7 @@ class User(AbstractUser, CommonFieldsMixin):
 
 
 class Fiducials(CommonFieldsMixin):
-    fiducials = NumpyFileField(upload_to='fiducials/fiducials')
+    fiducials = NdarrayFileField(upload_to='fiducials/fiducials')
 
     def __str__(self):
         return "Fiducials {}".format(self.id)
@@ -156,9 +156,9 @@ class MachineSequencePair(CommonFieldsMixin):
 
 class DicomSeries(CommonFieldsMixin):
     zipped_dicom_files = models.FileField(upload_to='dicom_series/zipped_dicom_files')
-    voxels = NumpyFileField(upload_to='dicom_series/voxels')
-    ijk_to_xyz = NumpyTextField()
-    shape = NumpyTextField()
+    voxels = NdarrayFileField(upload_to='dicom_series/voxels')
+    ijk_to_xyz = NdarrayTextField()
+    shape = NdarrayTextField()
     series_uid_ht = 'The DICOM Series Instance UID, which should uniquely identify a scan'
     series_uid = models.CharField(max_length=64, verbose_name='Series Instance UID', help_text=series_uid_ht)
     study_uid = models.CharField(max_length=64, verbose_name='Study Instance UID', help_text=series_uid_ht)

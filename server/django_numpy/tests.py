@@ -36,7 +36,7 @@ def test_numpy_file_field_bad_type(db):
         instance.save()
 
 
-# TODO
+# TODO test failure to load file
 def test_numpy_file_field_load_failure(db):
     instance = NumpyFileFieldModel()
     array = np.random.rand(5, 10, 3)
@@ -81,6 +81,7 @@ def test_numpy_file_field_copy(db):
     a.save()
     b.save()
     assert a.array.field_file != b.array.field_file
+    # TODO: edit one array, save the instance, then assert the array values are indeed different.
 
 
 def test_numpy_text_field_save_and_reload(db):

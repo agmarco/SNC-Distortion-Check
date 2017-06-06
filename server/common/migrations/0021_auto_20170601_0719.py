@@ -16,11 +16,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='dicomseries',
             name='voxels',
-            field=server.django_numpy.fields.NumpyFileField(upload_to='dicom_series/voxels'),
+            field=server.django_numpy.fields.NdarrayFileField(upload_to='dicom_series/voxels'),
         ),
         migrations.AlterField(
             model_name='fiducials',
             name='fiducials',
-            field=server.django_numpy.fields.NumpyFileField(upload_to='fiducials/fiducials'),
+            field=server.django_numpy.fields.NdarrayFileField(upload_to='fiducials/fiducials'),
         ),
     ]
