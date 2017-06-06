@@ -1,7 +1,5 @@
-import numpy as np
-import os
-from django.conf import settings
 import pytest
+import numpy as np
 from django.core.exceptions import ValidationError
 
 from .fields import ndarray_to_bytes, bytes_to_ndarray
@@ -82,7 +80,7 @@ def test_numpy_file_field_copy(db):
     b.array = a.array
     a.save()
     b.save()
-    assert a.array.field_file.name != b.array.field_file.name
+    assert a.array.field_file != b.array.field_file
 
 
 def test_numpy_text_field_save_and_reload(db):
