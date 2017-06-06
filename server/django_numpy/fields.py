@@ -2,6 +2,7 @@ import io
 import uuid
 
 import six
+from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.db import models
 from django.db.models.fields.files import FieldFile
@@ -21,17 +22,22 @@ def ndarray_to_bytes(ndarray):
 
 
 class FileFieldArray(np.ndarray):
-
-    def __new__(cls, input_array, instance=None):
+    def __new__(cls, input_array, instance=None, field=None, field_file=None):
         obj = np.asarray(input_array).view(cls)
-        obj.instance = instance
+        obj._instance = instance
+        obj._field = field
+        obj._field_file = None
         return obj
 
-    def __array_finalize__(self, obj):
-        if obj is None:
-            return
-        else:
-            self.instance = getattr(obj, 'instance', None)
+    @property
+    def field_file(self):
+        if self._field_file is None:
+            filename = f'{uuid.uuid4()}.npy'
+            content_file = ContentFile(ndarray_to_bytes(self), filename)
+            self._field_file = self._field.attr_class(self._instance, self._field, content_file.name)
+            self._field_file.file = content_file
+            self._field_file._committed = False
+        return self._field_file
 
 
 class NumpyDescriptor:
@@ -56,78 +62,31 @@ class NumpyDescriptor:
             instance.refresh_from_db(fields=[self.field.name])
             value = getattr(instance, self.field.name)
 
-        if isinstance(value, six.string_types):
-            field_file = self.field.get_file(instance)
+        if value is None:
+            value = None
+        elif isinstance(value, six.string_types):
+            field_file = self.field.attr_class(instance, self.field, value)
             value = np.load(field_file.file, allow_pickle=False)
-
-        if type(value) is FileFieldArray:
-            value.instance = instance
-        elif isinstance(value, np.ndarray):
-            value = FileFieldArray(value, instance)
+            value = FileFieldArray(value, instance, self.field, field_file)
+        else:
+            value = FileFieldArray(value, instance, self.field)
 
         instance.__dict__[self.field.name] = value
         return value
 
     def __set__(self, instance, value):
+        if type(value) not in (np.ndarray, FileFieldArray) and not isinstance(value, six.string_types) and value is not None:
+            if isinstance(value, np.ndarray):
+                raise ValidationError("Subclasses of ndarray are not supported.")
+            else:
+                raise ValidationError("NumpyFileField's value must be an ndarray.")
+
         instance.__dict__[self.field.name] = value
-        self.field.set_file(instance, value)
-
-
-class NumpyFieldFile(FieldFile):
-    def save(self, name, content, save=True):
-        name = self.field.generate_filename(self.instance, name)
-        self.name = self.storage.save(name, content, max_length=self.field.max_length)
-        self._committed = True
-
-        # Save the object because it has changed, unless save is False
-        if save:
-            self.instance.save()
-
-    def delete(self, save=True):
-        if not self:
-            return
-        # Only close the file if it's already open, which we know by the presence of self._file
-        if hasattr(self, '_file'):
-            self.close()
-            del self.file
-
-        self.storage.delete(self.name)
-
-        self.name = None
-        self._committed = False
-
-        if save:
-            self.instance.save()
 
 
 class NumpyFileField(models.FileField):
     description = _("Numpy Array File")
     descriptor_class = NumpyDescriptor
-    attr_class = NumpyFieldFile
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self._files = {}
-
-    def set_file(self, instance, value):
-        self._files[instance.pk] = value
-
-    def get_file(self, instance):
-        value = self._files[instance.pk]
-
-        if isinstance(value, six.string_types):
-            field_file = self.attr_class(instance, self, value)
-            self._files[instance.pk] = field_file
-
-        elif isinstance(value, np.ndarray):
-            filename = f'{uuid.uuid4()}.npy'
-            content_file = ContentFile(ndarray_to_bytes(value), filename)
-            field_file = self.attr_class(instance, self, content_file.name)
-            field_file.file = content_file
-            field_file._committed = False
-            self._files[instance.pk] = field_file
-
-        return self._files[instance.pk]
 
     def get_prep_value(self, value):
         value = super(models.FileField, self).get_prep_value(value)
@@ -135,15 +94,18 @@ class NumpyFileField(models.FileField):
         if value is None:
             return None
         else:
-            return six.text_type(self.get_file(value.instance))
+            return six.text_type(value.field_file)
 
     def pre_save(self, model_instance, add):
         value = super(models.FileField, self).pre_save(model_instance, add)
-        file = self.get_file(model_instance)
-        if file and not file._committed:
-            # Commit the file to storage prior to saving the model
-            file.save(file.name, file.file, save=False)
-        return value
+        if value is None:
+            return None
+        else:
+            file = value.field_file
+            if file and not file._committed:
+                # Commit the file to storage prior to saving the model
+                file.save(file.name, file.file, save=False)
+            return value
 
 
 class NumpyTextField(models.BinaryField):
