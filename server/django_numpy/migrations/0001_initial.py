@@ -18,28 +18,28 @@ class Migration(migrations.Migration):
             name='NumpyFileFieldModel',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('array', server.django_numpy.fields.NumpyFileField(upload_to='test_numpy_file_field/array')),
+                ('array', server.django_numpy.fields.NdarrayFileField(upload_to='test_numpy_file_field/array')),
             ],
         ),
         migrations.CreateModel(
             name='NumpyFileFieldNullModel',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('array', server.django_numpy.fields.NumpyFileField(null=True, upload_to='test_numpy_file_field_null/array')),
+                ('array', server.django_numpy.fields.NdarrayFileField(null=True, upload_to='test_numpy_file_field_null/array')),
             ],
         ),
         migrations.CreateModel(
             name='NumpyTextFieldModel',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('array', server.django_numpy.fields.NumpyTextField()),
+                ('array', server.django_numpy.fields.NdarrayTextField()),
             ],
         ),
         migrations.CreateModel(
             name='NumpyTextFieldNullModel',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('array', server.django_numpy.fields.NumpyTextField(null=True)),
+                ('array', server.django_numpy.fields.NdarrayTextField(null=True)),
             ],
         ),
     ]
