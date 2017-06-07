@@ -4,6 +4,7 @@ import math
 import numpy as np
 from scipy.ndimage import filters
 
+from .affine import apply_affine
 
 logger = logging.getLogger(__name__)
 import sys; logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(message)s')
@@ -90,6 +91,10 @@ def print_xyztpx(xyztpx):
         math.degrees(xi)
     ))
 
+
+def fov_center_xyz(voxel_shape, ijk_to_xyz):
+    fov_center_ijk = np.array([(c - 1)/2.0 for c in voxel_shape]).reshape((3, 1))
+    return apply_affine(ijk_to_xyz, fov_center_ijk).reshape(3)
 
 def chunks(l, n):
     """Yield successive n-sized chunks from l."""

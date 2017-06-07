@@ -10,6 +10,7 @@ from hdatt.suite import Suite
 from .visualization import scatter3
 from .phantoms import paramaters
 from . import affine
+from .utils import print_xyztpx
 
 
 def random_unit_vector():
@@ -119,11 +120,11 @@ class RegistrationSuite(Suite):
         FP_B = context['FP_B']
 
         print('actual:')
-        self._print_xyztpx(*context['xyztpx_actual'])
+        print_xyztpx(context['xyztpx_actual'])
         print('expected:')
-        self._print_xyztpx(*context['xyztpx_expected'])
+        print_xyztpx(context['xyztpx_expected'])
         print('diff')
-        self._print_xyztpx(*(context['xyztpx_actual'] - context['xyztpx_expected']))
+        print_xyztpx(context['xyztpx_actual'] - context['xyztpx_expected'])
         print('stats')
         print('TP = {}, FP = {}, FN = {}'.format(TP_B.shape[1], FP_B.shape[1], FN_A_S.shape[1]))
 

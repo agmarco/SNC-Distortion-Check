@@ -7,6 +7,7 @@ from numpy.testing import assert_allclose
 
 from process.affine import apply_xyztpx
 from process.registration import build_f, rigidly_register, rigidly_register_and_categorize
+from process.file_io import load_points
 
 
 @pytest.fixture
@@ -127,4 +128,3 @@ class TestRegisterAndCategorize:
     def test_small_rotation_isocenter_shifted(self):
         # NOTE: this test is very sensitive to the brute force search space
         self.assert_3x3x3_match([0, 0, 0, 0, 0, -pi/180*3], [150, -50, 250])
-

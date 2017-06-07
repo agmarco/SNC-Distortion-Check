@@ -14,6 +14,8 @@ if __name__ == '__main__':
     A = file_io.load_points(args.a)['points']
     B = file_io.load_points(args.b)['points']
 
+    # TODO: think through how we would calculate the isocenter; without doing
+    # this, the invocation to `rigidly_register_and_categorize` will fail
     xyztpx, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(A, B)
 
     file_io.save_m_s(args.output, {
