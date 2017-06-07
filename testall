@@ -1,6 +1,9 @@
-#!/bin/bash
-set -e
+#!/bin/bash -e
 
 python -m pytest
 
 yarn run test
+
+./hdat run feature-detection
+./hdat run full-algorithm
+./hdat run registration
