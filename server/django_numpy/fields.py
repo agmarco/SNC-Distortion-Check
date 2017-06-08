@@ -1,7 +1,10 @@
 import io
+import uuid
 
-from django.db import models
+import six
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
+from django.db import models
 from django.utils.translation import ugettext_lazy as _
 import numpy as np
 
@@ -17,8 +20,26 @@ def ndarray_to_bytes(ndarray):
     return f.getvalue()
 
 
-# TODO: finish working on this
-class NumpyDescriptor(object):
+class FileFieldNdarray(np.ndarray):
+    def __new__(cls, input_array, instance=None, field=None, field_file=None):
+        obj = np.asarray(input_array).view(cls)
+        obj._instance = instance
+        obj._field = field
+        obj._field_file = None
+        return obj
+
+    @property
+    def field_file(self):
+        if self._field_file is None:
+            filename = f'{uuid.uuid4()}.npy'
+            content_file = ContentFile(ndarray_to_bytes(self), filename)
+            self._field_file = self._field.attr_class(self._instance, self._field, content_file.name)
+            self._field_file.file = content_file
+            self._field_file._committed = False
+        return self._field_file
+
+
+class NdarrayDescriptor:
     """
     The descriptor for the numpy array.
     
@@ -34,21 +55,59 @@ class NumpyDescriptor(object):
         if instance is None:
             return self
 
-        if self.field.name not in instance.__dict__:
+        if self.field.name in instance.__dict__:
+            value = instance.__dict__[self.field.name]
+        else:
             instance.refresh_from_db(fields=[self.field.name])
+            value = getattr(instance, self.field.name)
 
-        return instance.__dict__[self.field.name]
+        if value is not None:
+            if isinstance(value, six.string_types):
+                field_file = self.field.attr_class(instance, self.field, value)
+                value = np.load(field_file.file, allow_pickle=False)
+                value = FileFieldNdarray(value, instance, self.field, field_file)
+            else:
+                value = FileFieldNdarray(value, instance, self.field)
+
+        instance.__dict__[self.field.name] = value
+        return value
 
     def __set__(self, instance, value):
+        # TODO don't accept strings - implement from_db_value and lazily add the instance to the FileFieldNdarray in the descriptor
+        if type(value) not in (np.ndarray, FileFieldNdarray) and not isinstance(value, six.string_types) and value is not None:
+            if isinstance(value, np.ndarray):
+                raise ValidationError("Subclasses of ndarray are not supported.")
+            else:
+                raise ValidationError("NdarrayFileField's value must be an ndarray.")
+
         instance.__dict__[self.field.name] = value
 
 
-class NumpyFileField(models.FileField):
+class NdarrayFileField(models.FileField):
     description = _("Numpy Array File")
-    descriptor_class = NumpyDescriptor
+    descriptor_class = NdarrayDescriptor
+
+    def get_prep_value(self, value):
+        value = super(models.FileField, self).get_prep_value(value)
+        # Need to convert File objects provided via a form to unicode for database insertion
+        if value is None:
+            return None
+        else:
+            return six.text_type(value.field_file)
+
+    def pre_save(self, model_instance, add):
+        value = super(models.FileField, self).pre_save(model_instance, add)
+        if value is None:
+            return None
+        else:
+            file = value.field_file
+            if file and not file._committed:
+                # Commit the file to storage prior to saving the model
+                file.save(file.name, file.file, save=False)
+            return value
 
 
-class NumpyTextField(models.BinaryField):
+class NdarrayTextField(models.BinaryField):
     def from_db_value(self, value, expression, connection, context):
         if value is None:
             return value

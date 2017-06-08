@@ -1,19 +1,19 @@
 from django.db import models
 
-from .fields import NumpyFileField, NumpyTextField
+from .fields import NdarrayFileField, NdarrayTextField
 
 
 class NumpyFileFieldModel(models.Model):
-    array = NumpyFileField(upload_to='test_numpy_file_field/array')
+    array = NdarrayFileField(upload_to='test_numpy_file_field/array')
 
 
 class NumpyFileFieldNullModel(models.Model):
-    array = NumpyFileField(upload_to='test_numpy_file_field_null/array', null=True)
+    array = NdarrayFileField(upload_to='test_numpy_file_field_null/array', null=True)
 
 
 class NumpyTextFieldModel(models.Model):
-    array = NumpyTextField()
+    array = NdarrayTextField()
 
 
 class NumpyTextFieldNullModel(models.Model):
-    array = NumpyTextField(null=True)
+    array = NdarrayTextField(null=True)

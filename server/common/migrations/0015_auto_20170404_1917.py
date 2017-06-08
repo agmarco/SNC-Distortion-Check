@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='scan',
             name='distortion',
-            field=server.django_numpy.fields.NumpyTextField(null=True),
+            field=server.django_numpy.fields.NdarrayTextField(null=True),
         ),
         migrations.AlterField(
             model_name='scan',

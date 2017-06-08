@@ -56,9 +56,9 @@ class Migration(migrations.Migration):
                 ('created_on', models.DateTimeField(auto_now_add=True)),
                 ('last_modified_on', models.DateTimeField(auto_now=True)),
                 ('zipped_dicom_files', models.FileField(upload_to='dicom_series/zipped_dicom_files')),
-                ('voxels', server.django_numpy.fields.NumpyTextField()),
-                ('ijk_to_xyz', server.django_numpy.fields.NumpyTextField()),
-                ('shape', server.django_numpy.fields.NumpyTextField()),
+                ('voxels', server.django_numpy.fields.NdarrayTextField()),
+                ('ijk_to_xyz', server.django_numpy.fields.NdarrayTextField()),
+                ('shape', server.django_numpy.fields.NdarrayTextField()),
                 ('series_uid', models.CharField(help_text='The DICOM Series Instance UID, which should uniquely identify a scan', max_length=64, verbose_name='Series Instance UID')),
             ],
             options={
@@ -73,7 +73,7 @@ class Migration(migrations.Migration):
                 ('deleted', models.BooleanField(default=False, help_text='Deleted items are hidden from non-admins')),
                 ('created_on', models.DateTimeField(auto_now_add=True)),
                 ('last_modified_on', models.DateTimeField(auto_now=True)),
-                ('fiducials', server.django_numpy.fields.NumpyTextField()),
+                ('fiducials', server.django_numpy.fields.NdarrayTextField()),
             ],
             options={
                 'verbose_name': 'Fiducials',
