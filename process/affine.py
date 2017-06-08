@@ -53,7 +53,7 @@ def rotation(theta, phi, xi):
 
 
 def translation_rotation(x, y, z, theta, phi, xi):
-    return R_x(theta) @ R_y(phi) @ R_z(xi) @ T(x, y, z)
+    return T(x, y, z) @ R_x(theta) @ R_y(phi) @ R_z(xi)
 
 
 def apply_affine(affine_matrix, A):

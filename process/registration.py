@@ -67,7 +67,11 @@ def build_f(A, B, g, rho):
             b_to_a_s = B_consideration_order - a_s.reshape((3, 1))
             b_to_a_s_distances_squared = np.sum(b_to_a_s**2, axis=0)
             closest_b_indice = np.argmin(b_to_a_s_distances_squared)
-            b_min_to_a_s = sqrt(b_to_a_s_distances_squared[closest_b_indice])
+
+            # by taking the root (1/1.8) of the squared distance, we are
+            # effectively optimizing over the distance^(1.2); this means we are
+            # ignoring outlers somewhat---but not completely like the L1 norm does
+            b_min_to_a_s = (b_to_a_s_distances_squared[closest_b_indice])**(1.2/2.0)
 
             rho_b = rho_consideration_order[closest_b_indice]
             if b_min_to_a_s > rho_b:
@@ -121,6 +125,11 @@ def rigidly_register(A, B, g, rho, tol=1e-4, skip_brute=False):
     return result.x
 
 
+# points further than `g_cutoff` are not considered during registration
+g_cutoff = 50
+registeration_tolerance = 1e-6
+
+
 def rigidly_register_and_categorize(A, B, isocenter_in_B, skip_brute=False):
     # TODO: determine rho and g based on our knowledge of the phantom
     # for now, we assume that the distortion is always within 5 mm and we
@@ -129,9 +138,7 @@ def rigidly_register_and_categorize(A, B, isocenter_in_B, skip_brute=False):
     maximum_distortion = 5.0
 
     def g(bmag):
-        return 1
-        # TODO: figure out why commenting this out causes tests to fail
-        #return 1 if bmag < 30 else 0
+        return 1 - bmag/g_cutoff if bmag < g_cutoff else 0
 
     def rho(bmag):
         return 5.0
@@ -142,7 +149,7 @@ def rigidly_register_and_categorize(A, B, isocenter_in_B, skip_brute=False):
     b_to_b_i_registration_matrix = affine.T(*(-1*isocenter_in_B))
     B_i = affine.apply_affine(b_to_b_i_registration_matrix, B)
 
-    xyztpx_i = rigidly_register(A, B_i, g, rho, 1e-6, skip_brute=skip_brute)
+    xyztpx_i = rigidly_register(A, B_i, g, rho, registeration_tolerance, skip_brute=skip_brute)
 
     # now apply both shifts (from A -> B_i and then from B_i -> B) back onto A.
     # This preservers the original patient coordinate system

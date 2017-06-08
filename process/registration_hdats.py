@@ -1,11 +1,12 @@
 from collections import OrderedDict
+from functools import wraps
 import math
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 from . import file_io
-from .registration import rigidly_register_and_categorize
+from .registration import rigidly_register_and_categorize, g_cutoff
 from hdatt.suite import Suite
 from .visualization import scatter3
 from .phantoms import paramaters
@@ -21,12 +22,37 @@ def random_unit_vector():
     return unormalized/magnitude
 
 
-def distort_point_identity(x, y, z):
-    return (x, y, z)
+def supress_near_isocenter(distortion):
+    '''
+    MR Scanners are designed to not have distortion near the isocenter.
+
+    This decorator supresses distortion near the isocenter using a sigmoidal
+    function.  Distortions at `g_cutoff` are 1/2 the value they would have been
+    without the supression.
+    '''
+    @wraps(distortion)
+    def supressed_distortion(x, y, z):
+        dx, dy, dz = distortion(x, y, z)
+
+        distances_to_isocenter = math.sqrt(x*x + y*y + z*z)
+        supression_factor = 1/(1 + math.exp(-(distances_to_isocenter - g_cutoff)))
+        return (dx*supression_factor, dy*supression_factor, dz*supression_factor)
+
+    return supressed_distortion
 
 
-def distort_point_bad(x, y, z):
-    return (x + x/40 - x*x/600, y - y/35*x/35, z - x/40)
+def no_distortion(x, y, z):
+    return (0, 0, 0)
+
+
+@supress_near_isocenter
+def symmetric_x_distortion(x, y, z):
+    return (x/20, 0, 0)
+
+
+@supress_near_isocenter
+def bad_distortion(x, y, z):
+    return (x/20, x/30, -y*x/450)
 
 
 class RegistrationSuite(Suite):
@@ -53,7 +79,7 @@ class RegistrationSuite(Suite):
                 'phantom': '603A',
                 'seed': 133,
                 'false_negative_fraction': 0,
-                'distort_point': distort_point_identity,
+                'distort_point': no_distortion,
                 'rotations_in_degrees': (0, 0, 0),
                 'translation_magnitude_mm': 5,
                 'noise_sigma_mm': 0.3,
@@ -63,7 +89,7 @@ class RegistrationSuite(Suite):
                 'phantom': '603A',
                 'seed': 133,
                 'false_negative_fraction': 0.2,
-                'distort_point': distort_point_identity,
+                'distort_point': no_distortion,
                 'rotations_in_degrees': (0, 0, 0),
                 'translation_magnitude_mm': 5,
                 'noise_sigma_mm': 0.3,
@@ -73,7 +99,7 @@ class RegistrationSuite(Suite):
                 'phantom': '603A',
                 'seed': 134,
                 'false_negative_fraction': 0,
-                'distort_point': distort_point_identity,
+                'distort_point': no_distortion,
                 'rotations_in_degrees': (0, 0, 4),
                 'translation_magnitude_mm': 0.1,
                 'noise_sigma_mm': 0.3,
@@ -83,7 +109,7 @@ class RegistrationSuite(Suite):
                 'phantom': '603A',
                 'seed': 134,
                 'false_negative_fraction': 0,
-                'distort_point': distort_point_identity,
+                'distort_point': no_distortion,
                 'rotations_in_degrees': (2, -2, 4),
                 'translation_magnitude_mm': 4,
                 'noise_sigma_mm': 0.3,
@@ -92,12 +118,12 @@ class RegistrationSuite(Suite):
             '603A_worstcase': {
                 'phantom': '603A',
                 'seed': 134,
-                'false_negative_fraction': 0.1,
-                'distort_point': distort_point_bad,
+                'false_negative_fraction': 0.15,
+                'distort_point': bad_distortion,
                 'rotations_in_degrees': (2, -2, 4),
-                'translation_magnitude_mm': 4,
-                'noise_sigma_mm': 0.1,
-                'false_positive_fraction': 1,
+                'translation_magnitude_mm': 5,
+                'noise_sigma_mm': 0.3,
+                'false_positive_fraction': 1.0,
             },
         }
         return cases
@@ -117,7 +143,7 @@ class RegistrationSuite(Suite):
         distort_point = case_input['distort_point']
         B_distorted = B_pruned
         for i in range(B_distorted.shape[1]):
-            B_distorted[:, i] = distort_point(*B_distorted[:, i])
+            B_distorted[:, i] += distort_point(*B_distorted[:, i])
 
         # 3 and 4. rotation then translation
         translation_magnitude = case_input['translation_magnitude_mm']
@@ -171,6 +197,9 @@ class RegistrationSuite(Suite):
 
         context['xyztpx_actual'] = xyztpx
         x, y, z, theta, phi, xi = xyztpx
+        metrics['x'] = x
+        metrics['y'] = y
+        metrics['z'] = z
 
         metrics['registration_shift'] = np.sqrt(x*x + y*y + z*z)
 
@@ -184,13 +213,30 @@ class RegistrationSuite(Suite):
                 TP_A_S, TP_B, isocenter_in_B)
 
         for p in [25, 50, 95, 99, 100]:
-            metrics['FLE_{}'.format(p)] = FLE_percentiles[p]
-            metrics['FLE_{}_near_isocenter'.format(p)] = FLE_percentiles_near_isocenter[p]
+            context['FLE_{}'.format(p)] = FLE_percentiles[p]
+            context['FLE_{}_near_isocenter'.format(p)] = FLE_percentiles_near_isocenter[p]
+
+        metrics['FLE_100'] = FLE_percentiles[100]['r']
+        metrics['FLE_50'] = FLE_percentiles[50]['r']
+        metrics['FLE_50_near_isocenter'] = FLE_percentiles[50]['r']
 
         return metrics, context
 
     def verify(self, old_metrics, new_metrics):
-        pass
+        tolerance = 0.1
+        if not math.isclose(old_metrics['x'], new_metrics['x'], abs_tol=tolerance):
+            return False, f"{new_metrics['x']} is not within {tolerance} of {old_metrics['x']}"
+        if not math.isclose(old_metrics['y'], new_metrics['y'], abs_tol=tolerance):
+            return False, f"{new_metrics['y']} is not within {tolerance} of {old_metrics['y']}"
+        if not math.isclose(old_metrics['z'], new_metrics['z'], abs_tol=tolerance):
+            return False, f"{new_metrics['z']} is not within {tolerance} of {old_metrics['z']}"
+        if new_metrics['FLE_100'] > old_metrics['FLE_100']:
+            return False, f"The FLE_100 value increased"
+        if new_metrics['FLE_50'] > old_metrics['FLE_50']:
+            return False, f"The FLE_50 value increased"
+        if new_metrics['FLE_50_near_isocenter'] > old_metrics['FLE_50_near_isocenter']:
+            return False, f"The FLE_50_near_isocenter value increased"
+        return True, 'New metrics are as good or better than old metrics'
 
     def _print_xyztpx(self, x, y, z, theta, phi, xi):
         msg = 'trans = ({:06.4f}mm, {:06.4f}mm, {:06.4f}mm)\n' + \
@@ -200,13 +246,13 @@ class RegistrationSuite(Suite):
 
     def show(self, result):
         context = result['context']
-        metrics = result['metrics']
         case_input = result['case_input']
 
         FN_A_S = context['FN_A_S']
         TP_A_S = context['TP_A_S']
         TP_B = context['TP_B']
         FP_B = context['FP_B']
+        isocenter_in_B = context['isocenter_in_B'].reshape(3, 1)
 
         print('actual:')
         print_xyztpx(context['xyztpx_actual'])
@@ -217,15 +263,15 @@ class RegistrationSuite(Suite):
         print('stats')
         print('TP = {}, FP = {}, FN = {}'.format(TP_B.shape[1], FP_B.shape[1], FN_A_S.shape[1]))
         print('FLE global')
-        print(points_utils.format_FLE_percentile(metrics['FLE_100']))
-        print(points_utils.format_FLE_percentile(metrics['FLE_95']))
-        print(points_utils.format_FLE_percentile(metrics['FLE_50']))
-        print(points_utils.format_FLE_percentile(metrics['FLE_25']))
+        print(points_utils.format_FLE_percentile(context['FLE_100']))
+        print(points_utils.format_FLE_percentile(context['FLE_95']))
+        print(points_utils.format_FLE_percentile(context['FLE_50']))
+        print(points_utils.format_FLE_percentile(context['FLE_25']))
         print('FLE near isocenter')
-        print(points_utils.format_FLE_percentile(metrics['FLE_100_near_isocenter']))
-        print(points_utils.format_FLE_percentile(metrics['FLE_95_near_isocenter']))
-        print(points_utils.format_FLE_percentile(metrics['FLE_50_near_isocenter']))
-        print(points_utils.format_FLE_percentile(metrics['FLE_25_near_isocenter']))
+        print(points_utils.format_FLE_percentile(context['FLE_100_near_isocenter']))
+        print(points_utils.format_FLE_percentile(context['FLE_95_near_isocenter']))
+        print(points_utils.format_FLE_percentile(context['FLE_50_near_isocenter']))
+        print(points_utils.format_FLE_percentile(context['FLE_25_near_isocenter']))
 
         A_S = np.hstack((context['FN_A_S'], context['TP_A_S']))
 
@@ -233,6 +279,19 @@ class RegistrationSuite(Suite):
             'CAD': context['A'],
             'CAD Registered to Detected': A_S,
             'Detected': context['B'],
-            'isocenter': context['isocenter_in_B'].reshape(3, 1),
+            'isocenter': isocenter_in_B,
+        })
+        plt.show()
+
+        distances_to_isocenter = np.linalg.norm(TP_B - isocenter_in_B, axis=0)
+        distortion_free_radius = 30
+        points_near_isocenter = distances_to_isocenter < distortion_free_radius
+        TP_B_near_isocenter = TP_B[:, points_near_isocenter]
+        TP_A_S_near_isocenter = TP_A_S[:, points_near_isocenter]
+
+        scatter3({
+            'CAD Registered to Detected': TP_A_S_near_isocenter,
+            'Detected': TP_B_near_isocenter,
+            'isocenter': isocenter_in_B,
         })
         plt.show()
