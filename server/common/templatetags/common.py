@@ -35,7 +35,10 @@ def webpack(bundle):
             # load the correct file from the manifest.json
             with open(os.path.join(settings.BASE_DIR, 'client/dist/manifest.json')) as manifest_file:
                 manifest = json.load(manifest_file)
-                filename = manifest[bundle]
+                if bundle not in manifest:
+                    return ''
+                else:
+                    filename = manifest[bundle]
             return static(filename)
         except FileNotFoundError:
             return ''
