@@ -81,8 +81,6 @@ class UploadCTForm(CirsFormMixin, forms.Form):
             raise ValidationError("The DICOM files must contain the 'SeriesInstanceUID'.")
         if not hasattr(ds, 'StudyInstanceUID'):
             raise ValidationError("The DICOM files must contain the 'StudyInstanceUID'.")
-        if not hasattr(ds, 'FrameOfReferenceUID'):
-            raise ValidationError("The DICOM files must contain the 'FrameOfReferenceUID'.")
         if not hasattr(ds, 'PatientID'):
             raise ValidationError("The DICOM files must contain the 'PatientID'.")
 

@@ -162,7 +162,7 @@ class DicomSeries(CommonFieldsMixin):
     series_uid_ht = 'The DICOM Series Instance UID, which should uniquely identify a scan'
     series_uid = models.CharField(max_length=64, verbose_name='Series Instance UID', help_text=series_uid_ht)
     study_uid = models.CharField(max_length=64, verbose_name='Study Instance UID', help_text=series_uid_ht)
-    frame_of_reference_uid = models.CharField(max_length=64, verbose_name='Frame Of Reference UID', help_text=series_uid_ht)
+    frame_of_reference_uid = models.CharField(max_length=64, verbose_name='Frame Of Reference UID', help_text=series_uid_ht, blank=True)
     patient_id = models.CharField(max_length=64, verbose_name='Patient ID', help_text=series_uid_ht)
     acquisition_date_ht = 'The DICOM Series Instance Acquisition Date'
     acquisition_date = models.DateField(help_text=acquisition_date_ht)

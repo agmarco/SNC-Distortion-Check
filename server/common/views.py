@@ -542,18 +542,22 @@ class UploadCTView(FormView):
     def form_valid(self, form):
         voxels, ijk_to_xyz = dicom_import.combine_slices(form.cleaned_data['datasets'])
         ds = form.cleaned_data['datasets'][0]
-        dicom_series = models.DicomSeries.objects.create(
+        dicom_series = models.DicomSeries(
             zipped_dicom_files=self.request.FILES['dicom_archive'],
             voxels=voxels,
             ijk_to_xyz=ijk_to_xyz,
             shape=voxels.shape,
             series_uid=ds.SeriesInstanceUID,
             study_uid=ds.StudyInstanceUID,
-            frame_of_reference_uid=ds.FrameOfReferenceUID,
             patient_id=ds.PatientID,
             # TODO: handle a missing AcquisitionDate
             acquisition_date=datetime.strptime(form.cleaned_data['datasets'][0].AcquisitionDate, '%Y%m%d'),
         )
+
+        if hasattr(ds, 'FrameOfReferenceUID'):
+            dicom_series.frame_of_reference_uid = ds.FrameOfReferenceUID
+
+        dicom_series.save()
 
         gold_standard = models.GoldenFiducials.objects.create(
             phantom=models.Phantom.objects.get(pk=self.kwargs['phantom_pk']),
