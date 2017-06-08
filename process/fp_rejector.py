@@ -36,7 +36,7 @@ def get_keras_model(phantom_model):
 
 def remove_fps(points_ijk_unfiltered, voxels, voxel_spacing, phantom_model):
     if phantom_model not in phantoms.paramaters:
-        logger.warn(f'Unable to remove false positives from unknown phantom model "{phantom_model}"')
+        logger.warn(f'Phantom "{phantom_model}" has not associated neural network model')
         return points_ijk_unfiltered
 
     model = get_keras_model(phantom_model)
@@ -57,14 +57,14 @@ def remove_fps(points_ijk_unfiltered, voxels, voxel_spacing, phantom_model):
     return points_ijk_unfiltered[:, ~is_fp]
 
 
-def is_grid_intersection(point_ijk, voxels, voxel_spacing):
+def is_grid_intersection(point_ijk, voxels, voxel_spacing, phantom_model):
     '''
     Given an index within the CT or MRI data, use a deep learning algorithm to
     categorize it as being "on or near" a grid intersection or not.
 
     This is used to provide increased specificity to our peak-finding algorithm.
     '''
-    model = get_model()
+    model = get_keras_model(phantom_model)
     window = window_from_ijk(point_ijk, voxels, voxel_spacing)
     if window is not None:
         window = np.expand_dims(window, axis=3)
@@ -73,9 +73,11 @@ def is_grid_intersection(point_ijk, voxels, voxel_spacing):
     else:
         return False
 
+
 def zoom_like(voxels, to_shape):
     zoom_factor = np.array(to_shape) / np.array(voxels.shape)
     return zoom(voxels, zoom_factor)
+
 
 def window_from_ijk(point_ijk, voxels, voxel_spacing):
     """
@@ -83,7 +85,8 @@ def window_from_ijk(point_ijk, voxels, voxel_spacing):
     :param point_ijk:
     :param voxels:
     :param voxel_spacing:
-    :return: A voxel of the shape (cube_size, cube_size, cube_size) that covers size (cube_size_mm, cube_size_mm, cube_size_mm)
+    :return: A voxel of the shape (cube_size, cube_size, cube_size) that covers
+    size (cube_size_mm, cube_size_mm, cube_size_mm)
     """
     i, j, k = np.round(point_ijk).astype(int)
     window_size_half = np.floor(cube_size_mm*0.5 / voxel_spacing).astype(int)

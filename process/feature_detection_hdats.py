@@ -77,11 +77,14 @@ class FeatureDetectionSuite(Suite):
         context['voxel_spacing'] = voxel_spacing
 
         rho = lambda bmag: 3
-        metrics['raw'], context['raw'] = self._process_points(golden_points, feature_detector.points_xyz, rho)
+        metrics['raw'], context['raw'] = self._process_points(
+                golden_points, feature_detector.points_xyz, rho)
 
-        pruned_points_ijk = remove_fps(feature_detector.points_ijk, voxels, voxel_spacing, phantom_model)
+        points_ijk = feature_detector.points_ijk
+        pruned_points_ijk = remove_fps(points_ijk, voxels, voxel_spacing, phantom_model)
         pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
-        metrics['pruned'], context['pruned'] = self._process_points(golden_points, pruned_points_xyz, rho)
+        metrics['pruned'], context['pruned'] = self._process_points(
+                golden_points, pruned_points_xyz, rho)
 
         return metrics, context
 
@@ -165,16 +168,17 @@ class FeatureDetectionSuite(Suite):
         ]
 
         voxel_data = file_io.load_voxels(context['case_input']['voxels'])
-        raw_voxels = voxel_data['voxels']
+        voxels = voxel_data['voxels']
         ijk_to_xyz = voxel_data['ijk_to_xyz']
+        voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
         phantom_model = voxel_data['phantom_model']
 
-        kernel_big = np.zeros_like(raw_voxels)
+        kernel_big = np.zeros_like(voxels)
         kernel_small = context['kernel']
         kernel_shape = kernel_small.shape
 
         slices = []
-        for n_image, n_kernel in zip(raw_voxels.shape, kernel_small.shape):
+        for n_image, n_kernel in zip(voxels.shape, kernel_small.shape):
             assert n_image > n_kernel, 'Image should be bigger than the kernel'
             start = round(n_image/2 - n_kernel/2)
             stop = start + n_kernel
@@ -190,7 +194,7 @@ class FeatureDetectionSuite(Suite):
             [0, 1, 0]
         ))
         s.add_renderer(slicer.render_translucent_overlay(kernel_big, [1, 0, 0]))
-        s.add_renderer(partial(render_intersection_square, raw_voxels, affine.voxel_spacing(ijk_to_xyz)))
+        s.add_renderer(partial(render_intersection_square, voxels, voxel_spacing, phantom_model))
         s.add_renderer(slicer.render_cursor)
         s.draw()
         plt.show()

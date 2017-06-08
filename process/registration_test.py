@@ -74,7 +74,9 @@ class TestSimpleObjectiveFunction(unittest.TestCase):
         value, which in this case is g(0)
         '''
         assert self.f([0, 0, 0.5, 0, 0, 0]) == self.g(0)*(0.5/self.rho(0) - 1.0)
-        assert_allclose(self.f([0, 0, 0.5001, 0, 0, 0]), self.g(1.0)*((1 - 0.5001)/self.rho(1.0) - 1.0))
+        actual = self.f([0, 0, 0.5001, 0, 0, 0])
+        expected = self.g(1.0)*((1 - 0.5001)/self.rho(1.0) - 1.0)
+        assert_allclose(actual, expected)
 
 
 @pytest.mark.slow
@@ -110,9 +112,10 @@ class TestRegisterAndCategorize:
         isocenter = np.array(isocenter)
 
         tolerance = 1e-5
-        xyztpx_actual, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(A, B, isocenter_in_B=isocenter)
+        xyztpx_actual, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
+                A, B, isocenter)
 
-        # see TODO in affine next to
+        # see TODO in affine
         #assert_allclose(xyztpx_actual, xyztpx, atol=tolerance*10)
         assert_allclose(TP_A_S, A_S, atol=tolerance*100)
         assert_allclose(TP_B, B, atol=tolerance*100)
