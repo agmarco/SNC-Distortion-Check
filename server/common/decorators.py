@@ -21,6 +21,8 @@ def validate_institution(model_class=None, pk_url_kwarg='pk'):
 
             def new_dispatch(instance, request, *args, **kwargs):
                 if model_class:
+                    if pk_url_kwarg not in kwargs:
+                        raise PermissionDenied
                     obj = get_object_or_404(model_class, pk=kwargs[pk_url_kwarg])
                 elif callable(getattr(instance, 'get_object', None)):
                     obj = instance.get_object()
@@ -41,6 +43,8 @@ def validate_institution(model_class=None, pk_url_kwarg='pk'):
         else:
             @wraps(view)
             def wrapper(request, *args, **kwargs):
+                if pk_url_kwarg not in kwargs:
+                    raise PermissionDenied
                 obj = get_object_or_404(model_class, pk=kwargs[pk_url_kwarg])
                 if not hasattr(obj, 'institution'):
                     raise Exception(f"The property 'institution' was not found on the object {obj}.")

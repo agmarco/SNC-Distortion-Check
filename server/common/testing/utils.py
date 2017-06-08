@@ -8,8 +8,7 @@ from django.db import models
 def _validate_fields(model, data):
     for field_name in data.keys():
 
-        # TODO view config should be able to specify custom way of validating fields, since the POST data keys don't
-        # always directly correspond with model field names
+        # assume that the POST data keys correspond with the model field names
         if hasattr(model, field_name):
             # if the field is a foreign key, check that the primary key equals the POST data
             if isinstance(model._meta.get_field(field_name), models.ForeignKey):

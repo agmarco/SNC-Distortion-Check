@@ -19,7 +19,8 @@ from django.urls import reverse, reverse_lazy
 from django.utils import formats
 from django.utils.decorators import method_decorator
 from django.utils.functional import cached_property
-from django.views.generic import DetailView
+from django.views import View
+from django.views.generic import DetailView, TemplateView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
 from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework.renderers import JSONRenderer
@@ -36,17 +37,17 @@ from . import serializers
 from . import forms
 from .tasks import process_scan, process_ct_upload
 from .decorators import validate_institution, login_and_permission_required
-from .http import CSVResponse, ZipResponse
+from .http import CsvResponse, ZipResponse
 
 logger = logging.getLogger(__name__)
 
 
-class CIRSDeleteView(DeleteView):
+class CirsDeleteView(DeleteView):
     """A view providing the ability to delete objects by setting their 'deleted' attribute."""
 
     def __init__(self, **kwargs):
         self.object = None
-        super(CIRSDeleteView, self).__init__(**kwargs)
+        super(CirsDeleteView, self).__init__(**kwargs)
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -55,16 +56,20 @@ class CIRSDeleteView(DeleteView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-@login_required
-def landing_view(request):
-    machine_sequence_pairs_queryset = models.MachineSequencePair.objects.filter(machine__institution=request.user.institution)
-    machine_sequence_pairs_queryset = machine_sequence_pairs_queryset.active().order_by('-last_modified_on')
-    machine_sequence_pairs_json = serializers.MachineSequencePairSerializer(machine_sequence_pairs_queryset, many=True)
+@method_decorator(login_required, name='dispatch')
+class LandingView(TemplateView):
+    template_name = 'common/landing.html'
 
-    renderer = JSONRenderer()
-    return render(request, 'common/landing.html', {
-        'machine_sequence_pairs_json': renderer.render(machine_sequence_pairs_json.data),
-    })
+    def get_context_data(self, **kwargs):
+        context = super(LandingView, self).get_context_data(**kwargs)
+        machine_sequence_pairs_queryset = models.MachineSequencePair.objects.filter(machine__institution=self.request.user.institution)
+        machine_sequence_pairs_queryset = machine_sequence_pairs_queryset.active().order_by('-last_modified_on')
+        machine_sequence_pairs_json = serializers.MachineSequencePairSerializer(machine_sequence_pairs_queryset, many=True)
+
+        renderer = JSONRenderer()
+        context.update({
+            'machine_sequence_pairs_json': renderer.render(machine_sequence_pairs_json.data),
+        })
 
 
 @login_and_permission_required('common.configuration')
@@ -327,7 +332,7 @@ class DicomOverlayView(FormView):
 
 @method_decorator(login_required, name='dispatch')
 @validate_institution()
-class DeleteScanView(CIRSDeleteView):
+class DeleteScanView(CirsDeleteView):
     model = models.Scan
 
     def delete(self, request, *args, **kwargs):
@@ -386,7 +391,7 @@ class UpdatePhantomView(UpdateView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class DeletePhantomView(CIRSDeleteView):
+class DeletePhantomView(CirsDeleteView):
     model = models.Phantom
     success_url = reverse_lazy('configuration')
     pk_url_kwarg = 'phantom_pk'
@@ -401,7 +406,7 @@ class DeletePhantomView(CIRSDeleteView):
 class CreateMachineView(CreateView):
     form_class = forms.CreateMachineForm
     success_url = reverse_lazy('configuration')
-    template_name_suffix = '_create'
+    template_name = 'common/machine_create.html'
 
     def get_form_kwargs(self):
         kwargs = super(CreateMachineView, self).get_form_kwargs()
@@ -429,7 +434,7 @@ class UpdateMachineView(UpdateView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class DeleteMachineView(CIRSDeleteView):
+class DeleteMachineView(CirsDeleteView):
     model = models.Machine
     success_url = reverse_lazy('configuration')
 
@@ -469,7 +474,7 @@ class UpdateSequenceView(UpdateView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class DeleteSequenceView(CIRSDeleteView):
+class DeleteSequenceView(CirsDeleteView):
     model = models.Sequence
     success_url = reverse_lazy('configuration')
 
@@ -509,7 +514,7 @@ class CreateUserView(FormView):
 
 @login_and_permission_required('common.manage_users')
 @validate_institution()
-class DeleteUserView(CIRSDeleteView):
+class DeleteUserView(CirsDeleteView):
     model = models.User
     success_url = reverse_lazy('configuration')
 
@@ -591,7 +596,7 @@ class UploadRawView(FormView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution()
-class DeleteGoldStandardView(CIRSDeleteView):
+class DeleteGoldStandardView(CirsDeleteView):
     model = models.GoldenFiducials
     pk_url_kwarg = 'gold_standard_pk'
 
@@ -615,26 +620,28 @@ class DeleteGoldStandardView(CIRSDeleteView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution(model_class=models.GoldenFiducials, pk_url_kwarg='gold_standard_pk')
-def activate_gold_standard_view(request, phantom_pk=None, gold_standard_pk=None):
-    gold_standard = get_object_or_404(models.GoldenFiducials, pk=gold_standard_pk)
-    gold_standard.activate()
-    messages.success(request, f"\"{gold_standard.source_summary}\" has been activated successfully.")
-    return redirect('update_phantom', phantom_pk)
+class ActivateGoldStandardView(View):
+    def post(self, request, *args, phantom_pk=None, gold_standard_pk=None):
+        gold_standard = get_object_or_404(models.GoldenFiducials, pk=gold_standard_pk)
+        gold_standard.activate()
+        messages.success(request, f"\"{gold_standard.source_summary}\" has been activated successfully.")
+        return redirect('update_phantom', phantom_pk)
 
 
 @login_and_permission_required('common.configuration')
 @validate_institution(model_class=models.GoldenFiducials, pk_url_kwarg='gold_standard_pk')
-def gold_standard_csv_view(request, phantom_pk=None, gold_standard_pk=None):
-    gold_standard = get_object_or_404(models.GoldenFiducials, pk=gold_standard_pk)
-    return CSVResponse(gold_standard.fiducials.fiducials, filename=f'{gold_standard.source_summary}.csv')
+class GoldStandardCsvView(View):
+    def get(self, request, *args, gold_standard_pk=None, **kwargs):
+        gold_standard = get_object_or_404(models.GoldenFiducials, pk=gold_standard_pk)
+        return CsvResponse(gold_standard.fiducials.fiducials, filename=f'{gold_standard.source_summary}.csv')
 
 
-def terms_of_use_view(request):
-    return render(request, 'common/terms_of_use.html')
+class TermsOfUseView(TemplateView):
+    template_name = 'common/terms_of_use.html'
 
 
-def privacy_policy_view(request):
-    return render(request, 'common/privacy_policy.html')
+class PrivacyPolicyView(TemplateView):
+    template_name = 'common/privacy_policy.html'
 
 
 @login_required
