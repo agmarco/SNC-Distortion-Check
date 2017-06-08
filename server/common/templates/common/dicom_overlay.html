@@ -34,9 +34,9 @@
       {{ form.isocenter_x.errors }}
       {{ form.isocenter_y.errors }}
       {{ form.isocenter_z.errors }}
-      {{ form.isocenter_x.help_text|safe }}
-      {{ form.isocenter_y.help_text|safe }}
-      {{ form.isocenter_z.help_text|safe }}
+      <p>{{ form.isocenter_x.help_text|safe }}</p>
+      <p>{{ form.isocenter_y.help_text|safe }}</p>
+      <p>{{ form.isocenter_z.help_text|safe }}</p>
     </div>
     {% include 'includes/form_field.html' with field=form.frame_of_reference_uid %}
     <div class="form-links">
