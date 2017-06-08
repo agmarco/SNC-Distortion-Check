@@ -146,9 +146,9 @@ class UploadScanView(FormView):
     def get_context_data(self, **kwargs):
         context = super(UploadScanView, self).get_context_data(**kwargs)
         institution = self.request.user.institution
-        machines_json = serializers.MachineSerializer(models.Machine.objects.filter(institution=institution), many=True)
-        sequences_json = serializers.SequenceSerializer(models.Sequence.objects.filter(institution=institution), many=True)
-        phantoms_json = serializers.PhantomSerializer(models.Phantom.objects.filter(institution=institution), many=True)
+        machines_json = serializers.MachineSerializer(models.Machine.objects.active().filter(institution=institution), many=True)
+        sequences_json = serializers.SequenceSerializer(models.Sequence.objects.active().filter(institution=institution), many=True)
+        phantoms_json = serializers.PhantomSerializer(models.Phantom.objects.active().filter(institution=institution), many=True)
 
         renderer = JSONRenderer()
         context.update({
@@ -518,6 +518,7 @@ class CreateUserView(FormView):
         return super(CreateUserView, self).form_valid(form)
 
 
+# TODO delete self?
 @login_and_permission_required('common.manage_users')
 @validate_institution()
 class DeleteUserView(CirsDeleteView):
