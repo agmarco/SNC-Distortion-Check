@@ -22,6 +22,7 @@
 .cirs-form {
   .inline-group {
     display: flex;
+    margin-bottom: $small-spacing;
 
     input:not([type="submit"]) {
       margin-right: $small-spacing;
