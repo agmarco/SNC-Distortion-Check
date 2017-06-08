@@ -76,16 +76,14 @@ class UploadCTForm(CirsFormMixin, forms.Form):
         with zipfile.ZipFile(self.cleaned_data['dicom_archive'], 'r') as zip_file:
             datasets = dicom_import.dicom_datasets_from_zip(zip_file)
 
-        if not hasattr(datasets, 'SeriesInstanceUID'):
+        ds = datasets[0]
+        if not hasattr(ds, 'SeriesInstanceUID'):
             raise ValidationError("The DICOM files must contain the 'SeriesInstanceUID'.")
-
-        if not hasattr(datasets, 'StudyInstanceUID'):
+        if not hasattr(ds, 'StudyInstanceUID'):
             raise ValidationError("The DICOM files must contain the 'StudyInstanceUID'.")
-
-        if not hasattr(datasets, 'FrameOfReferenceUID'):
+        if not hasattr(ds, 'FrameOfReferenceUID'):
             raise ValidationError("The DICOM files must contain the 'FrameOfReferenceUID'.")
-
-        if not hasattr(datasets, 'PatientID'):
+        if not hasattr(ds, 'PatientID'):
             raise ValidationError("The DICOM files must contain the 'PatientID'.")
 
         self.cleaned_data['datasets'] = datasets
