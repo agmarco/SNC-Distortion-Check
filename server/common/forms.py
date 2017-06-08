@@ -20,6 +20,8 @@ class CirsFormMixin:
 
 
 class AccountForm(CirsFormMixin, forms.ModelForm):
+    email = forms.EmailField(help_text=None)
+
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'email')
