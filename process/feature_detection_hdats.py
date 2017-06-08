@@ -119,8 +119,7 @@ class FeatureDetectionSuite(Suite):
     def _print_points_metrics(self, point_cloud_comparison_metrics):
         for k, v in point_cloud_comparison_metrics.items():
             if k.startswith('FLE_'):
-                msg = "{} = {:06.4f}mm ({:06.4f}mm, {:06.4f}mm, {:06.4f}mm)"
-                print(msg.format(k, v['r'], v['x'], v['y'], v['z']))
+                print(format_FLE_percentile(v))
             else:
                 print("{} = {:06.4f}".format(k, v))
 

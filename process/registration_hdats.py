@@ -11,6 +11,7 @@ from .visualization import scatter3
 from .phantoms import paramaters
 from . import affine
 from .utils import print_xyztpx
+from . import points_utils
 
 
 def random_unit_vector():
@@ -20,7 +21,24 @@ def random_unit_vector():
     return unormalized/magnitude
 
 
+def distort_point_identity(x, y, z):
+    return (x, y, z)
+
+
 class RegistrationSuite(Suite):
+    '''
+    The registration HDAT tests register a set of phantom CAD points to a
+    modified version of itself.  The set of modified points applies the
+    following transforms:
+
+    1. Distort each point---specified using a function that takes an (x, y, z)
+       tuple and returns an (x, y, z) tuple (where values are in mm)
+    2. Apply a random translation with a specified magnitude
+    3. Rotate by specified amounts along each axis---specified in degrees
+    4. Adds gaussian noise---the sigma for the noise is specified in mm
+
+    The random seed for each test is also specified.
+    '''
     id = 'registration'
 
     def collect(self):
@@ -28,48 +46,43 @@ class RegistrationSuite(Suite):
             '603A_max_trans': {
                 'phantom': '603A',
                 'seed': 133,
-                'translation_magnitude': 0.5,
-                'error_magnitude': 0.3,
-                'distortion': None,
-                'rotations': (0, 0, 0),
+                'translation_magnitude_mm': 5,
+                'noise_sigma_mm': 0.3,
+                'distort_point': distort_point_identity,
+                'rotations_in_degrees': (0, 0, 0),
             },
             '603A_max_rot': {
                 'phantom': '603A',
                 'seed': 134,
-                'translation_magnitude': 0.1,
-                'error_magnitude': 0.3,
-                'distortion': None,
-                'rotations': (0, 0, 4),
+                'translation_magnitude_mm': 0.1,
+                'noise_sigma_mm': 0.3,
+                'distort_point': distort_point_identity,
+                'rotations_in_degrees': (0, 0, 4),
             },
         }
         return cases
 
     def generate_B(self, A, case_input):
-        '''
-        Given a set of "ideal" points, A, apply a number of transformations to
-        them to generate a set of "detected points", B.
-        '''
         np.random.seed(case_input['seed'])
 
-        grid_spacing = paramaters[case_input['phantom']]['grid_spacing']
-        grid_radius = paramaters[case_input['phantom']]['grid_radius']
+        # 1. distortion
+        distort_point = case_input['distort_point']
+        B_distorted = A.copy()
+        assert B_distorted.shape[0] == 3
+        for i in range(B_distorted.shape[1]):
+            B_distorted[:, i] = distort_point(*B_distorted[:, i])
 
-        translation_magnitude = case_input['translation_magnitude']*grid_radius
+        # 2 and 3. rotation then translation
+        translation_magnitude = case_input['translation_magnitude_mm']
         x, y, z = random_unit_vector()*translation_magnitude
-        theta, phi, xi = [math.radians(r) for r in case_input['rotations']]
+        theta, phi, xi = [math.radians(r) for r in case_input['rotations_in_degrees']]
         xyztpx_expected = np.array([x, y, z, theta, phi, xi])
+        B_translated_rotated = affine.apply_xyztpx(xyztpx_expected, B_distorted)
 
-        if case_input['distortion'] is not None:
-            # TODO: implement this
-            B_distorted = A.copy()
-        else:
-            B_distorted = A.copy()
+        # 4. add gaussian noise
+        B_noise = B_translated_rotated + np.random.normal(0, case_input['noise_sigma_mm'], A.shape)
 
-        noise_sigma = case_input['error_magnitude']*grid_radius
-        B_noise = B_distorted + np.random.normal(0, noise_sigma, A.shape)
-        B_translated_rotated = affine.apply_xyztpx(xyztpx_expected, B_noise)
-
-        return B_translated_rotated, xyztpx_expected
+        return B_noise, xyztpx_expected
 
     def run(self, case_input):
         metrics = OrderedDict()
@@ -92,12 +105,15 @@ class RegistrationSuite(Suite):
         x, y, z, theta, phi, xi = xyztpx
 
         metrics['registration_shift'] = np.sqrt(x*x + y*y + z*z)
-        # TODO: add a metric for the angle change
 
         context['FN_A_S'] = FN_A_S
         context['TP_A_S'] = TP_A_S
         context['TP_B'] = TP_B
         context['FP_B'] = FP_B
+
+        FLE_percentiles = points_utils.FLE_percentiles(TP_A_S, TP_B)
+        for p in [0, 25, 50, 75, 95, 99, 100]:
+            metrics['FLE_{}'.format(p)] = FLE_percentiles[p]
 
         return metrics, context
 
@@ -112,6 +128,7 @@ class RegistrationSuite(Suite):
 
     def show(self, result):
         context = result['context']
+        metrics = result['metrics']
         case_input = result['case_input']
 
         FN_A_S = context['FN_A_S']
@@ -127,6 +144,9 @@ class RegistrationSuite(Suite):
         print_xyztpx(context['xyztpx_actual'] - context['xyztpx_expected'])
         print('stats')
         print('TP = {}, FP = {}, FN = {}'.format(TP_B.shape[1], FP_B.shape[1], FN_A_S.shape[1]))
+        print(points_utils.format_FLE_percentile(metrics['FLE_99']))
+        print(points_utils.format_FLE_percentile(metrics['FLE_50']))
+        print(points_utils.format_FLE_percentile(metrics['FLE_25']))
 
         A_S = np.hstack((context['FN_A_S'], context['TP_A_S']))
 
