@@ -48,13 +48,13 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
 
     renderScanActions(scan: IScanDTO) {
         if (scan.processing) {
-            return <td colSpan={6}>The Data is Still being Processed...</td>;
+            return <td colSpan={6}>The data is still being processed...</td>;
         } else if (scan.errors) {
             return (
                 <td colSpan={6}>
                     <span className="error">
                         There was an error while processing the data
-                        (<a href={scan.errors_url}>view details</a>)
+                        (<a href={scan.errors_url}>view details</a>).
                     </span>
                 </td>
             );

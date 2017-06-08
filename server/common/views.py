@@ -42,6 +42,8 @@ from .http import CsvResponse, ZipResponse
 
 logger = logging.getLogger(__name__)
 
+# TODO go through whole site and make sure deleted objects aren't included in any query.
+
 
 class CirsDeleteView(DeleteView):
     """A view providing the ability to delete objects by setting their 'deleted' attribute."""

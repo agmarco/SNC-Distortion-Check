@@ -56,7 +56,7 @@
           <td>{% if golden_fiducials.type == 'CT' %}{{ golden_fiducials.dicom_series.filename }}{% endif %}</td>
           <td class="sep"></td>
           {% if golden_fiducials.processing %}
-            <td colspan="4">The Data is Still being Processed...</td>
+            <td colspan="4">The data is still being processed...</td>
           {% else %}
             <td class="action download-images">
               {% if golden_fiducials.type == 'CT' %}
