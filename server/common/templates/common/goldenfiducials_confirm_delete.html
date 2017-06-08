@@ -10,10 +10,12 @@
 
 {% block content %}
   <h1>Delete Golden Fiducials</h1>
-  <p>Are you sure you want to delete the Gold Standard "{{ goldenfiducials.source_summary }}"?</p>
   <form method="post">
     {% csrf_token %}
-    <a href="{% url 'update_phantom' phantom.pk %}" class="btn tertiary">Cancel</a>
-    <input type="submit" value="Yes" class="btn secondary">
+    <p>Are you sure you want to delete the Gold Standard "{{ goldenfiducials.source_summary }}"?</p>
+    <div class="form-links">
+      <a href="{% url 'update_phantom' phantom.pk %}" class="btn tertiary">Cancel</a>
+      <input type="submit" value="Yes" class="btn secondary">
+    </div>
   </form>
 {% endblock %}
