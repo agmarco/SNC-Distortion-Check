@@ -70,6 +70,7 @@ class LandingView(TemplateView):
         context.update({
             'machine_sequence_pairs_json': renderer.render(machine_sequence_pairs_json.data),
         })
+        return context
 
 
 @login_and_permission_required('common.configuration')
@@ -121,17 +122,19 @@ class MachineSequenceDetailView(DetailView):
     template_name = 'common/machine_sequence_detail.html'
 
     def get_context_data(self, **kwargs):
+        context = super(MachineSequenceDetailView, self).get_context_data(**kwargs)
         machine_sequence_pair_json = serializers.MachineSequencePairSerializer(self.object)
         scans_json = models.Scan.objects.filter(machine_sequence_pair=self.object)
         scans_json = scans_json.active().order_by('-dicom_series__acquisition_date', '-created_on')
         scans_json = serializers.ScanSerializer(scans_json, many=True)
 
         renderer = JSONRenderer()
-        return {
+        context.update({
             'machine_sequence_pair': self.object,
             'machine_sequence_pair_json': renderer.render(machine_sequence_pair_json.data),
             'scans_json': renderer.render(scans_json.data)
-        }
+        })
+        return context
 
 
 @method_decorator(login_required, name='dispatch')
@@ -140,17 +143,19 @@ class UploadScanView(FormView):
     template_name = 'common/upload_scan.html'
 
     def get_context_data(self, **kwargs):
+        context = super(UploadScanView, self).get_context_data(**kwargs)
         institution = self.request.user.institution
         machines_json = serializers.MachineSerializer(models.Machine.objects.filter(institution=institution), many=True)
         sequences_json = serializers.SequenceSerializer(models.Sequence.objects.filter(institution=institution), many=True)
         phantoms_json = serializers.PhantomSerializer(models.Phantom.objects.filter(institution=institution), many=True)
 
         renderer = JSONRenderer()
-        return {
+        context.update({
             'machines_json': renderer.render(machines_json.data),
             'sequences_json': renderer.render(sequences_json.data),
             'phantoms_json': renderer.render(phantoms_json.data),
-        }
+        })
+        return context
 
     def form_valid(self, form):
         machine = models.Machine.objects.get(pk=form.cleaned_data['machine'])
