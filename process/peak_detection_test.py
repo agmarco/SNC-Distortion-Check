@@ -165,6 +165,20 @@ class TestSubvoxelDetectPeaks:
         ], dtype=float)
         assert_allclose(subvoxel_maximum(a, 5), np.array([1, 1]))
 
+    @pytest.mark.xfail(reason="Unclear understanding of the spline interpolation")
+    def test_simple_3d_3x3x4_peak_preserved(self):
+        a = np.array([
+            [[0, 0, 0, 0],
+             [0, 0, 0, 0],
+             [0, 0, 0, 0]],
+            [[0, 0, 0, 0],
+             [0, 1, 1, 0],
+             [0, 0, 0, 0]],
+            [[0, 0, 0, 0],
+             [0, 0, 0, 0],
+             [0, 0, 0, 0]],
+        ], dtype=float)
+        assert_allclose(subvoxel_maximum(a, 5), np.array([1, 1, 1.5]))
 
 class TestDetectPeaks:
     def test_rejects_peaks_on_edge(self):

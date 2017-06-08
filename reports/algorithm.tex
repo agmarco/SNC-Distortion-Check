@@ -255,11 +255,11 @@ The goal of the feature detection stage is to localize the phantom grid intersec
 
 \begin{itemize}
     \item Invert the image if it is a CT (so that MRIs and CTs can be processed similarly).
-    \item Convolve the image with a kernel shaped like the phantom's grid intersections.
-    \item Localize peaks in the convolved image.
+    \item Blur the image with a Gaussian kernel whose sigma is $0.9 \times$ the grid radius
+    \item Perform subvoxel peak detection on the blurred image.
 \end{itemize}
 
-The grid intersection shape is known a priori.  For example, the CIRS 603A filter contains a grid of intersecting cylindrical beams.  The intersections are spaced 15mm from one another, and the beam's radius is 1.5mm.  Unfortunately, MRIs tend to distort the size of they phantom's grid cylinders.  A typical example of this phenomena is displayed in Figure \ref{fig:size-distortion}.  We compensate this effect in MRI images using multiplicative factor (e.g. of using 2mm instead of 1.5mm) when processing MR images; for CT images we use the physical cylinder radius.
+MRIs tend to distort the size of they phantom's grid cylinders.  A typical example of this phenomena is displayed in Figure \ref{fig:size-distortion}.  We compensate this effect in MRI images using multiplicative factor (e.g. of using 2mm instead of 1.5mm) when processing MR images; for CT images we use the physical cylinder radius.
 
 \begin{figure}
     \centering
@@ -268,30 +268,15 @@ The grid intersection shape is known a priori.  For example, the CIRS 603A filte
     \label{fig:size-distortion}
 \end{figure}
 
-It is important that the kernel be properly centered otherwise it will introduce a systematic shift into the detected feature locations.
-
-Aliasing can degrade the algorithm's performance when the kernel's feature dimensions are on the scale of a pixel.  We perform a crude form of antialiasing by first constructing an upsampled version of the filter which we decimate using an averaging filter.  At high upsampling numbers, the kernel construction process uses a lot memory.  To alleviate the problem, we construct a single corner of the kernel, and then reflect it into the remaining seven corners.
-
-The kernel is centered on a beam intersection, and its dimensions are approximately one grid-intersection spacing (e.g. 15mm).  A smaller kernel could also be used, however, the larger the kernel the better it will be able to differentiate grid intersections from other features in the image.
-
-Figure \ref{fig:kernel} demonstrates the geometry of the grid intersection kernel.
-
-\begin{figure}
-    \centering
-    \includegraphics[width=\linewidth]{kernel.pdf}
-    \caption{Geometry of the grid intersection kernel construction.  A central slice of the 3D kernel is displayed.  The red area represents the cylindrical beams forming the grid.  Each side of the green quadrants is one half the intersection spacing.  The black rectangles indicate the locations of the kernel voxels.  The blue rectangles indicate the voxel locations in the upsampled image.  Note that the kernel size may be slightly larger than the intersection spacing.}
-    \label{fig:kernel}
-\end{figure}
-
-The third stage, peak detection, involves several steps.
+Peak detection involves several steps.
 
 \begin{itemize}
-    \item Build a spherical search neighborhood (a binary array) with a diameter of one grid-intersection spacing.
-    \item Search throughout the convolved image for voxels whose value is equal to the maximum value within the search neighborhood.  The hight of this peak is the maximum value in the neighborhood less the minimum value within the neighborhood.
+    \item Build a rectangular search neighborhood with sides that are 1/2 the grid spacing (e.g. if the pixel spacing is 0.5x0.5x1mm and the grid spacing is 10mm, the neighborhood is a 5x5x10 voxel rectangle).
+    \item Search throughout the blurred image for voxels whose value is equal to the maximum value within the search neighborhood.  The height of this peak is the maximum value in the neighborhood less the minimum value within the neighborhood.
     \item Discard peaks that are near the edge of the image (these are usually due to border effects).
     \item Discard peaks corresponding to noise and other features in the phantom by discarding peaks whose height is less than 30\% the height of the 98th percentile height.
     \item Combine duplicate peaks that can occur if there are neighboring maximum values in the image.
-    \item Perform some sort of sub-voxel peak detection using the initial set of peaks as seed locations.
+    \item Perform sub-voxel peak detection using the initial set of peaks as seed locations.  Sub-voxel localization is preformed using spline interpolation on the set of voxels surrounding the peak(s).
 \end{itemize}
 
 Details of the last two steps need to be filled in once we have settled on an algorithm.
