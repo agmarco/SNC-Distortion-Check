@@ -127,6 +127,15 @@ def metrics(FN_A, TP_A, TP_B, FP_B):
     num_points_a = len(FN_A.T) + len(TP_A.T)
     num_points_b = len(FP_B.T) + len(TP_B.T)
 
+    TPF = len(TP_A.T)/num_points_a if num_points_a else float('nan')
+    FPF = len(FP_B.T)/num_points_b if num_points_b else float('nan')
+
+    error_percentiles = FLE_percentiles(TP_A, TP_B)
+
+    return TPF, FPF, error_percentiles
+
+
+def FLE_percentiles(TP_A, TP_B):
     percentiles = range(0, 100 + 1)
 
     if len(TP_B.T) == 0:
@@ -142,7 +151,7 @@ def metrics(FN_A, TP_A, TP_B, FP_B):
         error_vector_norms = np.linalg.norm(error_vectors, axis=0)
 
         error_percentiles = {
-            p: {'r': r, 'x': x, 'y': y, 'z': z}
+            p: {'p': p, 'r': r, 'x': x, 'y': y, 'z': z}
             for
             p, r, x, y, z
             in
@@ -155,7 +164,10 @@ def metrics(FN_A, TP_A, TP_B, FP_B):
             )
         }
 
-    TPF = len(TP_A.T)/num_points_a if num_points_a else float('nan')
-    FPF = len(FP_B.T)/num_points_b if num_points_b else float('nan')
+    return error_percentiles
 
-    return TPF, FPF, error_percentiles
+
+def format_FLE_percentile(error_percentile):
+    ep = error_percentile
+    msg = "FLE_{} = {:06.4f}mm ({:06.4f}mm, {:06.4f}mm, {:06.4f}mm)"
+    return msg.format(ep['p'], ep['r'], ep['x'], ep['y'], ep['z'])

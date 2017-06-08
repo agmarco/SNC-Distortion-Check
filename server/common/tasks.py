@@ -17,6 +17,7 @@ from process.feature_detection import FeatureDetector
 from process.file_io import save_voxels
 from process.registration import rigidly_register_and_categorize
 from process.reports import generate_reports
+from process.utils import fov_center_xyz
 from . import serializers
 from .models import Scan, Fiducials, GoldenFiducials, DicomSeries
 
@@ -64,9 +65,12 @@ def process_scan(scan_pk):
 
             scan.detected_fiducials = Fiducials.objects.create(fiducials=pruned_points_xyz)
 
+            isocenter_in_B = fov_center_xyz(voxels.shape, ijk_to_xyz)
+
             xyztpx, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
                 scan.golden_fiducials.fiducials.fiducials,
                 scan.detected_fiducials.fiducials,
+                isocenter_in_B,
             )
 
             if TP_B.size == 0:

@@ -17,7 +17,7 @@ Mircea Lazea\\CIRS, Inc.
 \maketitle
 
 \section{Introduction}
-MR scanners can introduce geometric distortion into their images.  For many clinical needs, these distortions are not relevant---for others they are relevant and worth measuring and correcting.  A detailed discussion of the causes of geometric distortion in MRIs and the applications in which they matter is beyond the scope of this report \cite{baldwin2007,torfeh2015,wang2005,mribook}.  
+MR scanners can introduce geometric distortion into their images.  For many clinical needs, these distortions are not relevant---for others they are relevant and worth measuring and correcting.  A detailed discussion of the causes of geometric distortion in MRIs and the applications in which they matter is beyond the scope of this report \cite{baldwin2007,torfeh2015,wang2005,mribook}.
 
 Geometric distortion in MR scanners is typically measured using images of specially constructed grid phantoms. By comparing the location of the phantom features in the image to their known locations in the phantom, one can calculate the geometric distortion introduced by the scanner into the image.
 
@@ -49,7 +49,7 @@ There are three stages to a generic algorithm that solves this registration prob
 
 \subsection{Assumptions}
 
-Generic non-rigid registration is an open research area with many unsolved problems. To make our problem tractable, we make the following assumptions: 
+Generic non-rigid registration is an open research area with many unsolved problems. To make our problem tractable, we make the following assumptions:
 
 \begin{enumerate}
 \item The phantom has consistently oriented and formed features that can be identified using a convolution kernel.  As an example, a phantom that contains a Cartesian grid of intersecting cylindrical rods satisfies this assumption.
@@ -131,7 +131,7 @@ The problem of deciding how to match points is a particular instance of the ``co
 
 The threshold distance, $\rho(|\textbf{B}|)$ is a monotonically increasing function of the distance of a point to the isocenter of the scanner.  It is loosely derived from our physical knowledge of the scanner.  For example, if $\rho(|\textbf{b}|) = 1 + 0.05 \times |\textbf{b}|$, then two points at the isocenter must be within 1mm to be considered matching. At 30cm from the isocenter, they must be within 16mm.
 
-The form of $\rho$ is important.  A low threshold may prevent exceptionally distorted points from matching, resulting in false negatives.  A high threshold may allow false positives to match.  
+The form of $\rho$ is important.  A low threshold may prevent exceptionally distorted points from matching, resulting in false negatives.  A high threshold may allow false positives to match.
 
 Typically, each point in $A$ will be matched to the closest point in $B$. However, if there is a point in $B$ that could match multiples points in $A$, it will be matched with whichever point in $A$ minimizes the total sum of distances.  If there is a point in $B$ that is equidistant from two points in $A$ (both of which can only match this particular point), then the matching choice will be arbitrary.
 
@@ -204,9 +204,9 @@ It is useful to have a separate test for feature detection because it is the mos
 
 The feature detection test begins by applying an artificial distortion to an existing image that has been annotated.  The distorted image is fed into the feature detection algorithm, which returns $B$.  Next, we apply the distortion to the set of annotated points, which we call $A$.  The meaning of $A$ in the context of this test is unusual.  It is useful to retain the same notation and matching algorithm, however, so we use $A$ instead of introducing new notation.
 
-Typically there is an expected discrepancy between $B$ and $A$ (this is what we are measuring).  In the context of the feature detection test, if the feature detection is perfect then $B = A$.  Thus, it does not make sense to use our typical `rho`, and instead we use $\rho(|\mathbf{b}|) = 2$---hence points are categorized as false positives if they are further than 2mm apart.  
+Typically there is an expected discrepancy between $B$ and $A$ (this is what we are measuring).  In the context of the feature detection test, if the feature detection is perfect then $B = A$.  Thus, it does not make sense to use our typical `rho`, and instead we use $\rho(|\mathbf{b}|) = 2$---hence points are categorized as false positives if they are further than 2mm apart.
 
-We quantify the performance of the algorithm using the following metrics: 
+We quantify the performance of the algorithm using the following metrics:
 
 \begin{align*}
     \textrm{TPF} &= \frac{N_\textrm{TP}}{N_A} \\
@@ -279,7 +279,9 @@ Peak detection involves several steps.
     \item Perform sub-voxel peak detection using the initial set of peaks as seed locations.  Sub-voxel localization is preformed using spline interpolation on the set of voxels surrounding the peak(s).
 \end{itemize}
 
-Details of the last two steps need to be filled in once we have settled on an algorithm.
+\subsection{False Positives Rejection}
+
+We categorize ROIs surrounding the detected peaks into potential True Positives and False Positives using a convolutional neural network.
 
 \subsection{Rigid Registration}
 
@@ -311,7 +313,7 @@ Many distortion detection algorithms presented in the literature have not used t
 
 We believe that it is inappropriate to use the distance-squared.  Doing so gives too much weight to distorted points and false-positive matches.  It also gives too little weight to points near the isocenter where distortion is low.  Many previous algorithms have circumvented these shortcomings by using a subset of $M$.  Instead of limiting $M$, we optimize over the distance and use a weighting function $g$ to decrease the weight of peripheral points.
 
-We note that the L-$p$ norms with $p \in (0, 1]$ have been used in other registration applications with great success \cite{bouaziz2013}.  
+We note that the L-$p$ norms with $p \in (0, 1]$ have been used in other registration applications with great success \cite{bouaziz2013}.
 
 \subsection{Distortion Interpolation}
 
@@ -327,6 +329,23 @@ We defined the distortion at $\mathbf{a}_\textrm{S}$ to be $\mathbf{D}(\mathbf{b
 \end{figure}
 
 The distortion is interpolated onto the grid by triangulating $M_\textrm{S}$ and performing linear barycentric interpolation on each triangle.
+
+\section{Isocenter Location}
+
+MR scanner geometric distortion is always relative to the MR scanner's isocenter.  Unfortunately we do not know where the isocenter is; DICOM has a tag for it, but this tag is usually not included.  We assume that the isocenter is in the center of the field of view, and that the phantom is approximately centered on the isocenter.  We also assume that the phantom is oriented properly.
+
+\section{Error Handling}
+
+The algorithm can fail for the following reasons:
+
+\begin{enumerate}
+\item The feature detection algorithm detected more than 200\% the correct number of points.
+\item The feature detection algorithm detected less than 90\% the correct number of points.
+\item The FP-rejection stage rejected too many points (so that the remaining total is less than 90\% the correct number of points).
+\item The matching/registration algorithm matched less than 90\% of the points.
+\item The matching/registration algorithm had a shift larger than 1/2 the grid spacing in one dimension.
+\item The matching/registration algorithm had a rotation larger than 5\degrees on any axis.
+\end{enumerate}
 
 \section{Results and Discussion}
 

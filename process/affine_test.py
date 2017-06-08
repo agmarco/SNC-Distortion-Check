@@ -1,9 +1,11 @@
 from math import pi
 
+import pytest
 from numpy.testing import assert_allclose
 import numpy as np
 
-from .affine import translation_rotation as S, apply_xyztpx, voxel_spacing
+from .affine import translation_rotation as S, apply_xyztpx, voxel_spacing, \
+        xyztpx_from_rotation_translation, translation_rotation
 
 
 class TestAffineMatrix:
@@ -65,3 +67,21 @@ class TestPixelSpacing:
         ]).T
         ijk_to_xyz = ijk_to_xyz @ S(23, 45, 566, 0, 0, 0)
         assert_allclose(voxel_spacing(ijk_to_xyz), np.array((di, dj, dk)))
+
+@pytest.mark.skip(reason="Work in progress")
+@pytest.mark.parametrize("seed", [1, 2, 3, 4, 5])
+def test_extract_xyztpx(seed):
+    np.random.seed(seed)
+    x, y, z = np.random.uniform(-10, 10, (3,))
+    #theta, phi, xi = np.random.uniform(-pi/2, pi/2, (3,))
+    theta, phi, xi = 0, 0, 0
+    affine_matrix = translation_rotation(x, y, z, theta, phi, xi)
+    print(x, y, z)
+    print(affine_matrix)
+    xp, yp, zp, thetap, phip, xip = xyztpx_from_rotation_translation(affine_matrix)
+    assert x == xp
+    assert y == yp
+    assert z == zp
+    assert theta == thetap
+    assert phi == phip
+    assert xi == xip

@@ -1,0 +1,18 @@
+{
+    "case_id": "603A_worstcase",
+    "commit": "56249aff8606aa1a7f435aa5a53a9595a1dfa6f1",
+    "metrics": {
+        "FLE_100": 4.993710016702007,
+        "FLE_50": 0.7569304326824443,
+        "FLE_50_near_isocenter": 0.7569304326824443,
+        "registration_shift": 4.99022161828821,
+        "x": -1.8701907452195883,
+        "y": 4.429853236302733,
+        "z": -1.334578090987634
+    },
+    "ran_on": 1496953064.790252,
+    "repo_dirty": true,
+    "result_id": "1496953064.790252_56249aff8606aa1a7f435aa5a53a9595a1dfa6f1",
+    "status": "unknown",
+    "suite_id": "registration"
+}
