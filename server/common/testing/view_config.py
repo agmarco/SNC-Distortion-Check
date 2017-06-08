@@ -474,5 +474,12 @@ VIEWS = (
         'permissions': (),
         'validate_institution': False,
         'methods': {'GET': None},
-    },
+    }, {
+        'view': views.PasswordResetView,
+        'url': reverse('password_reset'),
+        'login_required': False,
+        'permissions': (),
+        'validate_institution': False,
+        'methods': {'GET': None, 'POST': {'email': 'johndoe@johnshopkins.edu'}},
+    }
 )

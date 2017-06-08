@@ -23,6 +23,7 @@ from django.views import View
 from django.views.generic import DetailView, TemplateView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import views as auth_views
 from rest_framework.renderers import JSONRenderer
 
 import scipy.io
@@ -494,9 +495,9 @@ class CreateUserView(FormView):
     form_class = forms.CreateUserForm
     success_url = reverse_lazy('configuration')
     template_name = 'common/user_create.html'
-    email_template_name = 'common/create_user_email.html'
-    html_email_template_name = None
-    subject_template_name = 'common/create_user_subject.txt'
+    email_template_name = 'common/email/create_user_email.txt'
+    html_email_template_name = 'common/email/create_user_email.html'
+    subject_template_name = 'common/email/create_user_subject.txt'
     extra_email_context = None
     token_generator = default_token_generator
     from_email = None
@@ -676,9 +677,9 @@ class RegisterView(FormView):
     form_class = forms.RegisterForm
     template_name = 'common/register.html'
     success_url = reverse_lazy('register_done')
-    email_template_name = 'common/create_user_email.html'
-    html_email_template_name = None
-    subject_template_name = 'common/create_user_subject.txt'
+    email_template_name = 'common/email/create_user_email.txt'
+    html_email_template_name = 'common/email/create_user_email.html'
+    subject_template_name = 'common/email/create_user_subject.txt'
     extra_email_context = None
     token_generator = default_token_generator
     from_email = None
@@ -715,3 +716,9 @@ class CreatePasswordView(PasswordResetConfirmView):
 
 class CreatePasswordCompleteView(PasswordResetCompleteView):
     template_name = 'common/create_password_complete.html'
+
+
+class PasswordResetView(auth_views.PasswordResetView):
+    email_template_name = 'registration/email/password_reset_email.txt'
+    html_email_template_name = 'registration/email/password_reset_email.html'
+    subject_template_name = 'registration/email/password_reset_subject.txt'
