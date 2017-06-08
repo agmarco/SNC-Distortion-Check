@@ -138,15 +138,7 @@ class FeatureDetectionSuite(Suite):
                 'points_xyz': context['pruned']['FN_A'],
                 'scatter_kwargs': {
                     'color': 'y',
-                    'label': 'FN_A',
-                    'marker': 'o'
-                }
-            },
-            {
-                'points_xyz': context['pruned']['TP_A'],
-                'scatter_kwargs': {
-                    'color': 'g',
-                    'label': 'TP_A',
+                    'label': 'False Negatives',
                     'marker': 'o'
                 }
             },
@@ -154,7 +146,7 @@ class FeatureDetectionSuite(Suite):
                 'points_xyz': context['pruned']['TP_B'],
                 'scatter_kwargs': {
                     'color': 'g',
-                    'label': 'TP_B',
+                    'label': 'True Positives',
                     'marker': 'x'
                 }
             },
@@ -162,7 +154,7 @@ class FeatureDetectionSuite(Suite):
                 'points_xyz': context['pruned']['FP_B'],
                 'scatter_kwargs': {
                     'color': 'r',
-                    'label': 'FP_B',
+                    'label': 'False Positives',
                     'marker': 'x'
                 }
             },
