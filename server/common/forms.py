@@ -279,7 +279,7 @@ class CreateMachineForm(CirsFormMixin, forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(CreateMachineForm, self).clean()
-        if Machine.objects.filter(institution=self.institution).count() >= self.institution.number_of_licenses:
+        if Machine.objects.filter(institution=self.institution).active().count() >= self.institution.number_of_licenses:
             raise ValidationError("""Your institution already has the maximum number of allowed machine licenses.
                 Please contact CIRS support if you believe that this is an error.""")
         return cleaned_data
