@@ -198,7 +198,7 @@ def dump_raw_data(scan):
     institution_s.write(renderer.render(institution.data))
 
     files = {
-        'dicom.zip': scan.dicom_series.zipped_dicom_files.path,
+        'dicom.zip': scan.dicom_series.zipped_dicom_files.name,
         'voxels.mat': voxels_path,
         'raw_points.mat': raw_points_path,
     }
