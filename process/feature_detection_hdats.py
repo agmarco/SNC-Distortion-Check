@@ -29,26 +29,28 @@ class FeatureDetectionSuite(Suite):
                 'voxels': 'tmp/006_mri_603A_UVA_Axial_2ME2SRS5-voxels.mat',
                 'points': 'data/points/006_mri_603A_UVA_Axial_2ME2SRS5-golden.mat',
             },
-            '010': {
-                'voxels': 'tmp/010_mri_604_LFV-Phantom_E2632-1-voxels.mat',
-                'points': 'data/points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
-            },
+            # TODO: add model for 604 phantom
+            # '010': {
+                # 'voxels': 'tmp/010_mri_604_LFV-Phantom_E2632-1-voxels.mat',
+                # 'points': 'data/points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
+            # },
             '011': {
                 'voxels': 'tmp/011_mri_603A_arterial_TOF_3d_motsa_ND-voxels.mat',
                 'points': 'data/points/011_mri_630A_arterial_TOF_3d_motsa_ND-golden.mat',
             },
-            '1540-075': {
-                'voxels': 'tmp/xxx_ct_1540_ST075-120kVp-100mA-voxels.mat',
-                'points': 'data/points/1540-gaussian.mat',
-            },
-            '1540-125': {
-                'voxels': 'tmp/xxx_ct_1540_ST125-120kVp-100mA-voxels.mat',
-                'points': 'data/points/1540-gaussian.mat',
-            },
-            '1540-250': {
-                'voxels': 'tmp/xxx_ct_1540_ST250-120kVp-100mA-voxels.mat',
-                'points': 'data/points/1540-gaussian.mat',
-            },
+            # TODO: determine if we care about the 1540 data sets
+            # '1540-075': {
+                # 'voxels': 'tmp/xxx_ct_1540_ST075-120kVp-100mA-voxels.mat',
+                # 'points': 'data/points/1540-gaussian.mat',
+            # },
+            # '1540-125': {
+                # 'voxels': 'tmp/xxx_ct_1540_ST125-120kVp-100mA-voxels.mat',
+                # 'points': 'data/points/1540-gaussian.mat',
+            # },
+            # '1540-250': {
+                # 'voxels': 'tmp/xxx_ct_1540_ST250-120kVp-100mA-voxels.mat',
+                # 'points': 'data/points/1540-gaussian.mat',
+            # },
         }
         return cases
 
