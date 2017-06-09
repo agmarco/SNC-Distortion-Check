@@ -6,7 +6,8 @@ import pytest
 from numpy.testing import assert_allclose
 
 from process.affine import apply_xyztpx
-from process.registration import build_f, rigidly_register, rigidly_register_and_categorize, g_cutoff, registeration_tolerance
+from process.registration import build_f, rigidly_register, rigidly_register_and_categorize, \
+        g_cutoff, registeration_tolerance
 from process.file_io import load_points
 
 
@@ -135,8 +136,22 @@ class TestRegisterAndCategorize:
         All of the points close to the isocenter (within g_cutoff) have a shift
         of (0, 0, -1), while the points outside the cutoff don't have a shift.
         '''
-        A = np.array([[0, 0, 2.0], [0, 0, 3.0], [0, 0, g_cutoff + 11.0], [0, 0, g_cutoff + 12.0], [0, 0, g_cutoff + 13.0]]).T
-        B = np.array([[0, 0, 1.0], [0, 0, 2.0], [0, 0, g_cutoff + 11.0], [0, 0, g_cutoff + 12.0], [0, 0, g_cutoff + 13.0]]).T
+        A = np.array([
+            [0, 0, 2.0],
+            [0, 0, 3.0],
+            [0, 0, g_cutoff + 11.0],
+            [0, 0, g_cutoff + 12.0],
+            [0, 0, g_cutoff + 13.0]
+        ]).T
+
+        B = np.array([
+            [0, 0, 1.0],
+            [0, 0, 2.0],
+            [0, 0, g_cutoff + 11.0],
+            [0, 0, g_cutoff + 12.0],
+            [0, 0, g_cutoff + 13.0]
+        ]).T
+
         isocenter = np.array([0, 0, 0])
 
         tolerance = 1e-5
