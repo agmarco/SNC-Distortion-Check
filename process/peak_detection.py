@@ -67,7 +67,7 @@ def detect_peaks(data, voxel_spacing, search_radius):
     peak_heights = neighborhood_peaks(data, search_neighborhood)
 
     logger.info('filtering out small peaks')
-    threshold = 0.3*np.percentile(peak_heights[peak_heights > 0], 98)
+    threshold = 0.1*np.percentile(peak_heights[peak_heights > 0], 98)
     peaks_thresholded = peak_heights > threshold
 
     logger.info('removing peaks too close to edge')
