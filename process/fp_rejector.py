@@ -34,8 +34,13 @@ def get_keras_model(phantom_model):
     return keras_models[phantom_model]
 
 
+def has_keras_model(phantom_model):
+    phantom_exists = phantom_model in phantoms.paramaters
+    return phantom_exists and 'keras_model' in phantoms.paramaters[phantom_model]
+
+
 def remove_fps(points_ijk_unfiltered, voxels, voxel_spacing, phantom_model):
-    if phantom_model not in phantoms.paramaters:
+    if not has_keras_model(phantom_model):
         logger.warn(f'Phantom "{phantom_model}" has not associated neural network model')
         return points_ijk_unfiltered
 
@@ -64,6 +69,9 @@ def is_grid_intersection(point_ijk, voxels, voxel_spacing, phantom_model):
 
     This is used to provide increased specificity to our peak-finding algorithm.
     '''
+    if not has_keras_model(phantom_model):
+        return False
+
     model = get_keras_model(phantom_model)
     window = window_from_ijk(point_ijk, voxels, voxel_spacing)
     if window is not None:
