@@ -125,7 +125,7 @@ class TestRegisterAndCategorize:
         self.assert_3x3x3_match([0.4, -0.3, 0.3, 0, 0, -math.pi/180*5], [0, 0, 0])
 
     def test_small_translation_isocenter_shifted(self):
-        self.assert_3x3x3_match([0.4, -0.3, 0.3, 0, 0, 0], [32, -10, 22])
+        self.assert_3x3x3_match([32 + 0.4, -10 + -0.3, 22 + 0.3, 0, 0, 0], [32, -10, 22])
 
     def test_points_beyond_g_cutoff_are_ignored(self):
         '''
