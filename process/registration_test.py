@@ -111,13 +111,13 @@ class TestRegisterAndCategorize:
 
         isocenter = np.array(isocenter)
 
-        tolerance = 1e-5
+        tolerance = 1e-6
         xyztpx_actual, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
                 A, B, isocenter)
 
         assert_allclose(xyztpx_actual, xyztpx, atol=tolerance*10)
-        assert_allclose(TP_A_S, A_S, atol=tolerance*100)
-        assert_allclose(TP_B, B, atol=tolerance*100)
+        assert_allclose(TP_A_S, A_S, atol=tolerance*10)
+        assert_allclose(TP_B, B, atol=tolerance*10)
         assert FN_A_S.size == 0
         assert FP_B.size == 0
 
