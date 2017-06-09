@@ -58,7 +58,7 @@ def build_f(A, B, g, rho):
         return lambda xyztpx: 0
 
     def f(xyztpx):
-        affine_matrix = affine.translation_rotation(*xyztpx)
+        affine_matrix = affine.rotation_translation(*xyztpx)
         A1_S = affine_matrix @ A1
         A_S = A1_S[:3, :]
 
@@ -125,15 +125,15 @@ def rigidly_register_and_categorize(A, B, isocenter_in_B):
     # shift B's coordinate system so that its origin is centered at the
     # isocenter; the lower level registration functions assume B's origin is
     # the isocenter
-    b_to_b_i_registration_matrix = affine.T(*(-1*isocenter_in_B))
+    b_to_b_i_registration_matrix = affine.translation(*(-1*isocenter_in_B))
     B_i = affine.apply_affine(b_to_b_i_registration_matrix, B)
 
     xyztpx_a_to_b_i = rigidly_register(A, B_i, g, rho, registeration_tolerance)
 
     # now apply both shifts (from A -> B_i and then from B_i -> B) back onto A.
     # This preservers the original patient coordinate system
-    a_to_b_i_registration_matrix = affine.translation_rotation(*xyztpx_a_to_b_i)
-    b_i_to_b_registration_matrix = affine.T(*isocenter_in_B)
+    a_to_b_i_registration_matrix = affine.rotation_translation(*xyztpx_a_to_b_i)
+    b_i_to_b_registration_matrix = affine.translation(*isocenter_in_B)
     a_to_b_registration_matrix =  b_i_to_b_registration_matrix @ a_to_b_i_registration_matrix
     A_S = affine.apply_affine(a_to_b_registration_matrix, A)
 

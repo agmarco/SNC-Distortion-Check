@@ -199,7 +199,7 @@ class Command(BaseCommand):
             B = generate_cube(2, 4)
 
             random_angle = randint(6, 10)*np.pi/180
-            affine_matrix = affine.translation_rotation(0, 0, 0, random_angle, random_angle, random_angle)
+            affine_matrix = affine.rotation_translation(0, 0, 0, random_angle, random_angle, random_angle)
 
             A = apply_affine(affine_matrix, A)
 

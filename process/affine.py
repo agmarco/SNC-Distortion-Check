@@ -3,7 +3,7 @@ from math import cos, sin, pi, radians
 import numpy as np
 
 
-def R_x(theta):
+def rotation_x(theta):
     return np.array([
         [1, 0,          0,           0],
         [0, cos(theta), -sin(theta), 0],
@@ -12,7 +12,7 @@ def R_x(theta):
     ])
 
 
-def R_y(phi):
+def rotation_y(phi):
     return np.array([
         [cos(phi),  0, sin(phi), 0],
         [0,         1,        0, 0],
@@ -21,7 +21,7 @@ def R_y(phi):
     ], dtype='f')
 
 
-def R_z(xi):
+def rotation_z(xi):
     return np.array([
         [cos(xi), -sin(xi), 0, 0],
         [sin(xi), cos(xi), 0, 0],
@@ -30,7 +30,7 @@ def R_z(xi):
     ], dtype='f')
 
 
-def S(x, y, z):
+def scaleing(x, y, z):
     return np.array([
         [x, 0, 0, 0],
         [0, y, 0, 0],
@@ -39,7 +39,7 @@ def S(x, y, z):
     ], dtype='f')
 
 
-def T(x, y, z):
+def translation(x, y, z):
     return np.array([
         [1, 0, 0, x],
         [0, 1, 0, y],
@@ -49,11 +49,11 @@ def T(x, y, z):
 
 
 def rotation(theta, phi, xi):
-    return R_x(theta) @ R_y(phi) @ R_z(xi)
+    return rotation_x(theta) @ rotation_y(phi) @ rotation_z(xi)
 
 
-def translation_rotation(x, y, z, theta, phi, xi):
-    return T(x, y, z) @ R_x(theta) @ R_y(phi) @ R_z(xi)
+def rotation_translation(x, y, z, theta, phi, xi):
+    return translation(x, y, z) @ rotation(theta, phi, xi)
 
 
 def apply_affine(affine_matrix, A):
@@ -68,7 +68,7 @@ def apply_affine(affine_matrix, A):
 
 
 def apply_xyztpx(xyztpx, points):
-    return apply_affine(translation_rotation(*xyztpx), points)
+    return apply_affine(rotation_translation(*xyztpx), points)
 
 
 def voxel_spacing(ijk_to_xyz):
@@ -84,14 +84,14 @@ def voxel_spacing(ijk_to_xyz):
 
 
 def rotate_about(points, x, y, z, theta, phi, xi):
-    affine = T(x, y, z) @ \
-             R_x(radians(theta)) @ \
-             R_y(radians(phi)) @ \
-             R_z(radians(xi)) @ \
-             T(-x, -y, -z)
+    affine = translation(x, y, z) @ \
+             rotation_x(radians(theta)) @ \
+             rotation_y(radians(phi)) @ \
+             rotation_z(radians(xi)) @ \
+             translation(-x, -y, -z)
     return apply_affine(affine, points)
 
 
 def translate(points, x, y, z):
-    affine = T(x, y, z)
+    affine = translation(x, y, z)
     return apply_affine(affine, points)

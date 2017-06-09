@@ -66,7 +66,7 @@ if __name__ == '__main__':
     assert algorithm_27.shape[1] == 27
 
     def f(xyztpx):
-        affine_matrix = affine.translation_rotation(*xyztpx)
+        affine_matrix = affine.rotation_translation(*xyztpx)
         cad_27_registered = affine.apply_affine(affine_matrix, cad_27)
         FN_A, TP_A, TP_B, FP_B = categorize(cad_27_registered, algorithm_27, lambda bmag: 2.0)
         FLEs = np.linalg.norm(TP_A - TP_B, axis=0)
@@ -86,7 +86,7 @@ if __name__ == '__main__':
         raise ValueError('Optimization did not succeed')
     print_xyztpx(result.x)
 
-    affine_matrix = affine.translation_rotation(*result.x)
+    affine_matrix = affine.rotation_translation(*result.x)
     cad_registered = affine.apply_affine(affine_matrix, cad_points)
 
     file_io.save_points(args.output, {

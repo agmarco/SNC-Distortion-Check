@@ -7,7 +7,7 @@ import numpy as np
 from scipy.ndimage.interpolation import geometric_transform
 
 from process import file_io
-from process.affine import translation_rotation, apply_affine
+from process.affine import rotation_translation, apply_affine
 
 
 def affine_point(mat, point):
@@ -61,7 +61,7 @@ def affine_transform_func(x, y, z, theta, phi, xi):
     '''
     Applies a rigid affine transform to voxels about the center.
     '''
-    tmat = translation_rotation(x, y, z, theta, phi, xi)
+    tmat = rotation_translation(x, y, z, theta, phi, xi)
     itmat = np.linalg.inv(tmat)
     def distort_func(ijk_out_coord):
         return affine_point(tmat, ijk_out_coord)

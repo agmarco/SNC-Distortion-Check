@@ -12,7 +12,7 @@ from hdatt.suite import Suite
 from . import slicer
 from . import affine, file_io
 from .fp_rejector import remove_fps
-from .affine import translation_rotation
+from .affine import rotation_translation
 from .feature_detection import FeatureDetector
 from .registration import rigidly_register_and_categorize
 from .test_utils import get_test_data_generators, Rotation, show_base_result, Distortion

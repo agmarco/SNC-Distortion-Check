@@ -571,7 +571,7 @@ def generate_cube(size, spacing=1, x0=0):
 if __name__ == '__main__':
     A = generate_cube(2, 4)
     B = generate_cube(2, 4)
-    affine_matrix = affine.translation_rotation(0, 0, 0, np.pi / 180 * 10, np.pi / 180 * 10, np.pi / 180 * 10)
+    affine_matrix = affine.rotation_translation(0, 0, 0, np.pi / 180 * 10, np.pi / 180 * 10, np.pi / 180 * 10)
 
     A = apply_affine(affine_matrix, A)
 
