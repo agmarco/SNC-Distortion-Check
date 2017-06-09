@@ -4,7 +4,7 @@ import math
 import numpy as np
 from scipy.ndimage import filters
 
-from .affine import apply_affine
+from process.affine import apply_affine
 
 logger = logging.getLogger(__name__)
 import sys; logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(message)s')
