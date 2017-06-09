@@ -78,7 +78,7 @@ class FeatureDetectionSuite(Suite):
         context['kernel'] = feature_detector.kernel
         context['voxel_spacing'] = voxel_spacing
 
-        rho = lambda bmag: 3
+        rho = lambda bmag: 2.5
         metrics['raw'], context['raw'] = self._process_points(
                 golden_points, feature_detector.points_xyz, rho)
 
