@@ -130,19 +130,15 @@ g_cutoff = 50
 registeration_tolerance = 1e-6
 
 
+def g(bmag):
+    return 1 - bmag/g_cutoff if bmag < g_cutoff else 0
+
+
+def rho(bmag):
+    return 5.0
+
+
 def rigidly_register_and_categorize(A, B, isocenter_in_B, skip_brute=False):
-    # TODO: determine rho and g based on our knowledge of the phantom
-    # for now, we assume that the distortion is always within 5 mm and we
-    # weight points less linearly as the get further from the isocenter
-    maximum_extent = 200.0
-    maximum_distortion = 5.0
-
-    def g(bmag):
-        return 1 - bmag/g_cutoff if bmag < g_cutoff else 0
-
-    def rho(bmag):
-        return 5.0
-
     # shift B's coordinate system so that its origin is centered at the
     # isocenter; the lower level registration functions assume B's origin is
     # the isocenter
