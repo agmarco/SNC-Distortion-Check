@@ -4,13 +4,11 @@ import numpy as np
 from scipy.interpolate.interpnd import LinearNDInterpolator
 import matplotlib.pyplot as plt
 
-from . import points_utils
+from . import points_utils, phantoms, slicer, affine, file_io
 from .utils import fov_center_xyz
 from .visualization import scatter3
 from .interpolate import interpolate_distortion
 from hdatt.suite import Suite
-from . import slicer
-from . import affine, file_io
 from .fp_rejector import remove_fps
 from .affine import rotation_translation
 from .feature_detection import FeatureDetector
@@ -19,20 +17,26 @@ from .test_utils import get_test_data_generators, Rotation, show_base_result, Di
 from .dicom_import import combined_series_from_zip
 
 
+def print_histogram(data, suffix):
+    counts, bin_edges = np.histogram(data[np.isfinite(data)])
+    total = np.sum(counts)
+    for i, c in enumerate(counts):
+        template = '{0:5.3f}{suffix} - {1:5.3f}{suffix}: {2:3.2f}%'
+        print(template.format(bin_edges[i], bin_edges[i + 1], c/total*100, suffix=suffix))
+
+
 class FullAlgorithmSuite(Suite):
     id = 'full-algorithm'
 
     def collect(self):
         return {
-            '006': {
+            '603A-2': {
                 'dicom': 'data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip',
-                'golden_points': 'data/points/603A.mat',
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
-            'yyy_t1_ND': {
+            '603A-4': {
                 'dicom': 'data/dicom/yyy_mri_603A_t1_vibe_tra_FS_ND.zip',
-                'golden_points': 'data/points/603A.mat',
                 'modality': 'mri',
                 'phantom_model': '603A',
             }
@@ -42,7 +46,8 @@ class FullAlgorithmSuite(Suite):
         metrics = OrderedDict()
         context = OrderedDict()
 
-        golden_points = file_io.load_points(case_input['golden_points'])['points']
+        golden_points_filename = phantoms.paramaters[case_input['phantom_model']]['points_file']
+        golden_points = file_io.load_points(golden_points_filename)['points']
         context['A'] = golden_points
 
         # 0. generate voxel data from zip file
@@ -93,7 +98,19 @@ class FullAlgorithmSuite(Suite):
         distortion_grid = interpolate_distortion(TP_A_S, TP_B, ijk_to_xyz, voxels.shape)
         context['distortion_grid'] = distortion_grid
 
-        # TODO: add distortion metrics
+        # calculate metrics
+        magnitude_mm = np.linalg.norm(distortion_grid, axis=3)
+        is_nan = np.isnan(magnitude_mm)
+        num_finite = np.sum(~is_nan)
+        num_total = magnitude_mm.size
+
+        metrics['fraction_of_volume_covered'] = num_finite/num_total
+        metrics['max_distortion'] = np.nanmax(magnitude_mm)
+        metrics['median_distortion'] = np.nanmedian(magnitude_mm)
+        metrics['min_distortion'] = np.nanmin(magnitude_mm)
+
+        print('histogram mm')
+        print_histogram(magnitude_mm, 'mm')
 
         return metrics, context
 
@@ -104,7 +121,10 @@ class FullAlgorithmSuite(Suite):
         metrics = result['metrics']
         context = result['context']
 
-        print(metrics)
+        print('% volume: {:3.2f}%'.format(metrics['fraction_of_volume_covered']))
+        print('max distortion magnitude: {:5.3f}mm'.format(metrics['max_distortion']))
+        print('median distortion magnitude: {:5.3f}mm'.format(metrics['median_distortion']))
+        print('min distortion magnitude: {:5.3f}mm'.format(metrics['min_distortion']))
 
         descriptors = [
             {
