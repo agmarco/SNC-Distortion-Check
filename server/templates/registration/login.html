@@ -14,7 +14,7 @@
       <input type="hidden" name="next" value="{{ request.GET.next }}" />
       {% for field in form %}
         <div>
-          {{ field.label_tag|title }}
+          {{ field.label_tag }}
           {{ field }}
           {{ field.errors }}
           {% if field.help_text %}<p>{{ field.help_text|safe }}</p>{% endif %}

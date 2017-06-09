@@ -211,6 +211,8 @@ def dump_raw_data(scan):
 
     s = io.BytesIO()
     with zipfile.ZipFile(s, 'w', zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr('dicom.zip', scan.dicom_series.zipped_dicom_files.read())
+
         for zip_path, path in files.items():
             zf.write(path, zip_path)
 
