@@ -131,7 +131,7 @@ class FullAlgorithmSuite(Suite):
                 'points_xyz': context['TP_B'],
                 'scatter_kwargs': {
                     'color': 'm',
-                    'label': 'TP_B',
+                    'label': 'Detected Points',
                     'marker': 'o'
                 }
             },
@@ -139,7 +139,7 @@ class FullAlgorithmSuite(Suite):
                 'points_xyz': context['FP_B'],
                 'scatter_kwargs': {
                     'color': 'm',
-                    'label': 'FP_B',
+                    'label': 'False Positives',
                     'marker': 'o'
                 }
             },
@@ -147,7 +147,7 @@ class FullAlgorithmSuite(Suite):
                 'points_xyz': context['FN_A_S'],
                 'scatter_kwargs': {
                     'color': 'g',
-                    'label': 'FN_A_S',
+                    'label': 'False Negatives',
                     'marker': 'x'
                 }
             },
@@ -155,7 +155,7 @@ class FullAlgorithmSuite(Suite):
                 'points_xyz': context['TP_A_S'],
                 'scatter_kwargs': {
                     'color': 'g',
-                    'label': 'TP_A_s',
+                    'label': 'Registered Golden Standard Points',
                     'marker': 's'
                 }
             },
