@@ -6,10 +6,10 @@ from django import forms
 import numpy as np
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 
 from process import dicom_import
-from .models import Phantom, Institution, User
+from .models import Phantom, Institution, User, Machine
 from .validators import validate_phantom_serial_number
 
 
@@ -20,6 +20,8 @@ class CirsFormMixin:
 
 
 class AccountForm(CirsFormMixin, forms.ModelForm):
+    email = forms.EmailField(help_text=None)
+
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'email')
@@ -74,6 +76,14 @@ class UploadCTForm(CirsFormMixin, forms.Form):
 
         with zipfile.ZipFile(self.cleaned_data['dicom_archive'], 'r') as zip_file:
             datasets = dicom_import.dicom_datasets_from_zip(zip_file)
+
+        ds = datasets[0]
+        if not hasattr(ds, 'SeriesInstanceUID'):
+            raise ValidationError("The DICOM files must contain the 'SeriesInstanceUID'.")
+        if not hasattr(ds, 'StudyInstanceUID'):
+            raise ValidationError("The DICOM files must contain the 'StudyInstanceUID'.")
+        if not hasattr(ds, 'PatientID'):
+            raise ValidationError("The DICOM files must contain the 'PatientID'.")
 
         self.cleaned_data['datasets'] = datasets
         return self.cleaned_data['dicom_archive']
@@ -192,11 +202,11 @@ class CreateUserForm(BaseUserForm):
         'user_type',
     )
 
-    user_type_ht = """<p>The user type determines what permissions the account will have. Therapist users can upload
+    user_type_ht = """The user type determines what permissions the account will have. Therapist users can upload
                 new MR scans for analysis. Medical Physicist users can do everything therapists can do, and can also
                 add and configure phantoms, machines, and sequences. Admin users can do everything Medical Physicists
                 can do, and can also add and delete new users. Please note that once a user type is set, it cannot be
-                changed (except by CIRS support).</p>"""
+                changed (except by CIRS support)."""
     user_type = forms.ChoiceField(choices=GROUP_CHOICES, widget=forms.RadioSelect, help_text=user_type_ht)
 
     class Meta(BaseUserForm.Meta):
@@ -253,3 +263,24 @@ class RegisterForm(BaseUserForm):
     def _save_m2m(self, **kwargs):
         super(RegisterForm, self)._save_m2m(**kwargs)
         self.instance.groups.add(Group.objects.get(name=CreateUserForm.MANAGER))
+
+
+class CreateMachineForm(CirsFormMixin, forms.ModelForm):
+    class Meta:
+        model = Machine
+        fields = ('name', 'model', 'manufacturer')
+
+    def __init__(self, *args, institution=None, **kwargs):
+        super(CreateMachineForm, self).__init__(*args, **kwargs)
+        self.institution = institution
+
+    def clean(self):
+        cleaned_data = super(CreateMachineForm, self).clean()
+        if Machine.objects.filter(institution=self.institution).active().count() >= self.institution.number_of_licenses:
+            raise ValidationError("""Your institution already has the maximum number of allowed machine licenses.
+                Please contact CIRS support if you believe that this is an error.""")
+        return cleaned_data
+
+    def save(self, commit=True):
+        self.instance.institution = self.institution
+        return super(CreateMachineForm, self).save(commit)

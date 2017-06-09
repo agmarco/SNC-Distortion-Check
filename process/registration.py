@@ -64,9 +64,14 @@ def build_f(A, B, g, rho):
 
         summation = 0.0
         for a_s in A_S.T:
-            b_to_a_s_distances_squared = np.sum((B_consideration_order - a_s.reshape((3, 1)))**2, axis=0)
-            closest_b_indice = np.argmin(b_to_a_s_distances_squared) 
-            b_min_to_a_s = sqrt(b_to_a_s_distances_squared[closest_b_indice])
+            b_to_a_s = B_consideration_order - a_s.reshape((3, 1))
+            b_to_a_s_distances_squared = np.sum(b_to_a_s**2, axis=0)
+            closest_b_indice = np.argmin(b_to_a_s_distances_squared)
+
+            # by taking the root (1/1.8) of the squared distance, we are
+            # effectively optimizing over the distance^(1.2); this means we are
+            # ignoring outlers somewhat---but not completely like the L1 norm does
+            b_min_to_a_s = (b_to_a_s_distances_squared[closest_b_indice])**(1.2/2.0)
 
             rho_b = rho_consideration_order[closest_b_indice]
             if b_min_to_a_s > rho_b:
@@ -79,32 +84,38 @@ def build_f(A, B, g, rho):
     return f
 
 
-def rigidly_register(A, B, g, rho, tol=1e-4):
+def rigidly_register(A, B, g, rho, tol=1e-4, skip_brute=False):
     logger.info('Beginning rigid registration')
     f = build_f(A, B, g, rho)
     logger.info('Built f')
 
-    center_of_mass_shift = np.mean(B, axis=1) - np.mean(A, axis=1)
-    assert center_of_mass_shift.shape[0] == 3
+    if skip_brute:
+        x0 = np.array([0, 0, 0, 0, 0, 0])
+        logger.info('Skipping brute force search')
+    else:
+        logger.info('Begining brute force search')
 
-    search_degrees = pi/180*5
-    brute_force_ranges = [
-        (-4 + center_of_mass_shift[0], 4 + center_of_mass_shift[0]),
-        (-4 + center_of_mass_shift[1], 4 + center_of_mass_shift[1]),
-        (-4 + center_of_mass_shift[2], 4 + center_of_mass_shift[2]),
-        (-search_degrees, search_degrees),
-        (-search_degrees, search_degrees),
-        (-search_degrees, search_degrees),
-    ]
-    x0 = scipy.optimize.brute(f, brute_force_ranges, Ns=3)
-    logger.info('Brute force stage complete')
+        # TODO: remove this
+        center_of_mass_shift = np.mean(B, axis=1) - np.mean(A, axis=1)
+        assert center_of_mass_shift.shape[0] == 3
+
+        search_degrees = pi/180*5
+        brute_force_ranges = [
+            (-4 + center_of_mass_shift[0], 4 + center_of_mass_shift[0]),
+            (-4 + center_of_mass_shift[1], 4 + center_of_mass_shift[1]),
+            (-4 + center_of_mass_shift[2], 4 + center_of_mass_shift[2]),
+            (-search_degrees, search_degrees),
+            (-search_degrees, search_degrees),
+            (-search_degrees, search_degrees),
+        ]
+        x0 = scipy.optimize.brute(f, brute_force_ranges, Ns=3)
+        logger.info('Brute force stage complete')
 
     options = {
         'xtol': tol,
         'ftol': 1e-20,
         'maxiter': 4000,
     }
-
     result = scipy.optimize.minimize(f, x0, method='Powell', options=options)
 
     print_optimization_result(result)
@@ -114,13 +125,12 @@ def rigidly_register(A, B, g, rho, tol=1e-4):
     return result.x
 
 
-def rigidly_register_and_categorize(A, B, isocenter_in_B=None):
-    # assume the isocenter is at B's center of mass; this is not ideal since
-    # (a) some phantom's "center" may not actually be at the center of mass (b)
-    # the end-user may introduce error into the phantom positioning
-    if isocenter_in_B is None:
-        isocenter_in_B = np.mean(B, axis=1)
+# points further than `g_cutoff` are not considered during registration
+g_cutoff = 50
+registeration_tolerance = 1e-6
 
+
+def rigidly_register_and_categorize(A, B, isocenter_in_B, skip_brute=False):
     # TODO: determine rho and g based on our knowledge of the phantom
     # for now, we assume that the distortion is always within 5 mm and we
     # weight points less linearly as the get further from the isocenter
@@ -128,18 +138,10 @@ def rigidly_register_and_categorize(A, B, isocenter_in_B=None):
     maximum_distortion = 5.0
 
     def g(bmag):
-        return 1
-        # if bmag < maximum_extent:
-            # return 1.0 - 0.75*bmag/maximum_extent
-        # else:
-            # return 0.25
+        return 1 - bmag/g_cutoff if bmag < g_cutoff else 0
 
     def rho(bmag):
         return 5.0
-        # if bmag < maximum_extent:
-            # return 1.0 + bmag*(maximum_distortion - 1)/maximum_extent
-        # else:
-            # return maximum_distortion
 
     # shift B's coordinate system so that its origin is centered at the
     # isocenter; the lower level registration functions assume B's origin is
@@ -147,7 +149,7 @@ def rigidly_register_and_categorize(A, B, isocenter_in_B=None):
     b_to_b_i_registration_matrix = affine.T(*(-1*isocenter_in_B))
     B_i = affine.apply_affine(b_to_b_i_registration_matrix, B)
 
-    xyztpx_i = rigidly_register(A, B_i, rho, g, 1e-6)
+    xyztpx_i = rigidly_register(A, B_i, g, rho, registeration_tolerance, skip_brute=skip_brute)
 
     # now apply both shifts (from A -> B_i and then from B_i -> B) back onto A.
     # This preservers the original patient coordinate system

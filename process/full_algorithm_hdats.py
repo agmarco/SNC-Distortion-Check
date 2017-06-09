@@ -5,6 +5,7 @@ from scipy.interpolate.interpnd import LinearNDInterpolator
 import matplotlib.pyplot as plt
 
 from . import points_utils
+from .utils import fov_center_xyz
 from .visualization import scatter3
 from .interpolate import interpolate_distortion
 from hdatt.suite import Suite
@@ -58,13 +59,17 @@ class FullAlgorithmSuite(Suite):
         context['preprocessed_image'] = feature_detector.preprocessed_image
 
         # 2. fp rejector
-        pruned_points_ijk = remove_fps(feature_detector.points_ijk, voxels, voxel_spacing, phantom_model)
+        points_ijk = feature_detector.points_ijk
+        pruned_points_ijk = remove_fps(points_ijk, voxels, voxel_spacing, phantom_model)
         pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
+
+        isocenter_in_B = fov_center_xyz(voxels.shape, ijk_to_xyz)
 
         # 3. rigidly register
         xyztpx, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
             golden_points,
             pruned_points_xyz,
+            isocenter_in_B,
         )
 
         x, y, z, theta, phi, xi = xyztpx

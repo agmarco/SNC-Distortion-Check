@@ -172,7 +172,7 @@ def register_data(user):
 
 VIEWS = (
     {
-        'view': views.landing_view,
+        'view': views.LandingView,
         'url': reverse('landing'),
         'login_required': True,
         'permissions': (),
@@ -358,7 +358,7 @@ VIEWS = (
         'validate_institution': True,
         'methods': {'GET': None, 'POST': None},
     }, {
-        'view': views.activate_gold_standard_view,
+        'view': views.ActivateGoldStandardView,
         'data': activate_gold_standard_data,
         'url': lambda data: reverse('activate_gold_standard', args=(data['phantom'].pk, data['gold_standard'].pk)),
         'login_required': True,
@@ -366,7 +366,7 @@ VIEWS = (
         'validate_institution': True,
         'methods': {'POST': None},
     }, {
-        'view': views.gold_standard_csv_view,
+        'view': views.GoldStandardCsvView,
         'data': gold_standard_csv_data,
         'url': lambda data: reverse('gold_standard_csv', args=(data['phantom'].pk, data['gold_standard'].pk)),
         'login_required': True,
@@ -410,14 +410,14 @@ VIEWS = (
         'methods': {'POST': None},
         'patches': ('server.common.views.process_scan',),
     }, {
-        'view': views.terms_of_use_view,
+        'view': views.TermsOfUseView,
         'url': reverse('terms_of_use'),
         'login_required': False,
         'permissions': (),
         'validate_institution': False,
         'methods': {'GET': None},
     }, {
-        'view': views.privacy_policy_view,
+        'view': views.PrivacyPolicyView,
         'url': reverse('privacy_policy'),
         'login_required': False,
         'permissions': (),
@@ -429,7 +429,12 @@ VIEWS = (
         'login_required': True,
         'permissions': (),
         'validate_institution': False,
-        'methods': {'GET': None},
+        'crud': (Crud.UPDATE, User, {
+            'first_name': 'First Name',
+            'last_name': 'Last Name',
+            'email': 'update@email.com',
+        }),
+        'methods': {'GET': None, 'POST': None},
     }, {
         'view': views.RegisterView,
         'data': register_data,

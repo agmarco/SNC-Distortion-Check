@@ -11,7 +11,7 @@ from ..urls import urlpatterns
 from .view_config import VIEWS, Crud
 from .utils import validate_create_view, validate_update_view, validate_delete_view, allowed_access, denied_access, \
     get_response
-from .fixtures import permissions_data, institution_data  # import needed for side effect
+from .fixtures import permissions_data, institution_data, http_method_data  # import needed for side effect
 
 
 def _view_data(view, user):
@@ -49,7 +49,6 @@ def _get_view_names_from_urlpatterns(url_patterns):
     return view_names
 
 
-# TODO also check that all available HTTP methods are tested
 def test_regression():
     """
     Test that each view used in the URLconf is tested.
@@ -155,6 +154,30 @@ def test_institution(client, institution_data, view):
         client.force_login(new_user)
         for method, method_data in _methods(view, view_data):
             assert denied_access(client, url, method, method_data, patches)
+
+
+@pytest.mark.parametrize('view', VIEWS)
+def test_http_methods(client, http_method_data, view):
+    """
+    For each view, test that the HTTP methods listed in the configuration dictionary are authorized,
+    but the others aren't.
+    """
+
+    current_user = http_method_data['current_user']
+    view_data = _view_data(view, current_user)
+    patches = _patches(view)
+    url = _url(view, view_data)
+    method = http_method_data['method']
+
+    client.force_login(current_user)
+
+    if method in view['methods']:
+        method_data = view['methods'][method]
+        if callable(method_data):
+            method_data = method_data(view_data)
+        assert allowed_access(client, url, method, method_data, patches)
+    else:
+        assert denied_access(client, url, method, None, patches)
 
 
 @pytest.mark.parametrize('view', (view for view in VIEWS if 'crud' in view))

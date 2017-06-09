@@ -11,10 +11,10 @@ urlpatterns = [
         views.CreatePasswordView.as_view(), name='create_password'),
     url(r'^create-password/complete/$', views.CreatePasswordCompleteView.as_view(), name='create_password_complete'),
 
-    url(r'^terms-of-use/$', views.terms_of_use_view, name='terms_of_use'),
-    url(r'^privacy-policy/$', views.privacy_policy_view, name='privacy_policy'),
+    url(r'^terms-of-use/$', views.TermsOfUseView.as_view(), name='terms_of_use'),
+    url(r'^privacy-policy/$', views.PrivacyPolicyView.as_view(), name='privacy_policy'),
 
-    url(r'^$', views.landing_view, name='landing'),
+    url(r'^$', views.LandingView.as_view(), name='landing'),
     url(r'^configuration/$', views.ConfigurationView.as_view(), name='configuration'),
     url(r'^account/$', views.AccountView.as_view(), name='account'),
     url(r'^machine-sequences/(?P<pk>\d+)/$', views.MachineSequenceDetailView.as_view(), name='machine_sequence_detail'),
@@ -41,8 +41,8 @@ urlpatterns = [
             url(r'^upload-ct/$', views.UploadCTView.as_view(), name='upload_ct'),
             url(r'^upload-raw/$', views.UploadRawView.as_view(), name='upload_raw'),
             url(r'^(?P<gold_standard_pk>\d+)/delete/$', views.DeleteGoldStandardView.as_view(), name='delete_gold_standard'),
-            url(r'^(?P<gold_standard_pk>\d+)/activate/$', views.activate_gold_standard_view, name='activate_gold_standard'),
-            url(r'^(?P<gold_standard_pk>\d+)/csv/$', views.gold_standard_csv_view, name='gold_standard_csv'),
+            url(r'^(?P<gold_standard_pk>\d+)/activate/$', views.ActivateGoldStandardView.as_view(), name='activate_gold_standard'),
+            url(r'^(?P<gold_standard_pk>\d+)/csv/$', views.GoldStandardCsvView.as_view(), name='gold_standard_csv'),
         ])),
     ])),
 
@@ -63,5 +63,3 @@ urlpatterns = [
         url(r'^(?P<pk>\d+)/delete/$', views.DeleteUserView.as_view(), name='delete_user'),
     ])),
 ]
-
-# TODO redirect to "next" after logging in

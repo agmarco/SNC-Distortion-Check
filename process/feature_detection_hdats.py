@@ -21,34 +21,28 @@ class FeatureDetectionSuite(Suite):
 
     def collect(self):
         cases = {
-            '001': {
+            '603A-1': {
                 'voxels': 'tmp/001_ct_603A_E3148_ST1.25-voxels.mat',
                 'points': 'data/points/001_ct_603A_E3148_ST1.25-golden.mat',
             },
-            '006': {
+            '603A-2': {
                 'voxels': 'tmp/006_mri_603A_UVA_Axial_2ME2SRS5-voxels.mat',
                 'points': 'data/points/006_mri_603A_UVA_Axial_2ME2SRS5-golden.mat',
             },
-            '010': {
-                'voxels': 'tmp/010_mri_604_LFV-Phantom_E2632-1-voxels.mat',
-                'points': 'data/points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
-            },
-            '011': {
+            # TODO: get the algorithm working with 603A-3 and add a golden JSON file
+            '603A-3': {
                 'voxels': 'tmp/011_mri_603A_arterial_TOF_3d_motsa_ND-voxels.mat',
                 'points': 'data/points/011_mri_630A_arterial_TOF_3d_motsa_ND-golden.mat',
             },
-            '1540-075': {
-                'voxels': 'tmp/xxx_ct_1540_ST075-120kVp-100mA-voxels.mat',
-                'points': 'data/points/1540-gaussian.mat',
+            '604-1': {
+                'voxels': 'tmp/010_mri_604_LFV-Phantom_E2632-1-voxels.mat',
+                'points': 'data/points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
             },
-            '1540-125': {
-                'voxels': 'tmp/xxx_ct_1540_ST125-120kVp-100mA-voxels.mat',
-                'points': 'data/points/1540-gaussian.mat',
-            },
-            '1540-250': {
-                'voxels': 'tmp/xxx_ct_1540_ST250-120kVp-100mA-voxels.mat',
-                'points': 'data/points/1540-gaussian.mat',
-            },
+            # TODO: determine if we care about this case
+            # '1540-075': {
+                # 'voxels': 'tmp/xxx_ct_1540_ST075-120kVp-100mA-voxels.mat',
+                # 'points': 'data/points/1540-gaussian.mat',
+            # },
         }
         return cases
 
@@ -76,17 +70,22 @@ class FeatureDetectionSuite(Suite):
         context['kernel'] = feature_detector.kernel
         context['voxel_spacing'] = voxel_spacing
 
-        rho = lambda bmag: 3
-        metrics['raw'], context['raw'] = self._process_points(golden_points, feature_detector.points_xyz, rho)
+        rho = lambda bmag: 2.5
+        context['raw'] = self._process_points(golden_points, feature_detector.points_xyz, rho)
 
-        pruned_points_ijk = remove_fps(feature_detector.points_ijk, voxels, voxel_spacing, phantom_model)
+        points_ijk = feature_detector.points_ijk
+        pruned_points_ijk = remove_fps(points_ijk, voxels, voxel_spacing, phantom_model)
         pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
-        metrics['pruned'], context['pruned'] = self._process_points(golden_points, pruned_points_xyz, rho)
+        context['pruned'] = self._process_points(golden_points, pruned_points_xyz, rho)
+
+        metrics['TPF'] = context['pruned']['TPF']
+        metrics['FPF'] = context['pruned']['FPF']
+        metrics['FLE_100'] = context['pruned']['FLE_100']['r']
+        metrics['FLE_50'] = context['pruned']['FLE_50']['r']
 
         return metrics, context
 
     def _process_points(self, golden_points, points, rho):
-        metrics = OrderedDict()
         context = OrderedDict()
 
         FN_A, TP_A, TP_B, FP_B = points_utils.categorize(golden_points, points, rho)
@@ -97,44 +96,61 @@ class FeatureDetectionSuite(Suite):
         context['FP_B'] = FP_B
 
         TPF, FPF, FLE_percentiles = points_utils.metrics(FN_A, TP_A, TP_B, FP_B)
-        metrics['TPF'] = TPF
-        metrics['FPF'] = FPF
+        context['TPF'] = TPF
+        context['FPF'] = FPF
 
         for p in [0, 25, 50, 75, 95, 99, 100]:
-            metrics['FLE_{}'.format(p)] = FLE_percentiles[p]
+            context['FLE_{}'.format(p)] = FLE_percentiles[p]
 
-        return metrics, context
-
-    def _print_metrics(self, metrics):
-        print('BEFORE FP-REJECTOR DETECTION')
-        self._print_points_metrics(metrics['raw'])
-        print('AFTER FP-REJECTOR DETECTION')
-        self._print_points_metrics(metrics['pruned'])
+        return context
 
     def _print_points_metrics(self, point_cloud_comparison_metrics):
         for k, v in point_cloud_comparison_metrics.items():
             if k.startswith('FLE_'):
-                msg = "{} = {:06.4f}mm ({:06.4f}mm, {:06.4f}mm, {:06.4f}mm)"
-                print(msg.format(k, v['r'], v['x'], v['y'], v['z']))
-            else:
+                print(points_utils.format_FLE_percentile(v))
+            elif type(v) == float:
                 print("{} = {:06.4f}".format(k, v))
 
     def verify(self, old_metrics, new_metrics):
-        return new_metrics['TPF'] >= old_metrics['TPF'] and \
-               new_metrics['FPF'] < 0.2 and \
-               new_metrics['FLE_100']['r'] < 0.375, ''
+        # TODO: pull out these assertions into a separate library
+        new_TPF = new_metrics['TPF']
+        old_TPF = old_metrics['TPF']
+        if new_TPF < old_TPF:
+            return False, f'The TPF has decreased from {old_TPF} to {new_TPF}'
+
+        new_FPF = new_metrics['FPF']
+        old_FPF = old_metrics['FPF']
+        if new_FPF > old_FPF:
+            return False, f"The FPF has increased from {old_FPF} to {new_FPF}"
+
+        new_FLE_100 = new_metrics['FLE_100']
+        old_FLE_100 = old_metrics['FLE_100']
+        old_FPF = old_metrics['FPF']
+        if new_FLE_100 > old_FLE_100:
+            return False, f"The maximum FLE increased from {old_FLE_100} to {new_FLE_100}."
+
+        new_FLE_50 = new_metrics['FLE_50']
+        old_FLE_50 = old_metrics['FLE_50']
+        old_FPF = old_metrics['FPF']
+        if new_FLE_50 > old_FLE_50:
+            return False, f"The median FLE increased from {old_FLE_50} to {new_FLE_50}."
+
+        return True, 'The results seem as good or better than the existing results'
 
     def show(self, result):
-        self._print_metrics(result['metrics'])
-
         context = result['context']
+
+        print('BEFORE FP-REJECTOR DETECTION')
+        self._print_points_metrics(context['raw'])
+        print('AFTER FP-REJECTOR DETECTION')
+        self._print_points_metrics(context['pruned'])
 
         descriptors = [
             {
                 'points_xyz': context['pruned']['FN_A'],
                 'scatter_kwargs': {
                     'color': 'y',
-                    'label': 'FN_A',
+                    'label': 'False Negatives',
                     'marker': 'o'
                 }
             },
@@ -142,39 +158,24 @@ class FeatureDetectionSuite(Suite):
                 'points_xyz': context['pruned']['TP_A'],
                 'scatter_kwargs': {
                     'color': 'g',
-                    'label': 'TP_A',
+                    'label': 'Gold Standard',
                     'marker': 'o'
-                }
-            },
-            {
-                'points_xyz': context['pruned']['TP_B'],
-                'scatter_kwargs': {
-                    'color': 'g',
-                    'label': 'TP_B',
-                    'marker': 'x'
-                }
-            },
-            {
-                'points_xyz': context['pruned']['FP_B'],
-                'scatter_kwargs': {
-                    'color': 'r',
-                    'label': 'FP_B',
-                    'marker': 'x'
                 }
             },
         ]
 
         voxel_data = file_io.load_voxels(context['case_input']['voxels'])
-        raw_voxels = voxel_data['voxels']
+        voxels = voxel_data['voxels']
         ijk_to_xyz = voxel_data['ijk_to_xyz']
+        voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
         phantom_model = voxel_data['phantom_model']
 
-        kernel_big = np.zeros_like(raw_voxels)
+        kernel_big = np.zeros_like(voxels)
         kernel_small = context['kernel']
         kernel_shape = kernel_small.shape
 
         slices = []
-        for n_image, n_kernel in zip(raw_voxels.shape, kernel_small.shape):
+        for n_image, n_kernel in zip(voxels.shape, kernel_small.shape):
             assert n_image > n_kernel, 'Image should be bigger than the kernel'
             start = round(n_image/2 - n_kernel/2)
             stop = start + n_kernel
@@ -190,7 +191,7 @@ class FeatureDetectionSuite(Suite):
             [0, 1, 0]
         ))
         s.add_renderer(slicer.render_translucent_overlay(kernel_big, [1, 0, 0]))
-        s.add_renderer(partial(render_intersection_square, raw_voxels, affine.voxel_spacing(ijk_to_xyz)))
+        s.add_renderer(partial(render_intersection_square, voxels, voxel_spacing, phantom_model))
         s.add_renderer(slicer.render_cursor)
         s.draw()
         plt.show()

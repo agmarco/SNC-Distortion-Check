@@ -182,10 +182,53 @@ h6 {
       width: 100%;
     }
 
-    // TODO use fixed widths
     &.action {
       width: 1px;
       font-weight: bold;
+
+      &.edit {
+        width: 27px;
+      }
+
+      &.delete {
+        width: 11px;
+      }
+
+      &.download-images {
+        width: 120px;
+      }
+
+      &.download-points {
+        width: 114px;
+      }
+
+      &.set-active {
+        width: 68px;
+      }
+
+      &.view-details {
+        width: 82px;
+      }
+
+      &.refresh-scan {
+        width: 12px;
+      }
+
+      &.dicom-overlay {
+        width: 103px;
+      }
+
+      &.raw-data {
+        width: 65px;
+      }
+
+      &.executive-report {
+        width: 115px;
+      }
+
+      &.full-report {
+        width: 74px;
+      }
     }
   }
 }

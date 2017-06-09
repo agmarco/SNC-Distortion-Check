@@ -22,7 +22,7 @@
         {% endfor %}
       </div>
       {{ form.user_type.errors }}
-      {{ form.user_type.help_text|safe }}
+      <p>{{ form.user_type.help_text|safe }}</p>
     </div>
     <div class="form-links">
       <a href="{% url 'configuration' %}" class="btn tertiary">Cancel</a>

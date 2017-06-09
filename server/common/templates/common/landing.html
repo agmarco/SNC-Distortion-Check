@@ -17,7 +17,7 @@
   <script src="{% webpack 'vendor.js' %}"></script>
   <script>
     var MACHINE_SEQUENCE_PAIRS = {{ machine_sequence_pairs_json|safe }};
-    var UPLOAD_SCAN_URL = "{% url 'upload_scan' %}";
+    var UPLOAD_SCAN_URL = "{% url 'upload_scan' %}?cancel={% url 'landing' %}";
   </script>
   <script src="{% webpack 'landing.js' %}"></script>
 {% endblock %}

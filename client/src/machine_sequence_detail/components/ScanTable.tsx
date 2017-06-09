@@ -48,36 +48,36 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
 
     renderScanActions(scan: IScanDTO) {
         if (scan.processing) {
-            return <td colSpan={6}>The Data is Still being Processed...</td>;
+            return <td colSpan={6}>The data is still being processed...</td>;
         } else if (scan.errors) {
             return (
                 <td colSpan={6}>
                     <span className="error">
                         There was an error while processing the data
-                        (<a href={scan.errors_url}>view details</a>)
+                        (<a href={scan.errors_url}>view details</a>).
                     </span>
                 </td>
             );
         } else {
             return [
-                <td key={0} className="action">
+                <td key={0} className="action refresh-scan">
                     <AnchorForm action={scan.refresh_url}>
                         <i className="fa fa-refresh" aria-hidden="true" />
                     </AnchorForm>
                 </td>,
-                <td key={1} className="action">
+                <td key={1} className="action dicom-overlay">
                     <a href={scan.dicom_overlay_url}>DICOM Overlay</a>
                 </td>,
-                <td key={2} className="action">
+                <td key={2} className="action raw-data">
                     <a href={scan.raw_data_url}>Raw Data</a>
                 </td>,
-                <td key={3} className="action">
+                <td key={3} className="action executive-report">
                     <a href={scan.executive_report_url === null ? '#' : scan.executive_report_url}>Executive Report</a>
                 </td>,
-                <td key={4} className="action">
+                <td key={4} className="action full-report">
                     <a href={scan.full_report_url === null ? '#' : scan.full_report_url}>Full Report</a>
                 </td>,
-                <td key={5} className="action">
+                <td key={5} className="action delete">
                     <a href={scan.delete_url}>
                         <i className="fa fa-trash-o" aria-hidden="true" />
                     </a>

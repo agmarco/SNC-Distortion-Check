@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.permissions import BasePermission
 
 
@@ -12,7 +13,10 @@ def validate_institution(model_class=None, pk_url_kwarg='pk'):
     class ValidateInstitution(BasePermission):
         def has_permission(self, request, view):
             if model_class:
-                obj = model_class.objects.get(pk=request.data[pk_url_kwarg])
+                if pk_url_kwarg not in request.data:
+                    return False
+                else:
+                    obj = get_object_or_404(model_class, pk=request.data[pk_url_kwarg])
             elif callable(getattr(view, 'get_object', None)):
                 obj = view.get_object()
             else:

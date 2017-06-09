@@ -19,9 +19,11 @@ from django.urls import reverse, reverse_lazy
 from django.utils import formats
 from django.utils.decorators import method_decorator
 from django.utils.functional import cached_property
-from django.views.generic import DetailView
+from django.views import View
+from django.views.generic import DetailView, TemplateView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, ModelFormMixin, FormView
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import views as auth_views
 from rest_framework.renderers import JSONRenderer
 
 import scipy.io
@@ -36,9 +38,11 @@ from . import serializers
 from . import forms
 from .tasks import process_scan, process_ct_upload
 from .decorators import validate_institution, login_and_permission_required
-from .http import CSVResponse, ZipResponse
+from .http import CsvResponse, ZipResponse
 
 logger = logging.getLogger(__name__)
+
+# TODO go through whole site and make sure deleted objects aren't included in any query.
 
 
 class JsonFormMixin:
@@ -75,16 +79,21 @@ class CirsDeleteView(DeleteView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-@login_required
-def landing_view(request):
-    machine_sequence_pairs_queryset = models.MachineSequencePair.objects.filter(machine__institution=request.user.institution)
-    machine_sequence_pairs_queryset = machine_sequence_pairs_queryset.active().order_by('-last_modified_on')
-    machine_sequence_pairs_json = serializers.MachineSequencePairSerializer(machine_sequence_pairs_queryset, many=True)
+@method_decorator(login_required, name='dispatch')
+class LandingView(TemplateView):
+    template_name = 'common/landing.html'
 
-    renderer = JSONRenderer()
-    return render(request, 'common/landing.html', {
-        'machine_sequence_pairs_json': renderer.render(machine_sequence_pairs_json.data),
-    })
+    def get_context_data(self, **kwargs):
+        context = super(LandingView, self).get_context_data(**kwargs)
+        machine_sequence_pairs_queryset = models.MachineSequencePair.objects.filter(machine__institution=self.request.user.institution)
+        machine_sequence_pairs_queryset = machine_sequence_pairs_queryset.active().order_by('-last_modified_on')
+        machine_sequence_pairs_json = serializers.MachineSequencePairSerializer(machine_sequence_pairs_queryset, many=True)
+
+        renderer = JSONRenderer()
+        context.update({
+            'machine_sequence_pairs_json': renderer.render(machine_sequence_pairs_json.data),
+        })
+        return context
 
 
 @login_and_permission_required('common.configuration')
@@ -136,20 +145,21 @@ class MachineSequenceDetailView(DetailView):
     template_name = 'common/machine_sequence_detail.html'
 
     def get_context_data(self, **kwargs):
+        context = super(MachineSequenceDetailView, self).get_context_data(**kwargs)
         machine_sequence_pair_json = serializers.MachineSequencePairSerializer(self.object)
         scans_json = models.Scan.objects.filter(machine_sequence_pair=self.object)
         scans_json = scans_json.active().order_by('-dicom_series__acquisition_date', '-created_on')
         scans_json = serializers.ScanSerializer(scans_json, many=True)
 
         renderer = JSONRenderer()
-        return {
+        context.update({
             'machine_sequence_pair': self.object,
             'machine_sequence_pair_json': renderer.render(machine_sequence_pair_json.data),
             'scans_json': renderer.render(scans_json.data)
-        }
+        })
+        return context
 
 
-# TODO cancel might take the user back to landing, machine-sequences, or machine-sequence-detail
 @method_decorator(login_required, name='dispatch')
 class UploadScanView(JsonFormMixin, FormView):
     form_class = forms.UploadScanForm
@@ -157,16 +167,18 @@ class UploadScanView(JsonFormMixin, FormView):
     renderer = JSONRenderer()
 
     def get_context_data(self, **kwargs):
+        context = super(UploadScanView, self).get_context_data(**kwargs)
         institution = self.request.user.institution
-        machines_json = serializers.MachineSerializer(models.Machine.objects.filter(institution=institution), many=True)
-        sequences_json = serializers.SequenceSerializer(models.Sequence.objects.filter(institution=institution), many=True)
-        phantoms_json = serializers.PhantomSerializer(models.Phantom.objects.filter(institution=institution), many=True)
+        machines_json = serializers.MachineSerializer(models.Machine.objects.filter(institution=institution).active(), many=True)
+        sequences_json = serializers.SequenceSerializer(models.Sequence.objects.filter(institution=institution).active(), many=True)
+        phantoms_json = serializers.PhantomSerializer(models.Phantom.objects.filter(institution=institution).active(), many=True)
 
-        return {
+        context.update({
             'machines_json': self.renderer.render(machines_json.data),
             'sequences_json': self.renderer.render(sequences_json.data),
             'phantoms_json': self.renderer.render(phantoms_json.data),
-        }
+        })
+        return context
 
     def form_valid(self, form):
         machine = models.Machine.objects.get(pk=form.cleaned_data['machine'])
@@ -409,15 +421,17 @@ class DeletePhantomView(CirsDeleteView):
 
 @login_and_permission_required('common.configuration')
 class CreateMachineView(CreateView):
-    model = models.Machine
-    fields = ('name', 'model', 'manufacturer')
+    form_class = forms.CreateMachineForm
     success_url = reverse_lazy('configuration')
-    template_name_suffix = '_create'
+    template_name = 'common/machine_create.html'
+
+    def get_form_kwargs(self):
+        kwargs = super(CreateMachineView, self).get_form_kwargs()
+        kwargs.update({'institution': self.request.user.institution})
+        return kwargs
 
     def form_valid(self, form):
-        self.object = form.save(commit=False)
-        self.object.institution = self.request.user.institution
-        self.object.save()
+        self.object = form.save()
         messages.success(self.request, f"\"{self.object.name}\" has been created successfully.")
         return super(ModelFormMixin, self).form_valid(form)
 
@@ -492,9 +506,9 @@ class CreateUserView(FormView):
     form_class = forms.CreateUserForm
     success_url = reverse_lazy('configuration')
     template_name = 'common/user_create.html'
-    email_template_name = 'common/create_user_email.html'
-    html_email_template_name = None
-    subject_template_name = 'common/create_user_subject.txt'
+    email_template_name = 'common/email/create_user_email.txt'
+    html_email_template_name = 'common/email/create_user_email.html'
+    subject_template_name = 'common/email/create_user_subject.txt'
     extra_email_context = None
     token_generator = default_token_generator
     from_email = None
@@ -515,6 +529,7 @@ class CreateUserView(FormView):
         return super(CreateUserView, self).form_valid(form)
 
 
+# TODO delete self?
 @login_and_permission_required('common.manage_users')
 @validate_institution()
 class DeleteUserView(CirsDeleteView):
@@ -536,18 +551,22 @@ class UploadCTView(FormView):
     def form_valid(self, form):
         voxels, ijk_to_xyz = dicom_import.combine_slices(form.cleaned_data['datasets'])
         ds = form.cleaned_data['datasets'][0]
-        dicom_series = models.DicomSeries.objects.create(
+        dicom_series = models.DicomSeries(
             zipped_dicom_files=self.request.FILES['dicom_archive'],
             voxels=voxels,
             ijk_to_xyz=ijk_to_xyz,
             shape=voxels.shape,
             series_uid=ds.SeriesInstanceUID,
             study_uid=ds.StudyInstanceUID,
-            frame_of_reference_uid=ds.FrameOfReferenceUID,
             patient_id=ds.PatientID,
             # TODO: handle a missing AcquisitionDate
             acquisition_date=datetime.strptime(form.cleaned_data['datasets'][0].AcquisitionDate, '%Y%m%d'),
         )
+
+        if hasattr(ds, 'FrameOfReferenceUID'):
+            dicom_series.frame_of_reference_uid = ds.FrameOfReferenceUID
+
+        dicom_series.save()
 
         gold_standard = models.GoldenFiducials.objects.create(
             phantom=models.Phantom.objects.get(pk=self.kwargs['phantom_pk']),
@@ -623,26 +642,28 @@ class DeleteGoldStandardView(CirsDeleteView):
 
 @login_and_permission_required('common.configuration')
 @validate_institution(model_class=models.GoldenFiducials, pk_url_kwarg='gold_standard_pk')
-def activate_gold_standard_view(request, phantom_pk=None, gold_standard_pk=None):
-    gold_standard = get_object_or_404(models.GoldenFiducials, pk=gold_standard_pk)
-    gold_standard.activate()
-    messages.success(request, f"\"{gold_standard.source_summary}\" has been activated successfully.")
-    return redirect('update_phantom', phantom_pk)
+class ActivateGoldStandardView(View):
+    def post(self, request, *args, phantom_pk=None, gold_standard_pk=None):
+        gold_standard = get_object_or_404(models.GoldenFiducials, pk=gold_standard_pk)
+        gold_standard.activate()
+        messages.success(request, f"\"{gold_standard.source_summary}\" has been activated successfully.")
+        return redirect('update_phantom', phantom_pk)
 
 
 @login_and_permission_required('common.configuration')
 @validate_institution(model_class=models.GoldenFiducials, pk_url_kwarg='gold_standard_pk')
-def gold_standard_csv_view(request, phantom_pk=None, gold_standard_pk=None):
-    gold_standard = get_object_or_404(models.GoldenFiducials, pk=gold_standard_pk)
-    return CSVResponse(gold_standard.fiducials.fiducials, filename=f'{gold_standard.source_summary}.csv')
+class GoldStandardCsvView(View):
+    def get(self, request, *args, gold_standard_pk=None, **kwargs):
+        gold_standard = get_object_or_404(models.GoldenFiducials, pk=gold_standard_pk)
+        return CsvResponse(gold_standard.fiducials.fiducials, filename=f'{gold_standard.source_summary}.csv')
 
 
-def terms_of_use_view(request):
-    return render(request, 'common/terms_of_use.html')
+class TermsOfUseView(TemplateView):
+    template_name = 'common/terms_of_use.html'
 
 
-def privacy_policy_view(request):
-    return render(request, 'common/privacy_policy.html')
+class PrivacyPolicyView(TemplateView):
+    template_name = 'common/privacy_policy.html'
 
 
 @login_required
@@ -668,14 +689,13 @@ def refresh_scan_view(request, pk=None):
         return HttpResponseNotAllowed(['POST'])
 
 
-# TODO JSON form errors, repopulate
 class RegisterView(JsonFormMixin, FormView):
     form_class = forms.RegisterForm
     template_name = 'common/register.html'
     success_url = reverse_lazy('register_done')
-    email_template_name = 'common/create_user_email.html'
-    html_email_template_name = None
-    subject_template_name = 'common/create_user_subject.txt'
+    email_template_name = 'common/email/create_user_email.txt'
+    html_email_template_name = 'common/email/create_user_email.html'
+    subject_template_name = 'common/email/create_user_subject.txt'
     extra_email_context = None
     token_generator = default_token_generator
     from_email = None
@@ -707,3 +727,9 @@ class CreatePasswordView(PasswordResetConfirmView):
 
 class CreatePasswordCompleteView(PasswordResetCompleteView):
     template_name = 'common/create_password_complete.html'
+
+
+class PasswordResetView(auth_views.PasswordResetView):
+    email_template_name = 'registration/email/password_reset_email.txt'
+    html_email_template_name = 'registration/email/password_reset_email.html'
+    subject_template_name = 'registration/email/password_reset_subject.txt'
