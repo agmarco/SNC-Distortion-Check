@@ -1,4 +1,5 @@
 from collections import OrderedDict
+import math
 
 import numpy as np
 from scipy.interpolate.interpnd import LinearNDInterpolator
@@ -94,6 +95,10 @@ class FullAlgorithmSuite(Suite):
         context['TP_B'] = TP_B
         context['FP_B'] = FP_B
 
+        TPF, FPF, _ = points_utils.metrics(FN_A_S, TP_A_S, TP_B, FP_B)
+        metrics['TPF'] = TPF
+        metrics['FPF'] = FPF
+
         # 4. interpolate
         distortion_grid = interpolate_distortion(TP_A_S, TP_B, ijk_to_xyz, voxels.shape)
         context['distortion_grid'] = distortion_grid
@@ -114,8 +119,26 @@ class FullAlgorithmSuite(Suite):
 
         return metrics, context
 
-    def verify(self, old_metrics, new_metrics):
-        pass
+    def verify(self, old, new):
+        # TODO: pull out these assertions into a separate library (should reduce line lengths)
+        if new['TPF'] < old['TPF']:
+            return False, f"The TPF has decreased from {old['TPF']} to {new['TPF']}"
+
+        if new['fraction_of_volume_covered'] < old['fraction_of_volume_covered']:
+            return False, f"The fraction of volume covered has decreased from {old['fraction_of_volume_covered']} to {new['fraction_of_volume_covered']}"
+
+        if new['FPF'] > old['FPF']:
+            return False, f"The FPF has increased from {old['FPF']} to {new['FPF']}"
+
+        shift_tolerance = 0.1
+        if not math.isclose(old['max_distortion'], new['max_distortion'], abs_tol=shift_tolerance):
+            return False, f"The max distortion changed from {old['max_distortion']} to {new['max_distortion']}"
+        if not math.isclose(old['median_distortion'], new['median_distortion'], abs_tol=shift_tolerance):
+            return False, f"The median distortion changed from {old['median_distortion']} to {new['median_distortion']}"
+        if not math.isclose(old['min_distortion'], new['min_distortion'], abs_tol=shift_tolerance):
+            return False, f"The min distortion changed from {old['min_distortion']} to {new['min_distortion']}"
+
+        return True, 'New metrics are as good or better than old metrics'
 
     def show(self, result):
         metrics = result['metrics']
@@ -128,35 +151,35 @@ class FullAlgorithmSuite(Suite):
 
         descriptors = [
             {
-                'points_xyz': context['TP_B'],
-                'scatter_kwargs': {
-                    'color': 'm',
-                    'label': 'Detected Points',
-                    'marker': 'o'
-                }
-            },
-            {
-                'points_xyz': context['FP_B'],
-                'scatter_kwargs': {
-                    'color': 'm',
-                    'label': 'False Positives',
-                    'marker': 'o'
-                }
-            },
-            {
                 'points_xyz': context['FN_A_S'],
                 'scatter_kwargs': {
-                    'color': 'g',
+                    'color': 'y',
                     'label': 'False Negatives',
-                    'marker': 'x'
+                    'marker': 'o'
                 }
             },
             {
                 'points_xyz': context['TP_A_S'],
                 'scatter_kwargs': {
                     'color': 'g',
-                    'label': 'Registered Golden Standard Points',
-                    'marker': 's'
+                    'label': 'Gold Standard',
+                    'marker': 'o'
+                }
+            },
+            {
+                'points_xyz': context['TP_B'],
+                'scatter_kwargs': {
+                    'color': 'g',
+                    'label': 'True Positives',
+                    'marker': 'x'
+                }
+            },
+            {
+                'points_xyz': context['FP_B'],
+                'scatter_kwargs': {
+                    'color': 'r',
+                    'label': 'False Positives',
+                    'marker': 'x'
                 }
             },
         ]
@@ -176,9 +199,9 @@ class FullAlgorithmSuite(Suite):
         plt.show()
 
         scatter3({
-            'FN_A_S': context['FN_A_S'],
-            'TP_A_S': context['TP_A_S'],
-            'TP_B': context['TP_B'],
-            'FP_B': context['FP_B'],
+            'False Negatives': context['FN_A_S'],
+            'Gold Standard': context['TP_A_S'],
+            'True Positives': context['TP_B'],
+            'False Positives': context['FP_B'],
         })
         plt.show()
