@@ -67,12 +67,6 @@ def apply_affine(affine_matrix, A):
     return A_transformed
 
 
-def xyztpx_from_rotation_translation(A):
-    x, y, z = A[:3, 3]
-    # TODO: implement the angle extraction
-    return x, y, z, 0, 0, 0
-
-
 def apply_xyztpx(xyztpx, points):
     return apply_affine(translation_rotation(*xyztpx), points)
 

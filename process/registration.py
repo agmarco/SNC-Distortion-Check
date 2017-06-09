@@ -128,17 +128,20 @@ def rigidly_register_and_categorize(A, B, isocenter_in_B):
     b_to_b_i_registration_matrix = affine.T(*(-1*isocenter_in_B))
     B_i = affine.apply_affine(b_to_b_i_registration_matrix, B)
 
-    xyztpx_i = rigidly_register(A, B_i, g, rho, registeration_tolerance)
+    xyztpx_a_to_b_i = rigidly_register(A, B_i, g, rho, registeration_tolerance)
 
     # now apply both shifts (from A -> B_i and then from B_i -> B) back onto A.
     # This preservers the original patient coordinate system
-    a_to_b_i_registration_matrix = affine.translation_rotation(*xyztpx_i)
+    a_to_b_i_registration_matrix = affine.translation_rotation(*xyztpx_a_to_b_i)
     b_i_to_b_registration_matrix = affine.T(*isocenter_in_B)
     a_to_b_registration_matrix =  b_i_to_b_registration_matrix @ a_to_b_i_registration_matrix
     A_S = affine.apply_affine(a_to_b_registration_matrix, A)
 
-    xyztpx = affine.xyztpx_from_rotation_translation(a_to_b_registration_matrix)
+    # note that adding these vectors works because we apply the rotations
+    # first, before the translations, and the second vector ONLY has
+    # translations
+    xyztpx_a_to_b = xyztpx_a_to_b_i + np.array([*isocenter_in_B, 0, 0, 0])
 
     FN_A_S, TP_A_S, TP_B, FP_B = points_utils.categorize(A_S, B, rho)
 
-    return xyztpx, FN_A_S, TP_A_S, TP_B, FP_B
+    return xyztpx_a_to_b, FN_A_S, TP_A_S, TP_B, FP_B

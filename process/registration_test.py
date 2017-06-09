@@ -121,7 +121,6 @@ class TestRegisterAndCategorize:
         assert FN_A_S.size == 0
         assert FP_B.size == 0
 
-    @pytest.mark.xfail(reason="TODO near affine.xyztpx_from_rotation_translation")
     def test_small_translation_isocenter_at_origin(self):
         self.assert_3x3x3_match([0.4, -0.3, 0.3, 0, 0, -math.pi/180*5], [0, 0, 0])
 
