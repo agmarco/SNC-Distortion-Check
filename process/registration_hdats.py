@@ -193,8 +193,7 @@ class RegistrationSuite(Suite):
         isocenter_in_B = xyztpx_expected[:3]
         context['isocenter_in_B'] = isocenter_in_B
 
-        xyztpx, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
-                A, B, isocenter_in_B, skip_brute=True)
+        xyztpx, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(A, B, isocenter_in_B)
 
         context['xyztpx_actual'] = xyztpx
         x, y, z, theta, phi, xi = xyztpx

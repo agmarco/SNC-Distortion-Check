@@ -84,33 +84,16 @@ def build_f(A, B, g, rho):
     return f
 
 
-def rigidly_register(A, B, g, rho, tol=1e-4, skip_brute=False):
+def rigidly_register(A, B, g, rho, tol=1e-4):
+    '''
+    Assumes that the isocenter is locate at the origin of B.
+    '''
+
     logger.info('Beginning rigid registration')
     f = build_f(A, B, g, rho)
     logger.info('Built f')
 
-    if skip_brute:
-        x0 = np.array([0, 0, 0, 0, 0, 0])
-        logger.info('Skipping brute force search')
-    else:
-        logger.info('Begining brute force search')
-
-        # TODO: remove this
-        center_of_mass_shift = np.mean(B, axis=1) - np.mean(A, axis=1)
-        assert center_of_mass_shift.shape[0] == 3
-
-        search_degrees = pi/180*5
-        brute_force_ranges = [
-            (-4 + center_of_mass_shift[0], 4 + center_of_mass_shift[0]),
-            (-4 + center_of_mass_shift[1], 4 + center_of_mass_shift[1]),
-            (-4 + center_of_mass_shift[2], 4 + center_of_mass_shift[2]),
-            (-search_degrees, search_degrees),
-            (-search_degrees, search_degrees),
-            (-search_degrees, search_degrees),
-        ]
-        x0 = scipy.optimize.brute(f, brute_force_ranges, Ns=3)
-        logger.info('Brute force stage complete')
-
+    x0 = np.array([0, 0, 0, 0, 0, 0])
     options = {
         'xtol': tol,
         'ftol': 1e-20,
@@ -138,14 +121,14 @@ def rho(bmag):
     return 5.0
 
 
-def rigidly_register_and_categorize(A, B, isocenter_in_B, skip_brute=False):
+def rigidly_register_and_categorize(A, B, isocenter_in_B):
     # shift B's coordinate system so that its origin is centered at the
     # isocenter; the lower level registration functions assume B's origin is
     # the isocenter
     b_to_b_i_registration_matrix = affine.T(*(-1*isocenter_in_B))
     B_i = affine.apply_affine(b_to_b_i_registration_matrix, B)
 
-    xyztpx_i = rigidly_register(A, B_i, g, rho, registeration_tolerance, skip_brute=skip_brute)
+    xyztpx_i = rigidly_register(A, B_i, g, rho, registeration_tolerance)
 
     # now apply both shifts (from A -> B_i and then from B_i -> B) back onto A.
     # This preservers the original patient coordinate system
