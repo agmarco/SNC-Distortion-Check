@@ -83,7 +83,9 @@ class FeatureDetectionSuite(Suite):
                 golden_points, feature_detector.points_xyz, rho)
 
         points_ijk = feature_detector.points_ijk
+
         pruned_points_ijk = remove_fps(points_ijk, voxels, voxel_spacing, phantom_model)
+
         pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
         metrics['pruned'], context['pruned'] = self._process_points(
                 golden_points, pruned_points_xyz, rho)
@@ -124,9 +126,23 @@ class FeatureDetectionSuite(Suite):
                 print("{} = {:06.4f}".format(k, v))
 
     def verify(self, old_metrics, new_metrics):
-        return new_metrics['TPF'] >= old_metrics['TPF'] and \
-               new_metrics['FPF'] < 0.2 and \
-               new_metrics['FLE_100']['r'] < 0.375, ''
+        new_TPF = new_metrics['pruned']['TPF']
+        old_TPF = old_metrics['pruned']['TPF']
+        if new_TPF < old_TPF:
+            return False, f'The TPF has decreased from {old_TPF} to {new_TPF}'
+
+        new_FPF = new_metrics['pruned']['FPF']
+        old_FPF = old_metrics['pruned']['FPF']
+        if new_FPF > old_FPF:
+            return False, f"The FPF has increased from {old_FPF} to {new_FPF}"
+
+        new_FLE_100 = new_metrics['pruned']['FLE_100']['r']
+        old_FLE_100 = old_metrics['pruned']['FLE_100']['r']
+        old_FPF = old_metrics['pruned']['FPF']
+        if new_FLE_100 > old_FLE_100:
+            return False, f"The maximum FLE increased from {old_FLE_100} to {new_FLE_100}."
+
+        return True, 'The results seem as good or better than the existing results'
 
     def show(self, result):
         self._print_metrics(result['metrics'])
