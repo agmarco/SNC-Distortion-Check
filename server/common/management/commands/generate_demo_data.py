@@ -102,31 +102,31 @@ class Command(BaseCommand):
         )
 
         phantom_a = factories.PhantomFactory(
-            name='Head Phantom 1',
-            model=phantom_model_603A,
-        )
-        phantom_b = factories.PhantomFactory(
-            name='Head Phantom 2',
-            model=phantom_model_603A,
-        )
-        phantom_c = factories.PhantomFactory(
-            name='Body Phantom',
-            model=phantom_model_604,
-        )
-        phantom_d = factories.PhantomFactory(
             name='Head Phantom With Various Gold Standards',
             model=phantom_model_603A,
             institution=johns_hopkins,
         )
-        phantom_e = factories.PhantomFactory(
+        phantom_b = factories.PhantomFactory(
             name='Head Phantom 2',
             model=phantom_model_603A,
             institution=johns_hopkins,
         )
-        phantom_f = factories.PhantomFactory(
+        phantom_c = factories.PhantomFactory(
             name='Body Phantom',
             model=phantom_model_604,
             institution=johns_hopkins,
+        )
+        phantom_d = factories.PhantomFactory(
+            name='Head Phantom 1',
+            model=phantom_model_603A,
+        )
+        phantom_e = factories.PhantomFactory(
+            name='Head Phantom 2',
+            model=phantom_model_603A,
+        )
+        phantom_f = factories.PhantomFactory(
+            name='Body Phantom',
+            model=phantom_model_604,
         )
 
         sequence_a = factories.SequenceFactory(
@@ -142,11 +142,10 @@ class Command(BaseCommand):
             institution=johns_hopkins,
         )
 
-        self.generate_gold_standard_points_demo(phantom_d)
+        self.generate_gold_standard_points_demo(phantom_a)
         self.generate_scan_progression_demo(manager, machine_a, sequence_a, 9)
-        self.generate_real_report_demo(machine_b, sequence_b, phantom_a, manager, 'data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
-        self.generate_real_report_demo(machine_b, sequence_b, phantom_a, manager, 'data/dicom/yyy_mri_603A_t1_vibe_tra_FS_ND.zip')
-
+        self.generate_real_report_demo(machine_b, sequence_b, phantom_d, manager, 'data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
+        self.generate_real_report_demo(machine_b, sequence_b, phantom_d, manager, 'data/dicom/yyy_mri_603A_t1_vibe_tra_FS_ND.zip')
 
     def generate_gold_standard_points_demo(self, phantom):
         '''
