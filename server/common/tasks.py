@@ -8,6 +8,7 @@ import scipy.io
 from celery import shared_task
 from celery.signals import task_failure
 from django.core.files import File
+from django.core.files.storage import default_storage
 from django.db import transaction
 from django.conf import settings
 from rest_framework.renderers import JSONRenderer
@@ -198,7 +199,6 @@ def dump_raw_data(scan):
     institution_s.write(renderer.render(institution.data))
 
     files = {
-        'dicom.zip': scan.dicom_series.zipped_dicom_files.name,
         'voxels.mat': voxels_path,
         'raw_points.mat': raw_points_path,
     }
