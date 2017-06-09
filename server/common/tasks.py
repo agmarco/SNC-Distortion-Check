@@ -8,7 +8,6 @@ import scipy.io
 from celery import shared_task
 from celery.signals import task_failure
 from django.core.files import File
-from django.core.files.storage import default_storage
 from django.db import transaction
 from django.conf import settings
 from rest_framework.renderers import JSONRenderer
