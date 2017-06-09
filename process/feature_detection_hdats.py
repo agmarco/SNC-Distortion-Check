@@ -163,6 +163,22 @@ class FeatureDetectionSuite(Suite):
                     'marker': 'o'
                 }
             },
+            {
+                'points_xyz': context['pruned']['TP_B'],
+                'scatter_kwargs': {
+                    'color': 'g',
+                    'label': 'True Positives',
+                    'marker': 'x'
+                }
+            },
+            {
+                'points_xyz': context['pruned']['FP_B'],
+                'scatter_kwargs': {
+                    'color': 'r',
+                    'label': 'False Positives',
+                    'marker': 'x'
+                }
+            },
         ]
 
         voxel_data = file_io.load_voxels(context['case_input']['voxels'])
