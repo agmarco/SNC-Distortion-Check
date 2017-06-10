@@ -193,7 +193,8 @@ class UploadScanView(FormView):
         )
 
         process_scan.delay(scan.pk)
-        messages.success(self.request, "Your scan has been uploaded and is processing.")
+        messages.success(self.request, "Your scan has been uploaded.  Processing will likely take " + \
+                "several minutes.  You will need to refresh the page to see the results.")
         return redirect('machine_sequence_detail', scan.machine_sequence_pair.pk)
 
     def form_invalid(self, form):
@@ -484,7 +485,9 @@ class UploadCTView(FormView):
         )
 
         process_ct_upload.delay(dicom_series.pk, gold_standard.pk)
-        messages.success(self.request, "Your gold standard CT has been uploaded and is processing.")
+        messages.success(self.request, "Your gold standard CT has been uploaded. " + \
+                "Processing will likely take several minutes.  You will need to " + \
+                "refresh the page to see the results.")
         return super(UploadCTView, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -559,15 +562,14 @@ class ActivateGoldStandardView(View):
         logger.info(f'Setting GoldenFiducials {gold_standard.pk} active, having points {num_points} ' + \
                 'vs {num_cad_points} in the CAD')
 
-        gold_standard.activate()
-
         # TODO: clean up this code
         warning_threshold = 0.05
         error_threshold = 0.5
         is_ct = gold_standard.type == models.GoldenFiducials.CT
         if is_ct and abs(num_points - num_cad_points)/num_cad_points > error_threshold:
-            msg += 'There was an error processing the CT upload, and too many or too few points were detected. ' + \
-                    'CIRS has been notified of the result, and is looking into the failure.'
+            msg = 'There was an error processing the CT upload, and too many or too few points were detected. ' + \
+                    'Thus, the points can not be used.  CIRS has been notified of the result, and is looking ' + \
+                    'into the failure.'
             messages.error(request, msg)
 
         elif abs(num_points - num_cad_points)/num_cad_points > warning_threshold:
@@ -579,8 +581,10 @@ class ActivateGoldStandardView(View):
                         'CIRS has been notified of the result, and is looking into the failure.'
 
             messages.warning(request, msg)
+            gold_standard.activate()
         else:
             messages.success(request, f'"{gold_standard.source_summary}" is now active.')
+            gold_standard.activate()
 
         return redirect('update_phantom', phantom_pk)
 
@@ -618,7 +622,8 @@ def refresh_scan_view(request, pk=None):
         )
         process_scan.delay(new_scan.pk)
         messages.success(request, "Scan is being re-run using the current tolerance threshold, phantom gold standard "
-                                  "grid intersection locations, and image processing algorithm.")
+                                  "grid intersection locations, and image processing algorithm.  Processing will "
+                                  "likely take several minutes.  You will need to refresh the page to see the results.")
         return redirect('machine_sequence_detail', new_scan.machine_sequence_pair.pk)
     else:
         return HttpResponseNotAllowed(['POST'])
