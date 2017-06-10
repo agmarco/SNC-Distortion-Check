@@ -164,7 +164,7 @@ class DicomSeries(CommonFieldsMixin):
     series_uid_ht = 'The DICOM Series Instance UID, which should uniquely identify a scan'
     series_uid = models.CharField(max_length=64, verbose_name='Series Instance UID', help_text=series_uid_ht)
     study_uid = models.CharField(max_length=64, verbose_name='Study Instance UID', help_text=series_uid_ht)
-    frame_of_reference_uid = models.CharField(max_length=64, verbose_name='Frame Of Reference UID', help_text=series_uid_ht, blank=True)
+    frame_of_reference_uid = models.CharField(max_length=64, verbose_name='Frame Of Reference UID', help_text=series_uid_ht, blank=True, null=True)
     patient_id = models.CharField(max_length=64, verbose_name='Patient ID', help_text=series_uid_ht)
     acquisition_date_ht = 'The DICOM Series Instance Acquisition Date'
     acquisition_date = models.DateField(help_text=acquisition_date_ht)
@@ -292,14 +292,6 @@ class Global(models.Model):
 
 
 def create_scan(machine, sequence, phantom, creator, dicom_archive, notes='', dicom_datasets=None, request=None):
-    # TODO: grab tolerance from the sequence (will need to add a tolerance
-    # field to the sequence)
-    machine_sequence_pair, _ = MachineSequencePair.objects.get_or_create(
-        machine=machine,
-        sequence=sequence,
-        defaults={'tolerance': 3},
-    )
-
     if dicom_datasets is None:
         with zipfile.ZipFile(dicom_archive, 'r') as dicom_archive_zipfile:
             dicom_datasets = dicom_import.dicom_datasets_from_zip(dicom_archive_zipfile)
@@ -319,6 +311,14 @@ def create_scan(machine, sequence, phantom, creator, dicom_archive, notes='', di
     )
 
     dicom_series.zipped_dicom_files.save('dicom_archive', File(dicom_archive))
+
+    # TODO: grab tolerance from the sequence (will need to add a tolerance
+    # field to the sequence)
+    machine_sequence_pair, _ = MachineSequencePair.objects.get_or_create(
+        machine=machine,
+        sequence=sequence,
+        defaults={'tolerance': 3},
+    )
 
     scan = Scan.objects.create(
         machine_sequence_pair=machine_sequence_pair,

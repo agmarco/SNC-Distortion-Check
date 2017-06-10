@@ -162,6 +162,8 @@ class UploadScanView(FormView):
         sequence = models.Sequence.objects.get(pk=form.cleaned_data['sequence'])
         phantom = models.Phantom.objects.get(pk=form.cleaned_data['phantom'])
 
+        # TODO: check that the uploaded DICOM is an MRI (we can't support SC here)
+
         scan = models.create_scan(
             machine,
             sequence,
@@ -542,9 +544,14 @@ class ActivateGoldStandardView(View):
 
         warning_threshold = 0.05
         if abs(num_points - num_cad_points)/num_cad_points > warning_threshold:
-            messages.warning(request, f'"{gold_standard.source_summary}" is now active.  Note that it ' + \
+            msg = f'"{gold_standard.source_summary}" is now active.  Note that it ' + \
                     'contains {num_points} points, but the phantom model {gold_standard.phantom.model.name} ' + \
-                    'is expected to have roughly {num_cad_points} points.  This may lead to poor results.')
+                    'is expected to have roughly {num_cad_points} points.'
+            if gold_standard.type == models.GoldenFiducials.CT:
+                msg += ' This mismatch in points may be due to issues with the image processing algorithm. ' + \
+                        'CIRS has been notified of the result, and is looking into the failure.'
+
+            messages.warning(request, msg)
         else:
             messages.success(request, f'"{gold_standard.source_summary}" is now active.')
 
