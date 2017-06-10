@@ -281,6 +281,21 @@ h6 {
       background-color: lighten($success-color, 45%);
       border: 1px solid $success-color;
     }
+
+    &.warning {
+      background-color: lighten($warning-color, 45%);
+      border: 1px solid $warning-color;
+    }
+
+    &.error {
+      background-color: lighten($error-color, 45%);
+      border: 1px solid $error-color;
+    }
+
+    &.info {
+      background-color: lighten($info-color, 45%);
+      border: 1px solid $info-color;
+    }
   }
 }
 
