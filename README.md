@@ -87,3 +87,5 @@ work; see `matplotlibrc` for details.
 50. Delete the new scan.
 51. Navigate to "Account."
 52. Edit your account info, and verify that it's updated.
+53. Navigate to "/fake-server-error" and verify that the Server Error page is displayed.
+54. Navigate to "/missing-page" and verify that that the 404 page is displayed.

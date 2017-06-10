@@ -63,4 +63,6 @@ urlpatterns = [
         url(r'^add/$', views.CreateUserView.as_view(), name='create_user'),
         url(r'^(?P<pk>\d+)/delete/$', views.DeleteUserView.as_view(), name='delete_user'),
     ])),
+
+    url(r'^fake-server-error/$', views.fake_server_error, name='fake_server_error'),
 ]

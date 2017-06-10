@@ -56,12 +56,18 @@ class CirsDeleteView(DeleteView):
         return HttpResponseRedirect(self.get_success_url())
 
 
+def fake_server_error(request):
+    '''
+    This view is for testing the 500 error page.
+    '''
+    assert False
+
+
 @method_decorator(login_required, name='dispatch')
 class LandingView(TemplateView):
     template_name = 'common/landing.html'
 
     def get_context_data(self, **kwargs):
-        assert False
         context = super(LandingView, self).get_context_data(**kwargs)
         machine_sequence_pairs_queryset = models.MachineSequencePair.objects.filter(machine__institution=self.request.user.institution)
         machine_sequence_pairs_queryset = machine_sequence_pairs_queryset.active().order_by('-last_modified_on')
