@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.contrib import messages
 
 from process import dicom_import
-from server.django_numpy.fields import NdarrayTextField, NdarrayFileField
+from server.django_numpy.fields import NdarrayTextField#, NdarrayFileField
 from server.emailauth.models import AbstractUser, UserManager
 
 
@@ -64,7 +64,8 @@ class User(AbstractUser, CommonFieldsMixin):
 
 
 class Fiducials(CommonFieldsMixin):
-    fiducials = NdarrayFileField(upload_to='fiducials/fiducials')
+    #fiducials = NdarrayFileField(upload_to='fiducials/fiducials')
+    fiducials = NdarrayTextField()
 
     def __str__(self):
         return "Fiducials {}".format(self.id)
@@ -158,7 +159,8 @@ class MachineSequencePair(CommonFieldsMixin):
 
 class DicomSeries(CommonFieldsMixin):
     zipped_dicom_files = models.FileField(upload_to='dicom_series/zipped_dicom_files')
-    voxels = NdarrayFileField(upload_to='dicom_series/voxels')
+    #voxels = NdarrayFileField(upload_to='dicom_series/voxels')
+    voxels = NdarrayTextField()
     ijk_to_xyz = NdarrayTextField()
     shape = NdarrayTextField()
     series_uid_ht = 'The DICOM Series Instance UID, which should uniquely identify a scan'
