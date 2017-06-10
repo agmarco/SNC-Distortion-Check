@@ -44,9 +44,9 @@ class Command(BaseCommand):
             is_superuser=True
         )
 
-        johns_hopkins = factories.InstitutionFactory.create(
-            name='Johns Hopkins',
-            address='3101 Wyman Park Dr.\nBaltimore, MD 21211',
+        demo_institution = factories.InstitutionFactory.create(
+            name='Demo Institution',
+            address='Demo Institution\n12345 Happy Drive\nBaltimore, MD 21211',
             phone_number='555-555-5555',
         )
 
@@ -54,15 +54,15 @@ class Command(BaseCommand):
             first_name="Edsger",
             last_name="Dijkstra",
             email="manager@cirsinc.com",
-            institution=johns_hopkins,
+            institution=demo_institution,
             groups=[managers],
         )
 
         medical_physicist = factories.UserFactory.create(
             first_name="Mary",
             last_name="Jane",
-            email="physician@cirsinc.com",
-            institution=johns_hopkins,
+            email="physicist@cirsinc.com",
+            institution=demo_institution,
             groups=[medical_physicists],
         )
 
@@ -70,21 +70,21 @@ class Command(BaseCommand):
             first_name="John",
             last_name="Doe",
             email="therapist@cirsinc.com",
-            institution=johns_hopkins,
+            institution=demo_institution,
             groups=[therapists],
         )
 
         machine_a = factories.MachineFactory.create(
             name='MRI Scanner Example Scan Sequence',
-            institution=johns_hopkins,
+            institution=demo_institution,
         )
         machine_b = factories.MachineFactory.create(
             name='MRI Scanner Example Full PDF Reports',
-            institution=johns_hopkins,
+            institution=demo_institution,
         )
         machine_c = factories.MachineFactory.create(
             name='MRI Scanner North',
-            institution=johns_hopkins,
+            institution=demo_institution,
         )
 
 
@@ -104,17 +104,17 @@ class Command(BaseCommand):
         phantom_a = factories.PhantomFactory(
             name='Head Phantom With Various Gold Standards',
             model=phantom_model_603A,
-            institution=johns_hopkins,
+            institution=demo_institution,
         )
         phantom_b = factories.PhantomFactory(
             name='Head Phantom 2',
             model=phantom_model_603A,
-            institution=johns_hopkins,
+            institution=demo_institution,
         )
         phantom_c = factories.PhantomFactory(
             name='Body Phantom',
             model=phantom_model_604,
-            institution=johns_hopkins,
+            institution=demo_institution,
         )
         phantom_d = factories.PhantomFactory(
             name='Head Phantom 1',
@@ -131,15 +131,15 @@ class Command(BaseCommand):
 
         sequence_a = factories.SequenceFactory(
             name="T1-Weighted Abdominal",
-            institution=johns_hopkins,
+            institution=demo_institution,
         )
         sequence_b = factories.SequenceFactory(
             name="T1-Weighted Neural",
-            institution=johns_hopkins,
+            institution=demo_institution,
         )
         sequence_c = factories.SequenceFactory(
             name="T2-Weighted Neural",
-            institution=johns_hopkins,
+            institution=demo_institution,
         )
 
         self.generate_gold_standard_points_demo(phantom_a)
