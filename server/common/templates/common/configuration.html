@@ -78,6 +78,12 @@
               <a href="{% url 'delete_machine' machine.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>
             </td>
           </tr>
+        {% empty %}
+          <tr class="empty">
+            <td colspan="6">
+              No machines have been configured yet.  You must add a machine in order to begin analyzing scans.
+            </td>
+          </tr>
         {% endfor %}
       </tbody>
     </table>
@@ -104,6 +110,12 @@
             <td class="action edit"><a href="{% url 'update_sequence' sequence.pk %}">Edit</a></td>
             <td class="action delete">
               <a href="{% url 'delete_sequence' sequence.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr class="empty">
+            <td colspan="5">
+              No MRI sequences have been configured yet.  You must add a sequence in order to begin analyzing scans.
             </td>
           </tr>
         {% endfor %}
