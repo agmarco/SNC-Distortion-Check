@@ -42,10 +42,11 @@ TESTING = 'pytest' in sys.argv[0] or 'py.test' in sys.argv[0]
 
 ALLOWED_HOSTS = [os.getenv('HOSTNAME', '*')]
 
-SECURE_SSL_REDIRECT = True
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 # Application definition
 
@@ -235,10 +236,6 @@ LOGIN_REDIRECT_URL = 'landing'
 
 DEFAULT_FROM_EMAIL = 'software@cirsinc.com'
 
-ADMINS = [
-    ('Zach Waggoner', 'zwaggoner@innolitics.com'),
-    ('David Giese', 'jdgiese@innolitics.com'),
-]
 
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -248,6 +245,11 @@ else:
     EMAIL_HOST_USER = os.environ['SENDGRID_USERNAME']
     EMAIL_HOST_PASSWORD = os.environ['SENDGRID_PASSWORD']
     EMAIL_USE_TLS = True
+
+    ADMINS = [
+        ('Zach Waggoner', 'zwaggoner@innolitics.com'),
+        ('David Giese', 'jdgiese@innolitics.com'),
+    ]
 
 # Debug
 
