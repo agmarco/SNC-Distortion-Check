@@ -41,7 +41,7 @@ class DicomSeriesAdmin(admin.ModelAdmin):
 
 @admin.register(models.Fiducials)
 class FiducialsAdmin(admin.ModelAdmin):
-    list_display = ('created_on')
+    list_display = ('created_on',)
 
 
 @admin.register(models.GoldenFiducials)
