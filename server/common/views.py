@@ -554,11 +554,9 @@ class UploadCTView(FormView):
             study_uid=ds.StudyInstanceUID,
             patient_id=ds.PatientID,
             # TODO: handle a missing AcquisitionDate
-            acquisition_date=datetime.strptime(form.cleaned_data['datasets'][0].AcquisitionDate, '%Y%m%d'),
+            acquisition_date=datetime.strptime(ds.AcquisitionDate, '%Y%m%d'),
+            frame_of_reference_uid=getattr(ds, 'FrameOfReferenceUID', None),
         )
-
-        if hasattr(ds, 'FrameOfReferenceUID'):
-            dicom_series.frame_of_reference_uid = ds.FrameOfReferenceUID
 
         dicom_series.save()
 
