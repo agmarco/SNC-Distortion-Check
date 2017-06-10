@@ -7,7 +7,8 @@ import logging
 from dicom.UID import generate_uid
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetCompleteView, PasswordResetDoneView
+from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetCompleteView, \
+        PasswordResetDoneView
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
@@ -69,15 +70,17 @@ class LandingView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(LandingView, self).get_context_data(**kwargs)
-        machine_sequence_pairs_queryset = models.MachineSequencePair.objects.filter(machine__institution=self.request.user.institution)
-        machine_sequence_pairs_queryset = machine_sequence_pairs_queryset.active().order_by('-last_modified_on')
-        machine_sequence_pairs_json = serializers.MachineSequencePairSerializer(machine_sequence_pairs_queryset, many=True)
-
         renderer = JSONRenderer()
         context.update({
-            'machine_sequence_pairs_json': renderer.render(machine_sequence_pairs_json.data),
+            'machine_sequence_pairs_json': renderer.render(self.machine_sequence_pairs_data()),
         })
         return context
+
+    def machine_sequence_pairs_data(self):
+        institution = self.request.user.institution
+        base_queryset = models.MachineSequencePair.objects.filter(machine__institution=institution)
+        queryset = base_queryset.active().order_by('-last_modified_on')
+        return serializers.MachineSequencePairSerializer(queryset, many=True).data
 
 
 @login_and_permission_required('common.configuration')
@@ -91,7 +94,7 @@ class ConfigurationView(UpdateView):
         return self.request.user.institution
 
     def form_valid(self, form):
-        messages.success(self.request, f"\"{self.object.name}\" has been updated successfully.")
+        messages.success(self.request, f"\"{self.object.name}\" has been updated.")
         return super(ConfigurationView, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -118,7 +121,7 @@ class AccountView(UpdateView):
         return self.request.user
 
     def form_valid(self, form):
-        messages.success(self.request, "Your account has been updated successfully.")
+        messages.success(self.request, "Your account has been updated.")
         return super(AccountView, self).form_valid(form)
 
 
@@ -152,9 +155,15 @@ class UploadScanView(FormView):
     def get_context_data(self, **kwargs):
         context = super(UploadScanView, self).get_context_data(**kwargs)
         institution = self.request.user.institution
-        machines_json = serializers.MachineSerializer(models.Machine.objects.filter(institution=institution).active(), many=True)
-        sequences_json = serializers.SequenceSerializer(models.Sequence.objects.filter(institution=institution).active(), many=True)
-        phantoms_json = serializers.PhantomSerializer(models.Phantom.objects.filter(institution=institution).active(), many=True)
+
+        machines = models.Machine.objects.filter(institution=institution).active()
+        machines_json = serializers.MachineSerializer(machines, many=True)
+
+        sequences = models.Sequence.objects.filter(institution=institution).active()
+        sequences_json = serializers.SequenceSerializer(sequences, many=True)
+
+        phantoms = models.Phantom.objects.filter(institution=institution).active()
+        phantoms_json = serializers.PhantomSerializer(phantoms, many=True)
 
         renderer = JSONRenderer()
         context.update({
@@ -169,7 +178,8 @@ class UploadScanView(FormView):
         sequence = models.Sequence.objects.get(pk=form.cleaned_data['sequence'])
         phantom = models.Phantom.objects.get(pk=form.cleaned_data['phantom'])
 
-        # TODO: check that the uploaded DICOM is an MRI (we can't support SC here)
+        # TODO: check that the uploaded DICOM is an MRI (we can't support DICOM
+        # Secondary Captures here, like we do for CT uploads)
 
         scan = models.create_scan(
             machine,
@@ -183,7 +193,7 @@ class UploadScanView(FormView):
         )
 
         process_scan.delay(scan.pk)
-        messages.success(self.request, "Your scan has been uploaded successfully and is processing.")
+        messages.success(self.request, "Your scan has been uploaded and is processing.")
         return redirect('machine_sequence_detail', scan.machine_sequence_pair.pk)
 
     def form_invalid(self, form):
@@ -252,7 +262,7 @@ class DeleteScanView(CirsDeleteView):
         messages.success(self.request, f"""Scan for phantom
             \"{self.object.golden_fiducials.phantom.model.model_number} —
             {self.object.golden_fiducials.phantom.serial_number}\", captured on
-            {formats.date_format(self.object.acquisition_date)}, has been deleted successfully.""")
+            {formats.date_format(self.object.acquisition_date)}, has been deleted.""")
         return response
 
     def get_success_url(self):
@@ -271,7 +281,7 @@ class CreatePhantomView(FormView):
 
     def form_valid(self, form):
         self.object = form.save(institution=self.request.user.institution)
-        messages.success(self.request, f"\"{self.object.name}\" has been created successfully.")
+        messages.success(self.request, f"\"{self.object.name}\" has been created.")
         return super(CreatePhantomView, self).form_valid(form)
 
     def form_invalid(self, form):
@@ -290,7 +300,7 @@ class UpdatePhantomView(UpdateView):
     pk_url_kwarg = 'phantom_pk'
 
     def form_valid(self, form):
-        messages.success(self.request, f"\"{self.object.name}\" has been updated successfully.")
+        messages.success(self.request, f"\"{self.object.name}\" has been updated.")
         return super(UpdatePhantomView, self).form_valid(form)
 
     def get_success_url(self):
@@ -310,7 +320,7 @@ class DeletePhantomView(CirsDeleteView):
 
     def delete(self, request, *args, **kwargs):
         response = super(DeletePhantomView, self).delete(request, *args, **kwargs)
-        messages.success(self.request, f"\"{self.object.name}\" has been deleted successfully.")
+        messages.success(self.request, f"\"{self.object.name}\" has been deleted.")
         return response
 
 
@@ -327,7 +337,7 @@ class CreateMachineView(CreateView):
 
     def form_valid(self, form):
         self.object = form.save()
-        messages.success(self.request, f"\"{self.object.name}\" has been created successfully.")
+        messages.success(self.request, f"\"{self.object.name}\" has been created.")
         return super(ModelFormMixin, self).form_valid(form)
 
 
@@ -340,7 +350,7 @@ class UpdateMachineView(UpdateView):
     template_name_suffix = '_update'
 
     def form_valid(self, form):
-        messages.success(self.request, f"\"{self.object.name}\" has been updated successfully.")
+        messages.success(self.request, f"\"{self.object.name}\" has been updated.")
         return super(UpdateMachineView, self).form_valid(form)
 
 
@@ -352,7 +362,7 @@ class DeleteMachineView(CirsDeleteView):
 
     def delete(self, request, *args, **kwargs):
         response = super(DeleteMachineView, self).delete(request, *args, **kwargs)
-        messages.success(self.request, f"\"{self.object.name}\" has been deleted successfully.")
+        messages.success(self.request, f"\"{self.object.name}\" has been deleted.")
         return response
 
 
@@ -367,7 +377,7 @@ class CreateSequenceView(CreateView):
         self.object = form.save(commit=False)
         self.object.institution = self.request.user.institution
         self.object.save()
-        messages.success(self.request, f"\"{self.object.name}\" has been created successfully.")
+        messages.success(self.request, f"\"{self.object.name}\" has been created.")
         return super(ModelFormMixin, self).form_valid(form)
 
 
@@ -380,7 +390,7 @@ class UpdateSequenceView(UpdateView):
     template_name_suffix = '_update'
 
     def form_valid(self, form):
-        messages.success(self.request, f"\"{self.object.name}\" has been updated successfully.")
+        messages.success(self.request, f"\"{self.object.name}\" has been updated.")
         return super(UpdateSequenceView, self).form_valid(form)
 
 
@@ -392,7 +402,7 @@ class DeleteSequenceView(CirsDeleteView):
 
     def delete(self, request, *args, **kwargs):
         response = super(DeleteSequenceView, self).delete(request, *args, **kwargs)
-        messages.success(self.request, f"\"{self.object.name}\" has been deleted successfully.")
+        messages.success(self.request, f"\"{self.object.name}\" has been deleted.")
         return response
 
 
@@ -420,7 +430,7 @@ class CreateUserView(FormView):
             'extra_email_context': self.extra_email_context,
         }
         self.object = form.save(institution=self.request.user.institution, **opts)
-        messages.success(self.request, f"\"{self.object.get_full_name()}\" has been created successfully.")
+        messages.success(self.request, f"\"{self.object.get_full_name()}\" has been created.")
         return super(CreateUserView, self).form_valid(form)
 
 
@@ -436,7 +446,7 @@ class DeleteUserView(CirsDeleteView):
             return redirect('configuration')
         else:
             response = super(DeleteUserView, self).delete(request, *args, **kwargs)
-            messages.success(request, f"\"{self.object.get_full_name()}\" has been deleted successfully.")
+            messages.success(request, f"\"{self.object.get_full_name()}\" has been deleted.")
             return response
 
 
@@ -472,7 +482,7 @@ class UploadCTView(FormView):
         )
 
         process_ct_upload.delay(dicom_series.pk, gold_standard.pk)
-        messages.success(self.request, "Your gold standard CT has been uploaded successfully and is processing.")
+        messages.success(self.request, "Your gold standard CT has been uploaded and is processing.")
         return super(UploadCTView, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -499,7 +509,7 @@ class UploadRawView(FormView):
             fiducials=fiducials,
             type=models.GoldenFiducials.CSV,
         )
-        messages.success(self.request, "Your gold standard points have been uploaded successfully.")
+        messages.success(self.request, "Your gold standard points have been uploaded.")
         return super(UploadRawView, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -523,7 +533,7 @@ class DeleteGoldStandardView(CirsDeleteView):
         if self.object.type == models.GoldenFiducials.CAD or self.object.is_active:
             raise PermissionDenied
         else:
-            messages.success(self.request, f"\"{self.object.source_summary}\" has been deleted successfully.")
+            messages.success(self.request, f"\"{self.object.source_summary}\" has been deleted.")
             return super(DeleteGoldStandardView, self).delete(request, *args, **kwargs)
 
     def get_success_url(self):
