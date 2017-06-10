@@ -16,6 +16,16 @@ You can enable hot module replacement using:
 
     yarn run build:hot
 
+## Creating a demo database on Heroku
+
+First, make sure you have a fresh database.  You can reset it from the Heroku database web UI (I have not been able to get it to work from the CLI for some reason).
+
+Next, grab all of the Heroku settings and put them in your `.env` file (be sure to swap back to the development `.env` file when you are done).
+
+Then run `manage.py migrate` and `manage.py generate_demo_data` from your local dev machine; since you have the demo environment variables set, it will generate the demo data and place it in S3 and in the database.
+
+NOTE: you can not use a Heroku one-off dyno for this, since some of the DICOM files needed for the `generate_demo_data` script are excluded from the slug for size reasons.
+
 ## Interactive Algorithm Work
 
 You will need to swap out the matplotlib backend for interactive algorithm
