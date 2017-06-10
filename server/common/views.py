@@ -637,8 +637,22 @@ class DeleteGoldStandardView(CirsDeleteView):
 class ActivateGoldStandardView(View):
     def post(self, request, *args, phantom_pk=None, gold_standard_pk=None):
         gold_standard = get_object_or_404(models.GoldenFiducials, pk=gold_standard_pk)
+
+        _, num_cad_points = gold_standard.phantom.model.cad_fiducials.fiducials.shape
+        _, num_points = gold_standard.fiducials.fiducials.shape
+        logger.info(f'Setting GoldenFiducials {gold_standard.pk} active, having points {num_points} ' + \
+                'vs {num_cad_points} in the CAD')
+
         gold_standard.activate()
-        messages.success(request, f"\"{gold_standard.source_summary}\" has been activated successfully.")
+
+        warning_threshold = 0.05
+        if abs(num_points - num_cad_points)/num_cad_points > warning_threshold:
+            messages.warning(request, f'"{gold_standard.source_summary}" is now active.  Note that it ' + \
+                    'contains {num_points} points, but the phantom model {gold_standard.phantom.model.name} ' + \
+                    'is expected to have roughly {num_cad_points} points.  This may lead to poor results.')
+        else:
+            messages.success(request, f'"{gold_standard.source_summary}" is now active.')
+
         return redirect('update_phantom', phantom_pk)
 
 
