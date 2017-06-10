@@ -520,7 +520,6 @@ class CreateUserView(FormView):
         return super(CreateUserView, self).form_valid(form)
 
 
-# TODO delete self?
 @login_and_permission_required('common.manage_users')
 @validate_institution()
 class DeleteUserView(CirsDeleteView):
@@ -528,9 +527,13 @@ class DeleteUserView(CirsDeleteView):
     success_url = reverse_lazy('configuration')
 
     def delete(self, request, *args, **kwargs):
-        response = super(DeleteUserView, self).delete(request, *args, **kwargs)
-        messages.success(self.request, f"\"{self.object.get_full_name()}\" has been deleted successfully.")
-        return response
+        if request.user.pk == self.object.pk:
+            messages.warning(request, f"You can not delete yourself!")
+            return redirect('configuration')
+        else:
+            response = super(DeleteUserView, self).delete(request, *args, **kwargs)
+            messages.success(request, f"\"{self.object.get_full_name()}\" has been deleted successfully.")
+            return response
 
 
 @login_and_permission_required('common.configuration')
