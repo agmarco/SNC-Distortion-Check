@@ -146,7 +146,9 @@
               <td class="sep"></td>
               <td class="action edit"></td>
               <td class="action delete">
+                {% if request.user != user %}
                 <a href="{% url 'delete_user' user.pk %}"><i class="fa fa-trash-o" aria-hidden="true"></i></a>
+                {% endif %}
               </td>
             </tr>
           {% endfor %}
