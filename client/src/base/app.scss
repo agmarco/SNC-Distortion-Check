@@ -151,11 +151,11 @@ h6 {
       }
 
       &.empty {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
         text-align: center;
 
         td {
-          padding: 2 * $base-spacing;
+          padding: 1.5 * $base-spacing;
         }
       }
     }
