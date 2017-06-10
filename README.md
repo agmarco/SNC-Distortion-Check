@@ -33,7 +33,7 @@ work; see `matplotlibrc` for details.
 
 ## End-to-End Tests
 
-1. Navigate to http://tools.cirsinc.com/.
+1. Navigate to https://tools.cirsinc.com/.
 2. Click on "Register New Account."
 3. Input one of "SN3" through "SN14" for the "Phantom Serial Number" and verify that the model number is shown.
 4. Fill out the rest of the form, using an email address that you have access to.
