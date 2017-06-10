@@ -173,6 +173,7 @@ class UploadScanView(FormView):
             self.request.FILES['dicom_archive'],
             form.cleaned_data['notes'],
             form.cleaned_data['datasets'],
+            self.request,
         )
 
         process_scan.delay(scan.pk)
