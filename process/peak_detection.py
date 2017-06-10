@@ -58,19 +58,20 @@ def detect_peaks(data, voxel_spacing, search_radius):
 
     Returns the peak locations in ijk coordinates.
     """
-    logger.info('building neighborhood')
+    logger.info('started peak detection')
     search_neighborhood = kernels.rectangle(voxel_spacing, search_radius).astype(bool)
 
     assert np.sum(search_neighborhood) > 1, 'search neighborhood is too small'
 
-    logger.info('voxel-resolution peak-finding')
     peak_heights = neighborhood_peaks(data, search_neighborhood)
+    num_total_peaks = np.sum(peak_heights > 0)
+    logger.info('found %d peaks in total', num_total_peaks)
 
-    logger.info('filtering out small peaks')
     threshold = 0.1*np.percentile(peak_heights[peak_heights > 0], 98)
     peaks_thresholded = peak_heights > threshold
+    num_tall_peaks = np.sum(peaks_thresholded)
+    logger.info('found %d peaks with amplitude greater than %f', num_tall_peaks, threshold)
 
-    logger.info('removing peaks too close to edge')
     distance_to_edge = [math.ceil(s/2.0) for s in search_neighborhood.shape]
     peaks_thresholded[0:distance_to_edge[0], :, :] = False
     peaks_thresholded[:, 0:distance_to_edge[1], :] = False
@@ -80,19 +81,23 @@ def detect_peaks(data, voxel_spacing, search_radius):
     peaks_thresholded[:, -distance_to_edge[1]:, :] = False
     peaks_thresholded[:, :, -distance_to_edge[2]:] = False
 
-    logger.info('labeling')
+    num_tall_peaks_in_middle = np.sum(peaks_thresholded)
+    logger.info('found %d peaks within %r voxels from the corresponding edges', num_tall_peaks_in_middle, distance_to_edge)
+
     subvoxel_neighborhood = np.ones((3, 3, 3), dtype=bool)
     dilated_peaks_thresholded = ndimage.binary_dilation(peaks_thresholded, subvoxel_neighborhood)
     labels, num_labels = ndimage.label(dilated_peaks_thresholded)
+    logger.info('found %d independent peaks', num_labels)
 
-    logger.info('subvoxel-resolution peak-finding')
     peaks = np.empty((len(data.shape), num_labels))
     for i, object_slices in enumerate(ndimage.measurements.find_objects(labels)):
         slice_corner_ijk = np.array([s.start for s in object_slices])
         roi = data[object_slices]
-        subvoxel_offset = subvoxel_maximum(roi, 7)
+        zoom = 7
+        subvoxel_offset = subvoxel_maximum(roi, zoom)
         peaks[:, i] = slice_corner_ijk + subvoxel_offset
 
+    logger.info('finished peak detection')
     return peaks, labels
 
 

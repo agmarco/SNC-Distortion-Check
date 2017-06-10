@@ -119,6 +119,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
     Assumes that each column of TP_A_S is matched with the cooresponding column
     of TP_B.
     """
+    logger.info("begining report generation")
 
     assert TP_A_S.shape == TP_B.shape
 
@@ -545,6 +546,8 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         create_page_executive(draw_coronal_spatial_mapping)
         create_page_executive(draw_error_table)
         create_page_executive(draw_points)
+
+    logger.info("finished report generation")
 
 
 def page_generator():

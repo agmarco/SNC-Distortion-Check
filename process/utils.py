@@ -71,25 +71,22 @@ def split_file_variable_arg(arg, default_variable):
         raise ValueError("Invalid 'file:variable' argument.")
 
 
-def print_optimization_result(result):
-    logger.info('Optimization completed in {} iterations'.format(result.nit))
-    logger.info('Objective function evaluated {} times'.format(result.nfev))
-    logger.info('Cause of termination: {}'.format(result.message))
+def format_optimization_result(result):
+    return (
+        f'optimization completed in {result.nit} iterations '
+        f'objective function evaluated {result.nfev} times '
+        f'cause of termination: {result.message}'
+    )
 
 
-def print_xyztpx(xyztpx):
-    x, y, z, theta, phi, xi = xyztpx
+def format_xyztpx(xyztpx):
+    x, y, z, *angles = xyztpx
+    theta, phi, xi = (math.degrees(a) for a in angles)
     r = math.sqrt(x*x + y*y + z*z)
-
-    translation_msg = 'Translation of {:06.4f}mm ({:06.4f}mm, {:06.4f}mm, {:06.4f}mm)'
-    logger.info(translation_msg.format(r, x, y, z))
-
-    rotation_msg = 'Rotation of {:06.4f}°, {:06.4f}°, {:06.4f}°'
-    logger.info(rotation_msg.format(
-        math.degrees(theta),
-        math.degrees(phi),
-        math.degrees(xi)
-    ))
+    return (
+        f'translation of {r:06.4f}mm ({x:06.4f}mm, {y:06.4f}mm, {z:06.4f}mm) '
+        f'rotation of {theta:06.4f}°, {phi:06.4f}°, {xi:06.4f}°'
+    )
 
 
 def fov_center_xyz(voxel_shape, ijk_to_xyz):

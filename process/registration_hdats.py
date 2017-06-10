@@ -11,7 +11,7 @@ from hdatt.suite import Suite
 from .visualization import scatter3
 from .phantoms import paramaters
 from . import affine
-from .utils import print_xyztpx
+from .utils import format_xyztpx
 from . import points_utils
 
 
@@ -253,12 +253,6 @@ class RegistrationSuite(Suite):
 
         return True, 'New metrics are as good or better than old metrics'
 
-    def _print_xyztpx(self, x, y, z, theta, phi, xi):
-        msg = 'trans = ({:06.4f}mm, {:06.4f}mm, {:06.4f}mm)\n' + \
-              'rot = ({:06.4f}deg, {:06.4f}deg, {:06.4f}deg)'
-        theta, phi, xi = (math.degrees(r) for r in (theta, phi, xi))
-        print(msg.format(x, y, z, theta, phi, xi))
-
     def show(self, result):
         context = result['context']
         case_input = result['case_input']
@@ -270,11 +264,11 @@ class RegistrationSuite(Suite):
         isocenter_in_B = context['isocenter_in_B'].reshape(3, 1)
 
         print('actual:')
-        print_xyztpx(context['xyztpx_actual'])
+        print(format_xyztpx(context['xyztpx_actual']))
         print('expected:')
-        print_xyztpx(context['xyztpx_expected'])
+        print(format_xyztpx(context['xyztpx_expected']))
         print('diff')
-        print_xyztpx(context['xyztpx_actual'] - context['xyztpx_expected'])
+        print(format_xyztpx(context['xyztpx_actual'] - context['xyztpx_expected']))
         print('stats')
         print('TP = {}, FP = {}, FN = {}'.format(TP_B.shape[1], FP_B.shape[1], FN_A_S.shape[1]))
         print('FLE global')

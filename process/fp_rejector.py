@@ -40,8 +40,9 @@ def has_keras_model(phantom_model):
 
 
 def remove_fps(points_ijk_unfiltered, voxels, voxel_spacing, phantom_model):
+    logger.info("started FP rejection for phantom model %s", phantom_model)
     if not has_keras_model(phantom_model):
-        logger.warn(f'Phantom "{phantom_model}" has not associated neural network model')
+        logger.warn('No associated neural network model available, skipping FP rejection')
         return points_ijk_unfiltered
 
     model = get_keras_model(phantom_model)
@@ -59,6 +60,7 @@ def remove_fps(points_ijk_unfiltered, voxels, voxel_spacing, phantom_model):
     probablities = model.predict_proba(np.array(windows), verbose=0)
     is_fp[~is_fp] = probablities[:, 1] < INTERSECTION_PROB_THRESHOLD
 
+    logger.info("finished FP rejection, %d points remaining", np.sum(~is_fp))
     return points_ijk_unfiltered[:, ~is_fp]
 
 

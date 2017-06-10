@@ -3,8 +3,10 @@ import zipfile
 import uuid
 import os
 import tempfile
+
 import io
 import time
+import math
 from datetime import datetime
 import dicom
 from dicom.dataset import Dataset, FileDataset
@@ -31,18 +33,12 @@ from process.file_io import save_voxels
 from process.registration import rigidly_register_and_categorize
 from process.reports import generate_reports
 from process.utils import fov_center_xyz
+from process.points_utils import format_point_metrics
 from . import serializers
 from .models import Scan, Fiducials, GoldenFiducials, DicomSeries
+from process.exceptions import AlgorithmException
 
 logger = logging.getLogger(__name__)
-
-
-class AlgorithmException(Exception):
-    '''
-    The algorithm's results failed in a way that indicates it can not handle
-    the data set.
-    '''
-    pass
 
 
 @shared_task
@@ -53,6 +49,8 @@ def process_scan(scan_pk):
         with transaction.atomic():
             modality = 'mri'
             phantom_model = scan.phantom.model.model_number
+            active_gold_standard = scan.phantom.active_gold_standard
+            _, num_golden_fiducials = active_gold_standard.fiducials.fiducials.shape
 
             # TODO: save condensed DICOM tags onto `dicom_series` on upload so
             # we don't need to load all the zip files just to get at the
@@ -78,6 +76,15 @@ def process_scan(scan_pk):
 
             scan.detected_fiducials = Fiducials.objects.create(fiducials=pruned_points_xyz)
 
+            _, num_fiducials = pruned_points_xyz.shape
+            error_cutoff = 0.5
+            if abs(num_fiducials - num_golden_fiducials)/num_golden_fiducials > error_cutoff:
+                raise AlgorithmException(
+                    f"Detected {num_fiducials} grid intersections, but expected to find "
+                    f"{num_golden_fiducials}, according to {active_gold_standard.source_summary}. "
+                    f"Aborting analysis since the fractional error is larger than {error_cutoff*100}%."
+                )
+
             isocenter_in_B = fov_center_xyz(voxels.shape, ijk_to_xyz)
 
             xyztpx, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
@@ -86,9 +93,22 @@ def process_scan(scan_pk):
                 isocenter_in_B,
             )
 
-            if TP_B.size == 0:
-                # TODO: add more satisfying error message
-                raise AlgorithmException("No fiducials could be matched with the gold standard.")
+            TPF, FPF, FLE_percentiles = metrics(FN_A, TP_A, TP_B, FP_B)
+            logger.info(format_point_metrics(TPF, FPF, FLE_percentiles))
+
+            TPF_minimum = 0.85
+
+            if TPF < TPF_minimum:
+                raise AlgorithmException(
+                    f"Although we were able to register the {num_fiducials} detected grid intersections "
+                    f"to the {num_golden_fiducials} golden standard grid locations, only {TPF*100}% of "
+                    f"the registered gold standard points could be matched to a detected grid intersection "
+                    f"location. This is less than our minimum allowable {TPF_minimum*100}%. Processing aborted. "
+                    f"Please be sure to (1) orient the phantom properly within the imaging bore, "
+                    f"(2) align the center of the phantom to the isocenter of the scanner, (3) locate the "
+                    f"scanner's isocenter in the exact center of the captured field of view, (4) the pixel "
+                    f"size and slice spacing is sufficient to resolve the grid intersections."
+                )
 
             scan.TP_A_S = Fiducials.objects.create(fiducials=TP_A_S)
             scan.TP_B = Fiducials.objects.create(fiducials=TP_B)

@@ -7,7 +7,8 @@ import scipy.optimize
 
 from process import points_utils
 from process import affine
-from process.utils import print_optimization_result
+from process.utils import format_optimization_result, format_xyztpx
+from process.exceptions import AlgorithmException
 
 logger = logging.getLogger(__name__)
 import sys; logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
@@ -84,7 +85,7 @@ def build_f(A, B, g, rho):
     return f
 
 
-def rigidly_register(A, B, g, rho, tol=1e-4):
+def rigidly_register(A, B, g, rho, xtol=1e-4):
     '''
     Assumes that the isocenter is locate at the origin of B.
     '''
@@ -94,16 +95,23 @@ def rigidly_register(A, B, g, rho, tol=1e-4):
     logger.info('Built f')
 
     x0 = np.array([0, 0, 0, 0, 0, 0])
+    max_iterations = 4000
+    ftol = 1e-20
     options = {
-        'xtol': tol,
-        'ftol': 1e-20,
-        'maxiter': 4000,
+        'xtol': xtol,
+        'ftol': ftol,
+        'maxiter': max_iterations,
     }
     result = scipy.optimize.minimize(f, x0, method='Powell', options=options)
+    logger.info(format_optimization_result(result))
+    logger.info(format_xyztpx(result.x))
 
-    print_optimization_result(result)
     if not result.success:
-        raise ValueError('Optimization did not succeed')
+        raise AlgorithmException(
+            f'The detected grid intersections could not be registered to the '
+            f'golden grid intersection locations within {max_iterations} optimization '
+            f'iterations.  Aborting processing.'
+        )
 
     return result.x
 
