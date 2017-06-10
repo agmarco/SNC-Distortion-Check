@@ -233,6 +233,13 @@ LOGIN_REDIRECT_URL = 'landing'
 
 # Email
 
+DEFAULT_FROM_EMAIL = 'software@cirsinc.com'
+
+ADMINS = [
+    ('Zach Waggoner', 'zwaggoner@innolitics.com'),
+    ('David Giese', 'jdgiese@innolitics.com'),
+]
+
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
