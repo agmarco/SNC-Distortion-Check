@@ -65,10 +65,11 @@ work; see `matplotlibrc` for details.
 30. Click on "Add Sequence" and fill out the form.
 31. Click on "edit" on the new sequence row, change the info, and verify that it's updated.
 32. Navigate back to "Configuration" and delete the new sequence.
-33. Click on "Add User" and fill out the form, using and email address that you have access to.
+33. Click on "Add User" and add a "Physicist" user using a second email address that you have access to.
 34. Logout.
 35. Click on the link in the email sent to you to create your password.
 36. Create your password, and login.
+36. Navigate to the "configuration" page and verify that you can not see the "users" section.
 37. Logout, and log back into the first account.
 38. Navigate to "Configuration" and delete the new user.
 39. Create a new machine, sequence, and phantom.
