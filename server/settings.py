@@ -42,6 +42,8 @@ TESTING = 'pytest' in sys.argv[0] or 'py.test' in sys.argv[0]
 
 ALLOWED_HOSTS = [os.getenv('HOSTNAME', '*')]
 
+SECURE_SSL_REDIRECT = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Application definition
 
