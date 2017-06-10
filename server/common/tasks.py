@@ -163,6 +163,8 @@ def process_ct_upload(dicom_series_pk, gold_standard_pk):
                 dicom_series.ijk_to_xyz
             )
 
+            # TODO: apply the FP rejector to this stage
+
             fiducials = Fiducials.objects.create(fiducials=feature_detector.points_xyz)
             gold_standard.fiducials = fiducials
             gold_standard.processing = False
