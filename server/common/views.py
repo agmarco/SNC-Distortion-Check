@@ -527,7 +527,7 @@ class DeleteUserView(CirsDeleteView):
     success_url = reverse_lazy('configuration')
 
     def delete(self, request, *args, **kwargs):
-        if request.user.pk == self.object.pk:
+        if request.user == self.object:
             messages.warning(request, f"You can not delete yourself!")
             return redirect('configuration')
         else:
