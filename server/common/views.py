@@ -61,7 +61,7 @@ def fake_server_error(request):
     '''
     This view is for testing the 500 error page.
     '''
-    assert False
+    raise ValueError()
 
 
 @method_decorator(login_required, name='dispatch')
@@ -242,6 +242,8 @@ class DicomOverlayView(FormView):
         return super(DicomOverlayView, self).form_valid(form)
 
 
+@method_decorator(login_required, name='dispatch')
+@validate_institution(model_class=models.Scan)
 class DicomOverlaySuccessView(TemplateView):
     template_name = 'common/dicom_overlay_success.html'
 
