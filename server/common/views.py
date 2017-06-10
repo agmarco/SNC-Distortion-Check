@@ -16,7 +16,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import HttpResponseRedirect, HttpResponseNotAllowed
 from django.urls import reverse, reverse_lazy
-from django.utils import formats
+from django.utils import formats, timezone
 from django.utils.decorators import method_decorator
 from django.utils.functional import cached_property
 from django.views import View
@@ -545,6 +545,14 @@ class UploadCTView(FormView):
     def form_valid(self, form):
         voxels, ijk_to_xyz = dicom_import.combine_slices(form.cleaned_data['datasets'])
         ds = form.cleaned_data['datasets'][0]
+
+        if hasattr(ds, 'AcquisitionDate'):
+            acquisition_date = datetime.strptime(ds.AcquisitionDate, '%Y%m%d')
+        else:
+            messages.info(self.request, "The uploaded DICOM file has no acquisition date, so the " +
+                    "current date was used instead.")
+            acquisition_date = timezone.now()
+
         dicom_series = models.DicomSeries(
             zipped_dicom_files=self.request.FILES['dicom_archive'],
             voxels=voxels,
@@ -553,8 +561,7 @@ class UploadCTView(FormView):
             series_uid=ds.SeriesInstanceUID,
             study_uid=ds.StudyInstanceUID,
             patient_id=ds.PatientID,
-            # TODO: handle a missing AcquisitionDate
-            acquisition_date=datetime.strptime(ds.AcquisitionDate, '%Y%m%d'),
+            acquisition_date=acquisition_date,
             frame_of_reference_uid=getattr(ds, 'FrameOfReferenceUID', None),
         )
 
