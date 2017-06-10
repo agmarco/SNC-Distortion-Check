@@ -6,7 +6,8 @@ import numpy as np
 
 from django.core.files import File
 from django.db import models
-from django.utils.functional import cached_property, timezone
+from django.utils.functional import cached_property
+from django.utils import timezone
 from django.contrib import messages
 
 from process import dicom_import
@@ -306,17 +307,6 @@ def create_scan(machine, sequence, phantom, creator, dicom_archive, notes='', di
     voxels, ijk_to_xyz = dicom_import.combine_slices(dicom_datasets)
     ds = dicom_datasets[0]
 
-    if hasattr(ds, 'AcquisitionDate'):
-        acquisition_date = datetime.strptime(ds.AcquisitionDate, '%Y%m%d')
-    else:
-        # the view should set this to the current date and warn the user; this
-        # is set here only as a flag
-        acquisition_date = timezone.now()
-        if request:
-            messages.info(request, "The uploaded DICOM file has no acquisition date, so the " +
-                    "current date was used instead.")
-
-
     dicom_series = DicomSeries.objects.create(
         voxels=voxels,
         ijk_to_xyz=ijk_to_xyz,
@@ -325,7 +315,7 @@ def create_scan(machine, sequence, phantom, creator, dicom_archive, notes='', di
         study_uid=ds.StudyInstanceUID,
         frame_of_reference_uid=ds.FrameOfReferenceUID,
         patient_id=ds.PatientID,
-        acquisition_date=acquisition_date,
+        acquisition_date=infer_acquisition_date(ds, request),
     )
 
     dicom_series.zipped_dicom_files.save('dicom_archive', File(dicom_archive))
@@ -341,3 +331,22 @@ def create_scan(machine, sequence, phantom, creator, dicom_archive, notes='', di
     )
 
     return scan
+
+
+def infer_acquisition_date(dataset, request):
+    '''
+    We rely on the acquisition date for sorting and charting, but it is not a
+    required DICOM attribute.  Hence, we infer it as the current date if
+    necessary, and display a warning to the user.
+    '''
+    if hasattr(dataset, 'AcquisitionDate'):
+        acquisition_date = datetime.strptime(dataset.AcquisitionDate, '%Y%m%d')
+    else:
+        # the view should set this to the current date and warn the user; this
+        # is set here only as a flag
+        acquisition_date = timezone.now()
+        if request:
+            msg = "The uploaded DICOM file has no acquisition date, so the " + \
+                    "current date was used instead."
+            messages.info(request, msg)
+    return acquisition_date
