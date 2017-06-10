@@ -1,4 +1,4 @@
-import React, {FormEvent} from 'react';
+import React from 'react';
 import * as Cookies from 'js-cookie';
 import * as Bluebird from 'bluebird';
 import { connect } from 'react-redux';
@@ -116,7 +116,8 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                 >
 
                     {/* TODO global errors aren't showing */}
-                    <CirsErrors model="register" />
+                    <CirsControl type="hidden" model="_" />
+                    <CirsErrors model="_" />
 
                     <CSRFToken />
 

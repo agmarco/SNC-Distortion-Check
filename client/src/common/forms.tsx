@@ -48,7 +48,6 @@ export const CirsErrors = (props: ICirsErrorsProps) => {
         <Errors
             wrapper={ErrorsWrapper}
             component={ErrorsComponent}
-            show={{touched: true, focus: false}}
             messages={messages}
             {...rest}
         />
@@ -115,7 +114,7 @@ class CirsFormImpl extends React.Component<ICirsFormProps, {}> {
             if (djangoErrors) {
                 if (djangoErrors.__all__) {
                     const formErrors = keyBy<string>(djangoErrors.__all__, s => `django${uniqueId()}`);
-                    dispatch(actions.setErrors(model, formErrors));
+                    dispatch(actions.setErrors('_', formErrors));
                 }
 
                 const fieldErrors = mapValues<string[], ErrorsObject>(
