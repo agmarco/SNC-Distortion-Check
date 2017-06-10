@@ -41,7 +41,7 @@ work; see `matplotlibrc` for details.
 16. Click on "Edit" on the new phantom row.
 17. Change the name, and verify that the name is updated.
 18. Click on "Upload Gold Standard CT."
-19. Choose data/dicom/001_ct_603A_E3148_ST1.25.zip.
+19. Choose `data/dicom/001_ct_603A_E3148_ST1.25.zip`.
 20. Wait a few seconds, and refresh the page until the data is done processing.
 21. Click on "Download Images" and "Download Points" on the new gold standard row.
 22. Click on "Set Active" on the new gold standard row and verify that it becomes the active gold standard.
@@ -75,7 +75,7 @@ work; see `matplotlibrc` for details.
 38. Navigate to "Configuration" and delete the new user.
 39. Create a new machine, sequence, and phantom.
 40. Navigate to the home page and select "Upload Scan."
-41. Select your new machine, sequence, and phantom, and choose data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip for the MRI Scan Files.
+41. Select your new machine, sequence, and phantom, and choose `data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip` for the MRI Scan Files.
 42. Submit the form, wait several seconds, and refresh the page until the data is finished processing.
 43. Click on "DICOM Overlay," and fill in the form with arbitrary info.
 44. Verify that a zipfile is downloaded, and return to the machine-sequence detail page.
