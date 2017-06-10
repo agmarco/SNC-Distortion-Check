@@ -2,17 +2,30 @@ import logging
 import zipfile
 import uuid
 import os
+import tempfile
 import io
+import time
+from datetime import datetime
+import dicom
+from dicom.dataset import Dataset, FileDataset
+from dicom.UID import generate_uid
 
+import numpy as np
 import scipy.io
+import scipy.ndimage.filters
 from celery import shared_task
 from celery.signals import task_failure
 from django.core.files import File
+from django.core.files.storage import default_storage
+from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
 from django.conf import settings
+from django.template import loader
 from rest_framework.renderers import JSONRenderer
+from scipy.interpolate.ndgriddata import griddata
 
 from process import dicom_import, affine, fp_rejector
+from process.affine import apply_affine
 from process.feature_detection import FeatureDetector
 from process.file_io import save_voxels
 from process.registration import rigidly_register_and_categorize
@@ -220,3 +233,170 @@ def dump_raw_data(scan):
             zf.writestr(zip_path, stream.getvalue())
 
     return s
+
+
+@shared_task
+def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, patient_id, user_email, domain, use_https):
+    try:
+        with transaction.atomic():
+            # TODO: Consolidate and split out these constants in the process module.
+            GRID_DENSITY_mm = 1
+            DISTORTION_SCALE = 1000
+            BLUR_SIGMA = 2
+
+            scan = Scan.objects.get(pk=scan_pk)
+            ds = scan.dicom_series
+            ijk_to_xyz = ds.ijk_to_xyz
+            coord_min_xyz, coord_max_xyz = apply_affine(ijk_to_xyz, np.array([(0.0, 0.0, 0.0), ds.shape]).T).T
+            TP_A = scan.TP_A_S.fiducials
+            error_mags = scan.error_mags
+            grid_x, grid_y, grid_z = np.meshgrid(np.arange(coord_min_xyz[0], coord_max_xyz[0], GRID_DENSITY_mm),
+                                                 np.arange(coord_min_xyz[1], coord_max_xyz[1], GRID_DENSITY_mm),
+                                                 np.arange(coord_min_xyz[2], coord_max_xyz[2], GRID_DENSITY_mm))
+            logger.info("Gridding data for overlay generation.")
+            gridded = griddata(TP_A.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
+            gridded *= DISTORTION_SCALE  # rescale so it looks a bit better
+            gridded = scipy.ndimage.filters.gaussian_filter(gridded, BLUR_SIGMA,
+                                                            truncate=2)  # TODO: remove this once we fix interpolation
+            gridded[np.isnan(gridded)] = 0
+            output_dir = tempfile.mkdtemp()
+            logger.info("Exporting overlay to dicoms.")
+            export_overlay(
+                voxel_array=gridded,
+                voxelSpacing_tup=(GRID_DENSITY_mm, GRID_DENSITY_mm, GRID_DENSITY_mm),
+                voxelPosition_tup=coord_min_xyz,
+                studyInstanceUID=study_instance_uid or ds.study_uid,
+                seriesInstanceUID=generate_uid(),
+                frameOfReferenceUID=frame_of_reference_uid or ds.frame_of_reference_uid,
+                patientID=patient_id or ds.patient_id,
+                output_directory=output_dir
+            )
+            zip_bytes = io.BytesIO()
+            with zipfile.ZipFile(zip_bytes, 'w', zipfile.ZIP_DEFLATED) as zf:
+                for dirname, subdirs, files in os.walk(output_dir):
+                    zf.write(dirname)
+                    for filename in files:
+                        zf.write(os.path.join(dirname, filename), arcname=filename)
+            logger.info("done zipping generated dicoms.")
+
+            zip_filename = f'overlay/{uuid.uuid4()}/overlay.zip'
+            default_storage.save(zip_filename, zip_bytes)
+
+            subject_template_name = 'common/email/dicom_overlay_subject.txt'
+            email_template_name = 'common/email/dicom_overlay_email.txt'
+            html_email_template_name = 'common/email/dicom_overlay_email.html'
+            from_email = None
+            to_email = user_email
+            context = {
+                'zip': os.path.join(settings.MEDIA_URL, zip_filename),
+                'protocol': 'https' if use_https else 'http',
+                'domain': domain,
+            }
+            send_mail(subject_template_name, email_template_name, context, from_email, to_email, html_email_template_name)
+    except Exception as e:
+        raise e
+
+
+def send_mail(subject_template_name, email_template_name,
+              context, from_email, to_email, html_email_template_name=None):
+    """
+    Sends a django.core.mail.EmailMultiAlternatives to `to_email`.
+    """
+    subject = loader.render_to_string(subject_template_name, context)
+    # Email subject *must not* contain newlines
+    subject = ''.join(subject.splitlines())
+    body = loader.render_to_string(email_template_name, context)
+
+    email_message = EmailMultiAlternatives(subject, body, from_email, [to_email])
+    if html_email_template_name is not None:
+        html_email = loader.render_to_string(html_email_template_name, context)
+        email_message.attach_alternative(html_email, 'text/html')
+
+    email_message.send()
+
+
+def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstanceUID, seriesInstanceUID, frameOfReferenceUID, patientID, output_directory):
+    '''
+    Exports a voxel array to a series of dicom files.
+
+    :param voxel_array: voxels array in x,y,z axis order.
+    :param voxelSpacing_tup: spacing in mm
+    :param voxelPosition_tup: position of first voxel in mm in patient coordinate system
+    :param studyInstanceUID:
+    :param seriesInstanceUID:
+    :param frameOfReferenceUID:
+    :param patientID:
+    :param output_directory: directory to dump the dicoms in
+    :return:
+    '''
+    def _encode_multival(values):
+        '''
+        Encodes a collection of multivalued elements in backslash separated syntax known by dicom spec.
+        '''
+        return '\\'.join(str(val) for val in values)
+
+    def _base_ds():
+        sopinst = generate_uid()
+        file_meta = Dataset()
+        file_meta.MediaStorageSOPClassUID = '1.2.840.10008.5.1.4.1.1.2'  # CT Image Storage
+        file_meta.TransferSyntaxUID = '1.2.840.10008.1.2'  # Implicit VR Little Endian
+        file_meta.MediaStorageSOPInstanceUID = sopinst
+        file_meta.ImplementationClassUID = '1.1.1'
+        ds = FileDataset(None, {}, file_meta=file_meta, preamble=b"\0"*128)
+        ds.SOPInstanceUID = sopinst
+        ds.SOPClassUID = '1.2.840.10008.5.1.4.1.1.2'  # CT Image SOP Class
+        return ds
+
+    def _unstack(voxel_array):
+        '''converts array of x,y,z into one of z,x,y to make it easier to slice.'''
+        return voxel_array.transpose(2, 0, 1)
+
+    if len(voxel_array.shape) != 3:
+        raise Exception('Only 3d arrays are supported for dicom export, got shape {}'.format(voxel_array.shape))
+
+    slices_array = _unstack(voxel_array)
+    for slice_num, slice_arr in enumerate(slices_array):
+        sliceVoxelPosition = (voxelPosition_tup[0],
+                              voxelPosition_tup[1],
+                              voxelPosition_tup[2] + voxelSpacing_tup[2]*slice_num)
+        ds = _base_ds()
+        # Patient Module
+        ds.PatientName = ''
+        ds.PatientID = patientID
+
+        # general study module
+        ds.ContentDate = str(datetime.today()).replace('-','')
+        ds.ContentTime = str(time.time())
+        ds.StudyInstanceUID = studyInstanceUID
+        ds.StudyDescription = 'Distortion Overlay'
+
+        # general series module
+        ds.SeriesInstanceUID = seriesInstanceUID
+        ds.Modality = 'PT'
+
+        # Frame of reference module
+        ds.FrameOfReferenceUID = frameOfReferenceUID
+
+        # Image plane module
+        xSpacing_mm, ySpacing_mm, zSpacing_mm = voxelSpacing_tup
+        ds.ImageOrientationPatient = _encode_multival([1, 0, 0, 0, 1, 0])  # direction cosines
+        ds.ImagePositionPatient = _encode_multival(sliceVoxelPosition)
+        ds.PixelSpacing = _encode_multival([xSpacing_mm, ySpacing_mm])
+        ds.SliceThickness = str(zSpacing_mm)
+        ds.InstanceNumber = slice_num
+
+        # image pixel module
+        rows, columns = slice_arr.shape
+        ds.SamplesPerPixel = 1
+        ds.PhotometricInterpretation = "MONOCHROME2"
+        ds.PixelRepresentation = 0  # unsigned int
+        ds.HighBit = 15
+        ds.BitsStored = 16
+        ds.BitsAllocated = 16
+        ds.Columns = columns
+        ds.Rows = rows
+        ds.NumberOfFrames = 1
+        ds.RescaleIntercept = 0
+        ds.RescaleSlope = 0.01
+        ds.PixelData = slice_arr.astype(np.uint16).tobytes()
+        dicom.write_file(os.path.join(output_directory, '{}.dcm'.format(ds.SOPInstanceUID)), ds)

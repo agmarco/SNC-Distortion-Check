@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block breadcrumbs %}
+  <a href="{% url 'landing' %}">Home</a>
+  {% include 'includes/breadcrumb_sep.html' %}
+  <a href="{% url 'machine_sequence_detail' scan.machine_sequence_pair.pk %}">
+    {{ scan.machine_sequence_pair.machine.name }} &mdash; {{ scan.machine_sequence_pair.sequence.name }}
+  </a>
+{% endblock %}
+
+{% block content %}
+  <h1>DICOM Overlay</h1>
+  <p>An email will be sent to you containing a link to the DICOM overlay zipfile.</p>
+{% endblock %}
