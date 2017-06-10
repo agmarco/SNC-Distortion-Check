@@ -41,12 +41,12 @@ class DicomSeriesAdmin(admin.ModelAdmin):
 
 @admin.register(models.Fiducials)
 class FiducialsAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('created_on')
 
 
 @admin.register(models.GoldenFiducials)
 class GoldenFiducialsAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('type', 'processing', 'phantom', 'created_on')
 
 
 @admin.register(models.Scan)
