@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {FormEvent} from 'react';
 import * as Cookies from 'js-cookie';
 import * as Bluebird from 'bluebird';
 import { connect } from 'react-redux';
@@ -38,20 +38,16 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
     }
 
     componentDidMount() {
-        const { dispatch } = this.props;
+        const { formData } = this.props;
 
-        if (dispatch) {
-            // TODO this should happen automatically?
-            // TODO causing error on change
-            // https://github.com/davidkpiano/react-redux-form/issues/818
-            dispatch(actions.asyncSetValidity('register.phantom_serial_number', this.validateSerialNumber.bind(this)));
-        }
+        this.validateSerialNumber({target: {value: formData.phantom_serial_number}});
     }
 
     // TODO asyncSetValidity doesn't run on first change
     // https://github.com/davidkpiano/react-redux-form/issues/817
-    validateSerialNumber(value: string, done: Function) {
-        const { validateSerialUrl } = this.props;
+    // event: React.FormEvent<HTMLInputElement>
+    validateSerialNumber(event: any) {
+        const { validateSerialUrl, dispatch } = this.props;
         const { promise } = this.state;
 
         if (promise) {
@@ -65,7 +61,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'X-CSRFToken': Cookies.get('csrftoken'),
                 },
-                body: encode({serial_number: value}),
+                body: encode({serial_number: (event.target as any).value}),
             }))
             .then((res) => {
                 handleErrors(res, (async function() {
@@ -76,7 +72,10 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                         modelNumber: model_number,
                         promise: null,
                     });
-                    done(valid);
+
+                    if (dispatch) {
+                        dispatch(actions.setValidity('register.phantom_serial_number', valid));
+                    }
                 }).bind(this));
             });
 
@@ -135,11 +134,10 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                         <CirsControl.text
                             id="register-phantom-serial-number"
                             model=".phantom_serial_number"
-                            asyncValidators={{valid: this.validateSerialNumber.bind(this)}}
-                            asyncValidateOn="change"
+                            onChange={this.validateSerialNumber.bind(this)}
                             required
                         />
-                        <CirsErrors model=".phantom_serial_number" required />
+                        {/* <CirsErrors model=".phantom_serial_number" required /> */}
                     </div>
 
                     <div>
