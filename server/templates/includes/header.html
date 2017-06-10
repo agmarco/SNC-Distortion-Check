@@ -1,5 +1,5 @@
 <header id="site-header">
-  {% if request.user.is_authenticated %}
+  {% if request and request.user.is_authenticated %}
     <ul>
       <li>Logged in as {{ request.user.get_full_name }}</li>
       {% if perms.common.configuration %}
