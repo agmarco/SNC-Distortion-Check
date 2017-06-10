@@ -560,22 +560,23 @@ class ActivateGoldStandardView(View):
         _, num_cad_points = gold_standard.phantom.model.cad_fiducials.fiducials.shape
         _, num_points = gold_standard.fiducials.fiducials.shape
         logger.info(f'Setting GoldenFiducials {gold_standard.pk} active, having points {num_points} ' + \
-                'vs {num_cad_points} in the CAD')
+                f'vs {num_cad_points} in the CAD')
 
         # TODO: clean up this code
         warning_threshold = 0.05
         error_threshold = 0.5
+        fractional_difference = abs(num_points - num_cad_points)/num_cad_points
         is_ct = gold_standard.type == models.GoldenFiducials.CT
-        if is_ct and abs(num_points - num_cad_points)/num_cad_points > error_threshold:
+        if is_ct and fractional_difference > error_threshold:
             msg = 'There was an error processing the CT upload, and too many or too few points were detected. ' + \
                     'Thus, the points can not be used.  CIRS has been notified of the result, and is looking ' + \
                     'into the failure.'
             messages.error(request, msg)
 
-        elif abs(num_points - num_cad_points)/num_cad_points > warning_threshold:
+        elif fractional_difference > warning_threshold:
             msg = f'"{gold_standard.source_summary}" is now active.  Note that it ' + \
-                    'contains {num_points} points, but the phantom model {gold_standard.phantom.model.name} ' + \
-                    'is expected to have roughly {num_cad_points} points.'
+                    f'contains {num_points} points, but the phantom model {gold_standard.phantom.model.name} ' + \
+                    f'is expected to have roughly {num_cad_points} points.'
             if is_ct:
                 msg += ' This mismatch in points may be due to issues with the image processing algorithm. ' + \
                         'CIRS has been notified of the result, and is looking into the failure.'

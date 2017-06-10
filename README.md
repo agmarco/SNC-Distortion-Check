@@ -43,7 +43,7 @@ work; see `matplotlibrc` for details.
 8. Click on "Forgot your Password?"
 9. Enter your email.
 10. Click on the link in the email sent to you to reset your password.
-11. Reset your psasword, and login.
+11. Reset your password, and login.
 12. Navigate to "Configuration."
 13. Edit the institution info, and verify that it's updated.
 14. Click on "Add Phantom" and fill out the form. For the serial number, use one of "SN3" through "SN14", other than the one you used to register.
@@ -54,22 +54,10 @@ work; see `matplotlibrc` for details.
 19. Choose `data/dicom/001_ct_603A_E3148_ST1.25.zip`.
 20. Wait a few seconds, and refresh the page until the data is done processing.
 21. Click on "Download Images" and "Download Points" on the new gold standard row.
-22. Click on "Set Active" on the new gold standard row and verify that it becomes the active gold standard.
+22. Click on "Set Active" on the new gold standard row and verify that it becomes the active gold standard, or else shows an error.
 23. Set the CAD gold standard back to active, and click on the trashcan on the new gold standard row to delete it.
 24. Click on "Upload Raw Points."
-25. Create and upload a ".csv" file with the following content:
-
--104.415300664,-39.9604001246,-92.9205783684
--103.926300672,-73.1093783326,-67.8476766754
--104.121900669,-73.6461752266,-97.9398010422
--103.926300672,-73.230161079,-90.5927622449
--103.975200671,-67.6678347215,-11.0945301067
--104.02410067,-34.3224545456,-27.0547551565
--103.437300679,-79.0603259712,-111.563160452
--103.486200678,-75.1364910282,-84.2084087323
--103.486200678,-71.8130950287,-35.3083033714
--103.486200678,-71.4449605562,-45.4606349077
-
+25. Upload `data/example_points_upload.csv`; try setting it to "active" and verify that no error message is shown and that it is set to active.
 26. Navigate back to "Configuration" and delete the new phantom.
 27. Click on "Add Machine" and fill out the form.
 28. Click on "edit" on the new machine row, change the info, and verify that it's updated.
