@@ -141,7 +141,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
     fig_height = 11
     figsize = (fig_width, fig_height)
 
-    isocenter = fov_center_xyz(voxel_shape, ijk_to_xyz)
+    isocenter = fov_center_xyz(voxels.shape, ijk_to_xyz)
 
     brand_color = (0, 95, 152)
     brand_color = tuple(c / 255 for c in brand_color)
