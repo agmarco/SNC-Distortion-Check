@@ -7,9 +7,9 @@
 
 {% block content %}
   <h1>Scan Errors</h1>
+  <p>We were unable to complete our analysis of the scan uploaded on {{ scan.created_on }}.</p>
   <p>{{ scan.errors }}</p>
-  <br>
-  <p>Details about the scan have been logged, and our engineers have been notified.  They will be investigating the cause of the failure and will be in contact you at your email address:</p>
+  <p>Details about the failure were logged, and our engineers were notified. They will investigate the failure and will be in contact you at your email address:</p>
   <p>{{ request.user.email }}</p>
-  <p>Thank you for your patience while the Distortion Check software is in Beta.
+  <p>Thank you for your patience with us while the Distortion Check software is in Beta.
 {% endblock %}
