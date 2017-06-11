@@ -184,6 +184,9 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
                             upload fails halfway through.  We are aware of the issue and
                             are working on a fix.
                         </p>
+                        // TODO: fix upload issue and remove the warning
+                        // message; also remove the same message from the
+                        // static Heroku error page in S3.
                     </div>
                 </CirsForm>
             </div>
