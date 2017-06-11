@@ -263,9 +263,10 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
             data_acquisition_matrix_size = 'unknown'
 
         rows = [
-            (r'Phantom filler T$_1$', ''),
-            (r'Phantom filler T$_2$', ''),
-            ('Phantom filler composition', ''),
+            # TODO: add this back along with any necessary web-ui forms
+            # (r'Phantom filler T$_1$', ''),
+            # (r'Phantom filler T$_2$', ''),
+            # ('Phantom filler composition', ''),
             ('Sequence type', dataset.ScanningSequence),
             ('Pixel bandwidth', str(dataset.PixelBandwidth) + r' $\frac{Hz}{px}$'),
             ('Voxel dimensions', ' x '.join(f'{str(round(x, 3))} mm' for x in voxel_dims)),
