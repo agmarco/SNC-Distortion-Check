@@ -1,8 +1,9 @@
 import React from 'react';
 import * as Cookies from 'js-cookie';
 import * as Bluebird from 'bluebird';
+import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
-import { FieldState } from 'react-redux-form';
+import { FieldState, actions } from 'react-redux-form';
 
 import { handleErrors, encode } from 'common/utils';
 import { CirsForm, CirsControl, CirsErrors, IDjangoFormData, IDjangoFormErrors } from 'common/forms';
@@ -11,10 +12,11 @@ import { CSRFToken } from 'common/components';
 interface IAddPhantomFormProps {
     validateSerialUrl: string;
     cancelUrl: string;
-    formData: IDjangoFormData;
-    formErrors: IDjangoFormErrors;
+    formData: IDjangoFormData | null;
+    formErrors: IDjangoFormErrors | null;
     formAction: string;
     formState?: { [name: string]: FieldState };
+    dispatch?: Dispatch<any>;
 }
 
 interface IAddPhantomFormState {
@@ -35,8 +37,8 @@ class CreatePhantomForm extends React.Component<IAddPhantomFormProps, IAddPhanto
         };
     }
 
-    validateSerialNumber(value: string, done: Function) {
-        const { validateSerialUrl } = this.props;
+    validateSerialNumber(event: any) {
+        const { validateSerialUrl, dispatch } = this.props;
         const { promise } = this.state;
 
         if (promise) {
@@ -51,7 +53,7 @@ class CreatePhantomForm extends React.Component<IAddPhantomFormProps, IAddPhanto
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'X-CSRFToken': Cookies.get('csrftoken'),
                 },
-                body: encode({serial_number: value}),
+                body: encode({serial_number: (event.target as any).value}),
             }))
             .then((res) => {
                 handleErrors(res, (async function() {
@@ -62,7 +64,10 @@ class CreatePhantomForm extends React.Component<IAddPhantomFormProps, IAddPhanto
                         modelNumber: model_number,
                         promise: null,
                     });
-                    done(valid);
+
+                    if (dispatch) {
+                        dispatch(actions.setValidity('phantom.serial_number', valid));
+                    }
                 }).bind(this));
             });
 
@@ -99,27 +104,26 @@ class CreatePhantomForm extends React.Component<IAddPhantomFormProps, IAddPhanto
                     djangoData={formData}
                     djangoErrors={formErrors}
                 >
-                    <CirsErrors model="phantom" />
+                    <CirsControl type="hidden" model="_" />
+                    <CirsErrors model="_" />
 
                     <CSRFToken />
 
                     <div>
                         <label htmlFor="phantom-name">Name</label>
                         <CirsControl.text id="phantom-name" model=".name" required />
-                        <CirsErrors model=".name" />
+                        <CirsErrors model=".name" required />
                     </div>
 
-                    {/* TODO doesn't validate on first change */}
                     <div>
                         <label htmlFor="phantom-serial-number">Serial Number</label>
                         <CirsControl.text
                             id="phantom-serial-number"
                             model=".serial_number"
-                            asyncValidators={{valid: this.validateSerialNumber.bind(this)}}
-                            asyncValidateOn="change"
+                            onChange={this.validateSerialNumber.bind(this)}
                             required
                         />
-                        <CirsErrors model=".serial_number" />
+                        {/*<CirsErrors model=".serial_number" required />*/}
                     </div>
 
                     <div>

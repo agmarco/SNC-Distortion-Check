@@ -15,8 +15,8 @@ interface IUploadScanFormProps {
     initialMachinePk: number | null;
     initialSequencePk: number | null;
     cancelUrl: string;
-    formData: IDjangoFormData;
-    formErrors: IDjangoFormErrors;
+    formData: IDjangoFormData | null;
+    formErrors: IDjangoFormErrors | null;
     formAction: string;
     form?: IUploadScanForm;
     dispatch?: Dispatch<any>;
@@ -54,13 +54,13 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
         const { machine, sequence, phantom } = form as IUploadScanForm;
 
         const currentMachine = machine && (
-            machines.find((m) => m.pk === machine)
+            machines.find((m) => m.pk === Number(machine))
         );
         const currentSequence = sequence && (
-            sequences.find((s) => s.pk === sequence)
+            sequences.find((s) => s.pk === Number(sequence))
         );
         const currentPhantom = phantom && (
-            phantoms.find((p) => p.pk === phantom)
+            phantoms.find((p) => p.pk === Number(phantom))
         );
 
         return (
@@ -75,7 +75,8 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
                     djangoErrors={formErrors}
                 >
 
-                    <CirsErrors model="uploadScan" />
+                    <CirsControl type="hidden" model="_" />
+                    <CirsErrors model="_" />
 
                     <CSRFToken />
 
@@ -89,7 +90,7 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
                             <option value="" disabled />
                             {machines.map((m) => <option value={m.pk} key={m.pk}>{m.name}</option>)}
                         </CirsControl.select>
-                        <CirsErrors model=".machine" />
+                        <CirsErrors model=".machine" required />
 
                         {currentMachine && (
                             <div>
@@ -115,7 +116,7 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
                             <option value="" disabled />
                             {sequences.map((s) => <option value={s.pk} key={s.pk}>{s.name}</option>)}
                         </CirsControl.select>
-                        <CirsErrors model=".sequence" />
+                        <CirsErrors model=".sequence" required />
 
                         {currentSequence && (
                             <div>
@@ -137,7 +138,7 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
                             <option value="" disabled />
                             {phantoms.map((p) => <option value={p.pk} key={p.pk}>{p.name}</option>)}
                         </CirsControl.select>
-                        <CirsErrors model=".phantom" />
+                        <CirsErrors model=".phantom" required />
 
                         {currentPhantom && (
                             <div>
@@ -159,8 +160,8 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
 
                     <div>
                         <label htmlFor="upload-scan-dicom-archive">MRI Scan Files</label>
-                        <CirsControl.file id="upload-scan-dicom-archive" model=".dicom_archive" required />
-                        <CirsErrors model=".dicom_archive" />
+                        <CirsControl.file type="file" id="upload-scan-dicom-archive" model=".dicom_archive" required />
+                        <CirsErrors model=".dicom_archive" required />
                         <p>
                             Please upload a zip-file containing the MRI DICOM files of a scan of the specified phatom,
                             on the specified machine, using the specified sequence.
@@ -183,4 +184,4 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
     }
 }
 
-export default connect<any, any, any>((state: any) => ({formState: state.uploadScan}))(UploadScanForm as any);
+export default connect<any, any, any>((state: any) => ({form: state.uploadScan}))(UploadScanForm as any);

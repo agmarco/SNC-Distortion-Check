@@ -76,7 +76,7 @@
     "react-dom": "^15.5.4",
     "react-hot-loader": "3.0.0-beta.6",
     "react-redux": "^5.0.5",
-    "react-redux-form": "^1.11.1",
+    "react-redux-form": "^1.12.1",
     "redux": "^3.6.0",
     "redux-thunk": "^2.2.0",
     "sass-loader": "^6.0.3",

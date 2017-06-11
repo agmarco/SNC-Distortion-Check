@@ -49,6 +49,7 @@ export const CirsErrors = (props: ICirsErrorsProps) => {
             wrapper={ErrorsWrapper}
             component={ErrorsComponent}
             messages={messages}
+            show={{touched: true}}
             {...rest}
         />
     );
@@ -56,7 +57,7 @@ export const CirsErrors = (props: ICirsErrorsProps) => {
 
 // Make the field name attribute equal to the last component of the field model
 const controlProps = (props: ControlProps<any>) => {
-    const { model, required, type, validators = {}, ...rest } = props;
+    const { model, required, type, validators = {}, validateOn = "blur", ...rest } = props;
 
     let name;
     if (typeof model === 'string') {
@@ -72,7 +73,7 @@ const controlProps = (props: ControlProps<any>) => {
         validators.isEmail = (value: any) => value !== null && value.match(emailRegex);
     }
 
-    return {name, model, required, type, validators, formNoValidate: true, ...rest};
+    return {name, model, required, type, validators, validateOn, formNoValidate: true, ...rest};
 };
 
 export class CirsControl<T> extends React.Component<ControlProps<T>, {}> {
@@ -115,6 +116,7 @@ class CirsFormImpl extends React.Component<ICirsFormProps, {}> {
                 if (djangoErrors.__all__) {
                     const formErrors = keyBy<string>(djangoErrors.__all__, s => `django${uniqueId()}`);
                     dispatch(actions.setErrors('_', formErrors));
+                    dispatch(actions.setTouched('_'));
                 }
 
                 const fieldErrors = mapValues<string[], ErrorsObject>(
@@ -122,7 +124,9 @@ class CirsFormImpl extends React.Component<ICirsFormProps, {}> {
                     a => keyBy<string>(a, s => `django${uniqueId()}`),
                 );
                 for (let field of Object.keys(fieldErrors)) {
-                    dispatch(actions.setErrors(`${model}.${field}`, fieldErrors[field]));
+                    const fieldModel = `${model}.${field}`;
+                    dispatch(actions.setErrors(fieldModel, fieldErrors[field]));
+                    dispatch(actions.setTouched(fieldModel));
                 }
             }
         }

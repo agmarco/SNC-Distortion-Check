@@ -4630,9 +4630,9 @@ react-proxy@^3.0.0-alpha.0:
   dependencies:
     lodash "^4.6.1"
 
-react-redux-form@^1.11.1:
-  version "1.11.1"
-  resolved "https://registry.yarnpkg.com/react-redux-form/-/react-redux-form-1.11.1.tgz#6e99d01837e071ce61799583410b0ea1fe4ad120"
+react-redux-form@^1.12.1:
+  version "1.12.1"
+  resolved "https://registry.yarnpkg.com/react-redux-form/-/react-redux-form-1.12.1.tgz#a3cd018c7d3fe8ec8fb7bf483a666cb7114af63f"
   dependencies:
     icepick "^1.1.0"
     invariant "~2.2.1"

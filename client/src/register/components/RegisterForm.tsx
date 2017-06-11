@@ -12,8 +12,8 @@ import { CirsForm, CirsControl, CirsErrors, IDjangoFormData, IDjangoFormErrors }
 interface IRegisterFormProps {
     validateSerialUrl: string;
     cancelUrl: string;
-    formData: IDjangoFormData;
-    formErrors: IDjangoFormErrors;
+    formData: IDjangoFormData | null;
+    formErrors: IDjangoFormErrors | null;
     formAction: string;
     formState?: { [name: string]: FieldState };
     dispatch?: Dispatch<any>;
@@ -40,7 +40,9 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
     componentDidMount() {
         const { formData } = this.props;
 
-        this.validateSerialNumber({target: {value: formData.phantom_serial_number}});
+        if (formData) {
+            this.validateSerialNumber({target: {value: formData.phantom_serial_number}});
+        }
     }
 
     // TODO asyncSetValidity doesn't run on first change
