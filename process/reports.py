@@ -398,19 +398,19 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
             if values.size == 0:
                 break
             else:
-                max_value, mean_value = np.max(values), np.mean(values)
-                radius2max_mean_error[r] = (max_value, mean_value)
+                max_value, mean_value = np.max(values), np.mean(values), len(values)
+                radius2max_mean_error[r] = (max_value, mean_value, num_values)
                 r += step
 
-        for r, (max_value, mean_value) in radius2max_mean_error.items():
-            rows.append((r, np.round(max_value, 3), np.round(mean_value, 3)))
+        for r, (max_value, mean_value, num_values) in radius2max_mean_error.items():
+            rows.append((r, np.round(max_value, 3), np.round(mean_value, 3), num_values))
 
         return rows
 
     def draw_error_table(rows, ax, cell):
         table = ax.table(
             cellText=rows,
-            colLabels=['Distance from Isocenter [mm]', 'Maximum Error [mm]', 'Average Error [mm]'],
+            colLabels=['Distance from Isocenter [mm]', 'Maximum Error [mm]', 'Average Error [mm]', 'N'],
             loc='center',
         )
         table_props = table.properties()
