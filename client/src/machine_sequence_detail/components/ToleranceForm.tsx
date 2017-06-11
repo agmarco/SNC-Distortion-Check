@@ -98,7 +98,7 @@ class ToleranceForm extends React.Component<IToleranceFormProps, IToleranceFormS
                     <CSRFToken />
 
                     <div>
-                        <label htmlFor="tolerance-tolerance">Maximum FLE (mm)</label>
+                        <label htmlFor="tolerance-tolerance">Maximum Allowed Distortion Magnitude (mm)</label>
                         <div className="inline-group">
                             <CirsControl.input
                                 id="tolerance-tolerance"
