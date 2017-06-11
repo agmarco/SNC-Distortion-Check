@@ -17,6 +17,20 @@ export interface IScanTableState {
     phantomFilterValue: 'all' | number;
 }
 
+const refreshScanHelp = 'Re-run scan using the current tolerance threshold, phantom gold standard grid' +
+    'intersection locations, and image processing algorithm.';
+
+const dicomOverlayHelp = 'Generate DICOM files to overlay the geometric distortion on another MRI.';
+
+const rawDataHelp = 'Download a zip archive containing the raw data produced by our algorithm, which ' +
+    'may be useful for debugging or independent verification.';
+
+const executiveReportHelp = 'Download a PDF report presenting NEMA MS 12 compliant results of the ' +
+    'geometric distortion analysis.';
+
+const fullReportHelp = 'Download a detailed PDF report presenting NEMA MS 12 compliant results of the ' +
+    'geometric distortion analysis with additional charts.';
+
 export default class extends React.Component<IScanTableProps, IScanTableState> {
     refreshScanForm: HTMLFormElement;
 
@@ -47,34 +61,49 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
     }
 
     renderScanActions(scan: IScanDTO) {
+
         if (scan.processing) {
-            return <td colSpan={6}>The data is still being processed...</td>;
+            return [
+                <td key={0} colSpan={5}>
+                    The data is still being processed...
+                </td>,
+                <td key={1} className="action delete">
+                    <a href={scan.delete_url}>
+                        <i className="fa fa-trash-o" aria-hidden="true" />
+                    </a>
+                </td>,
+            ];
         } else if (scan.errors) {
-            return (
-                <td colSpan={6}>
+            return [
+                <td key={0} colSpan={5}>
                     <span className="error">
                         There was an error while processing the data
                         (<a href={scan.errors_url}>view details</a>).
                     </span>
-                </td>
-            );
+                </td>,
+                <td key={1} className="action delete">
+                    <a href={scan.delete_url}>
+                        <i className="fa fa-trash-o" aria-hidden="true" />
+                    </a>
+                </td>,
+            ];
         } else {
             return [
-                <td key={0} className="action refresh-scan">
+                <td key={0} className="action refresh-scan" title={refreshScanHelp}>
                     <AnchorForm action={scan.refresh_url}>
                         <i className="fa fa-refresh" aria-hidden="true" />
                     </AnchorForm>
                 </td>,
-                <td key={1} className="action dicom-overlay">
+                <td key={1} className="action dicom-overlay" title={dicomOverlayHelp}>
                     <a href={scan.dicom_overlay_url}>DICOM Overlay</a>
                 </td>,
-                <td key={2} className="action raw-data">
+                <td key={2} className="action raw-data" title={rawDataHelp}>
                     <a href={scan.raw_data_url}>Raw Data</a>
                 </td>,
-                <td key={3} className="action executive-report">
+                <td key={3} className="action executive-report" title={executiveReportHelp}>
                     <a href={scan.executive_report_url === null ? '#' : scan.executive_report_url}>Executive Report</a>
                 </td>,
-                <td key={4} className="action full-report">
+                <td key={4} className="action full-report" title={fullReportHelp}>
                     <a href={scan.full_report_url === null ? '#' : scan.full_report_url}>Full Report</a>
                 </td>,
                 <td key={5} className="action delete">
