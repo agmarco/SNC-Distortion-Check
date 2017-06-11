@@ -310,10 +310,10 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
             html_email_template_name = 'common/email/dicom_overlay_email.html'
             from_email = None
             to_email = user_email
+            protocol = 'https' if use_https else 'http'
+            zip_url = default_storage.url(zip_filename)
             context = {
-                'zip': default_storage.url(zip_filename),
-                'protocol': 'https' if use_https else 'http',
-                'domain': domain,
+                'zip_url': f'{protocol}://{domain}{zip_url}' if zip_url[0] == '/' else zip_url,
                 'site_name': site_name,
             }
             send_mail(subject_template_name, email_template_name, context, from_email, to_email, html_email_template_name)
