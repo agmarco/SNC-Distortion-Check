@@ -17,6 +17,11 @@ export interface IScanTableState {
     phantomFilterValue: 'all' | number;
 }
 
+const scanFailHelp = 'The maximum geometric distortion was greater than the allowed tolerance ' +
+    'when the scan was analyzed.  The ROI charts in the full report may have details as to the ' +
+    'cause of the failure.';
+const scanPassHelp = 'The maximum geometric distortion was within the allowed tolerance ' +
+    'when the scan was analyzed.';
 const refreshScanHelp = 'Re-analyze this scan using the current tolerance threshold, phantom gold standard grid' +
     'intersection locations, and image processing algorithm.  The existing results remain available.';
 const dicomOverlayHelp = 'Generate DICOM files to overlay the geometric distortion on another MRI.';
@@ -149,8 +154,10 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
                     <tbody>
                         {filteredScans.map((scan, i) => (
                             <tr key={scan.pk}>
-                                <td>{scan.passed !== null && <BoolIcon success={scan.passed} />}</td>
-                                <td>{format(scan.acquisition_date, 'MMMM D, YYYY')}</td>
+                                <td title={pair.passed ? scanPassHelp : scanFailHelp}>
+                                    {scan.passed !== null && <BoolIcon success={scan.passed} />}
+                                </td>
+                                <td label={acquisitionDateHelp}>{format(scan.acquisition_date, 'MMMM D, YYYY')}</td>
                                 <td>{scan.phantom.model_number} &mdash; {scan.phantom.serial_number}</td>
                                 <td className="sep" />
                                 {this.renderScanActions(scan)}
