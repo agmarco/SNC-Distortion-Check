@@ -144,8 +144,8 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
                 <table className="cirs-table results">
                     <thead>
                         <tr>
-                            <th label={passedHelp}>Passed</th>
-                            <th label={acquisitionDateHelp}>Date Captured</th>
+                            <th title={passedHelp}>Passed</th>
+                            <th title={acquisitionDateHelp}>Date Captured</th>
                             <th>Phantom</th>
                             <th className="sep" />
                             <th colSpan={6}>Actions</th>
@@ -157,7 +157,7 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
                                 <td title={scan.passed ? scanPassHelp : scanFailHelp}>
                                     {scan.passed !== null && <BoolIcon success={scan.passed} />}
                                 </td>
-                                <td label={acquisitionDateHelp}>{format(scan.acquisition_date, 'MMMM D, YYYY')}</td>
+                                <td title={acquisitionDateHelp}>{format(scan.acquisition_date, 'MMMM D, YYYY')}</td>
                                 <td>{scan.phantom.model_number} &mdash; {scan.phantom.serial_number}</td>
                                 <td className="sep" />
                                 {this.renderScanActions(scan)}
