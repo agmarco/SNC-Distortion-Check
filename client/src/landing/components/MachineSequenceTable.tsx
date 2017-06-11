@@ -33,7 +33,7 @@ const latestScanPassHelp = 'The maximum distortion detected on this machine-sequ
 const noScansAvailableHelp = 'No scans have been uploaded.';
 const noScansMatchHelp = 'No scans match your current filter settings.';
 const viewDetailsHelp = 'View all of the scans that have been analyzed for this machine-sequence ' +
-    'combination.  Download detailed reports and diagnose errors that occurred during processing.
+    'combination.  Download detailed reports and diagnose errors that occurred during processing.';
 
 export default class extends React.Component<IMachineSequenceTableProps, IMachineSequenceTableState> {
     constructor(props: IMachineSequenceTableProps) {

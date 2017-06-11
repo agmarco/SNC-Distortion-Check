@@ -183,9 +183,9 @@ export default class extends React.Component<IScanChartProps, IScanChartState> {
                 width={clipWidth + margin.left + margin.right}
                 height={height + margin.top + margin.bottom}
                 className="scan-chart box"
-                title={chartHelp}
                 ref={svg => this.svg = svg}
             >
+                <title>{chartHelp}</title>
                 <defs>
                     <clipPath id={clipPathId}>
                         <rect width={clipWidth} height={height + margin.top + margin.bottom} />

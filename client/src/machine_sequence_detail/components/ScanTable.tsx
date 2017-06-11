@@ -32,7 +32,7 @@ const executiveReportHelp = 'Download a PDF report presenting NEMA MS 12 complia
 const fullReportHelp = 'Download a detailed PDF report presenting NEMA MS 12 compliant results of the ' +
     'geometric distortion analysis with additional charts.';
 const acquisitionDateHelp = 'Date when the scan was acquired if the AcquieistionDate DICOM attribute was present, ' +
-    'or the date when the file was uploaded if not.'
+    'or the date when the file was uploaded if not.';
 const passedHelp = 'Was the maximum detected geometric distortion within the tolerance set at the time when ' +
     'this scan was processed?  Note if you change the tolerance, you will need to re-run the scan.';
 
