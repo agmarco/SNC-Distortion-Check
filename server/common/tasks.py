@@ -162,7 +162,7 @@ def process_scan(scan_pk):
 
         creator_email = scan.creator.email
         logger.exception(f'Unhandled scan exception occurred while processing scan for "{creator_email}"')
-        scan.errors = 'A server error occurred while processing the scan'
+        scan.errors = 'A server error occurred while processing the scan.'
     finally:
         scan.processing = False
         scan.save()
