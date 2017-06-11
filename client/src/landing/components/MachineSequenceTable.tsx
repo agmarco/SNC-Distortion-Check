@@ -19,14 +19,21 @@ export interface IMachineSequenceTableState {
     sequenceFilterValue: 'all' | number;
 }
 
+const machineHelp = 'The name of the MRI scanner whose geometric distortion is being analyzed.';
+const sequenceHelp = 'The name of the MRI sequence.  Geometric distortion is a function of both ' +
+    'the particular machine, the scan sequence details, and the object being analyzed, hence distortion ' +
+    'is tracked for machine-sequence combinations.';
 const acquisitionDateHelp = 'The acquisition date for the latest scan on this particular machine and ' +
     'scan sequence, if present in the DICOM file, else the date when it was uploaded.';
-const latestScanFailHelp = 'The maximum distortion detected on this machine/sequence combination\'s ' +
-    'most recent scan was outside the allowed tolerance.';
-const latestScanPassHelp = 'The maximum distortion detected on this machine/sequence combination\'s ' +
-    'most recent scan was within the allowed tolerance.';
+const latestScanHelp = 'The status of the most recent scan for this machine-sequence combination.';
+const latestScanFailHelp = 'The maximum distortion detected on this machine-sequence combination\'s ' +
+    'then most recent scan was outside the allowed tolerance.';
+const latestScanPassHelp = 'The maximum distortion detected on this machine-sequence combination\'s ' +
+    'the most recent scan was within the allowed tolerance.';
 const noScansAvailableHelp = 'No scans have been uploaded.';
 const noScansMatchHelp = 'No scans match your current filter settings.';
+const viewDetailsHelp = 'View all of the scans that have been analyzed for this machine-sequence ' +
+    'combination.  Download detailed reports and diagnose errors that occurred during processing.
 
 export default class extends React.Component<IMachineSequenceTableProps, IMachineSequenceTableState> {
     constructor(props: IMachineSequenceTableProps) {
@@ -96,10 +103,10 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
                 <table className="cirs-table results">
                     <thead>
                         <tr>
-                            <th>Machine</th>
-                            <th>Sequence</th>
-                            <th>Date of Latest Scan</th>
-                            <th title={acquisitionDateHelp}>Latest Scan Within Tolerance?</th>
+                            <th title={machineHelp}>Machine</th>
+                            <th title={sequenceHelp}>Sequence</th>
+                            <th title={acquisitionDateHelp}>Date of Latest Scan</th>
+                            <th title={latestScanHelp}>Latest Scan Within Tolerance?</th>
                             <th className="sep" />
                             <th>Actions</th>
                         </tr>
@@ -123,8 +130,8 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
 const machineSequenceTableRow = (pair: IMachineSequencePairDTO) => {
     return (
         <tr key={pair.pk}>
-            <td>{pair.machine.name}</td>
-            <td>{pair.sequence.name}</td>
+            <td title={machineHelp}>{pair.machine.name}</td>
+            <td title={sequenceHelp}>{pair.sequence.name}</td>
             <td title={acquisitionDateHelp}>
                 {pair.latest_scan_date && format(new Date(pair.latest_scan_date), 'MMMM D, YYYY')}
             </td>
