@@ -3,6 +3,7 @@ import zipfile
 import math
 from collections import OrderedDict
 from datetime import datetime
+import logging
 from textwrap import wrap
 from functools import partial
 
@@ -24,6 +25,10 @@ from process.affine import apply_affine, voxel_spacing
 from process.visualization import scatter3
 from process.utils import chunks
 from process import dicom_import
+
+
+logger = logging.getLogger(__name__)
+
 
 GRID_DENSITY_mm = 0.5
 SPHERE_STEP_mm = 1
