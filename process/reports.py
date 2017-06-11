@@ -23,7 +23,7 @@ import scipy.ndimage.filters
 from process import affine, phantoms
 from process.affine import apply_affine, voxel_spacing
 from process.visualization import scatter3
-from process.utils import chunks
+from process.utils import chunks, fov_center_xyz
 from process import dicom_import
 
 
@@ -50,7 +50,7 @@ def generate_equidistant_sphere(n=256):
     theta = golden_angle * np.arange(n)
     z = np.linspace(1 - 1.0 / n, 1.0 / n - 1, n)
     radius = np.sqrt(1 - z * z)
-     
+
     points = np.zeros((n, 3))
     points[:, 0] = radius * np.cos(theta)
     points[:, 1] = radius * np.sin(theta)
@@ -116,12 +116,14 @@ def roi_images(B, voxels, bounds_list, vmax):
     )
 
 
-def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, threshold, institution, machine_name,
-                     sequence_name, phantom_name, acquisition_date, full_report_path, executive_report_path):
+# TODO: refactor this somehow, so it doesn't require so many arguments
+def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, threshold,
+            institution, machine_name, sequence_name, phantom_name, acquisition_date,
+            full_report_path, executive_report_path):
     """
     Given the set of matched and registered points, generate a NEMA report.
 
-    Assumes that each column of TP_A_S is matched with the cooresponding column
+    Assumes that each column of TP_A_S is matched with the corresponding column
     of TP_B.
     """
     logger.info("begining report generation")
@@ -139,8 +141,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
     fig_height = 11
     figsize = (fig_width, fig_height)
 
-    # TODO: use the correct isocenter (it is not at the geometric origin)
-    isocenter = (np.mean([x_min, x_max]), np.mean([y_min, y_max]), np.mean([z_min, z_max]))
+    isocenter = fov_center_xyz(voxel_shape, ijk_to_xyz)
 
     brand_color = (0, 95, 152)
     brand_color = tuple(c / 255 for c in brand_color)
@@ -398,8 +399,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
             if values.size == 0:
                 break
             else:
-                max_value, mean_value = np.max(values), np.mean(values), len(values)
-                radius2max_mean_error[r] = (max_value, mean_value, num_values)
+                radius2max_mean_error[r] = (np.max(values), np.mean(values), len(values))
                 r += step
 
         for r, (max_value, mean_value, num_values) in radius2max_mean_error.items():
