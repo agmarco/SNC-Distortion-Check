@@ -69,9 +69,6 @@ def build_f(A, B, g, rho):
             b_to_a_s_distances_squared = np.sum(b_to_a_s**2, axis=0)
             closest_b_indice = np.argmin(b_to_a_s_distances_squared)
 
-            # by taking the root (1/1.8) of the squared distance, we are
-            # effectively optimizing over the distance^(1.2); this means we are
-            # ignoring outlers somewhat---but not completely like the L1 norm does
             b_min_to_a_s = (b_to_a_s_distances_squared[closest_b_indice])**(1.0/2.0)
 
             rho_b = rho_consideration_order[closest_b_indice]
@@ -95,7 +92,9 @@ def rigidly_register(A, B, g, rho, xtol=1e-4, brute_search_slices=None):
     if not brute_search_slices:
         xyztpx_0 = np.array([0, 0, 0, 0, 0, 0])
     else:
+        # reproduce grid used in `optimize.brute`, so we know its size
         brute_search_shape = np.mgrid[brute_search_slices].shape[1:]
+
         logger.info('beginning brute force search of %s points around the isocenter', brute_search_shape)
         xyztpx_0 = scipy.optimize.brute(f, brute_search_slices, finish=None, full_output=False)
         logger.info('finishing brute force search, found %s', format_xyztpx(xyztpx_0))
