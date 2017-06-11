@@ -81,7 +81,7 @@ def format_optimization_result(result):
 
 def format_xyztpx(xyztpx):
     x, y, z, *angles = xyztpx
-    return f'{format_xyz(x, y, z)} {format_angles(*angles)}' 
+    return f'{format_xyz(x, y, z)} {format_angles(*angles)}'
 
 
 def format_xyz(x, y, z):
