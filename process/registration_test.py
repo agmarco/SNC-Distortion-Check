@@ -58,7 +58,7 @@ class TestSimpleObjectiveFunction(unittest.TestCase):
         Moving the first point by 0.5 in any direction should result in a
         value that is "halfway out" of the cone.
         '''
-        expected_value = self.g(0)*((0.5)**(1.2)/self.rho(0) - 1)
+        expected_value = self.g(0)*((0.5)/self.rho(0) - 1)
         assert self.f([0, 0, -0.5, 0, 0, 0]) == expected_value
         assert self.f([0, 0.5, 0, 0, 0, 0]) == expected_value
         assert self.f([0, -0.5, 0, 0, 0, 0]) == expected_value
@@ -74,9 +74,9 @@ class TestSimpleObjectiveFunction(unittest.TestCase):
         If two points are equidistant, it should match the one with the higher g
         value, which in this case is g(0)
         '''
-        assert self.f([0, 0, 0.5, 0, 0, 0]) == self.g(0)*((0.5)**(1.2)/self.rho(0) - 1.0)
+        assert self.f([0, 0, 0.5, 0, 0, 0]) == self.g(0)*((0.5)/self.rho(0) - 1.0)
         actual = self.f([0, 0, 0.5001, 0, 0, 0])
-        expected = self.g(1.0)*((1 - 0.5001)**(1.2)/self.rho(1.0) - 1.0)
+        expected = self.g(1.0)*((1 - 0.5001)/self.rho(1.0) - 1.0)
         assert_allclose(actual, expected)
 
 
@@ -134,7 +134,7 @@ class TestRegisterAndCategorize:
         properly.
 
         All of the points close to the isocenter (within g_cutoff) have a shift
-        of (0, 0, -1), while the points outside the cutoff don't have a shift.
+        of (0, 0, 0.1), while the points outside the cutoff don't have a shift.
         '''
         A = np.array([
             [0, 0, 2.0],
@@ -145,8 +145,8 @@ class TestRegisterAndCategorize:
         ]).T
 
         B = np.array([
-            [0, 0, 1.0],
-            [0, 0, 2.0],
+            [0, 0, 2.1],
+            [0, 0, 3.1],
             [0, 0, g_cutoff + 11.0],
             [0, 0, g_cutoff + 12.0],
             [0, 0, g_cutoff + 13.0]
@@ -160,7 +160,7 @@ class TestRegisterAndCategorize:
         x, y, z, _, _, _ = xyztpx_actual
         assert math.isclose(x, 0, abs_tol=registeration_tolerance)
         assert math.isclose(y, 0, abs_tol=registeration_tolerance)
-        assert math.isclose(z, -1, abs_tol=registeration_tolerance)
+        assert math.isclose(z, 0.1, abs_tol=registeration_tolerance)
 
     def test_points_near_isocenter_weighted_more(self):
         '''

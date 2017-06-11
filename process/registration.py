@@ -134,7 +134,7 @@ def g(bmag):
     It should never drop to 0, since if it does, the optimizer may shift the
     match over by an integer grid_spacing.
     '''
-    return 1 - bmag/(0.8*g_cutoff) if bmag < (0.8*g_cutoff) else 0.2*g_cutoff
+    return 1 - bmag/g_cutoff if bmag < 0.8*g_cutoff else 0.2
 
 
 def rho(bmag):
