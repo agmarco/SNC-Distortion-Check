@@ -16,6 +16,16 @@ You can enable hot module replacement using:
 
     yarn run build:hot
 
+## Python Path
+
+Note, in order to run python tests or scripts, you will need to be sure that the root of the repository is on the PYTHONPATH.
+
+You can set by running:
+
+    export PYTHONPATH=.
+
+from the root of the repository.
+
 ## Creating a demo database on Heroku
 
 First, make sure you have a fresh database.  You can reset it from the Heroku database web UI (I have not been able to get it to work from the CLI for some reason).
