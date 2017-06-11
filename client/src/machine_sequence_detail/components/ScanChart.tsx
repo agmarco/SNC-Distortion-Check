@@ -55,7 +55,7 @@ export interface IScanChartState {
 
 const chartHelp = 'This box-and-whiskers chart should let you, at a glance, determine ' +
     'whether this machine-sequence combination\'s geometric distortion is within the ' +
-    'allowed tolerances.  The top whisker, top edge of the box, middle of the box, bottom edge ' +
+    'allowed tolerance.  The top whisker, top edge of the box, middle of the box, bottom edge ' +
     'of the box, and bottom whisker correspond to the 100-, 75-, 50-, 25-, and 0-th percentiles ' +
     'of the magnitude of the distortion found in the scan.  Red data points indicate that ' +
     'the maximum distortion was above the tolerance set when the analysis was performed.';
