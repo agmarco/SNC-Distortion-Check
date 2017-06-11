@@ -73,20 +73,25 @@ def split_file_variable_arg(arg, default_variable):
 
 def format_optimization_result(result):
     return (
-        f'optimization completed in {result.nit} iterations '
-        f'objective function evaluated {result.nfev} times '
+        f'optimization completed in {result.nit} iterations, '
+        f'objective function evaluated {result.nfev} times, '
         f'cause of termination: {result.message}'
     )
 
 
 def format_xyztpx(xyztpx):
     x, y, z, *angles = xyztpx
-    theta, phi, xi = (math.degrees(a) for a in angles)
+    return f'{format_xyz(x, y, z)} {format_angles(*angles)}' 
+
+
+def format_xyz(x, y, z):
     r = math.sqrt(x*x + y*y + z*z)
-    return (
-        f'translation of {r:06.4f}mm ({x:06.4f}mm, {y:06.4f}mm, {z:06.4f}mm) '
-        f'rotation of {theta:06.4f}°, {phi:06.4f}°, {xi:06.4f}°'
-    )
+    return f'translation of {r:06.4f}mm ({x:06.4f}mm, {y:06.4f}mm, {z:06.4f}mm)'
+
+
+def format_angles(*angles):
+    theta, phi, xi = (math.degrees(a) for a in angles)
+    return f'rotation of {theta:06.4f}°, {phi:06.4f}°, {xi:06.4f}°'
 
 
 def fov_center_xyz(voxel_shape, ijk_to_xyz):

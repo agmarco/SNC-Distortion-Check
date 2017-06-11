@@ -99,7 +99,7 @@ class PhantomModelFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.PhantomModel"
 
-    cad_fiducials = factory.SubFactory(FiducialsFactory)
+    cad_fiducials = factory.SubFactory(Fiducials603ACADFactory)
     model_number = '603A'
     name = 'Factory CIRS 603A'
 

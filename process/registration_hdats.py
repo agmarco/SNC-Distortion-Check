@@ -182,7 +182,8 @@ class RegistrationSuite(Suite):
         metrics = OrderedDict()
         context = OrderedDict()
 
-        points_file = paramaters[case_input['phantom']]['points_file']
+        phantom_paramaters = paramaters[case_input['phantom']]
+        points_file = phantom_paramaters['points_file']
         A = file_io.load_points(points_file)['points']
 
         B, xyztpx_expected = self.generate_B(A, case_input)
@@ -193,7 +194,8 @@ class RegistrationSuite(Suite):
         isocenter_in_B = xyztpx_expected[:3]
         context['isocenter_in_B'] = isocenter_in_B
 
-        xyztpx, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(A, B, isocenter_in_B)
+        xyztpx, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
+                A, B, isocenter_in_B, phantom_paramaters['brute_search_slices'])
 
         context['xyztpx_actual'] = xyztpx
         x, y, z, theta, phi, xi = xyztpx

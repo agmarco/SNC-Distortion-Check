@@ -65,7 +65,7 @@ def detect_peaks(data, voxel_spacing, search_radius):
 
     peak_heights = neighborhood_peaks(data, search_neighborhood)
     num_total_peaks = np.sum(peak_heights > 0)
-    logger.info('found %d peaks in total', num_total_peaks)
+    logger.info('found %d peaks in total, using %s search area', num_total_peaks, search_neighborhood.shape)
 
     threshold = 0.1*np.percentile(peak_heights[peak_heights > 0], 98)
     peaks_thresholded = peak_heights > threshold

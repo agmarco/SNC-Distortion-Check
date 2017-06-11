@@ -47,7 +47,8 @@ class FullAlgorithmSuite(Suite):
         metrics = OrderedDict()
         context = OrderedDict()
 
-        golden_points_filename = phantoms.paramaters[case_input['phantom_model']]['points_file']
+        phantom_paramaters = phantoms.paramaters[case_input['phantom_model']]
+        golden_points_filename = phantom_paramaters['points_file']
         golden_points = file_io.load_points(golden_points_filename)['points']
         context['A'] = golden_points
 
@@ -71,11 +72,14 @@ class FullAlgorithmSuite(Suite):
 
         isocenter_in_B = fov_center_xyz(voxels.shape, ijk_to_xyz)
 
+        context['A_I'] = affine.apply_affine(affine.translation(*isocenter_in_B), context['A'])
+
         # 3. rigidly register
         xyztpx, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
             golden_points,
             pruned_points_xyz,
             isocenter_in_B,
+            phantom_paramaters['brute_search_slices'],
         )
 
         x, y, z, theta, phi, xi = xyztpx
@@ -150,6 +154,22 @@ class FullAlgorithmSuite(Suite):
         print('min distortion magnitude: {:5.3f}mm'.format(metrics['min_distortion']))
 
         descriptors = [
+            # {
+                # 'points_xyz': context['A'],
+                # 'scatter_kwargs': {
+                    # 'color': 'b',
+                    # 'label': 'Gold Standard Unregistered',
+                    # 'marker': 'o'
+                # }
+            # },
+            {
+                'points_xyz': context['A_I'],
+                'scatter_kwargs': {
+                    'color': 'b',
+                    'label': 'Gold Standard Roughly Registered',
+                    'marker': 'o'
+                }
+            },
             {
                 'points_xyz': context['FN_A_S'],
                 'scatter_kwargs': {
@@ -162,7 +182,7 @@ class FullAlgorithmSuite(Suite):
                 'points_xyz': context['TP_A_S'],
                 'scatter_kwargs': {
                     'color': 'g',
-                    'label': 'Gold Standard',
+                    'label': 'Gold Standard Registered',
                     'marker': 'o'
                 }
             },

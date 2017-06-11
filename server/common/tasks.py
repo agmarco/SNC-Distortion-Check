@@ -26,14 +26,14 @@ from django.template import loader
 from rest_framework.renderers import JSONRenderer
 from scipy.interpolate.ndgriddata import griddata
 
-from process import dicom_import, affine, fp_rejector
+from process import dicom_import, affine, fp_rejector, phantoms
 from process.affine import apply_affine
 from process.feature_detection import FeatureDetector
 from process.file_io import save_voxels
 from process.registration import rigidly_register_and_categorize
 from process.reports import generate_reports
 from process.utils import fov_center_xyz
-from process.points_utils import format_point_metrics
+from process.points_utils import format_point_metrics, metrics
 from . import serializers
 from .models import Scan, Fiducials, GoldenFiducials, DicomSeries
 from process.exceptions import AlgorithmException
@@ -49,6 +49,7 @@ def process_scan(scan_pk):
         with transaction.atomic():
             modality = 'mri'
             phantom_model = scan.phantom.model.model_number
+            phantom_paramaters = phantoms.paramaters[phantom_model]
             active_gold_standard = scan.phantom.active_gold_standard
             _, num_golden_fiducials = active_gold_standard.fiducials.fiducials.shape
 
@@ -71,7 +72,12 @@ def process_scan(scan_pk):
                 ijk_to_xyz,
             )
 
-            pruned_points_ijk = fp_rejector.remove_fps(feature_detector.points_ijk, voxels, voxel_spacing, phantom_model)
+            pruned_points_ijk = fp_rejector.remove_fps(
+                feature_detector.points_ijk,
+                voxels,
+                voxel_spacing,
+                phantom_model,
+            )
             pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
 
             scan.detected_fiducials = Fiducials.objects.create(fiducials=pruned_points_xyz)
@@ -82,7 +88,7 @@ def process_scan(scan_pk):
                 raise AlgorithmException(
                     f"Detected {num_fiducials} grid intersections, but expected to find "
                     f"{num_golden_fiducials}, according to {active_gold_standard.source_summary}. "
-                    f"Aborting analysis since the fractional error is larger than {error_cutoff*100}%."
+                    f"Aborting analysis since the fractional error is larger than {error_cutoff*100:.1f}%."
                 )
 
             isocenter_in_B = fov_center_xyz(voxels.shape, ijk_to_xyz)
@@ -91,9 +97,10 @@ def process_scan(scan_pk):
                 scan.golden_fiducials.fiducials.fiducials,
                 scan.detected_fiducials.fiducials,
                 isocenter_in_B,
+                phantom_paramaters['brute_search_slices'],
             )
 
-            TPF, FPF, FLE_percentiles = metrics(FN_A, TP_A, TP_B, FP_B)
+            TPF, FPF, FLE_percentiles = metrics(FN_A_S, TP_A_S, TP_B, FP_B)
             logger.info(format_point_metrics(TPF, FPF, FLE_percentiles))
 
             TPF_minimum = 0.85
@@ -101,12 +108,12 @@ def process_scan(scan_pk):
             if TPF < TPF_minimum:
                 raise AlgorithmException(
                     f"Although we were able to register the {num_fiducials} detected grid intersections "
-                    f"to the {num_golden_fiducials} golden standard grid locations, only {TPF*100}% of "
+                    f"to the {num_golden_fiducials} golden standard grid locations, only {TPF*100:.1f}% of "
                     f"the registered gold standard points could be matched to a detected grid intersection "
-                    f"location. This is less than our minimum allowable {TPF_minimum*100}%. Processing aborted. "
-                    f"Please be sure to (1) orient the phantom properly within the imaging bore, "
-                    f"(2) align the center of the phantom to the isocenter of the scanner, (3) locate the "
-                    f"scanner's isocenter in the exact center of the captured field of view, (4) the pixel "
+                    f"location. This is less than our minimum allowable {TPF_minimum*100:.1f}%. Processing "
+                    f"aborted. Please be sure to (1) orient the phantom correctly with 4° along each axis, "
+                    f"(2) position the phantom's center within 5mm of the isocenter, (3) position the "
+                    f"scanner's isocenter in the exact center of the field of view, (4) ensure the pixel "
                     f"size and slice spacing is sufficient to resolve the grid intersections."
                 )
 
@@ -147,7 +154,6 @@ def process_scan(scan_pk):
 
     except AlgorithmException as e:
         scan = Scan.objects.get(pk=scan_pk)  # fresh instance
-
         logger.exception('Algorithm error')
         scan.errors = str(e)
 
@@ -156,12 +162,7 @@ def process_scan(scan_pk):
 
         creator_email = scan.creator.email
         logger.exception(f'Unhandled scan exception occurred while processing scan for "{creator_email}"')
-        scan.errors = f'''
-            A server error occurred while processing the scan.  CIRS has been
-            notified of the issue and is taking steps to resolve the issue.  We
-            will notify you at "{creator_email}" when the exception has been
-            resolved.
-        '''
+        scan.errors = 'A server error occurred while processing the scan'
     finally:
         scan.processing = False
         scan.save()
