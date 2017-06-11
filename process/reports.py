@@ -129,7 +129,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
     assert TP_A_S.shape == TP_B.shape
 
     error_vecs = TP_A_S - TP_B
-    error_mags = np.linalg.norm(error_vecs, axis=0)
+    error_mags = np.linalg.norm(error_vecs, axis=0).squeeze()
 
     x_min, y_min, z_min = np.min(TP_A_S, axis=1)
     x_max, y_max, z_max = np.max(TP_A_S, axis=1)
@@ -317,7 +317,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         bounds = [0, threshold, math.inf]
         norm = colors.BoundaryNorm(bounds, cmap.N)
 
-        levels = np.arange(0, error_mags.T.max() + 0.3, 0.3)
+        levels = np.arange(0, error_mags.max() + 0.3, 0.3)
         contour = plt.contour(grid_a.squeeze(), grid_b.squeeze(), gridded.squeeze(), cmap=cmap, norm=norm, levels=levels)
         ax.clabel(contour, inline=True, fontsize=10)
 
@@ -326,7 +326,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
                                              np.arange(y_min, y_max, GRID_DENSITY_mm),
                                              [isocenter[2]])
-        gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
+        gridded = griddata(TP_A_S.T, error_mags, (grid_x, grid_y, grid_z), method='linear')
         gridded = scipy.ndimage.filters.gaussian_filter(gridded, 2, truncate=2)
         return grid_x, grid_y, gridded
 
@@ -340,7 +340,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
                                              [isocenter[1]],
                                              np.arange(z_min, z_max, GRID_DENSITY_mm), )
-        gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
+        gridded = griddata(TP_A_S.T, error_mags, (grid_x, grid_y, grid_z), method='linear')
         gridded = scipy.ndimage.filters.gaussian_filter(gridded, 2, truncate=2)
         return grid_x, grid_z, gridded
 
@@ -354,7 +354,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         grid_x, grid_y, grid_z = np.meshgrid([isocenter[0]],
                                              np.arange(y_min, y_max, GRID_DENSITY_mm),
                                              np.arange(z_min, z_max, GRID_DENSITY_mm))
-        gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
+        gridded = griddata(TP_A_S.T, error_mags, (grid_x, grid_y, grid_z), method='linear')
         gridded = scipy.ndimage.filters.gaussian_filter(gridded, 2, truncate=2)
         return grid_y, grid_z, gridded
 
@@ -368,7 +368,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
                                              np.arange(y_min, y_max, GRID_DENSITY_mm),
                                              np.array([z]))
-        gridded = griddata(TP_A_S.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
+        gridded = griddata(TP_A_S.T, error_mags, (grid_x, grid_y, grid_z), method='linear')
         gridded = scipy.ndimage.filters.gaussian_filter(gridded, 2, truncate=2)
         return grid_x, grid_y, gridded
 
@@ -382,7 +382,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         rows = []
 
         # interpolate onto spheres of increasing size to calculate average and max error table
-        interpolator = LinearNDInterpolator(TP_A_S.T, error_mags.T)
+        interpolator = LinearNDInterpolator(TP_A_S.T, error_mags)
         radius2max_mean_error = OrderedDict()
 
         origins = np.repeat([isocenter], TP_A_S.shape[1], axis=0)
@@ -529,8 +529,8 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
 
         create_page_full(draw_error_table)
 
-        sort_indices = np.argsort(error_mags.T)[::-1]
-        rois = zip(TP_A_S.T[sort_indices], TP_B.T[sort_indices], error_vecs.T[sort_indices], error_mags.T[sort_indices])
+        sort_indices = np.argsort(error_mags)[::-1]
+        rois = zip(TP_A_S.T[sort_indices], TP_B.T[sort_indices], error_vecs.T[sort_indices], error_mags[sort_indices])
         for chunk in chunks(list(rois), 5):
             draw_chunk = partial(draw_fiducial_rois, chunk)
             create_page_full(draw_chunk)
