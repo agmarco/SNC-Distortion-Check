@@ -17,8 +17,8 @@ export interface IScanTableState {
     phantomFilterValue: 'all' | number;
 }
 
-const refreshScanHelp = 'Re-run scan using the current tolerance threshold, phantom gold standard grid' +
-    'intersection locations, and image processing algorithm.';
+const refreshScanHelp = 'Re-analyze this scan using the current tolerance threshold, phantom gold standard grid' +
+    'intersection locations, and image processing algorithm.  The existing results remain available.';
 const dicomOverlayHelp = 'Generate DICOM files to overlay the geometric distortion on another MRI.';
 const rawDataHelp = 'Download a zip archive containing the raw data produced by our algorithm, which ' +
     'may be useful for debugging or independent verification.';
