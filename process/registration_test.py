@@ -6,7 +6,8 @@ import pytest
 from numpy.testing import assert_allclose
 
 from process.affine import apply_xyztpx
-from process.registration import build_f, rigidly_register, rigidly_register_and_categorize, g_cutoff, registeration_tolerance
+from process.registration import build_f, rigidly_register, rigidly_register_and_categorize, \
+        g_cutoff, registeration_tolerance
 from process.file_io import load_points
 
 
@@ -57,7 +58,7 @@ class TestSimpleObjectiveFunction(unittest.TestCase):
         Moving the first point by 0.5 in any direction should result in a
         value that is "halfway out" of the cone.
         '''
-        expected_value = self.g(0)*((0.5)**(1.2)/self.rho(0) - 1)
+        expected_value = self.g(0)*((0.5)/self.rho(0) - 1)
         assert self.f([0, 0, -0.5, 0, 0, 0]) == expected_value
         assert self.f([0, 0.5, 0, 0, 0, 0]) == expected_value
         assert self.f([0, -0.5, 0, 0, 0, 0]) == expected_value
@@ -73,9 +74,9 @@ class TestSimpleObjectiveFunction(unittest.TestCase):
         If two points are equidistant, it should match the one with the higher g
         value, which in this case is g(0)
         '''
-        assert self.f([0, 0, 0.5, 0, 0, 0]) == self.g(0)*((0.5)**(1.2)/self.rho(0) - 1.0)
+        assert self.f([0, 0, 0.5, 0, 0, 0]) == self.g(0)*((0.5)/self.rho(0) - 1.0)
         actual = self.f([0, 0, 0.5001, 0, 0, 0])
-        expected = self.g(1.0)*((1 - 0.5001)**(1.2)/self.rho(1.0) - 1.0)
+        expected = self.g(1.0)*((1 - 0.5001)/self.rho(1.0) - 1.0)
         assert_allclose(actual, expected)
 
 
@@ -111,22 +112,21 @@ class TestRegisterAndCategorize:
 
         isocenter = np.array(isocenter)
 
-        tolerance = 1e-5
+        tolerance = 1e-6
         xyztpx_actual, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
                 A, B, isocenter)
 
         assert_allclose(xyztpx_actual, xyztpx, atol=tolerance*10)
-        assert_allclose(TP_A_S, A_S, atol=tolerance*100)
-        assert_allclose(TP_B, B, atol=tolerance*100)
+        assert_allclose(TP_A_S, A_S, atol=tolerance*10)
+        assert_allclose(TP_B, B, atol=tolerance*10)
         assert FN_A_S.size == 0
         assert FP_B.size == 0
 
-    @pytest.mark.xfail(reason="TODO near affine.xyztpx_from_rotation_translation")
     def test_small_translation_isocenter_at_origin(self):
         self.assert_3x3x3_match([0.4, -0.3, 0.3, 0, 0, -math.pi/180*5], [0, 0, 0])
 
     def test_small_translation_isocenter_shifted(self):
-        self.assert_3x3x3_match([0.4, -0.3, 0.3, 0, 0, 0], [32, -10, 22])
+        self.assert_3x3x3_match([32 + 0.4, -10 + -0.3, 22 + 0.3, 0, 0, 0], [32, -10, 22])
 
     def test_points_beyond_g_cutoff_are_ignored(self):
         '''
@@ -134,10 +134,24 @@ class TestRegisterAndCategorize:
         properly.
 
         All of the points close to the isocenter (within g_cutoff) have a shift
-        of (0, 0, -1), while the points outside the cutoff don't have a shift.
+        of (0, 0, 0.1), while the points outside the cutoff don't have a shift.
         '''
-        A = np.array([[0, 0, 2.0], [0, 0, 3.0], [0, 0, g_cutoff + 11.0], [0, 0, g_cutoff + 12.0], [0, 0, g_cutoff + 13.0]]).T
-        B = np.array([[0, 0, 1.0], [0, 0, 2.0], [0, 0, g_cutoff + 11.0], [0, 0, g_cutoff + 12.0], [0, 0, g_cutoff + 13.0]]).T
+        A = np.array([
+            [0, 0, 2.0],
+            [0, 0, 3.0],
+            [0, 0, g_cutoff + 11.0],
+            [0, 0, g_cutoff + 12.0],
+            [0, 0, g_cutoff + 13.0]
+        ]).T
+
+        B = np.array([
+            [0, 0, 2.1],
+            [0, 0, 3.1],
+            [0, 0, g_cutoff + 11.0],
+            [0, 0, g_cutoff + 12.0],
+            [0, 0, g_cutoff + 13.0]
+        ]).T
+
         isocenter = np.array([0, 0, 0])
 
         tolerance = 1e-5
@@ -146,7 +160,7 @@ class TestRegisterAndCategorize:
         x, y, z, _, _, _ = xyztpx_actual
         assert math.isclose(x, 0, abs_tol=registeration_tolerance)
         assert math.isclose(y, 0, abs_tol=registeration_tolerance)
-        assert math.isclose(z, -1, abs_tol=registeration_tolerance)
+        assert math.isclose(z, 0.1, abs_tol=registeration_tolerance)
 
     def test_points_near_isocenter_weighted_more(self):
         '''

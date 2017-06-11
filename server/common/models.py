@@ -7,9 +7,11 @@ import numpy as np
 from django.core.files import File
 from django.db import models
 from django.utils.functional import cached_property
+from django.utils import timezone
+from django.contrib import messages
 
 from process import dicom_import
-from server.django_numpy.fields import NdarrayTextField, NdarrayFileField
+from server.django_numpy.fields import NdarrayTextField#, NdarrayFileField
 from server.emailauth.models import AbstractUser, UserManager
 
 
@@ -62,7 +64,8 @@ class User(AbstractUser, CommonFieldsMixin):
 
 
 class Fiducials(CommonFieldsMixin):
-    fiducials = NdarrayFileField(upload_to='fiducials/fiducials')
+    #fiducials = NdarrayFileField(upload_to='fiducials/fiducials')
+    fiducials = NdarrayTextField()
 
     def __str__(self):
         return "Fiducials {}".format(self.id)
@@ -156,13 +159,14 @@ class MachineSequencePair(CommonFieldsMixin):
 
 class DicomSeries(CommonFieldsMixin):
     zipped_dicom_files = models.FileField(upload_to='dicom_series/zipped_dicom_files')
-    voxels = NdarrayFileField(upload_to='dicom_series/voxels')
+    #voxels = NdarrayFileField(upload_to='dicom_series/voxels')
+    voxels = NdarrayTextField()
     ijk_to_xyz = NdarrayTextField()
     shape = NdarrayTextField()
     series_uid_ht = 'The DICOM Series Instance UID, which should uniquely identify a scan'
     series_uid = models.CharField(max_length=64, verbose_name='Series Instance UID', help_text=series_uid_ht)
     study_uid = models.CharField(max_length=64, verbose_name='Study Instance UID', help_text=series_uid_ht)
-    frame_of_reference_uid = models.CharField(max_length=64, verbose_name='Frame Of Reference UID', help_text=series_uid_ht, blank=True)
+    frame_of_reference_uid = models.CharField(max_length=64, verbose_name='Frame Of Reference UID', help_text=series_uid_ht, blank=True, null=True)
     patient_id = models.CharField(max_length=64, verbose_name='Patient ID', help_text=series_uid_ht)
     acquisition_date_ht = 'The DICOM Series Instance Acquisition Date'
     acquisition_date = models.DateField(help_text=acquisition_date_ht)
@@ -289,21 +293,14 @@ class Global(models.Model):
         )
 
 
-def create_scan(machine, sequence, phantom, creator, dicom_archive, notes='', dicom_datasets=None):
-    # TODO: grab tolerance from the sequence (will need to add a tolerance
-    # field to the sequence)
-    machine_sequence_pair, _ = MachineSequencePair.objects.get_or_create(
-        machine=machine,
-        sequence=sequence,
-        defaults={'tolerance': 3},
-    )
-
+def create_scan(machine, sequence, phantom, creator, dicom_archive, notes='', dicom_datasets=None, request=None):
     if dicom_datasets is None:
         with zipfile.ZipFile(dicom_archive, 'r') as dicom_archive_zipfile:
             dicom_datasets = dicom_import.dicom_datasets_from_zip(dicom_archive_zipfile)
 
     voxels, ijk_to_xyz = dicom_import.combine_slices(dicom_datasets)
     ds = dicom_datasets[0]
+
     dicom_series = DicomSeries.objects.create(
         voxels=voxels,
         ijk_to_xyz=ijk_to_xyz,
@@ -312,11 +309,18 @@ def create_scan(machine, sequence, phantom, creator, dicom_archive, notes='', di
         study_uid=ds.StudyInstanceUID,
         frame_of_reference_uid=ds.FrameOfReferenceUID,
         patient_id=ds.PatientID,
-        # TODO: handle a missing AcquisitionDate
-        acquisition_date=datetime.strptime(dicom_datasets[0].AcquisitionDate, '%Y%m%d'),
+        acquisition_date=infer_acquisition_date(ds, request),
     )
 
     dicom_series.zipped_dicom_files.save('dicom_archive', File(dicom_archive))
+
+    # TODO: grab tolerance from the sequence (will need to add a tolerance
+    # field to the sequence)
+    machine_sequence_pair, _ = MachineSequencePair.objects.get_or_create(
+        machine=machine,
+        sequence=sequence,
+        defaults={'tolerance': 3},
+    )
 
     scan = Scan.objects.create(
         machine_sequence_pair=machine_sequence_pair,
@@ -329,3 +333,22 @@ def create_scan(machine, sequence, phantom, creator, dicom_archive, notes='', di
     )
 
     return scan
+
+
+def infer_acquisition_date(dataset, request):
+    '''
+    We rely on the acquisition date for sorting and charting, but it is not a
+    required DICOM attribute.  Hence, we infer it as the current date if
+    necessary, and display a warning to the user.
+    '''
+    if hasattr(dataset, 'AcquisitionDate'):
+        acquisition_date = datetime.strptime(dataset.AcquisitionDate, '%Y%m%d')
+    else:
+        # the view should set this to the current date and warn the user; this
+        # is set here only as a flag
+        acquisition_date = timezone.now()
+        if request:
+            msg = "The uploaded DICOM file has no acquisition date, so the " + \
+                    "current date was used instead."
+            messages.info(request, msg)
+    return acquisition_date

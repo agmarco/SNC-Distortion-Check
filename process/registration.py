@@ -7,7 +7,8 @@ import scipy.optimize
 
 from process import points_utils
 from process import affine
-from process.utils import print_optimization_result
+from process.utils import format_optimization_result, format_xyztpx, format_xyz
+from process.exceptions import AlgorithmException
 
 logger = logging.getLogger(__name__)
 import sys; logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
@@ -54,11 +55,11 @@ def build_f(A, B, g, rho):
 
     _, num_B_considered = B_consideration_order.shape
     if num_B_considered == 0:
-        print("Warning: no non-zero values in `B`!")
+        logger.warning("no non-zero values in B")
         return lambda xyztpx: 0
 
     def f(xyztpx):
-        affine_matrix = affine.translation_rotation(*xyztpx)
+        affine_matrix = affine.rotation_translation(*xyztpx)
         A1_S = affine_matrix @ A1
         A_S = A1_S[:3, :]
 
@@ -68,10 +69,7 @@ def build_f(A, B, g, rho):
             b_to_a_s_distances_squared = np.sum(b_to_a_s**2, axis=0)
             closest_b_indice = np.argmin(b_to_a_s_distances_squared)
 
-            # by taking the root (1/1.8) of the squared distance, we are
-            # effectively optimizing over the distance^(1.2); this means we are
-            # ignoring outlers somewhat---but not completely like the L1 norm does
-            b_min_to_a_s = (b_to_a_s_distances_squared[closest_b_indice])**(1.2/2.0)
+            b_min_to_a_s = (b_to_a_s_distances_squared[closest_b_indice])**(1.0/2.0)
 
             rho_b = rho_consideration_order[closest_b_indice]
             if b_min_to_a_s > rho_b:
@@ -84,44 +82,42 @@ def build_f(A, B, g, rho):
     return f
 
 
-def rigidly_register(A, B, g, rho, tol=1e-4, skip_brute=False):
-    logger.info('Beginning rigid registration')
+def rigidly_register(A, B, g, rho, xtol=1e-4, brute_search_slices=None):
+    '''
+    Assumes that the isocenter is locate at the origin of B.
+    '''
+    logger.info('beginning rigid registration')
     f = build_f(A, B, g, rho)
-    logger.info('Built f')
 
-    if skip_brute:
-        x0 = np.array([0, 0, 0, 0, 0, 0])
-        logger.info('Skipping brute force search')
+    if not brute_search_slices:
+        xyztpx_0 = np.array([0, 0, 0, 0, 0, 0])
     else:
-        logger.info('Begining brute force search')
+        # reproduce grid used in `optimize.brute`, so we know its size
+        brute_search_shape = np.mgrid[brute_search_slices].shape[1:]
 
-        # TODO: remove this
-        center_of_mass_shift = np.mean(B, axis=1) - np.mean(A, axis=1)
-        assert center_of_mass_shift.shape[0] == 3
+        logger.info('beginning brute force search of %s points around the isocenter', brute_search_shape)
+        xyztpx_0 = scipy.optimize.brute(f, brute_search_slices, finish=None, full_output=False)
+        logger.info('finishing brute force search, found %s', format_xyztpx(xyztpx_0))
 
-        search_degrees = pi/180*5
-        brute_force_ranges = [
-            (-4 + center_of_mass_shift[0], 4 + center_of_mass_shift[0]),
-            (-4 + center_of_mass_shift[1], 4 + center_of_mass_shift[1]),
-            (-4 + center_of_mass_shift[2], 4 + center_of_mass_shift[2]),
-            (-search_degrees, search_degrees),
-            (-search_degrees, search_degrees),
-            (-search_degrees, search_degrees),
-        ]
-        x0 = scipy.optimize.brute(f, brute_force_ranges, Ns=3)
-        logger.info('Brute force stage complete')
-
+    max_iterations = 4000
+    ftol = 1e-20
     options = {
-        'xtol': tol,
-        'ftol': 1e-20,
-        'maxiter': 4000,
+        'xtol': xtol,
+        'ftol': ftol,
+        'maxiter': max_iterations,
     }
-    result = scipy.optimize.minimize(f, x0, method='Powell', options=options)
+    result = scipy.optimize.minimize(f, xyztpx_0, method='Powell', options=options)
+    logger.info(format_optimization_result(result))
+    logger.info(format_xyztpx(result.x))
 
-    print_optimization_result(result)
     if not result.success:
-        raise ValueError('Optimization did not succeed')
+        raise AlgorithmException(
+            f'The detected grid intersections could not be registered to the '
+            f'golden grid intersection locations within {max_iterations} optimization '
+            f'iterations.  Aborting processing.'
+        )
 
+    logger.info('finished rigid registration')
     return result.x
 
 
@@ -130,36 +126,49 @@ g_cutoff = 50
 registeration_tolerance = 1e-6
 
 
-def rigidly_register_and_categorize(A, B, isocenter_in_B, skip_brute=False):
-    # TODO: determine rho and g based on our knowledge of the phantom
-    # for now, we assume that the distortion is always within 5 mm and we
-    # weight points less linearly as the get further from the isocenter
-    maximum_extent = 200.0
-    maximum_distortion = 5.0
+def g(bmag):
+    '''
+    The g function specifies the relative importance of points near the
+    isocenter vs points away from the isocenter.
 
-    def g(bmag):
-        return 1 - bmag/g_cutoff if bmag < g_cutoff else 0
+    It should never drop to 0, since if it does, the optimizer may shift the
+    match over by an integer grid_spacing.
+    '''
+    return 1 - bmag/g_cutoff if bmag < 0.8*g_cutoff else 0.2
 
-    def rho(bmag):
-        return 5.0
 
+def rho(bmag):
+    '''
+    The rho function determines how close two points need to be to be
+    considered a "match", as a function of distance from the isocenter, "bmag".
+    Points further from the isocenter are expected to have more distortion, and
+    thus may be further apart while still being considered "matched".
+    '''
+    return 3.0 + 3.0*bmag/g_cutoff if bmag < g_cutoff else 6.0
+
+
+def rigidly_register_and_categorize(A, B, isocenter_in_B, brute_search_slices=None):
     # shift B's coordinate system so that its origin is centered at the
     # isocenter; the lower level registration functions assume B's origin is
     # the isocenter
-    b_to_b_i_registration_matrix = affine.T(*(-1*isocenter_in_B))
+    b_to_b_i_registration_matrix = affine.translation(*(-1*isocenter_in_B))
     B_i = affine.apply_affine(b_to_b_i_registration_matrix, B)
+    logger.info(f'shifting golden points to isocenter: {format_xyz(*isocenter_in_B)}')
 
-    xyztpx_i = rigidly_register(A, B_i, g, rho, registeration_tolerance, skip_brute=skip_brute)
+    xyztpx_a_to_b_i = rigidly_register(A, B_i, g, rho, registeration_tolerance, brute_search_slices)
 
     # now apply both shifts (from A -> B_i and then from B_i -> B) back onto A.
     # This preservers the original patient coordinate system
-    a_to_b_i_registration_matrix = affine.translation_rotation(*xyztpx_i)
-    b_i_to_b_registration_matrix = affine.T(*isocenter_in_B)
+    a_to_b_i_registration_matrix = affine.rotation_translation(*xyztpx_a_to_b_i)
+    b_i_to_b_registration_matrix = affine.translation(*isocenter_in_B)
     a_to_b_registration_matrix =  b_i_to_b_registration_matrix @ a_to_b_i_registration_matrix
     A_S = affine.apply_affine(a_to_b_registration_matrix, A)
 
-    xyztpx = affine.xyztpx_from_rotation_translation(a_to_b_registration_matrix)
+    # note that adding these vectors works because we apply the rotations
+    # first, before the translations, and the second vector ONLY has
+    # translations
+    xyztpx_a_to_b = xyztpx_a_to_b_i + np.array([*isocenter_in_B, 0, 0, 0])
 
     FN_A_S, TP_A_S, TP_B, FP_B = points_utils.categorize(A_S, B, rho)
 
-    return xyztpx, FN_A_S, TP_A_S, TP_B, FP_B
+    return xyztpx_a_to_b, FN_A_S, TP_A_S, TP_B, FP_B

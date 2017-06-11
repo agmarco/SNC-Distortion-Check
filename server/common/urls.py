@@ -29,6 +29,7 @@ urlpatterns = [
         url(r'^(?P<pk>\d+)/delete/$', views.DeleteScanView.as_view(), name='delete_scan'),
         url(r'^(?P<pk>\d+)/errors/$', views.ScanErrorsView.as_view(), name='scan_errors'),
         url(r'^(?P<pk>\d+)/dicom-overlay/$', views.DicomOverlayView.as_view(), name='dicom_overlay'),
+        url(r'^(?P<pk>\d+)/dicom-overlay/success/$', views.DicomOverlaySuccessView.as_view(), name='dicom_overlay_success'),
         url(r'^(?P<pk>\d+)/refresh/$', views.refresh_scan_view, name='refresh_scan'),
     ])),
 
@@ -62,4 +63,6 @@ urlpatterns = [
         url(r'^add/$', views.CreateUserView.as_view(), name='create_user'),
         url(r'^(?P<pk>\d+)/delete/$', views.DeleteUserView.as_view(), name='delete_user'),
     ])),
+
+    url(r'^fake-server-error/$', views.fake_server_error, name='fake_server_error'),
 ]

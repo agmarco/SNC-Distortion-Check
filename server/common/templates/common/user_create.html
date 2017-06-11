@@ -15,7 +15,7 @@
     {% include 'includes/form_field.html' with field=form.last_name %}
     {% include 'includes/form_field.html' with field=form.email %}
     <div>
-      {{ form.user_type.label_tag|title }}
+      {{ form.user_type.label_tag }}
       <div class="inline-radio">
         {% for choice in form.user_type %}
           {{ choice }}

@@ -4,39 +4,38 @@ import pytest
 from numpy.testing import assert_allclose
 import numpy as np
 
-from .affine import translation_rotation as S, apply_xyztpx, voxel_spacing, \
-        xyztpx_from_rotation_translation, translation_rotation
+from .affine import rotation_translation as RT, apply_xyztpx, voxel_spacing
 
 
 class TestAffineMatrix:
     def test_shifts(self):
-        assert_allclose(S(1, 0, 0, 0, 0, 0) @ [0, 0, 0, 1], [1, 0, 0, 1], atol=1e-10)
-        assert_allclose(S(0, 1, 0, 0, 0, 0) @ [0, 0, 0, 1], [0, 1, 0, 1], atol=1e-10)
-        assert_allclose(S(0, 0, 1, 0, 0, 0) @ [0, 0, 0, 1], [0, 0, 1, 1], atol=1e-10)
+        assert_allclose(RT(1, 0, 0, 0, 0, 0) @ [0, 0, 0, 1], [1, 0, 0, 1], atol=1e-10)
+        assert_allclose(RT(0, 1, 0, 0, 0, 0) @ [0, 0, 0, 1], [0, 1, 0, 1], atol=1e-10)
+        assert_allclose(RT(0, 0, 1, 0, 0, 0) @ [0, 0, 0, 1], [0, 0, 1, 1], atol=1e-10)
 
-    def test_rotate_x_90(self):
-        assert_allclose(S(0, 0, 0, pi/2, 0, 0) @ [0, 0, 0, 1], [0, 0, 0, 1], atol=1e-10)
-        assert_allclose(S(0, 0, 0, pi/2, 0, 0) @ [1, 0, 0, 1], [1, 0, 0, 1], atol=1e-10)
-        assert_allclose(S(0, 0, 0, pi/2, 0, 0) @ [0, 1, 0, 1], [0, 0, 1, 1], atol=1e-10)
-        assert_allclose(S(0, 0, 0, pi/2, 0, 0) @ [0, 0, 1, 1], [0, -1, 0, 1], atol=1e-10)
+    def test_rotation_x_90(self):
+        assert_allclose(RT(0, 0, 0, pi/2, 0, 0) @ [0, 0, 0, 1], [0, 0, 0, 1], atol=1e-10)
+        assert_allclose(RT(0, 0, 0, pi/2, 0, 0) @ [1, 0, 0, 1], [1, 0, 0, 1], atol=1e-10)
+        assert_allclose(RT(0, 0, 0, pi/2, 0, 0) @ [0, 1, 0, 1], [0, 0, 1, 1], atol=1e-10)
+        assert_allclose(RT(0, 0, 0, pi/2, 0, 0) @ [0, 0, 1, 1], [0, -1, 0, 1], atol=1e-10)
 
-    def test_rotate_x_180(self):
-        assert_allclose(S(0, 0, 0, pi, 0, 0) @ [0, 0, 0, 1], [0, 0, 0, 1], atol=1e-10)
-        assert_allclose(S(0, 0, 0, pi, 0, 0) @ [1, 0, 0, 1], [1, 0, 0, 1], atol=1e-10)
-        assert_allclose(S(0, 0, 0, pi, 0, 0) @ [0, 1, 0, 1], [0, -1, 0, 1], atol=1e-10)
-        assert_allclose(S(0, 0, 0, pi, 0, 0) @ [0, 0, 1, 1], [0, 0, -1, 1], atol=1e-10)
+    def test_rotation_x_180(self):
+        assert_allclose(RT(0, 0, 0, pi, 0, 0) @ [0, 0, 0, 1], [0, 0, 0, 1], atol=1e-10)
+        assert_allclose(RT(0, 0, 0, pi, 0, 0) @ [1, 0, 0, 1], [1, 0, 0, 1], atol=1e-10)
+        assert_allclose(RT(0, 0, 0, pi, 0, 0) @ [0, 1, 0, 1], [0, -1, 0, 1], atol=1e-10)
+        assert_allclose(RT(0, 0, 0, pi, 0, 0) @ [0, 0, 1, 1], [0, 0, -1, 1], atol=1e-10)
 
-    def test_rotate_y_90(self):
-        assert_allclose(S(0, 0, 0, 0, pi/2, 0) @ [0, 0, 0, 1], [0, 0, 0, 1], atol=1e-10)
-        assert_allclose(S(0, 0, 0, 0, pi/2, 0) @ [1, 0, 0, 1], [0, 0, -1, 1], atol=1e-10)
-        assert_allclose(S(0, 0, 0, 0, pi/2, 0) @ [0, 1, 0, 1], [0, 1, 0, 1], atol=1e-10)
-        assert_allclose(S(0, 0, 0, 0, pi/2, 0) @ [0, 0, 1, 1], [1, 0, 0, 1], atol=1e-10)
+    def test_rotation_y_90(self):
+        assert_allclose(RT(0, 0, 0, 0, pi/2, 0) @ [0, 0, 0, 1], [0, 0, 0, 1], atol=1e-10)
+        assert_allclose(RT(0, 0, 0, 0, pi/2, 0) @ [1, 0, 0, 1], [0, 0, -1, 1], atol=1e-10)
+        assert_allclose(RT(0, 0, 0, 0, pi/2, 0) @ [0, 1, 0, 1], [0, 1, 0, 1], atol=1e-10)
+        assert_allclose(RT(0, 0, 0, 0, pi/2, 0) @ [0, 0, 1, 1], [1, 0, 0, 1], atol=1e-10)
 
-    def test_rotate_z_90(self):
-        assert_allclose(S(0, 0, 0, 0, 0, pi/2) @ [0, 0, 0, 1], [0, 0, 0, 1], atol=1e-10)
-        assert_allclose(S(0, 0, 0, 0, 0, pi/2) @ [1, 0, 0, 1], [0, 1, 0, 1], atol=1e-10)
-        assert_allclose(S(0, 0, 0, 0, 0, pi/2) @ [0, 1, 0, 1], [-1, 0, 0, 1], atol=1e-10)
-        assert_allclose(S(0, 0, 0, 0, 0, pi/2) @ [0, 0, 1, 1], [0, 0, 1, 1], atol=1e-10)
+    def test_rotation_z_90(self):
+        assert_allclose(RT(0, 0, 0, 0, 0, pi/2) @ [0, 0, 0, 1], [0, 0, 0, 1], atol=1e-10)
+        assert_allclose(RT(0, 0, 0, 0, 0, pi/2) @ [1, 0, 0, 1], [0, 1, 0, 1], atol=1e-10)
+        assert_allclose(RT(0, 0, 0, 0, 0, pi/2) @ [0, 1, 0, 1], [-1, 0, 0, 1], atol=1e-10)
+        assert_allclose(RT(0, 0, 0, 0, 0, pi/2) @ [0, 0, 1, 1], [0, 0, 1, 1], atol=1e-10)
 
 
 class TestApplyXYZTPX:
@@ -65,23 +64,5 @@ class TestPixelSpacing:
             [0, 0, dk, 0],
             [0, 0, 0, 1],
         ]).T
-        ijk_to_xyz = ijk_to_xyz @ S(23, 45, 566, 0, 0, 0)
+        ijk_to_xyz = ijk_to_xyz @ RT(23, 45, 566, 0, 0, 0)
         assert_allclose(voxel_spacing(ijk_to_xyz), np.array((di, dj, dk)))
-
-@pytest.mark.skip(reason="Work in progress")
-@pytest.mark.parametrize("seed", [1, 2, 3, 4, 5])
-def test_extract_xyztpx(seed):
-    np.random.seed(seed)
-    x, y, z = np.random.uniform(-10, 10, (3,))
-    #theta, phi, xi = np.random.uniform(-pi/2, pi/2, (3,))
-    theta, phi, xi = 0, 0, 0
-    affine_matrix = translation_rotation(x, y, z, theta, phi, xi)
-    print(x, y, z)
-    print(affine_matrix)
-    xp, yp, zp, thetap, phip, xip = xyztpx_from_rotation_translation(affine_matrix)
-    assert x == xp
-    assert y == yp
-    assert z == zp
-    assert theta == thetap
-    assert phi == phip
-    assert xi == xip

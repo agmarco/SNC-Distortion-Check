@@ -3,6 +3,7 @@ import zipfile
 import math
 from collections import OrderedDict
 from datetime import datetime
+import logging
 from textwrap import wrap
 from functools import partial
 
@@ -24,6 +25,10 @@ from process.affine import apply_affine, voxel_spacing
 from process.visualization import scatter3
 from process.utils import chunks
 from process import dicom_import
+
+
+logger = logging.getLogger(__name__)
+
 
 GRID_DENSITY_mm = 0.5
 SPHERE_STEP_mm = 1
@@ -119,6 +124,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
     Assumes that each column of TP_A_S is matched with the cooresponding column
     of TP_B.
     """
+    logger.info("begining report generation")
 
     assert TP_A_S.shape == TP_B.shape
 
@@ -546,6 +552,8 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         create_page_executive(draw_error_table)
         create_page_executive(draw_points)
 
+    logger.info("finished report generation")
+
 
 def page_generator():
     i = 1
@@ -571,7 +579,7 @@ def generate_cube(size, spacing=1, x0=0):
 if __name__ == '__main__':
     A = generate_cube(2, 4)
     B = generate_cube(2, 4)
-    affine_matrix = affine.translation_rotation(0, 0, 0, np.pi / 180 * 10, np.pi / 180 * 10, np.pi / 180 * 10)
+    affine_matrix = affine.rotation_translation(0, 0, 0, np.pi / 180 * 10, np.pi / 180 * 10, np.pi / 180 * 10)
 
     A = apply_affine(affine_matrix, A)
 

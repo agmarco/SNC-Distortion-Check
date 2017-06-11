@@ -382,6 +382,14 @@ VIEWS = (
         'validate_institution': True,
         'methods': {'GET': None, 'POST': None},
     }, {
+        'view': views.DicomOverlaySuccessView,
+        'data': dicom_overlay_data,
+        'url': lambda data: reverse('dicom_overlay_success', args=(data['scan'].pk,)),
+        'login_required': True,
+        'permissions': (),
+        'validate_institution': True,
+        'methods': {'GET': None},
+    }, {
         'view': api.ValidateSerialView,
         'data': lambda user: {'phantom': factories.PhantomFactory(serial_number='SN1')},
         'url': reverse('validate_serial'),

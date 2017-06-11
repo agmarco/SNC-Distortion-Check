@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 # physical size; this dict contains fudge factors that account for this
 # phenomena and allow the algorithm to adjust.
 modality_grid_radius_factors = {
-    'mri': 1.5,
-    'ct': 1.0,
+    'mri': 0.9,
+    'ct': 0.6,
 }
 
 
@@ -37,16 +37,12 @@ class FeatureDetector:
 
         self.grid_spacing = phantoms.paramaters[phantom_model]['grid_spacing']
 
-        logger.info('building kernel')
         self.kernel = self._build_kernel()
-
-        logger.info('preprocessing image')
         self.preprocessed_image = self._preprocess()
 
-        logger.info('convolving with feature kernel')
+        logger.info('convolving with gaussian kernel shape=%s, sigma=%.2f', self.kernel.shape, self.grid_spacing)
         self.feature_image = signal.fftconvolve(self.preprocessed_image, self.kernel, mode='same')
 
-        logger.info('detecting peaks')
         search_radius = self.grid_spacing/2.5
         self.points_ijk, self.label_image = peak_detection.detect_peaks(
             self.feature_image,
@@ -55,12 +51,14 @@ class FeatureDetector:
         )
 
         self.points_xyz = affine.apply_affine(self.ijk_to_xyz, self.points_ijk)
+        logger.info('finishing feature detection')
 
     def _build_kernel(self):
-        return kernels.gaussian(self.voxel_spacing, self.grid_radius*0.6)
+        return kernels.gaussian(self.voxel_spacing, self.grid_radius)
 
     def _preprocess(self):
         if self.modality == 'mri':
+            logger.info('inverting image, modality=%s', self.modality)
             return invert(self.image)
         else:
             return self.image

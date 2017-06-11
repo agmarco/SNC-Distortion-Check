@@ -10,7 +10,7 @@
 
 {% block content %}
   <h1>Delete Golden Fiducials</h1>
-  <form method="post">
+  <form method="post" class="cirs-form">
     {% csrf_token %}
     <p>Are you sure you want to delete the Gold Standard "{{ goldenfiducials.source_summary }}"?</p>
     <div class="form-links">

@@ -108,7 +108,7 @@ form {
         font-size: 0;  // hide the text (kept for accessibility)
         background: url(../images/logo-horizontal.svg) no-repeat;
         height: 31px;
-        width: (447px / 31px) * 31px;
+        width: (485px / 31px) * 31px;
       }
     }
   }
@@ -151,11 +151,11 @@ h6 {
       }
 
       &.empty {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
         text-align: center;
 
         td {
-          padding: 2 * $base-spacing;
+          padding: 1.5 * $base-spacing;
         }
       }
     }
@@ -280,6 +280,21 @@ h6 {
     &.success {
       background-color: lighten($success-color, 45%);
       border: 1px solid $success-color;
+    }
+
+    &.warning {
+      background-color: lighten($warning-color, 45%);
+      border: 1px solid $warning-color;
+    }
+
+    &.error {
+      background-color: lighten($error-color, 45%);
+      border: 1px solid $error-color;
+    }
+
+    &.info {
+      background-color: lighten($info-color, 45%);
+      border: 1px solid $info-color;
     }
   }
 }

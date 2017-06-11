@@ -171,3 +171,10 @@ def format_FLE_percentile(error_percentile):
     ep = error_percentile
     msg = "FLE_{} = {:06.4f}mm ({:06.4f}mm, {:06.4f}mm, {:06.4f}mm)"
     return msg.format(ep['p'], ep['r'], ep['x'], ep['y'], ep['z'])
+
+
+def format_point_metrics(TPF, FPF, FLE_percentiles):
+    return (
+        f"TPF={TPF}, FPF={FPF}, FLE_100={FLE_percentiles[100]['r']}, "
+        f"FLE_50={FLE_percentiles[50]['r']}"
+    )

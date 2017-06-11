@@ -11,7 +11,7 @@ from hdatt.suite import Suite
 from .visualization import scatter3
 from .phantoms import paramaters
 from . import affine
-from .utils import print_xyztpx
+from .utils import format_xyztpx
 from . import points_utils
 
 
@@ -182,7 +182,8 @@ class RegistrationSuite(Suite):
         metrics = OrderedDict()
         context = OrderedDict()
 
-        points_file = paramaters[case_input['phantom']]['points_file']
+        phantom_paramaters = paramaters[case_input['phantom']]
+        points_file = phantom_paramaters['points_file']
         A = file_io.load_points(points_file)['points']
 
         B, xyztpx_expected = self.generate_B(A, case_input)
@@ -194,13 +195,16 @@ class RegistrationSuite(Suite):
         context['isocenter_in_B'] = isocenter_in_B
 
         xyztpx, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
-                A, B, isocenter_in_B, skip_brute=True)
+                A, B, isocenter_in_B, phantom_paramaters['brute_search_slices'])
 
         context['xyztpx_actual'] = xyztpx
         x, y, z, theta, phi, xi = xyztpx
         metrics['x'] = x
         metrics['y'] = y
         metrics['z'] = z
+        metrics['theta_degrees'] = math.degrees(theta)
+        metrics['phi_degrees'] = math.degrees(phi)
+        metrics['xi_degrees'] = math.degrees(xi)
 
         metrics['registration_shift'] = np.sqrt(x*x + y*y + z*z)
 
@@ -223,27 +227,33 @@ class RegistrationSuite(Suite):
 
         return metrics, context
 
-    def verify(self, old_metrics, new_metrics):
-        tolerance = 0.1
-        if not math.isclose(old_metrics['x'], new_metrics['x'], abs_tol=tolerance):
-            return False, f"{new_metrics['x']} is not within {tolerance} of {old_metrics['x']}"
-        if not math.isclose(old_metrics['y'], new_metrics['y'], abs_tol=tolerance):
-            return False, f"{new_metrics['y']} is not within {tolerance} of {old_metrics['y']}"
-        if not math.isclose(old_metrics['z'], new_metrics['z'], abs_tol=tolerance):
-            return False, f"{new_metrics['z']} is not within {tolerance} of {old_metrics['z']}"
-        if new_metrics['FLE_100'] > old_metrics['FLE_100']:
-            return False, f"The FLE_100 value increased"
-        if new_metrics['FLE_50'] > old_metrics['FLE_50']:
-            return False, f"The FLE_50 value increased"
-        if new_metrics['FLE_50_near_isocenter'] > old_metrics['FLE_50_near_isocenter']:
-            return False, f"The FLE_50_near_isocenter value increased"
-        return True, 'New metrics are as good or better than old metrics'
+    def verify(self, old, new):
+        # TODO: split out these types of assertions into another library
 
-    def _print_xyztpx(self, x, y, z, theta, phi, xi):
-        msg = 'trans = ({:06.4f}mm, {:06.4f}mm, {:06.4f}mm)\n' + \
-              'rot = ({:06.4f}deg, {:06.4f}deg, {:06.4f}deg)'
-        theta, phi, xi = (math.degrees(r) for r in (theta, phi, xi))
-        print(msg.format(x, y, z, theta, phi, xi))
+        shift_tolerance = 0.1
+        if not math.isclose(old['x'], new['x'], abs_tol=shift_tolerance):
+            return False, f"{new['x']} is not within {shift_tolerance} of {old['x']}"
+        if not math.isclose(old['y'], new['y'], abs_tol=shift_tolerance):
+            return False, f"{new['y']} is not within {shift_tolerance} of {old['y']}"
+        if not math.isclose(old['z'], new['z'], abs_tol=shift_tolerance):
+            return False, f"{new['z']} is not within {shift_tolerance} of {old['z']}"
+
+        rotation_tolerance = 0.2
+        if not math.isclose(old['theta_degrees'], new['theta_degrees'], abs_tol=rotation_tolerance):
+            return False, f"{new['theta_degrees']} is not within {rotation_tolerance} of {old['theta_degrees']}"
+        if not math.isclose(old['phi_degrees'], new['phi_degrees'], abs_tol=rotation_tolerance):
+            return False, f"{new['phi_degrees']} is not within {rotation_tolerance} of {old['phi_degrees']}"
+        if not math.isclose(old['xi_degrees'], new['xi_degrees'], abs_tol=rotation_tolerance):
+            return False, f"{new['xi_degrees']} is not within {rotation_tolerance} of {old['xi_degrees']}"
+
+        if new['FLE_100'] > old['FLE_100']:
+            return False, f"The FLE_100 value increased"
+        if new['FLE_50'] > old['FLE_50']:
+            return False, f"The FLE_50 value increased"
+        if new['FLE_50_near_isocenter'] > old['FLE_50_near_isocenter']:
+            return False, f"The FLE_50_near_isocenter value increased"
+
+        return True, 'New metrics are as good or better than old metrics'
 
     def show(self, result):
         context = result['context']
@@ -256,11 +266,11 @@ class RegistrationSuite(Suite):
         isocenter_in_B = context['isocenter_in_B'].reshape(3, 1)
 
         print('actual:')
-        print_xyztpx(context['xyztpx_actual'])
+        print(format_xyztpx(context['xyztpx_actual']))
         print('expected:')
-        print_xyztpx(context['xyztpx_expected'])
+        print(format_xyztpx(context['xyztpx_expected']))
         print('diff')
-        print_xyztpx(context['xyztpx_actual'] - context['xyztpx_expected'])
+        print(format_xyztpx(context['xyztpx_actual'] - context['xyztpx_expected']))
         print('stats')
         print('TP = {}, FP = {}, FN = {}'.format(TP_B.shape[1], FP_B.shape[1], FN_A_S.shape[1]))
         print('FLE global')

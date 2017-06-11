@@ -39,25 +39,26 @@ def _methods(view, view_data=None):
         yield method, method_data
 
 
-def _get_view_names_from_urlpatterns(url_patterns):
-    view_names = []
+def _get_views_from_urlpatterns(url_patterns):
+    views = []
     for pattern in url_patterns:
         if isinstance(pattern, RegexURLPattern):
-            view_names.append(getattr(pattern.callback, 'view_class', pattern.callback))
+            views.append(getattr(pattern.callback, 'view_class', pattern.callback))
         elif isinstance(pattern, RegexURLResolver):
-            view_names.extend(_get_view_names_from_urlpatterns(pattern.url_patterns))
-    return view_names
+            views.extend(_get_views_from_urlpatterns(pattern.url_patterns))
+    return views
 
 
 def test_regression():
     """
     Test that each view used in the URLconf is tested.
     """
+    excluded_view_names = {'fake_server_error'}
 
-    view_names = set(_get_view_names_from_urlpatterns(urlpatterns))
-    tested_view_names = set(view['view'] for view in VIEWS)
-    untested_view_names = [view.__name__ for view in view_names - tested_view_names]
-    assert view_names == tested_view_names, f"The following views are not tested: {untested_view_names}"
+    should_be_tested_views = {v for v in _get_views_from_urlpatterns(urlpatterns) if v.__name__ not in excluded_view_names}
+    tested_views = set(view['view'] for view in VIEWS)
+    untested_view_names = [view.__name__ for view in should_be_tested_views - tested_views]
+    assert should_be_tested_views == tested_views, f"The following views are not tested: {untested_view_names}"
 
 
 @pytest.mark.parametrize('view', (view for view in VIEWS if not view['login_required']))

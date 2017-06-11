@@ -8,4 +8,5 @@ nbstripout --install --attributes .gitattributes
 npm install -g yarn
 yarn
 ./createdb
+make
 ./build
