@@ -19,11 +19,12 @@ export interface IMachineSequenceTableState {
     sequenceFilterValue: 'all' | number;
 }
 
-const acquisitionDateHelp = 'The acquisition date for the latest scan on this particular machine and scan sequence.';
-const latestScanFailHelp = 'The maximum distortion detected on this machine/sequence combination\'s most recent scan ' +
-    'was outside the allowed tolerance.';
-const latestScanPassHelp = 'The maximum distortion detected on this machine/sequence combination\'s most recent scan ' +
-   ' was within the allowed tolerance.';
+const acquisitionDateHelp = 'The acquisition date for the latest scan on this particular machine and ' +
+    'scan sequence, if present in the DICOM file, else the date when it was uploaded.';
+const latestScanFailHelp = 'The maximum distortion detected on this machine/sequence combination\'s ' +
+    'most recent scan was outside the allowed tolerance.';
+const latestScanPassHelp = 'The maximum distortion detected on this machine/sequence combination\'s ' +
+    'most recent scan was within the allowed tolerance.';
 const noScansAvailableHelp = 'No scans have been uploaded.';
 const noScansMatchHelp = 'No scans match your current filter settings.';
 

@@ -19,17 +19,17 @@ export interface IScanTableState {
 
 const refreshScanHelp = 'Re-run scan using the current tolerance threshold, phantom gold standard grid' +
     'intersection locations, and image processing algorithm.';
-
 const dicomOverlayHelp = 'Generate DICOM files to overlay the geometric distortion on another MRI.';
-
 const rawDataHelp = 'Download a zip archive containing the raw data produced by our algorithm, which ' +
     'may be useful for debugging or independent verification.';
-
 const executiveReportHelp = 'Download a PDF report presenting NEMA MS 12 compliant results of the ' +
     'geometric distortion analysis.';
-
 const fullReportHelp = 'Download a detailed PDF report presenting NEMA MS 12 compliant results of the ' +
     'geometric distortion analysis with additional charts.';
+const acquisitionDateHelp = 'Date when the scan was acquired if the AcquieistionDate DICOM attribute was present, ' +
+    'or the date when the file was uploaded if not.'
+const passedHelp = 'Was the maximum detected geometric distortion within the tolerance set at the time when ' +
+    'this scan was processed?  Note if you change the tolerance, you will need to re-run the scan.';
 
 export default class extends React.Component<IScanTableProps, IScanTableState> {
     refreshScanForm: HTMLFormElement;
@@ -139,8 +139,8 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
                 <table className="cirs-table results">
                     <thead>
                         <tr>
-                            <th>Passed</th>
-                            <th>Date Captured</th>
+                            <th label={passedHelp}>Passed</th>
+                            <th label={acquisitionDateHelp}>Date Captured</th>
                             <th>Phantom</th>
                             <th className="sep" />
                             <th colSpan={6}>Actions</th>
