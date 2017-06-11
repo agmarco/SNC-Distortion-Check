@@ -53,6 +53,13 @@ export interface IScanChartState {
     scrollX: number;
 }
 
+const chartHelp = 'This box-and-whiskers chart should let you, at a glance, determine ' +
+    'whether this machine-sequence combination\'s geometric distortion is within the ' +
+    'allowed tolerances.  The top whisker, top edge of the box, middle of the box, bottom edge ' +
+    'of the box, and bottom whisker correspond to the 100-, 75-, 50-, 25-, and 0-th percentiles ' +
+    'of the magnitude of the distortion found in the scan.  Red data points indicate that ' +
+    'the maximum distortion was above the tolerance set when the analysis was performed.';
+
 export default class extends React.Component<IScanChartProps, IScanChartState> {
     svg: SVGElement;
     settings: IScanChartSettings;
@@ -176,6 +183,7 @@ export default class extends React.Component<IScanChartProps, IScanChartState> {
                 width={clipWidth + margin.left + margin.right}
                 height={height + margin.top + margin.bottom}
                 className="scan-chart box"
+                title={chartHelp}
                 ref={svg => this.svg = svg}
             >
                 <defs>
