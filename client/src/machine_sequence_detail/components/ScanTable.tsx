@@ -154,7 +154,7 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
                     <tbody>
                         {filteredScans.map((scan, i) => (
                             <tr key={scan.pk}>
-                                <td title={pair.passed ? scanPassHelp : scanFailHelp}>
+                                <td title={scan.passed ? scanPassHelp : scanFailHelp}>
                                     {scan.passed !== null && <BoolIcon success={scan.passed} />}
                                 </td>
                                 <td label={acquisitionDateHelp}>{format(scan.acquisition_date, 'MMMM D, YYYY')}</td>
