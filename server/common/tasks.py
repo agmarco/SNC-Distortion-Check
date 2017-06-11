@@ -259,7 +259,7 @@ def dump_raw_data(scan):
 
 
 @shared_task
-def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, patient_id, user_email, domain, use_https):
+def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, patient_id, user_email, domain, site_name, use_https):
     try:
         with transaction.atomic():
             # TODO: Consolidate and split out these constants in the process module.
@@ -311,9 +311,10 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
             from_email = None
             to_email = user_email
             context = {
-                'zip': os.path.join(settings.MEDIA_URL, zip_filename),
+                'zip': default_storage.url(zip_filename),
                 'protocol': 'https' if use_https else 'http',
                 'domain': domain,
+                'site_name': site_name,
             }
             send_mail(subject_template_name, email_template_name, context, from_email, to_email, html_email_template_name)
     except Exception as e:

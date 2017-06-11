@@ -252,6 +252,7 @@ class DicomOverlayView(FormView):
             form.cleaned_data['patient_id'],
             self.request.user.email,
             current_site.domain,
+            current_site.name,
             self.request.is_secure(),
         )
         return super(DicomOverlayView, self).form_valid(form)
