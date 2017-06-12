@@ -3,6 +3,7 @@ from datetime import datetime
 import zipfile
 
 import numpy as np
+from django.contrib.auth.models import Group
 
 from django.core.files import File
 from django.db import models
@@ -61,6 +62,15 @@ class User(AbstractUser, CommonFieldsMixin):
     institution = models.ForeignKey(Institution, models.CASCADE, null=True, blank=True, help_text=institution_ht)
 
     objects = CommonFieldsUserManager()
+
+    def get_institution(self, request):
+        if self.institution:
+            return self.institution
+        elif self.is_superuser:
+            institution_pk = request.session.get('institution')
+            return institution_pk and Institution.objects.get(pk=institution_pk)
+        else:
+            return None
 
 
 class Fiducials(CommonFieldsMixin):

@@ -25,5 +25,5 @@ def validate_institution(model_class=None, pk_url_kwarg='pk'):
             if not hasattr(obj, 'institution'):
                 raise Exception(f"The property 'institution' was not found on the object {obj}.")
 
-            return request.user.institution == obj.institution
+            return request.user.get_institution(request) == obj.institution
     return ValidateInstitution

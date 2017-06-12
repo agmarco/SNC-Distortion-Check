@@ -41,7 +41,7 @@ class Command(BaseCommand):
             first_name="admin",
             last_name="cirs",
             is_staff=True,
-            is_superuser=True
+            is_superuser=True,
         )
 
         demo_institution = factories.InstitutionFactory.create(

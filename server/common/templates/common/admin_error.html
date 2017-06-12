@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block breadcrumbs %}
+  <li><a href="{% url 'landing' %}">Home</a></li>
+{% endblock %}
+
+{% block content %}
+  <h1>Error &mdash; No Institution Active</h1>
+  <p>You must select an institution to view this page. <a href="{% url 'admin:common_institution_changelist' %}">Click here</a> to set an institution to "active."</p>
+{% endblock %}

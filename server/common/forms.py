@@ -190,7 +190,7 @@ class CreateUserForm(BaseUserForm):
     MEDICAL_PHYSICIST = "Medical Physicist"
     THERAPIST = "Therapist"
     GROUP_CHOICES = (
-        (MANAGER, "Admin"),
+        (MANAGER, "Manager"),
         (MEDICAL_PHYSICIST, "Medical Physicist"),
         (THERAPIST, "Therapist"),
     )
@@ -204,7 +204,7 @@ class CreateUserForm(BaseUserForm):
 
     user_type_ht = """The user type determines what permissions the account will have. Therapist users can upload
                 new MR scans for analysis. Medical Physicist users can do everything therapists can do, and can also
-                add and configure phantoms, machines, and sequences. Admin users can do everything Medical Physicists
+                add and configure phantoms, machines, and sequences. Managers can do everything Medical Physicists
                 can do, and can also add and delete new users. Please note that once a user type is set, it cannot be
                 changed (except by CIRS support)."""
     user_type = forms.ChoiceField(choices=GROUP_CHOICES, widget=forms.RadioSelect, help_text=user_type_ht)

@@ -27,6 +27,8 @@ from ..models import Phantom, GoldenFiducials, Machine, Sequence, User
 #     return the GET or POST data.
 # 'patches': a list of strings representing objects to be patched by unittest.mock
 
+# TODO add institution_required config option
+
 
 class Crud:
     CREATE = 'CREATE'

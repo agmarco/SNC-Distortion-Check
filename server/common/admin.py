@@ -3,9 +3,17 @@ from django.contrib import admin
 from . import models
 
 
+def set_active(modeladmin, request, queryset):
+    if len(queryset) > 1:
+        raise ValueError("You may only set one institution to active.")
+    request.session['institution'] = queryset[0].pk
+set_active.short_description = "Set selected institution as active"
+
+
 @admin.register(models.Institution)
 class InstitutionAdmin(admin.ModelAdmin):
     list_display = ('name', 'number_of_licenses')
+    actions = [set_active]
 
 
 @admin.register(models.User)

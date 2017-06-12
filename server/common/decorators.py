@@ -2,8 +2,9 @@ import inspect
 from functools import wraps
 
 from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.models import Group
 from django.core.exceptions import PermissionDenied
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
 
 
@@ -32,7 +33,7 @@ def validate_institution(model_class=None, pk_url_kwarg='pk'):
                 if not hasattr(obj, 'institution'):
                     raise Exception(f"The property 'institution' was not found on the object {obj}.")
 
-                if obj.institution != request.user.institution:
+                if obj.institution != request.user.get_institution(request):
                     raise PermissionDenied
 
                 return old_dispatch(instance, request, *args, **kwargs)
@@ -49,7 +50,7 @@ def validate_institution(model_class=None, pk_url_kwarg='pk'):
                 if not hasattr(obj, 'institution'):
                     raise Exception(f"The property 'institution' was not found on the object {obj}.")
 
-                if obj.institution != request.user.institution:
+                if obj.institution != request.user.get_institution(request):
                     raise PermissionDenied
 
                 return view(request, *args, **kwargs)
@@ -66,3 +67,16 @@ def login_and_permission_required(permission, **kwargs):
         else:
             return login_required(permission_required(permission, raise_exception=True, **kwargs)(view))
     return decorator
+
+
+def institution_required(view):
+    """If the user is an admin, check that there is an active institution, and if not, prompt the admin to set one."""
+
+    @wraps(view)
+    def wrapper(request, *args, **kwargs):
+        if request.user.is_superuser and request.user.get_institution(request) is None:
+            return render(request, 'common/admin_error.html')
+        else:
+            return view(request, *args, **kwargs)
+
+    return wrapper
