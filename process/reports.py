@@ -538,7 +538,8 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
 
         sort_indices = np.argsort(error_mags)[::-1]
         rois = zip(TP_A_S.T[sort_indices], TP_B.T[sort_indices], error_vecs.T[sort_indices], error_mags[sort_indices])
-        for chunk in itertools(chunks(list(rois), 5), 20):
+        all_chunks = chunks(list(rois), 5)
+        for chunk in itertools.islice(all_chunks, 20):
             draw_chunk = partial(draw_fiducial_rois, chunk)
             create_page_full(draw_chunk)
 
