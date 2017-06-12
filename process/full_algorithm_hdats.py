@@ -40,6 +40,11 @@ class FullAlgorithmSuite(Suite):
                 'dicom': 'data/dicom/yyy_mri_603A_t1_vibe_tra_FS_ND.zip',
                 'modality': 'mri',
                 'phantom_model': '603A',
+            },
+            '604-1': {
+                'dicom': 'data/dicom/010_mri_604_LFV-Phantom_E2632-1.zip',
+                'modality': 'mri',
+                'phantom_model': '604',
             }
         }
 
