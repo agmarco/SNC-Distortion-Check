@@ -1,10 +1,13 @@
 import inspect
 from functools import wraps
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
+
+from server.common.models import Machine, Sequence
 
 
 def validate_institution(model_class=None, pk_url_kwarg='pk'):
@@ -77,5 +80,33 @@ def institution_required(view):
             return render(request, 'common/admin_error.html')
         else:
             return view(request, *args, **kwargs)
+
+    return wrapper
+
+
+def check_machine_sequence(view):
+    """If there are no machines or sequences, display a message alerting the user to add them."""
+
+    @wraps(view)
+    def wrapper(request, *args, **kwargs):
+        institution = request.user.get_institution(request)
+        machines = Machine.objects.filter(institution=institution).active()
+        sequences = Sequence.objects.filter(institution=institution).active()
+
+        if machines.count() == 0:
+            if request.user.has_perm('common.configuration'):
+                messages.error(request, "No machines have been configured yet. You must add a machine in order to "
+                                        "begin analyzing scans.")
+            else:
+                messages.error(request, "No machines have been configured yet. A manager must add a machine in order "
+                                        "to begin analyzing scans.")
+        if sequences.count() == 0:
+            if request.user.has_perm('common.configuration'):
+                messages.error(request, "No MRI sequences have been configured yet. You must add a sequence in order "
+                                        "to begin analyzing scans.")
+            else:
+                messages.error(request, "No MRI sequences have been configured yet. A manager must add a sequence in "
+                                        "order to begin analyzing scans.")
+        return view(request, *args, **kwargs)
 
     return wrapper
