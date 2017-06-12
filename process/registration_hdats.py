@@ -35,7 +35,7 @@ def supress_near_isocenter(distortion):
         dx, dy, dz = distortion(x, y, z)
 
         distances_to_isocenter = math.sqrt(x*x + y*y + z*z)
-        supression_factor = 1/(1 + math.exp(-(distances_to_isocenter - g_cutoff)))
+        supression_factor = distances_to_isocenter/(g_cutoff + distances_to_isocenter)
         return (dx*supression_factor, dy*supression_factor, dz*supression_factor)
 
     return supressed_distortion
@@ -52,7 +52,7 @@ def symmetric_x_distortion(x, y, z):
 
 @supress_near_isocenter
 def bad_distortion(x, y, z):
-    return (x/20, x/30, -y*x/450)
+    return (x/15, y/10, x/32 + y/10 + z/15)
 
 
 class RegistrationSuite(Suite):
@@ -124,7 +124,7 @@ class RegistrationSuite(Suite):
                 'rotations_in_degrees': (2, -2, 4),
                 'translation_magnitude_mm': 5,
                 'noise_sigma_mm': 0.3,
-                'false_positive_fraction': 1.0,
+                'false_positive_fraction': 0.5,
             },
         }
         return cases
