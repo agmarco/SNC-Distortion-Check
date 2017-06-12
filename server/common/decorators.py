@@ -8,6 +8,8 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
+from django.urls import reverse
+from django.utils.safestring import mark_safe
 
 from server.common.models import Machine, Sequence
 
@@ -95,7 +97,7 @@ def check_machine_sequence(view):
 
     @wraps(view)
     def wrapper(request, *args, **kwargs):
-        response =  view(request, *args, **kwargs)
+        response = view(request, *args, **kwargs)
 
         try:
             institution = request.user.get_institution(request)
@@ -106,20 +108,26 @@ def check_machine_sequence(view):
             no_sequences = sequences.count() == 0
 
             msg = None
+
             if request.user.has_perm('common.configuration'):
+                config_url = reverse('configuration')
+                configuration_link = f'<a href="{config_url}">{{}}</a>'
+
                 if no_machines and no_sequences:
-                    msg = "Welcome to CIRS's Distortion Check software.  Before you can begin uploading " + \
-                        "MRIs to analyze, please add one machine and one sequence."
+                    msg = f"Welcome to CIRS's Distortion Check software.  Before you can begin uploading " \
+                          f"MRIs to analyze, please {configuration_link.format('add one machine and one sequence')}."
                 elif no_machines:
-                    msg = "You must configure at least one machine before you can begin uploading MRIs to analyze."
+                    msg = f"You must {configuration_link.format('configure at least one machine')} " \
+                          f"before you can begin uploading MRIs to analyze."
                 elif no_sequences:
-                    msg = "You must configure at least one sequence before you can begin uploading MRIs to analyze."
+                    msg = f"You must {configuration_link.format('configure at least one sequence')} " \
+                          f"before you can begin uploading MRIs to analyze."
             else:
                 if no_machines or no_sequences:
                     msg = "A user with configuration privileges must setup at least one machine and one sequence " + \
                             "must be configured before you can begin uploading MRIs to analyze."
             if msg and msg not in [m.message for m in get_messages(request)]:
-                messages.info(request, msg)
+                messages.info(request, mark_safe(msg))
         except:
             logger.exception('Exception occured during check machine sequences decorator')
 
