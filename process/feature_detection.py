@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 # physical size; this dict contains fudge factors that account for this
 # phenomena and allow the algorithm to adjust.
 modality_grid_radius_factors = {
-    'mri': 0.9,
+    'mri': 1.1,
     'ct': 0.6,
 }
 
