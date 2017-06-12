@@ -1,22 +1,20 @@
 import os
 import uuid
-import zipfile
 from random import randint
 
 import numpy as np
 
 from django.conf import settings
 from django.contrib.auth.models import Permission
-from django.core.files import File
 from django.core.management.base import BaseCommand
 
 from server.common import factories
-from server.common.models import GoldenFiducials, Fiducials, create_scan
+from server.common.models import GoldenFiducials, create_scan
 from server.common.tasks import process_scan
 
-from process import affine, dicom_import
+from process import affine
 from process.affine import apply_affine
-from process.reports import generate_cube, generate_reports
+from process.reports import generate_cube
 from process.file_io import load_points
 
 
