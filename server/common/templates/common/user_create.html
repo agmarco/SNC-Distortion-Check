@@ -24,6 +24,10 @@
       {{ form.user_type.errors }}
       <p>{{ form.user_type.help_text|safe }}</p>
     </div>
+    <p>
+      Upon adding a user, a registration email will be sent to the provided email
+      address with further instructions.
+    </p>
     <div class="form-links">
       <a href="{% url 'configuration' %}" class="btn tertiary">Cancel</a>
       <input type="submit" value="Add User" class="btn secondary">
