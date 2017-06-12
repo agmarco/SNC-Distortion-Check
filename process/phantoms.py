@@ -28,7 +28,7 @@ paramaters = {
         'points_file': 'data/points/603A.mat',
         'grid_radius': 1.5,
         'grid_spacing': 15,
-        'keras_model': 'data/keras_models/model.h5',
+        'keras_model': 'data/keras_models/603/weights.h5',
         'brute_search_slices': [
             slice(-15, 15, 6j),
             slice(-15, 15, 6j),
