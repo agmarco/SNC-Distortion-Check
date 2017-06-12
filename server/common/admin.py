@@ -66,4 +66,4 @@ class GoldenFiducialsAdmin(admin.ModelAdmin):
 
 @admin.register(models.Scan)
 class ScanAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('processing', 'creator', 'created_on', 'tolerance', 'errors', 'notes')
