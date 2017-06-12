@@ -3,6 +3,7 @@ from functools import wraps
 import logging
 
 from django.contrib import messages
+from django.contrib.messages import get_messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, render
@@ -88,6 +89,7 @@ def institution_required(view):
     return wrapper
 
 
+
 def check_machine_sequence(view):
     """If there are no machines or sequences, display a message alerting the user to add them."""
 
@@ -116,7 +118,7 @@ def check_machine_sequence(view):
                 if no_machines or no_sequences:
                     msg = "A user with configuration privileges must setup at least one machine and one sequence " + \
                             "must be configured before you can begin uploading MRIs to analyze."
-            if msg:
+            if msg and msg not in [m.message for m in get_messages(request)]:
                 messages.info(request, msg)
         except:
             logger.exception('Exception occured during check machine sequences decorator')
