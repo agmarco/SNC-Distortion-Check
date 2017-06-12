@@ -140,7 +140,7 @@ def FLE_percentiles(TP_A, TP_B):
 
     if len(TP_B.T) == 0:
         error_percentiles = {
-            p: {'r': float('nan'), 'x': float('nan'), 'y': float('nan'), 'z': float('nan')}
+            p: {'p': p, 'r': float('nan'), 'x': float('nan'), 'y': float('nan'), 'z': float('nan')}
             for
             p
             in
