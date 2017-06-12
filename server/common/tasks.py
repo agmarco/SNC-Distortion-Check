@@ -352,7 +352,6 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
     :return:
     '''
 
-    import pydevd;pydevd.settrace('localhost', port=63421, stdoutToServer=True, stderrToServer=True)
     def _rescale_to_stored_values(pixel_array):
         '''
         Rescales the provided pixel array values from output units to storage units such that the dynamic range for 16 bit
