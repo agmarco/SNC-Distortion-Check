@@ -55,6 +55,7 @@ def remove_fps(points_ijk_unfiltered, voxels, voxel_spacing, phantom_model):
         if window is None:
             is_fp[i] = True
         else:
+            window = (window - window.mean())/(window.std()+0.00001)
             window = np.expand_dims(window, axis=3)
             windows.append(window)
     probablities = model.predict_proba(np.array(windows), verbose=0)
