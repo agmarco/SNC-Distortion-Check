@@ -69,10 +69,4 @@ paramaters = {
             apart to provide complete geometric data throughout the imaging volume.  The phantom is marked for ease of
             alignment to positioning lasers and is designed for use with both curved and flat gantry tables.""",
     },
-    '1540': {
-        'points_file': 'data/points/1540.mat',
-        'grid_radius': 1.5,
-        'grid_spacing': 15,
-        'description': "This phantom was specially constructed by CIRS to help validate the image processing algorithm.",
-    }
 }

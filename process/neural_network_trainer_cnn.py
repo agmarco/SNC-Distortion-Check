@@ -50,24 +50,6 @@ phantomName2Datasets = {
             'points': 'data/points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
         },
     },
-    '1540':{
-        '1540-075': {
-            'voxels': 'tmp/xxx_ct_1540_ST075-120kVp-100mA-voxels.mat',
-            'points': 'data/points/1540-gaussian.mat',
-        },
-        '1540-125': {
-            'voxels': 'tmp/xxx_ct_1540_ST125-120kVp-100mA-voxels.mat',
-            'points': 'data/points/1540-gaussian.mat',
-        },
-        # '1540-150': {
-        #     'voxels': 'tmp/xxx_ct_1540_ST150-120kVp-100mA-voxels.mat',
-        #     'points': 'data/points/1540-gaussian.mat',
-        # },
-        # '1540-250': {
-        #     'voxels': 'tmp/xxx_ct_1540_ST250-120kVp-100mA-voxels.mat',
-        #     'points': 'data/points/1540-gaussian.mat',
-        # },
-    }
 }
 phantomName2Datasets['604 and 603'] = {**phantomName2Datasets['604'], **phantomName2Datasets['603']}
 def intersection_generator(cases, train_or_validation, min_offset, offset_mag):

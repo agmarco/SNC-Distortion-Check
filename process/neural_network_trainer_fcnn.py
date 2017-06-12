@@ -59,10 +59,6 @@ cases = {
         'voxels': 'tmp/001_ct_603A_E3148_ST1.25-voxels.mat',
         'points': 'data/points/001_ct_603A_E3148_ST1.25-golden.mat',
     },
-    # '012': {
-    #     'voxels': 'tmp/xxx_ct_1540_ST075-120kVp-25mA-voxels.mat',
-    #     'points': 'data/points/012_ct_1540_ST075-120kVp-25mA-golden.mat',
-    # },
 }
 test_cases = {
     'tmp/yyy_mri_603A_t2_ci3d_tra_iso_0.8mm_ND-voxels.mat',

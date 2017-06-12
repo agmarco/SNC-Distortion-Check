@@ -38,11 +38,6 @@ class FeatureDetectionSuite(Suite):
                 # 'voxels': 'tmp/010_mri_604_LFV-Phantom_E2632-1-voxels.mat',
                 # 'points': 'data/points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
             # },
-            # TODO: determine if we care about this case
-            # '1540-075': {
-                # 'voxels': 'tmp/xxx_ct_1540_ST075-120kVp-100mA-voxels.mat',
-                # 'points': 'data/points/1540-gaussian.mat',
-            # },
         }
         return cases
 
