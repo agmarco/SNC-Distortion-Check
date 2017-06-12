@@ -178,6 +178,7 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
                         <a href={cancelUrl} className="btn tertiary">Cancel</a>
                         <input type="submit" value="Process Scan" className="btn secondary" />
                     </div>
+                    <br>
                     <p>
                         <strong>PLEASE NOTE:</strong> Due to a known error in our data upload
                         process, uploads, especially on slow connections, can
