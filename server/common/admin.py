@@ -19,6 +19,11 @@ class PhantomAdmin(admin.ModelAdmin):
     list_display = ('name', 'institution', 'model', 'serial_number')
 
 
+@admin.register(models.PhantomModel)
+class PhantomModelAdmin(admin.ModelAdmin):
+    list_display = ('name', 'model_number')
+
+
 @admin.register(models.Machine)
 class MachineAdmin(admin.ModelAdmin):
     list_display = ('name', 'institution', 'model', 'manufacturer')
