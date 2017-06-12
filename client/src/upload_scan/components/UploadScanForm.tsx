@@ -177,21 +177,22 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
                     <div className="form-links">
                         <a href={cancelUrl} className="btn tertiary">Cancel</a>
                         <input type="submit" value="Process Scan" className="btn secondary" />
-                        <p>
-                            <strong>PLEASE NOTE:</strong> Due to a known error in our data upload
-                            process, uploads, especially on slow connections, can
-                            cause an application error.  We apologize in advance if your
-                            upload fails halfway through.  We are aware of the issue and
-                            are working on a fix.
-                        </p>
-                        // TODO: fix upload issue and remove the warning
-                        // message; also remove the same message from the
-                        // static Heroku error page in S3.
                     </div>
+                    <p>
+                        <strong>PLEASE NOTE:</strong> Due to a known error in our data upload
+                        process, uploads, especially on slow connections, can
+                        cause an application error.  We apologize in advance if your
+                        upload fails halfway through.  We are aware of the issue and
+                        are working on a fix.
+                    </p>
                 </CirsForm>
             </div>
         );
     }
 }
+
+// TODO: fix upload issue and remove the warning
+// message; also remove the same message from the
+// static Heroku error page in S3.
 
 export default connect<any, any, any>((state: any) => ({form: state.uploadScan}))(UploadScanForm as any);

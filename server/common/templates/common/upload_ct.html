@@ -18,5 +18,14 @@
       <a href="{% url 'update_phantom' phantom.pk %}" class="btn tertiary">Cancel</a>
       <input type="submit" value="Upload CT" class="btn secondary">
     </div>
+
+    <!-- TODO: fix uploads and remove this -->
+    <p>
+        <strong>PLEASE NOTE:</strong> Due to a known error in our data upload
+        process, uploads, especially on slow connections, can
+        cause an application error.  We apologize in advance if your
+        upload fails halfway through.  We are aware of the issue and
+        are working on a fix.
+    </p>
   </form>
 {% endblock %}
