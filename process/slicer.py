@@ -32,7 +32,8 @@ def show_slices(voxels, overlaid_voxels=None):
     """
     Shows voxels and translucent overlay as overlaid_voxels
     :param voxels:
-    :param overlaid_voxels: binary voxels mask same shape as voxels. Will be labelled and can be iterated using n/N keys.
+    :param overlaid_voxels: binary voxels mask same shape as voxels. Will be
+    labelled and can be iterated using n/N keys.
     :return:
     """
     slicer = Slicer(voxels)
@@ -69,7 +70,8 @@ def show_slices(voxels, overlaid_voxels=None):
                 slicer.draw()
 
         slicer.on_key_press = on_key_press
-        slicer.add_renderer(render_overlay(overlaid_voxels, alpha=0.5, norm=NoNorm(), cmap=matplotlib.colors.ListedColormap([(0,0,0,0), (0,1,0,1), (1,1,0,1), (1,0,0,1)])))
+        cmap = matplotlib.colors.ListedColormap([(0,0,0,0), (0,1,0,1), (1,1,0,1), (1,0,0,1)])
+        slicer.add_renderer(render_overlay(overlaid_voxels, alpha=0.5, norm=NoNorm(), cmap=cmap))
 
     slicer.draw()
     plt.show()
@@ -116,11 +118,11 @@ class Slicer:
 
     def axes_dimensions(self, axes):
         if axes == self.i_ax:
-            return 2, 1, 0
+            return 0, 1, 2
         elif axes == self.j_ax:
-            return 2, 0, 1
+            return 0, 2, 1
         elif axes == self.k_ax:
-            return 1, 0, 2
+            return 1, 2, 0
         else:
             raise ValueError()
 
@@ -143,8 +145,8 @@ class Slicer:
         except ValueError:
             return  # scroll occured off-axis
 
-        self.cursor[x_dimension] = int(event.xdata)
-        self.cursor[y_dimension] = int(event.ydata)
+        self.cursor[x_dimension] = round(event.xdata)
+        self.cursor[y_dimension] = round(event.ydata)
         self.ensure_cursor_in_bounds()
         self.draw()
 
@@ -187,7 +189,7 @@ def render_overlay(overlay, **additional_imshow_kwargs):
     base_kwargs = {
         'vmin': vmin,
         'vmax': vmax,
-        'origin': 'upper',
+        'origin': 'lower',
         'interpolation': 'nearest',
         'cmap': 'Greys_r',
     }
@@ -215,11 +217,16 @@ def render_translucent_overlay(overlay, color, **additional_imshow_kwargs):
     return render_overlay(overlay, **imshow_kwargs)
 
 
+def format_point(point):
+    x, y, z = point
+    return f'({x:.2f},{y:.2f},{z:.2f})'
+
+
 def _imshow(slicer, voxels, imshow_kwargs):
     i, j, k = slicer.cursor
-    slicer.i_ax.imshow(voxels[i, :, :], **imshow_kwargs)
-    slicer.j_ax.imshow(voxels[:, j, :], **imshow_kwargs)
-    slicer.k_ax.imshow(voxels[:, :, k], **imshow_kwargs)
+    slicer.i_ax.imshow(voxels[:, :, k].T, **imshow_kwargs)
+    slicer.j_ax.imshow(voxels[:, j, :].T, **imshow_kwargs)
+    slicer.k_ax.imshow(voxels[i, :, :].T, **imshow_kwargs)
 
 
 class PointsSlicer(Slicer):
@@ -275,6 +282,9 @@ def render_cursor(slicer):
     _render_cursor_location(slicer, slicer.i_ax)
     _render_cursor_location(slicer, slicer.j_ax)
     _render_cursor_location(slicer, slicer.k_ax)
+
+    cursor_xyz = affine.apply_affine(slicer.ijk_to_xyz, slicer.cursor.astype(float).reshape(3,1)).squeeze()
+    slicer.f.suptitle('cursor: ' + format_point(cursor_xyz))
 
 
 def _render_cursor_location(slicer, ax):
