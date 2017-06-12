@@ -1,0 +1,15 @@
+{
+    "case_id": "603A-3",
+    "commit": "b41e3f169184b39dc57d3cf0e8d253585111ed95",
+    "metrics": {
+        "FLE_100": 1.3345414841155994,
+        "FLE_50": 0.4865103032684006,
+        "FPF": 0.13142857142857142,
+        "TPF": 0.9620253164556962
+    },
+    "ran_on": 1497262571.784498,
+    "repo_dirty": true,
+    "result_id": "1497262571.784498_b41e3f169184b39dc57d3cf0e8d253585111ed95",
+    "status": "unknown",
+    "suite_id": "feature-detection"
+}

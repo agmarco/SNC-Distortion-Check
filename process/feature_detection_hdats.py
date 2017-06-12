@@ -29,11 +29,10 @@ class FeatureDetectionSuite(Suite):
                 'voxels': 'tmp/006_mri_603A_UVA_Axial_2ME2SRS5-voxels.mat',
                 'points': 'data/points/006_mri_603A_UVA_Axial_2ME2SRS5-golden.mat',
             },
-            # TODO: get the algorithm working with 603A-3 and add a golden JSON file
-            # '603A-3': {
-                # 'voxels': 'tmp/011_mri_603A_arterial_TOF_3d_motsa_ND-voxels.mat',
-                # 'points': 'data/points/011_mri_630A_arterial_TOF_3d_motsa_ND-golden.mat',
-            # },
+            '603A-3': {
+                'voxels': 'tmp/011_mri_603A_arterial_TOF_3d_motsa_ND-voxels.mat',
+                'points': 'data/points/011_mri_630A_arterial_TOF_3d_motsa_ND-golden.mat',
+            },
             # TODO: enable this case once we have a working 604 keras model
             # '604-1': {
                 # 'voxels': 'tmp/010_mri_604_LFV-Phantom_E2632-1-voxels.mat',
