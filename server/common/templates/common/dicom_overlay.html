@@ -16,6 +16,17 @@
 
 {% block content %}
   <h1>DICOM Overlay</h1>
+  <p>
+    Generate DICOM overlays that display the geometric distortion magnitude in
+    mm.  Many DICOM viewers can overlay these images on top of an MRI, allowing
+    you to visualize the amount of geometric distortion present in an image.
+  </p>
+  <p>
+    In order to generate the overlays for a DICOM MRI, you will need to provide
+    several pieces of information from the DICOM metadata.  If you leave the
+    fields blank, they will default to the tags present in the phantom DICOM MRI
+    which was analyzed to calculate the distortion.
+  </p>
   <form method="post" class="cirs-form">
     {% csrf_token %}
     {{ form.non_field_errors }}
