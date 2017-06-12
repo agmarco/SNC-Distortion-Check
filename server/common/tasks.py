@@ -389,8 +389,8 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
 
     if len(voxel_array.shape) != 3:
         raise Exception('Only 3d arrays are supported for dicom export, got shape {}'.format(voxel_array.shape))
-
-    slices_array = _unstack(voxel_array)
+    rescaleSlope, rescaleIntercept, rescaled_voxel_array = _rescale_to_stored_values(voxel_array)
+    slices_array = _unstack(rescaled_voxel_array)
     for slice_num, slice_arr in enumerate(slices_array):
         sliceVoxelPosition = (voxelPosition_tup[0],
                               voxelPosition_tup[1],
@@ -432,9 +432,8 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
         ds.Columns = columns
         ds.Rows = rows
         ds.NumberOfFrames = 1
-        rescaleSlope, rescaleIntercept, stored_value_array = _rescale_to_stored_values(slice_arr)
-        ds.RescaleIntercept = rescaleSlope
-        ds.RescaleSlope = rescaleIntercept
-        ds.PixelData = stored_value_array.astype(np.uint16).tobytes()
+        ds.RescaleIntercept = rescaleIntercept
+        ds.RescaleSlope = rescaleSlope
+        ds.PixelData = slice_arr.astype(np.uint16).tobytes()
         ds.Units = 'mm'
         dicom.write_file(os.path.join(output_directory, '{}.dcm'.format(ds.SOPInstanceUID)), ds)
