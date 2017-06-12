@@ -31,10 +31,11 @@ const executiveReportHelp = 'Download a PDF report presenting NEMA MS 12 complia
     'geometric distortion analysis.';
 const fullReportHelp = 'Download a detailed PDF report presenting NEMA MS 12 compliant results of the ' +
     'geometric distortion analysis with additional charts.';
-const acquisitionDateHelp = 'Date when the scan was acquired if the AcquieistionDate DICOM attribute was present, ' +
+const acquisitionDateHelp = 'Date when the scan was acquired if the AcquisitionDate DICOM attribute was present, ' +
     'or the date when the file was uploaded if not.';
 const passedHelp = 'Was the maximum detected geometric distortion within the tolerance set at the time when ' +
     'this scan was processed?  Note if you change the tolerance, you will need to re-run the scan.';
+const processingHelp = 'Processing may take several minutes. You will need to refresh the page to see updates.';
 
 export default class extends React.Component<IScanTableProps, IScanTableState> {
     refreshScanForm: HTMLFormElement;
@@ -69,7 +70,7 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
 
         if (scan.processing) {
             return [
-                <td key={0} colSpan={5}>
+                <td key={0} colSpan={5} title={processingHelp}>
                     The data is still being processed...
                 </td>,
                 <td key={1} className="action delete">
