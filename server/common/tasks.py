@@ -107,14 +107,15 @@ def process_scan(scan_pk):
 
             if TPF < TPF_minimum:
                 raise AlgorithmException(
-                    f"Although we were able to register the {num_fiducials} detected grid intersections "
-                    f"to the {num_golden_fiducials} golden standard grid locations, only {TPF*100:.1f}% of "
-                    f"the registered gold standard points could be matched to a detected grid intersection "
-                    f"location. This is less than our minimum allowable {TPF_minimum*100:.1f}%. Processing "
-                    f"aborted. Please be sure to (1) orient the phantom correctly with 4° along each axis, "
+                    f"Only {TPF*100:.1f}% of the {num_golden_fiducials} gold standard points could "
+                    f"be matched to one of the {num_fiducials} detected grid intersection locations.  This "
+                    f"is less than our minimum allowable {TPF_minimum*100:.1f}%, thus we aborted processing "
+                    f"the scan.  Please be sure to (1) orient the phantom correctly with 4° along each axis, "
                     f"(2) position the phantom's center within 5mm of the isocenter, (3) position the "
                     f"scanner's isocenter in the exact center of the field of view, (4) ensure the pixel "
-                    f"size and slice spacing is sufficient to resolve the grid intersections."
+                    f"size and slice spacing is sufficient to resolve the grid intersections.  If you believe"
+                    f"none of these scenarios can explain the failure, please let CIRS support know about "
+                    f"the issue."
                 )
 
             scan.TP_A_S = Fiducials.objects.create(fiducials=TP_A_S)
