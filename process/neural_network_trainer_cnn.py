@@ -62,7 +62,7 @@ def intersection_generator(cases, train_or_validation, min_offset, offset_mag):
         xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
         voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
         # introduces slight scale invariance
-        random_voxel_spacing_augmentation = (np.random.sample(3) * 0.5 - 0.25) + 1
+        random_voxel_spacing_augmentation = (np.random.sample(3) * 0.2 - 0.1) + 1
         voxel_spacing *= random_voxel_spacing_augmentation
         golden_points = file_io.load_points(case['points'])['points']
         point_ijk = apply_affine(xyz_to_ijk, golden_points)
@@ -86,7 +86,7 @@ def non_intersection_generator(cases, min_dist_from_annotated=5, num_samples=100
         ijk_to_xyz = voxel_data['ijk_to_xyz']
         voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
         # introduces slight scale invariance
-        random_voxel_spacing_augmentation = (np.random.sample(3) * 0.5 - 0.25) + 1
+        random_voxel_spacing_augmentation = (np.random.sample(3) * 0.2 - 0.1) + 1
         voxel_spacing *= random_voxel_spacing_augmentation
         xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
         golden_points = file_io.load_points(case['points'])['points']
