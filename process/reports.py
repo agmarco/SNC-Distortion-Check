@@ -69,11 +69,11 @@ def roi_bounds(B, shape):
     ) for a, b in zip(B, shape))
 
 
-def fill_image(image, voxels, bounds_list, vmax):
+def fill_image(image, voxels_shape, bounds_list, vmax):
     """Fill the image with black borders if necessary."""
 
     bounds_a, bounds_b = [bounds for bounds in bounds_list if type(bounds) != int]
-    max_a, max_b = tuple(n for i, n in enumerate(voxels.shape) if type(bounds_list[i]) != int)
+    max_a, max_b = tuple(n for i, n in enumerate(voxels_shape) if type(bounds_list[i]) != int)
 
     if bounds_a[0] < 0:
         border = np.full((0 - bounds_a[0], image.shape[1]), vmax, dtype=float)
@@ -105,14 +105,14 @@ def roi_image(voxels, bounds_list, vmax):
 
     slices = tuple(bounds if type(bounds) == int else slice(*bounds) for bounds in adjusted_bounds_list)
     image = voxels[slices]
-    return fill_image(image, voxels, bounds_list, vmax)
+    return fill_image(image, voxels.shape, bounds_list, vmax)
 
 
-def roi_images(B, voxels, bounds_list, vmax):
+def roi_images(b, voxels, bounds_list, vmax):
     return (
-        roi_image(voxels, (bounds_list[0], bounds_list[1], int(round(B[2]))), vmax),
-        roi_image(voxels, (bounds_list[0], int(round(B[1])), bounds_list[2]), vmax),
-        roi_image(voxels, (int(round(B[0])), bounds_list[1], bounds_list[2]), vmax),
+        roi_image(voxels, (bounds_list[0], bounds_list[1], int(round(b[2]))), vmax),
+        roi_image(voxels, (bounds_list[0], int(round(b[1])), bounds_list[2]), vmax),
+        roi_image(voxels, (int(round(b[0])), bounds_list[1], bounds_list[2]), vmax),
     )
 
 
@@ -420,12 +420,12 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         ax.axis('off')
         ax.set_title('Error Table')
 
-    def generate_roi_view(ax, im, x_bounds, y_bounds, A_S_2D, B_2D, vmin, vmax):
+    def generate_roi_view(ax, im, x_bounds, y_bounds, a_S_2D, b_2D, vmin, vmax):
         x_bounds = tuple(b - 0.5 for b in x_bounds)
         y_bounds = tuple(b - 0.5 for b in y_bounds)
         ax.imshow(im.T, cmap='Greys', extent=[*x_bounds, *y_bounds], aspect='auto', origin='lower', vmin=vmin, vmax=vmax)
-        ax.scatter([A_S_2D[0]], [A_S_2D[1]], c='coral')
-        ax.scatter([B_2D[0]], [B_2D[1]], c='skyblue')
+        ax.scatter([a_S_2D[0]], [a_S_2D[1]], c='coral')
+        ax.scatter([b_2D[0]], [b_2D[1]], c='skyblue')
         ax.set_xticks([])
         ax.set_yticks([])
         ax.set_xlim(x_bounds)
@@ -460,24 +460,24 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
 
         gs = gridspec.GridSpecFromSubplotSpec(5, 4, width_ratios=[1, 1, 1, 2], subplot_spec=cell)
 
-        for i, (A_S, B, error_vec, error_mag) in enumerate(chunk):
-            B_ijk = apply_affine(xyz_to_ijk, np.array([B]).T).T.squeeze()
+        for i, (a_S, b, error_vec, error_mag) in enumerate(chunk):
+            b_ijk = apply_affine(xyz_to_ijk, np.array([b]).T).T.squeeze()
             shape = roi_shape(grid_radius, voxel_spacing(ijk_to_xyz))
-            bounds_xyz = roi_bounds(B, shape)
-            bounds_ijk = roi_bounds(B_ijk, shape)
-            axial, sagittal, coronal = roi_images(B_ijk, voxels, bounds_ijk, vmax)
+            bounds_xyz = roi_bounds(b, shape)
+            bounds_ijk = roi_bounds(b_ijk, shape)
+            axial, sagittal, coronal = roi_images(b_ijk, voxels, bounds_ijk, vmax)
 
             ax0 = plt.subplot(gs[i, 0])
-            generate_roi_view(ax0, axial, bounds_xyz[0], bounds_xyz[1], (A_S[0], A_S[1]), (B[0], B[1]), vmin, vmax)
+            generate_roi_view(ax0, axial, bounds_xyz[0], bounds_xyz[1], (a_S[0], a_S[1]), (b[0], b[1]), vmin, vmax)
 
             ax1 = plt.subplot(gs[i, 1])
-            generate_roi_view(ax1, sagittal, bounds_xyz[0], bounds_xyz[2], (A_S[0], A_S[2]), (B[0], B[2]), vmin, vmax)
+            generate_roi_view(ax1, sagittal, bounds_xyz[0], bounds_xyz[2], (a_S[0], a_S[2]), (b[0], b[2]), vmin, vmax)
 
             ax2 = plt.subplot(gs[i, 2])
-            generate_roi_view(ax2, coronal, bounds_xyz[1], bounds_xyz[2], (A_S[1], A_S[2]), (B[1], B[2]), vmin, vmax)
+            generate_roi_view(ax2, coronal, bounds_xyz[1], bounds_xyz[2], (a_S[1], a_S[2]), (b[1], b[2]), vmin, vmax)
 
             ax3 = plt.subplot(gs[i, 3])
-            generate_roi_table(ax3, A_S, B, error_vec, error_mag)
+            generate_roi_table(ax3, a_S, b, error_vec, error_mag)
 
     def draw_points(ax, cell):
         gs = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=cell)
