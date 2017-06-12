@@ -479,11 +479,23 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
             ax3 = plt.subplot(gs[i, 3])
             generate_roi_table(ax3, a_S, b, error_vec, error_mag)
 
-    def draw_points(ax, cell):
+    def draw_points(ax, cell, looking_down_axis=None):
         gs = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=cell)
         ax_inner = plt.subplot(gs[0], projection='3d')
         points_fig = scatter3({'Actual': TP_A_S, 'Detected': TP_B}, ax_inner)
+
+        axis2angles = {
+            'x': (20, -5),
+            'y': (20, 85),
+            'z': (70, 5),
+        }
+        if looking_down_axis:
+            ax_inner.view_init(*axis2angles[looking_down_axis])
         return points_fig
+
+    draw_points_x_perspective = partial(draw_points, looking_down_axis='x')
+    draw_points_y_perspective = partial(draw_points, looking_down_axis='y')
+    draw_points_z_perspective = partial(draw_points, looking_down_axis='z')
 
     def generate_quiver():
         quiver_fig = plt.figure()
@@ -535,7 +547,9 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
             draw_chunk = partial(draw_fiducial_rois, chunk)
             create_page_full(draw_chunk)
 
-        create_page_full(draw_points)
+        create_page_full(draw_points_x_perspective)
+        create_page_full(draw_points_y_perspective)
+        create_page_full(draw_points_z_perspective)
 
     with PdfPages(executive_report_path) as pdf:
         report_title = "Executive Report"
@@ -552,7 +566,10 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         create_page_executive(draw_sagittal_spatial_mapping)
         create_page_executive(draw_coronal_spatial_mapping)
         create_page_executive(draw_error_table)
-        create_page_executive(draw_points)
+        create_page_executive(draw_points_x_perspective)
+        create_page_executive(draw_points_y_perspective)
+        create_page_executive(draw_points_z_perspective)
+
 
     logger.info("finished report generation")
 
