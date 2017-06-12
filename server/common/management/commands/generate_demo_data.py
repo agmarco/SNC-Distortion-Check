@@ -95,10 +95,11 @@ class Command(BaseCommand):
             cad_fiducials__fiducials=cad_fiducials_603A,
         )
 
-        # TODO: use real 604 cad fiducials
+        cad_fiducials_604 = load_points('data/points/604.mat')['points']
         phantom_model_604 = factories.PhantomModelFactory(
             name='CIRS 604',
             model_number='604',
+            cad_fiducials__fiducials=cad_fiducials_604,
         )
 
         phantom_a = factories.PhantomFactory(
@@ -150,7 +151,7 @@ class Command(BaseCommand):
     def generate_gold_standard_points_demo(self, phantom):
         '''
         Attach several types of gold standard points to a particular phantom to
-        demonstate the various types of uploads we have available.
+        demonstrate the various types of uploads we have available.
         '''
         ct_dicom_files = os.path.join(settings.BASE_DIR, 'data/dicom/001_ct_603A_E3148_ST1.25.zip')
         dicom_series_ct = factories.DicomSeriesFactory()
