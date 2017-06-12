@@ -13,12 +13,11 @@
   <p>{{ scan.errors }}</p>
   <p>
     Details about the failure were logged, and our engineers were notified.  They
-    will investigate the failure and will be in contact you at your email
-    address:
+    will investigate the failure and will be in contact with you at your account email
+    address, {{ request.user.email }}.
   </p>
-  <p>{{ request.user.email }}</p>
   <p>
-    Thank you for your patience with us while the Distortion Check software is in
+    Thank you for your patience while the Distortion Check software is in
     Beta.
   </p>
 {% endblock %}
