@@ -264,7 +264,6 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
         with transaction.atomic():
             # TODO: Consolidate and split out these constants in the process module.
             GRID_DENSITY_mm = 1
-            DISTORTION_SCALE = 1000
             BLUR_SIGMA = 2
 
             scan = Scan.objects.get(pk=scan_pk)
@@ -278,7 +277,6 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
                                                  np.arange(coord_min_xyz[2], coord_max_xyz[2], GRID_DENSITY_mm))
             logger.info("Gridding data for overlay generation.")
             gridded = griddata(TP_A.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
-            gridded *= DISTORTION_SCALE  # rescale so it looks a bit better
             gridded = scipy.ndimage.filters.gaussian_filter(gridded, BLUR_SIGMA,
                                                             truncate=2)  # TODO: remove this once we fix interpolation
             gridded[np.isnan(gridded)] = 0
@@ -354,6 +352,7 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
     :return:
     '''
 
+    import pydevd;pydevd.settrace('localhost', port=63421, stdoutToServer=True, stderrToServer=True)
     def _rescale_to_stored_values(pixel_array):
         '''
         Rescales the provided pixel array values from output units to storage units such that the dynamic range for 16 bit
