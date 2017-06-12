@@ -343,7 +343,7 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
     '''
     Exports a voxel array to a series of dicom files.
 
-    :param voxel_array: voxels array in x,y,z axis order.
+    :param voxel_array: voxels array in x,y,z axis order. Units should be in mm.
     :param voxelSpacing_tup: spacing in mm
     :param voxelPosition_tup: position of first voxel in mm in patient coordinate system
     :param studyInstanceUID:
@@ -353,6 +353,18 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
     :param output_directory: directory to dump the dicoms in
     :return:
     '''
+
+    def _rescale_to_stored_values(pixel_array):
+        '''
+        Rescales the provided pixel array values from output units to storage units such that the dynamic range for 16 bit
+        image is maximized.
+        '''
+        rescaleIntercept, max_val = np.min(pixel_array), np.max(pixel_array)
+        rescaleSlope = (max_val - rescaleIntercept) / np.iinfo(np.uint16).max
+        scaled_pixel_array = (pixel_array - rescaleIntercept) / (rescaleSlope or 1)
+        stored_value_array = scaled_pixel_array.astype(np.uint16)
+        return rescaleSlope, rescaleIntercept, stored_value_array
+
     def _encode_multival(values):
         '''
         Encodes a collection of multivalued elements in backslash separated syntax known by dicom spec.
@@ -420,7 +432,9 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
         ds.Columns = columns
         ds.Rows = rows
         ds.NumberOfFrames = 1
-        ds.RescaleIntercept = 0
-        ds.RescaleSlope = 0.01
-        ds.PixelData = slice_arr.astype(np.uint16).tobytes()
+        rescaleSlope, rescaleIntercept, stored_value_array = _rescale_to_stored_values(slice_arr)
+        ds.RescaleIntercept = rescaleSlope
+        ds.RescaleSlope = rescaleIntercept
+        ds.PixelData = stored_value_array.astype(np.uint16).tobytes()
+        ds.Units = 'mm'
         dicom.write_file(os.path.join(output_directory, '{}.dcm'.format(ds.SOPInstanceUID)), ds)
