@@ -103,7 +103,7 @@ def check_machine_sequence(view):
                     "MRIs to analyze, please add one machine and one sequence."
             elif no_machines:
                 msg = "You must configure at least one machine before you can begin uploading MRIs to analyze."
-            elif no_sequences
+            elif no_sequences:
                 msg = "You must configure at least one sequence before you can begin uploading MRIs to analyze."
         else:
             if no_machines or no_sequences:
