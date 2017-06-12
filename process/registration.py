@@ -100,7 +100,7 @@ def rigidly_register(A, B, g, rho, xtol=1e-4, brute_search_slices=None):
         logger.info('finishing brute force search, found %s', format_xyztpx(xyztpx_0))
 
     max_iterations = 4000
-    ftol = 1e-20
+    ftol = 1e-10
     options = {
         'xtol': xtol,
         'ftol': ftol,
@@ -123,7 +123,7 @@ def rigidly_register(A, B, g, rho, xtol=1e-4, brute_search_slices=None):
 
 # points further than `g_cutoff` are not considered during registration
 g_cutoff = 50
-registeration_tolerance = 1e-6
+registeration_tolerance = 1e-4
 
 
 def g(bmag):

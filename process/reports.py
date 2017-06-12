@@ -6,6 +6,7 @@ from datetime import datetime
 import logging
 from textwrap import wrap
 from functools import partial
+import itertools
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -497,12 +498,6 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
     draw_points_y_perspective = partial(draw_points, looking_down_axis='y')
     draw_points_z_perspective = partial(draw_points, looking_down_axis='z')
 
-    def generate_quiver():
-        quiver_fig = plt.figure()
-        ax = quiver_fig.add_subplot(111, projection='3d')
-        ax.quiver(*TP_A_S, *error_vecs)
-        return quiver_fig
-
     grid_a, grid_b, gridded = axial_spatial_mapping_data()
     draw_axial_spatial_mapping = partial(draw_axial_spatial_mapping, grid_a, grid_b, gridded)
 
@@ -531,25 +526,25 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         create_page_full(draw_sagittal_spatial_mapping)
         create_page_full(draw_coronal_spatial_mapping)
 
-        for z in np.arange(z_min, z_max, CONTOUR_SERIES_STEP_mm):
-            grid_a, grid_b, gridded = axial_spacial_mapping_slice_data(z)
-            draw_slice = partial(draw_axial_spatial_mapping_slice, z, grid_a, grid_b, gridded)
-            try:
-                create_page_full(draw_slice)
-            except ValueError:
-                pass
+        # for z in np.arange(z_min, z_max, CONTOUR_SERIES_STEP_mm):
+            # grid_a, grid_b, gridded = axial_spacial_mapping_slice_data(z)
+            # draw_slice = partial(draw_axial_spatial_mapping_slice, z, grid_a, grid_b, gridded)
+            # try:
+                # create_page_full(draw_slice)
+            # except ValueError:
+                # pass
 
         create_page_full(draw_error_table)
 
         sort_indices = np.argsort(error_mags)[::-1]
         rois = zip(TP_A_S.T[sort_indices], TP_B.T[sort_indices], error_vecs.T[sort_indices], error_mags[sort_indices])
-        for chunk in chunks(list(rois), 5):
+        for chunk in itertools(chunks(list(rois), 5), 20):
             draw_chunk = partial(draw_fiducial_rois, chunk)
             create_page_full(draw_chunk)
 
         create_page_full(draw_points_x_perspective)
-        create_page_full(draw_points_y_perspective)
-        create_page_full(draw_points_z_perspective)
+        # create_page_full(draw_points_y_perspective)
+        # create_page_full(draw_points_z_perspective)
 
     with PdfPages(executive_report_path) as pdf:
         report_title = "Executive Report"
@@ -567,8 +562,8 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         create_page_executive(draw_coronal_spatial_mapping)
         create_page_executive(draw_error_table)
         create_page_executive(draw_points_x_perspective)
-        create_page_executive(draw_points_y_perspective)
-        create_page_executive(draw_points_z_perspective)
+        # create_page_executive(draw_points_y_perspective)
+        # create_page_executive(draw_points_z_perspective)
 
 
     logger.info("finished report generation")
