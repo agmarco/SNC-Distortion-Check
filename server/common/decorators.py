@@ -93,20 +93,25 @@ def check_machine_sequence(view):
         machines = Machine.objects.filter(institution=institution).active()
         sequences = Sequence.objects.filter(institution=institution).active()
 
-        if machines.count() == 0:
-            if request.user.has_perm('common.configuration'):
-                messages.error(request, "No machines have been configured yet. You must add a machine in order to "
-                                        "begin analyzing scans.")
-            else:
-                messages.error(request, "No machines have been configured yet. A manager must add a machine in order "
-                                        "to begin analyzing scans.")
-        if sequences.count() == 0:
-            if request.user.has_perm('common.configuration'):
-                messages.error(request, "No MRI sequences have been configured yet. You must add a sequence in order "
-                                        "to begin analyzing scans.")
-            else:
-                messages.error(request, "No MRI sequences have been configured yet. A manager must add a sequence in "
-                                        "order to begin analyzing scans.")
+        no_machines = machines.count() == 0
+        no_sequences = sequences.count() == 0
+
+        msg = None
+        if request.user.has_perm('common.configuration'):
+            if no_machines and no_sequences:
+                msg = "Welcome to CIRS's Distortion Check software.  Before you can begin uploading " + \
+                    "MRIs to analyze, please add one machine and one sequence."
+            elif no_machines:
+                msg = "You must configure at least one machine before you can begin uploading MRIs to analyze."
+            elif no_sequences
+                msg = "You must configure at least one sequence before you can begin uploading MRIs to analyze."
+        else:
+            if no_machines or no_sequences:
+                msg = "A user with configuration privileges must setup at least one machine and one sequence " + \
+                        "must be configured before you can begin uploading MRIs to analyze."
+        if msg:
+            messages.info(request, msg)
+
         return view(request, *args, **kwargs)
 
     return wrapper
