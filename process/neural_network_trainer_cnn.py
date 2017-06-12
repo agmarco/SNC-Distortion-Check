@@ -1,10 +1,13 @@
+import argparse
 import itertools
 import math
 import random
+import os
 
 import keras
 import numpy as np
 import scipy
+from keras.callbacks import ReduceLROnPlateau
 from keras.layers import Dense, Dropout, Activation, Flatten
 from keras.layers.convolutional import Convolution3D
 from keras.layers.core import SpatialDropout3D
@@ -26,44 +29,48 @@ maxpool_size = pool_size=(2, 2, 2)
 nb_classes = 2
 batch_size = None
 train_to_validation_ratio = 2
-
-cases = {
-    '001': {
-        'voxels': 'tmp/001_ct_603A_E3148_ST1.25-voxels.mat',
-        'points': 'data/points/001_ct_603A_E3148_ST1.25-golden.mat',
+phantomName2Datasets = {
+    '603':{
+        '001': {
+            'voxels': 'tmp/001_ct_603A_E3148_ST1.25-voxels.mat',
+            'points': 'data/points/001_ct_603A_E3148_ST1.25-golden.mat',
+        },
+        '006': {
+            'voxels': 'tmp/006_mri_603A_UVA_Axial_2ME2SRS5-voxels.mat',
+            'points': 'data/points/006_mri_603A_UVA_Axial_2ME2SRS5-golden.mat',
+        },
+        '011': {
+            'voxels': 'tmp/011_mri_603A_arterial_TOF_3d_motsa_ND-voxels.mat',
+            'points': 'data/points/011_mri_630A_arterial_TOF_3d_motsa_ND-golden.mat',
+        },
     },
-    '006': {
-        'voxels': 'tmp/006_mri_603A_UVA_Axial_2ME2SRS5-voxels.mat',
-        'points': 'data/points/006_mri_603A_UVA_Axial_2ME2SRS5-golden.mat',
+    '604':{
+        '010': {
+            'voxels': 'tmp/010_mri_604_LFV-Phantom_E2632-1-voxels.mat',
+            'points': 'data/points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
+        },
     },
-    # '010': {
-    #     'voxels': 'tmp/010_mri_604_LFV-Phantom_E2632-1-voxels.mat',
-    #     'points': 'data/points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
-    # },
-    # '011': {
-    #     'voxels': 'tmp/011_mri_603A_arterial_TOF_3d_motsa_ND-voxels.mat',
-    #     'points': 'data/points/011_mri_630A_arterial_TOF_3d_motsa_ND-golden.mat',
-    # },
-    # '1540-075': {
-    #     'voxels': 'tmp/xxx_ct_1540_ST075-120kVp-100mA-voxels.mat',
-    #     'points': 'data/points/1540-gaussian.mat',
-    # },
-    # '1540-125': {
-    #     'voxels': 'tmp/xxx_ct_1540_ST125-120kVp-100mA-voxels.mat',
-    #     'points': 'data/points/1540-gaussian.mat',
-    # },
-    # '1540-150': {
-    #     'voxels': 'tmp/xxx_ct_1540_ST150-120kVp-100mA-voxels.mat',
-    #     'points': 'data/points/1540-gaussian.mat',
-    # },
-    # '1540-250': {
-    #     'voxels': 'tmp/xxx_ct_1540_ST250-120kVp-100mA-voxels.mat',
-    #     'points': 'data/points/1540-gaussian.mat',
-    # },
+    '1540':{
+        '1540-075': {
+            'voxels': 'tmp/xxx_ct_1540_ST075-120kVp-100mA-voxels.mat',
+            'points': 'data/points/1540-gaussian.mat',
+        },
+        '1540-125': {
+            'voxels': 'tmp/xxx_ct_1540_ST125-120kVp-100mA-voxels.mat',
+            'points': 'data/points/1540-gaussian.mat',
+        },
+        # '1540-150': {
+        #     'voxels': 'tmp/xxx_ct_1540_ST150-120kVp-100mA-voxels.mat',
+        #     'points': 'data/points/1540-gaussian.mat',
+        # },
+        # '1540-250': {
+        #     'voxels': 'tmp/xxx_ct_1540_ST250-120kVp-100mA-voxels.mat',
+        #     'points': 'data/points/1540-gaussian.mat',
+        # },
+    }
 }
-
-
-def real_intersection_generator(train_or_validation, min_offset, offset_mag):
+phantomName2Datasets['604 and 603'] = {**phantomName2Datasets['604'], **phantomName2Datasets['603']}
+def intersection_generator(cases, train_or_validation, min_offset, offset_mag):
     start_offset = 0 if train_or_validation == "train" else 1
     while True:
         case = random.choice(list(cases.values()))
@@ -72,24 +79,33 @@ def real_intersection_generator(train_or_validation, min_offset, offset_mag):
         ijk_to_xyz = voxel_data['ijk_to_xyz']
         xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
         voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
+        # introduces slight scale invariance
+        random_voxel_spacing_augmentation = (np.random.sample(3) * 0.5 - 0.25) + 1
+        voxel_spacing *= random_voxel_spacing_augmentation
         golden_points = file_io.load_points(case['points'])['points']
         point_ijk = apply_affine(xyz_to_ijk, golden_points)
         for point_ijk in point_ijk.T[start_offset::2, :]:
             random_signs = np.array([random.choice([-1,1]), random.choice([-1,1]), random.choice([-1,1])])
+            # introduces shift invariance
             point_ijk += random_signs * (np.random.sample(3) * offset_mag + min_offset)
             voxel_window = window_from_ijk(point_ijk, voxels, voxel_spacing)
             if voxel_window is not None:
                 assert voxel_window.shape == (cube_size,cube_size,cube_size)
+                #zero mean, unit std
+                voxel_window = (voxel_window - voxel_window.mean())/(voxel_window.std()+0.00001)
                 yield np.expand_dims(voxel_window, axis=3)
 
 
-def non_intersection_generator(min_dist_from_annotated=5, num_samples=1000):
+def non_intersection_generator(cases, min_dist_from_annotated=5, num_samples=1000):
     while True:
         case = random.choice(list(cases.values()))
         voxel_data = file_io.load_voxels(case['voxels'])
         voxels = voxel_data['voxels']
         ijk_to_xyz = voxel_data['ijk_to_xyz']
         voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
+        # introduces slight scale invariance
+        random_voxel_spacing_augmentation = (np.random.sample(3) * 0.5 - 0.25) + 1
+        voxel_spacing *= random_voxel_spacing_augmentation
         xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
         golden_points = file_io.load_points(case['points'])['points']
         points_ijk = apply_affine(xyz_to_ijk, golden_points)
@@ -102,6 +118,8 @@ def non_intersection_generator(min_dist_from_annotated=5, num_samples=1000):
                 voxel_window = window_from_ijk(point_ijk, voxels, voxel_spacing)
                 if voxel_window is not None:
                     assert voxel_window.shape == (cube_size,cube_size,cube_size)
+                    #zero mean, unit std
+                    voxel_window = (voxel_window - voxel_window.mean())/(voxel_window.std()+0.00001)
                     yield np.expand_dims(voxel_window, axis=3)
 
 def augment_voxels(voxels):
@@ -112,12 +130,8 @@ def augment_voxels(voxels):
     :return:
     '''
     def noise(voxels):
-        noise_mag = random.randint(0, 40)
+        noise_mag = np.random.sample()
         return voxels + np.random.normal(0, noise_mag, size=voxels.shape)
-
-    def slight_contrast_variation(voxels):
-        magnitude = random.randint(-20, 20)
-        return voxels + magnitude
 
     def axis_flip(voxels):
         axis_to_flip = random.randint(0, 1)
@@ -129,9 +143,9 @@ def augment_voxels(voxels):
         return voxels
 
     def invert(voxels):
-        return np.max(voxels) - voxels
+        return - voxels
 
-    augmentors_list = [noise, slight_contrast_variation, axis_flip, rotate, invert]
+    augmentors_list = [noise, axis_flip, rotate, invert]
 
     for augmentor in augmentors_list:
         if random.randint(0,1):
@@ -143,12 +157,12 @@ def augmented(gen):
     while True:
         yield augment_voxels(next(gen))
 
-def training_generator(train_or_validation):
-    intersection_generator = augmented(real_intersection_generator(train_or_validation, 0, 2))
-    shifted_intersection_generator = augmented(real_intersection_generator(train_or_validation, 3, 5))
-    random_window_generator = augmented(non_intersection_generator())
+def training_generator(cases, train_or_validation):
+    centered_intersection_generator = augmented(intersection_generator(cases, train_or_validation, 0, 2))
+    shifted_intersection_generator = augmented(intersection_generator(cases, train_or_validation, 3, 5))
+    random_window_generator = augmented(non_intersection_generator(cases))
     while True:
-        yield next(intersection_generator), [0,1]
+        yield next(centered_intersection_generator), [0,1]
         yield next(shifted_intersection_generator), [1,0]
         yield next(random_window_generator), [1,0]
 
@@ -185,24 +199,39 @@ classification_layers = [
 ]
 
 
-def show_me_some_stuff(gen):
+def visualize_samples(gen):
     while True:
         voxels_window, answer = next(gen)
+        print(answer)
         show_slices(np.squeeze(voxels_window))
 
-# show_me_some_stuff(training_generator("train"))
-# show_me_some_stuff(real_intersection_generator("train", 0, 2))
-# show_me_some_stuff(real_intersection_generator("train", 3, 5))
-# show_me_some_stuff(non_intersection_generator())
+def ensure_dir(path):
+    if not os.path.exists(path):
+        os.makedirs(path, mode=0o777)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('phantom')
+    args = parser.parse_args()
+    assert args.phantom  in phantomName2Datasets
+    cases = phantomName2Datasets[args.phantom]
+    #visualize_samples(training_generator(cases, "train"))
 
-# create complete model
-model = Sequential(feature_layers + classification_layers)
-model.summary()
+    # create complete model
+    model = Sequential(feature_layers + classification_layers)
+    model.summary()
 
-model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-batch_gen_train = batch_generator(512, training_generator("train"))
-batch_gen_validation = batch_generator(512, training_generator("validation"))
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    batch_gen_train = batch_generator(512, training_generator(cases, "train"))
+    batch_gen_validation = batch_generator(512, training_generator(cases, "validation"))
 
-# model = load_model('weights/weights.1599.h5')
-save_model_callback = keras.callbacks.ModelCheckpoint('weights/with_spatial_dropout/weights.{epoch:02d}.h5', monitor='accuracy', verbose=3, save_best_only=False, save_weights_only=False, mode='auto', period=10)
-model.fit_generator(batch_gen_train, validation_data=batch_gen_validation, nb_val_samples=512, samples_per_epoch=64000, nb_epoch=10000, verbose=1, callbacks=[save_model_callback], pickle_safe=True, nb_worker=16)
+    weights_dir = os.path.join('weights', args.phantom)
+    ensure_dir(weights_dir)
+    weights_path = os.path.join(weights_dir, 'weights.{epoch:02d}.h5')
+    tensorboard_path = os.path.join('tensorboard', args.phantom)
+    ensure_dir(tensorboard_path)
+
+    save_model_callback = keras.callbacks.ModelCheckpoint(weights_path, monitor='val_loss', verbose=3, save_best_only=False, save_weights_only=False, mode='auto', period=5)
+    tensorboard_callback = keras.callbacks.TensorBoard(log_dir=tensorboard_path, histogram_freq=0, write_graph=False, write_images=False)
+
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=10, min_lr=1e-6)
+    model.fit_generator(batch_gen_train, validation_data=batch_gen_validation, nb_val_samples=512, samples_per_epoch=64000, nb_epoch=10000, verbose=1, callbacks=[save_model_callback, tensorboard_callback, reduce_lr], pickle_safe=True, nb_worker=16)

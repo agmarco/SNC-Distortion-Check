@@ -78,6 +78,7 @@ def is_grid_intersection(point_ijk, voxels, voxel_spacing, phantom_model):
     window = window_from_ijk(point_ijk, voxels, voxel_spacing)
     if window is not None:
         window = np.expand_dims(window, axis=3)
+        window = (window - window.mean())/(window.std()+0.00001)
         probablities = model.predict_proba(np.array([window]), verbose=0)
         return bool(probablities[0][1] > INTERSECTION_PROB_THRESHOLD)
     else:
@@ -86,8 +87,10 @@ def is_grid_intersection(point_ijk, voxels, voxel_spacing, phantom_model):
 
 def zoom_like(voxels, to_shape):
     zoom_factor = np.array(to_shape) / np.array(voxels.shape)
-    return zoom(voxels, zoom_factor)
-
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        return zoom(voxels, zoom_factor)
 
 def window_from_ijk(point_ijk, voxels, voxel_spacing):
     """
