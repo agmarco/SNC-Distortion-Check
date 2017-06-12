@@ -106,6 +106,8 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
             }
         }
 
+        // TODO form briefly flashing wrong validation errors if form is populated with data from Django, and field is
+        // not modified prior to submission
         return (
             <div>
                 <CirsForm
