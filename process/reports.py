@@ -565,7 +565,7 @@ def page_generator():
 
 
 def save_then_close_figure(pdf, figure):
-    pdf.savefig(figure)
+    pdf.savefig(figure, dpi=350)
     plt.close('all')
 
 
