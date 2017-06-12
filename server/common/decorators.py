@@ -1,10 +1,17 @@
 import inspect
 from functools import wraps
+import logging
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
+
+from server.common.models import Machine, Sequence
+
+
+logger = logging.getLogger(__name__)
 
 
 def validate_institution(model_class=None, pk_url_kwarg='pk'):
@@ -77,5 +84,43 @@ def institution_required(view):
             return render(request, 'common/admin_error.html')
         else:
             return view(request, *args, **kwargs)
+
+    return wrapper
+
+
+def check_machine_sequence(view):
+    """If there are no machines or sequences, display a message alerting the user to add them."""
+
+    @wraps(view)
+    def wrapper(request, *args, **kwargs):
+        response =  view(request, *args, **kwargs)
+
+        try:
+            institution = request.user.get_institution(request)
+            machines = Machine.objects.filter(institution=institution).active()
+            sequences = Sequence.objects.filter(institution=institution).active()
+
+            no_machines = machines.count() == 0
+            no_sequences = sequences.count() == 0
+
+            msg = None
+            if request.user.has_perm('common.configuration'):
+                if no_machines and no_sequences:
+                    msg = "Welcome to CIRS's Distortion Check software.  Before you can begin uploading " + \
+                        "MRIs to analyze, please add one machine and one sequence."
+                elif no_machines:
+                    msg = "You must configure at least one machine before you can begin uploading MRIs to analyze."
+                elif no_sequences:
+                    msg = "You must configure at least one sequence before you can begin uploading MRIs to analyze."
+            else:
+                if no_machines or no_sequences:
+                    msg = "A user with configuration privileges must setup at least one machine and one sequence " + \
+                            "must be configured before you can begin uploading MRIs to analyze."
+            if msg:
+                messages.info(request, msg)
+        except:
+            logger.exception('Exception occured during check machine sequences decorator')
+
+        return response
 
     return wrapper

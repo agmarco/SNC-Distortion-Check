@@ -63,7 +63,7 @@ paramaters = {
             slice(-2*deg, 2*deg, 3j),
             slice(-2*deg, 2*deg, 3j),
         ],
-        # TODO: add a model for the 604 phantom
+        'keras_model': 'data/keras_models/604/weights.h5',
         'description': """The phantom is comprised of a leak-proof PMMA cylinder and measures 330 mm in diameter by 300
             mm long. The entire volume is filled with a unique orthogonal 3D grid of 3 mm diameter rods spaced 20 mm
             apart to provide complete geometric data throughout the imaging volume.  The phantom is marked for ease of

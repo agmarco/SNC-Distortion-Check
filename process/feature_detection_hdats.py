@@ -33,11 +33,10 @@ class FeatureDetectionSuite(Suite):
                 'voxels': 'tmp/011_mri_603A_arterial_TOF_3d_motsa_ND-voxels.mat',
                 'points': 'data/points/011_mri_630A_arterial_TOF_3d_motsa_ND-golden.mat',
             },
-            # TODO: enable this case once we have a working 604 keras model
-            # '604-1': {
-                # 'voxels': 'tmp/010_mri_604_LFV-Phantom_E2632-1-voxels.mat',
-                # 'points': 'data/points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
-            # },
+            '604-1': {
+                'voxels': 'tmp/010_mri_604_LFV-Phantom_E2632-1-voxels.mat',
+                'points': 'data/points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
+            },
         }
         return cases
 
