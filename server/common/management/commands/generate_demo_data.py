@@ -130,6 +130,19 @@ class Command(BaseCommand):
             model=phantom_model_604,
         )
 
+        # lots of test phantoms
+        for t in range(20):
+            factories.PhantomFactory(
+                name='Body Phantom',
+                model=phantom_model_604,
+            )
+
+        for t in range(20):
+            factories.PhantomFactory(
+                name='Head Phantom',
+                model=phantom_model_603A,
+            )
+
         sequence_a = factories.SequenceFactory(
             name="T1-Weighted Abdominal",
             institution=demo_institution,
