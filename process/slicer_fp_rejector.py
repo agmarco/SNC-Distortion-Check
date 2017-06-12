@@ -12,21 +12,21 @@ def render_intersection_square(voxels, voxel_spacing, phantom_model, slicer):
     i, j, k = slicer.cursor
     di, dj, dk = window_size_half
     slicer.i_ax.add_patch(patches.Rectangle(
-        (k - dk, j - dj), dk*2, dj*2, fill=False,
+        (i - di, j - dj), di*2, dj*2, fill=False,
         linestyle='solid',
         edgecolor=color,
         linewidth=2
     ))
 
     slicer.j_ax.add_patch(patches.Rectangle(
-        (k - dk, i - di), dk*2, di*2, fill=False,
+        (i - di, k - dk), di*2, dk*2, fill=False,
         linestyle='solid',
         edgecolor=color,
         linewidth=2
     ))
 
     slicer.k_ax.add_patch(patches.Rectangle(
-        (j - dj, i - di), dj*2, di*2, fill=False,
+        (j - dj, k - dk), dj*2, dk*2, fill=False,
         linestyle='solid',
         edgecolor=color,
         linewidth=2
