@@ -56,12 +56,12 @@ paramaters = {
         'grid_radius': 1.5,
         'grid_spacing': 20,
         'brute_search_slices': [
-            slice(-15, 15, 5),
-            slice(-15, 15, 5),
-            slice(-15, 15, 5),
-            slice(-2*deg, 2*deg, 3j),
-            slice(-2*deg, 2*deg, 3j),
-            slice(-2*deg, 2*deg, 3j),
+            slice(0, 0, 1j),
+            slice(0, 0, 1j),
+            slice(0, 0, 1j),
+            slice(0, 0, 1j),
+            slice(0, 0, 1j),
+            slice(0, 0, 1j),
         ],
         'keras_model': 'data/keras_models/604/weights.h5',
         'description': """The phantom is comprised of a leak-proof PMMA cylinder and measures 330 mm in diameter by 300
