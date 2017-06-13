@@ -64,9 +64,9 @@ paramaters = {
             slice(0, 0, 1j),
         ],
         'keras_model': 'data/keras_models/604/weights.h5',
-        'description': """The phantom is comprised of a leak-proof PMMA cylinder and measures 330 mm in diameter by 300
-            mm long. The entire volume is filled with a unique orthogonal 3D grid of 3 mm diameter rods spaced 20 mm
-            apart to provide complete geometric data throughout the imaging volume.  The phantom is marked for ease of
-            alignment to positioning lasers and is designed for use with both curved and flat gantry tables.""",
+        'description': "The phantom is comprised of a leak-proof PMMA cylinder and measures 330 mm in diameter by 300 "
+            "mm long. The entire volume is filled with a unique orthogonal 3D grid of 3 mm diameter rods spaced 20 mm "
+            "apart to provide complete geometric data throughout the imaging volume.  The phantom is marked for ease of "
+            "alignment to positioning lasers and is designed for use with both curved and flat gantry tables.",
     },
 }
