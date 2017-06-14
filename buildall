@@ -4,7 +4,6 @@ set -e
 if [ ! -f .env ]; then cp .sample.env .env; fi;
 pip install pip-tools
 pip-sync requirements.txt dev-requirements.txt
-nbstripout --install --attributes .gitattributes
 npm install -g yarn
 yarn
 ./createdb
