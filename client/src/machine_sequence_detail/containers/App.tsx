@@ -1,13 +1,16 @@
 import React from 'react';
-import { createStore } from 'redux';
+import { createStore, applyMiddleware } from 'redux';
 import { Provider } from 'react-redux';
-import { combineForms } from 'react-redux-form';
+import createSagaMiddleware from 'redux-saga';
 
 import Root from './Root';
+import reducer from '../reducers';
+import saga from '../sagas';
 
-const store = createStore(combineForms({
-    tolerance: { tolerance: '' },
-}));
+const sagaMiddleware = createSagaMiddleware();
+const store = createStore(reducer, applyMiddleware(sagaMiddleware));
+
+sagaMiddleware.run(saga);
 
 export default () => (
     <Provider store={store}>

@@ -8,13 +8,13 @@ import {
     IMachineSequenceTableState,
 } from './components/MachineSequenceTable';
 import { machineFixture, sequenceFixture, machineSequencePairFixture } from 'common/fixtures';
-import { IMachineDTO, ISequenceDTO } from 'common/service';
+import { IMachineDto, ISequenceDto } from 'common/service';
 
 describe('<MachineSequenceTable />', () => {
-    let machineA: IMachineDTO;
-    let machineB: IMachineDTO;
-    let sequenceA: ISequenceDTO;
-    let sequenceB: ISequenceDTO;
+    let machineA: IMachineDto;
+    let machineB: IMachineDto;
+    let sequenceA: ISequenceDto;
+    let sequenceB: ISequenceDto;
     let wrapper: ShallowWrapper<IMachineSequenceTableProps, IMachineSequenceTableState>;
 
     beforeEach(() => {

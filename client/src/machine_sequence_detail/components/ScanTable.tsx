@@ -2,18 +2,18 @@ import React from 'react';
 import format from 'date-fns/format';
 import uniqBy from 'lodash/uniqBy';
 
-import { IScanDTO, IPhantomDTO } from 'common/service';
+import { IScanDto, IPhantomDto } from 'common/service';
 import { BoolIcon, AnchorForm } from 'common/components';
 
 import './ScanTable.scss';
 
 export interface IScanTableProps {
-    scans: IScanDTO[];
+    scans: IScanDto[];
     uploadScanUrl: string;
 }
 
 export interface IScanTableState {
-    phantoms: IPhantomDTO[];
+    phantoms: IPhantomDto[];
     phantomFilterValue: 'all' | number;
 }
 
@@ -38,8 +38,6 @@ const passedHelp = 'Was the maximum detected geometric distortion within the tol
 const processingHelp = 'Processing may take several minutes. You will need to refresh the page to see updates.';
 
 export default class extends React.Component<IScanTableProps, IScanTableState> {
-    refreshScanForm: HTMLFormElement;
-
     constructor(props: IScanTableProps) {
         super();
 
@@ -52,7 +50,7 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
     filteredScans() {
         const { scans } = this.props;
         const { phantomFilterValue } = this.state;
-        const filters: Array<(scan: IScanDTO) => boolean> = [];
+        const filters: Array<(scan: IScanDto) => boolean> = [];
 
         if (phantomFilterValue !== 'all') {
             filters.push(s => s.phantom.pk === phantomFilterValue);
@@ -66,7 +64,7 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
         this.setState({phantomFilterValue: value === 'all' ? value : Number(value)});
     }
 
-    renderScanActions(scan: IScanDTO) {
+    renderScanActions(scan: IScanDto) {
 
         if (scan.processing) {
             return [

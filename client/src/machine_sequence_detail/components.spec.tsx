@@ -7,11 +7,11 @@ import * as fixtures from 'common/fixtures';
 import { default as ScanTable, IScanTableProps, IScanTableState } from './components/ScanTable';
 import { default as ScanChart, IScanChartProps, IScanChartState } from './components/ScanChart';
 import ScanChartData from './components/ScanChartData';
-import { IScanDTO, IPhantomDTO } from 'common/service';
+import { IScanDto, IPhantomDto } from 'common/service';
 
 describe('<ScanTable />', () => {
-    let phantomA: IPhantomDTO;
-    let phantomB: IPhantomDTO;
+    let phantomA: IPhantomDto;
+    let phantomB: IPhantomDto;
     let wrapper: ShallowWrapper<IScanTableProps, IScanTableState>;
 
     beforeEach(() => {
@@ -36,8 +36,8 @@ describe('<ScanTable />', () => {
 
 describe('<ScanChart />', () => {
     let app: JQuery;
-    let scanA: IScanDTO;
-    let scanB: IScanDTO;
+    let scanA: IScanDto;
+    let scanB: IScanDto;
     let wrapper: ReactWrapper<IScanChartProps, IScanChartState>;
 
     beforeEach(() => {

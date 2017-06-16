@@ -29,6 +29,8 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
     constructor() {
         super();
 
+        // TODO Bluebird may not be necessary
+        // verify that consecutive fetch calls resolve in the order they are called, regardless of how long they take
         Bluebird.config({cancellation: true});
         this.state = {
             serialNumberMessage: null,

@@ -1,8 +1,8 @@
 import uniqueId from 'lodash/uniqueId';
 
-import { IMachineDTO, ISequenceDTO, IMachineSequencePairDTO, IPhantomDTO, IScanDTO } from './service';
+import { IMachineDto, ISequenceDto, IMachineSequencePairDto, IPhantomDto, IScanDto } from './service';
 
-export const machineFixture = (): IMachineDTO => {
+export const machineFixture = (): IMachineDto => {
     const pk = Number(uniqueId());
     return {
         pk,
@@ -12,7 +12,7 @@ export const machineFixture = (): IMachineDTO => {
     };
 };
 
-export const sequenceFixture = (): ISequenceDTO => {
+export const sequenceFixture = (): ISequenceDto => {
     const pk = Number(uniqueId());
     return {
         pk,
@@ -21,7 +21,7 @@ export const sequenceFixture = (): ISequenceDTO => {
     };
 };
 
-export const machineSequencePairFixture = (machine?: IMachineDTO, sequence?: ISequenceDTO): IMachineSequencePairDTO => {
+export const machineSequencePairFixture = (machine?: IMachineDto, sequence?: ISequenceDto): IMachineSequencePairDto => {
     const pk = Number(uniqueId());
     return {
         pk,
@@ -34,7 +34,7 @@ export const machineSequencePairFixture = (machine?: IMachineDTO, sequence?: ISe
     };
 };
 
-export const phantomFixture = (): IPhantomDTO => {
+export const phantomFixture = (): IPhantomDto => {
     const pk = Number(uniqueId());
     return {
         pk,
@@ -45,7 +45,7 @@ export const phantomFixture = (): IPhantomDTO => {
     };
 };
 
-export const scanFixture = (phantom?: IPhantomDTO): IScanDTO => {
+export const scanFixture = (phantom?: IPhantomDto): IScanDto => {
     const pk = Number(uniqueId());
     return {
         pk,

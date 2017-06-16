@@ -3,15 +3,15 @@ import { connect } from 'react-redux';
 import { actions } from 'react-redux-form';
 import { Dispatch } from 'redux';
 
-import { IMachineDTO, ISequenceDTO, IPhantomDTO } from 'common/service';
+import { IMachineDto, ISequenceDto, IPhantomDto } from 'common/service';
 import { CSRFToken } from 'common/components';
 import { CirsForm, CirsControl, CirsErrors, IDjangoFormData, IDjangoFormErrors } from 'common/forms';
 import { IUploadScanForm } from '../forms';
 
 interface IUploadScanFormProps {
-    machines: IMachineDTO[];
-    sequences: ISequenceDTO[];
-    phantoms: IPhantomDTO[];
+    machines: IMachineDto[];
+    sequences: ISequenceDto[];
+    phantoms: IPhantomDto[];
     initialMachinePk: number | null;
     initialSequencePk: number | null;
     cancelUrl: string;

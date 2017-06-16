@@ -1,20 +1,26 @@
 import React from 'react';
+import { Dispatch } from 'redux';
+import { connect } from 'react-redux';
 
-import { IMachineSequencePairDTO, IScanDTO } from 'common/service';
+import { IMachineSequencePairDto, IScanDto } from 'common/service';
 import ScanChart from '../components/ScanChart';
 import ScanTable from '../components/ScanTable';
 import ToleranceForm from '../components/ToleranceForm';
 
-declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDTO;
-declare const SCANS: IScanDTO[];
+declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
 declare const UPLOAD_SCAN_URL: string;
 declare const UPDATE_TOLERANCE_URL: string;
+
+interface IRootProps {
+    dispatch?: Dispatch<any>;
+    scans?: IScanDto[];
+}
 
 interface IRootState {
     tolerance: number;
 }
 
-export default class extends React.Component<{}, IRootState> {
+class Root extends React.Component<IRootProps, IRootState> {
     constructor() {
         super();
         this.state = { tolerance: MACHINE_SEQUENCE_PAIR.tolerance };
@@ -25,6 +31,7 @@ export default class extends React.Component<{}, IRootState> {
     }
 
     render() {
+        const { scans } = this.props;
         const { tolerance } = this.state;
 
         return (
@@ -40,14 +47,16 @@ export default class extends React.Component<{}, IRootState> {
                 <ScanChart
                     machineSequencePair={MACHINE_SEQUENCE_PAIR}
                     tolerance={tolerance}
-                    scans={SCANS}
+                    scans={scans as IScanDto[]}
                 />
                 <h2>Scans</h2>
                 <ScanTable
-                    scans={SCANS}
+                    scans={scans as IScanDto[]}
                     uploadScanUrl={UPLOAD_SCAN_URL}
                 />
             </div>
         );
     }
 }
+
+export default connect<any, any, any>((state: any) => ({scans: state.scans}))(Root as any);

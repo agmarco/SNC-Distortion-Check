@@ -1,27 +1,27 @@
-export interface IMachineDTO {
+export interface IMachineDto {
     pk: number;
     name: string;
     model: string;
     manufacturer: string;
 }
 
-export interface ISequenceDTO {
+export interface ISequenceDto {
     pk: number;
     name: string;
     instructions: string;
 }
 
-export interface IMachineSequencePairDTO {
+export interface IMachineSequencePairDto {
     pk: number;
-    machine: IMachineDTO;
-    sequence: ISequenceDTO;
+    machine: IMachineDto;
+    sequence: ISequenceDto;
     latest_scan_date: string | null;
     latest_scan_passed: boolean | null;
     detail_url: string;
     tolerance: number;
 }
 
-export interface IPhantomDTO {
+export interface IPhantomDto {
     pk: number;
     name: string;
     model_number: string;
@@ -29,9 +29,9 @@ export interface IPhantomDTO {
     gold_standard_grid_locations: string;
 }
 
-export interface IScanDTO {
+export interface IScanDto {
     pk: number;
-    phantom: IPhantomDTO;
+    phantom: IPhantomDto;
     processing: boolean;
     errors: string | null;
     passed: boolean | null;

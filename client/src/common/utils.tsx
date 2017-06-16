@@ -12,6 +12,7 @@ export const handleErrors = (res: Response, success: () => void) => {
     }
 };
 
+// TODO handle arrays correctly according to application/x-www-form-urlencoded (?id[]=101404&id[]=7267261)
 export const encode = (data: any) => {
     return Object.keys(data).map((key) => [key, data[key]].map(encodeURIComponent).join('=')).join('&');
 };

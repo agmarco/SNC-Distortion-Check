@@ -8,13 +8,13 @@ import { Dispatch } from 'redux';
 import { encode } from 'common/utils';
 import { CSRFToken, BoolIcon, LoadingIcon } from 'common/components';
 import { CirsForm, CirsControl } from 'common/forms';
-import { IMachineSequencePairDTO } from 'common/service';
+import { IMachineSequencePairDto } from 'common/service';
 
 import './ToleranceForm.scss';
 
 interface IToleranceFormProps {
     updateToleranceUrl: string;
-    machineSequencePair: IMachineSequencePairDTO;
+    machineSequencePair: IMachineSequencePairDto;
     tolerance: number;
     handleToleranceChange: (event: React.FormEvent<HTMLInputElement>) => void;
     formState?: { [name: string]: FieldState };
@@ -118,4 +118,4 @@ class ToleranceForm extends React.Component<IToleranceFormProps, IToleranceFormS
     }
 }
 
-export default connect<any, any, any>((state: any) => ({formState: state.forms.tolerance}))(ToleranceForm as any);
+export default connect<any, any, any>((state: any) => ({formState: state.forms.forms.tolerance}))(ToleranceForm as any);

@@ -2,19 +2,19 @@ import React from 'react';
 import format from 'date-fns/format';
 import uniqBy from 'lodash/uniqBy';
 
-import { IMachineSequencePairDTO, IMachineDTO, ISequenceDTO } from 'common/service';
+import { IMachineSequencePairDto, IMachineDto, ISequenceDto } from 'common/service';
 import { BoolIcon } from 'common/components';
 
 import './MachineSequenceTable.scss';
 
 export interface IMachineSequenceTableProps {
-    machineSequencePairs: IMachineSequencePairDTO[];
+    machineSequencePairs: IMachineSequencePairDto[];
     uploadScanUrl: string;
 }
 
 export interface IMachineSequenceTableState {
-    machines: IMachineDTO[];
-    sequences: ISequenceDTO[];
+    machines: IMachineDto[];
+    sequences: ISequenceDto[];
     machineFilterValue: 'all' | number;
     sequenceFilterValue: 'all' | number;
 }
@@ -50,7 +50,7 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
     filteredMachineSequencePairs() {
         const { machineSequencePairs } = this.props;
         const { machineFilterValue, sequenceFilterValue } = this.state;
-        const filters: Array<(pair: IMachineSequencePairDTO) => boolean> = [];
+        const filters: Array<(pair: IMachineSequencePairDto) => boolean> = [];
 
         if (machineFilterValue !== 'all') {
             filters.push(p => p.machine.pk === machineFilterValue);
@@ -127,7 +127,7 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
     }
 }
 
-const machineSequenceTableRow = (pair: IMachineSequencePairDTO) => {
+const machineSequenceTableRow = (pair: IMachineSequencePairDto) => {
     return (
         <tr key={pair.pk}>
             <td title={machineHelp}>{pair.machine.name}</td>
