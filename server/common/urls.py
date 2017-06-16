@@ -22,6 +22,7 @@ urlpatterns = [
     url(r'^api/', include([
         url(r'^validate-serial/$', api.ValidateSerialView.as_view(), name='validate_serial'),
         url(r'^update-tolerance/$', api.UpdateToleranceView.as_view(), name='update_tolerance'),
+        url(r'^poll-scans/$', api.PollScansView.as_view(), name='poll_scans'),
     ])),
 
     url(r'^scans/', include([

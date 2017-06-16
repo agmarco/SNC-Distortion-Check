@@ -43,7 +43,8 @@ class PollScansView(APIView):
         # validate_institution(model_class=MachineSequencePair),  # TODO handle lists
     )
 
-    def get(self, request):
+    #  TODO get?
+    def post(self, request):
         scans = Scan.objects.filter(pk__in=request.data['scan_pks'], processing=False)
         serializer = ScanSerializer(scans, many=True)
         return Response(serializer.data)

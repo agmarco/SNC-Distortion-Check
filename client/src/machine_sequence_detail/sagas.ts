@@ -12,11 +12,13 @@ declare const POLL_SCANS_URL: string;
 function* pollScans(): any {
     while (true) {
         yield call(delay, 10000);
+        console.log("loading...");
         const scans = (yield select(selectors.getScans)) as IScanDto[];
         if (scans.every(s => !s.processing)) {
             break;
         } else {
             const unprocessedScans = scans.filter(s => s.processing);
+            console.log('unprocessedScans', unprocessedScans);
             const response = yield call(fetch, POLL_SCANS_URL, {
                 method: 'POST',
                 credentials: 'same-origin',
@@ -30,6 +32,7 @@ function* pollScans(): any {
                 }),
             });
             const updatedScans = yield call(response.json.bind(response));
+            console.log('updatedScans', updatedScans);
             for (const scan of updatedScans) {
                 yield put(actions.updateScan(scan));
             }

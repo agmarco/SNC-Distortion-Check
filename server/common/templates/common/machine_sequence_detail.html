@@ -25,6 +25,7 @@
     var SCANS = {{ scans_json|safe }};
     var UPLOAD_SCAN_URL = "{% url 'upload_scan' %}?machine={{ machine_sequence_pair.machine.pk }}&sequence={{ machine_sequence_pair.sequence.pk }}&cancel={% url 'machine_sequence_detail' machine_sequence_pair.pk %}";
     var UPDATE_TOLERANCE_URL = "{% url 'update_tolerance' %}";
+    var POLL_SCANS_URL = "{% url 'poll_scans' %}";
   </script>
   <script src="{% webpack 'machine_sequence_detail.js' %}"></script>
 {% endblock %}
