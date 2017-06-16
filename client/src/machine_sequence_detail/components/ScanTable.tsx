@@ -3,7 +3,7 @@ import format from 'date-fns/format';
 import uniqBy from 'lodash/uniqBy';
 
 import { IScanDto, IPhantomDto } from 'common/service';
-import { BoolIcon, AnchorForm } from 'common/components';
+import { BoolIcon, AnchorForm, LoadingIcon } from 'common/components';
 
 import './ScanTable.scss';
 
@@ -70,6 +70,8 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
             return [
                 <td key={0} colSpan={5} title={processingHelp}>
                     The data is still being processed...
+                    {' '}
+                    <LoadingIcon />
                 </td>,
                 <td key={1} className="action delete">
                     <a href={scan.delete_url}>

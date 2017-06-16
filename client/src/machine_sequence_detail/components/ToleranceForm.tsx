@@ -87,10 +87,12 @@ class ToleranceForm extends React.Component<IToleranceFormProps, IToleranceFormS
 
         const { pending } = (formState as { [name: string]: FieldState }).$form;
 
+        // TODO tolerance form not populating with initial data
         return (
             <div>
                 <CirsForm
                     className="cirs-form"
+                    id="tolerance-form"
                     model="tolerance"
                     onSubmit={this.handleSubmit.bind(this)}
                     djangoData={{tolerance}}

@@ -209,8 +209,8 @@ class UploadScanView(JsonFormMixin, FormView):
         )
 
         process_scan.delay(scan.pk)
-        messages.success(self.request, "Your scan has been uploaded.  Processing will likely take " + \
-                "several minutes.  You will need to refresh the page to see the results.")
+        messages.success(self.request, "Your scan has been uploaded.  Processing will likely take several minutes. "
+                                       "This page will be updated automatically when it is finished.")
         return redirect('machine_sequence_detail', scan.machine_sequence_pair.pk)
 
 

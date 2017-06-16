@@ -108,6 +108,7 @@ class CirsFormImpl extends React.Component<ICirsFormProps, {}> {
             if (djangoData) {
                 for (let field of Object.keys(djangoData)) {
                     dispatch(actions.change(`${model}.${field}`, djangoData[field]));
+                    console.log(`${model}.${field}`, djangoData[field]);
                 }
             }
 
