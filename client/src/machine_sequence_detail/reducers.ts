@@ -13,7 +13,7 @@ export interface IAppState {
         forms: {
             tolerance: FormState;
         };
-        tolerance: { tolerance: string; };
+        tolerance: { tolerance: number; };
     };
 }
 
@@ -31,5 +31,5 @@ export default combineReducers({
     scans: scanReducer,
     forms: combineForms({
         tolerance: {tolerance: ''},
-    }),
+    }, 'forms'),
 });

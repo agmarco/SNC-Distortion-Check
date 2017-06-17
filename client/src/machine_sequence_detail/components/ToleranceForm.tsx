@@ -46,7 +46,7 @@ class ToleranceForm extends React.Component<IToleranceFormProps, IToleranceFormS
         }
 
         if (dispatch) {
-            dispatch(actions.setPending('tolerance', true));
+            dispatch(actions.setPending('forms.tolerance', true));
         }
 
         const newPromise = Bluebird.resolve(fetch(updateToleranceUrl, {
@@ -63,7 +63,7 @@ class ToleranceForm extends React.Component<IToleranceFormProps, IToleranceFormS
             }))
             .then((res) => {
                 if (dispatch) {
-                    dispatch(actions.setPending('tolerance', false));
+                    dispatch(actions.setPending('forms.tolerance', false));
                 }
                 if (res.ok) {
                     this.setState({
@@ -93,7 +93,7 @@ class ToleranceForm extends React.Component<IToleranceFormProps, IToleranceFormS
                 <CirsForm
                     className="cirs-form"
                     id="tolerance-form"
-                    model="tolerance"
+                    model="forms.tolerance"
                     onSubmit={this.handleSubmit.bind(this)}
                     djangoData={{tolerance}}
                 >
