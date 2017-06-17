@@ -137,6 +137,20 @@ def update_tolerance_data(user):
     }
 
 
+def poll_scans_data(user):
+    machine = factories.MachineFactory(institution=user.institution)
+    sequence = factories.SequenceFactory(institution=user.institution)
+    machine_sequence_pair = factories.MachineSequencePairFactory(machine=machine, sequence=sequence)
+    scan = factories.ScanFactory(
+        creator=user,
+        machine_sequence_pair=machine_sequence_pair,
+    )
+    return {
+        'machine_sequence_pair': machine_sequence_pair,
+        'scan': scan,
+    }
+
+
 def raw_data_data(user):
     machine = factories.MachineFactory(institution=user.institution)
     sequence = factories.SequenceFactory(institution=user.institution)
@@ -409,6 +423,17 @@ VIEWS = (
         'methods': {'POST': lambda data: {
             'pk': data['machine_sequence_pair'].pk,
             'tolerance': 1,
+        }},
+    }, {
+        'view': api.PollScansView,
+        'data': poll_scans_data,
+        'url': reverse('poll_scans'),
+        'login_required': True,
+        'permissions': (),
+        'validate_institution': True,
+        'methods': {'POST': lambda data: {
+            'machine_sequence_pair_pk': data['machine_sequence_pair'].pk,
+            'scan_pks': [data['scan'].pk],
         }},
     }, {
         'view': views.refresh_scan_view,

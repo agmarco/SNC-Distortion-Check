@@ -40,11 +40,15 @@ class UpdateToleranceView(APIView):
 class PollScansView(APIView):
     permission_classes = (
         IsAuthenticated,
-        # validate_institution(model_class=MachineSequencePair),  # TODO handle lists
+        validate_institution(model_class=MachineSequencePair, pk_url_kwarg='machine_sequence_pair_pk'),
     )
 
     #  TODO get?
     def post(self, request):
-        scans = Scan.objects.filter(pk__in=request.data['scan_pks'], processing=False)
+        scans = Scan.objects.filter(
+            machine_sequence_pair=request.data['machine_sequence_pair_pk'],
+            pk__in=request.data['scan_pks'],
+            processing=False,
+        )
         serializer = ScanSerializer(scans, many=True)
         return Response(serializer.data)

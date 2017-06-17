@@ -25,7 +25,7 @@ function* pollScans(): any {
                     'X-CSRFToken': Cookies.get('csrftoken'),
                 },
                 body: JSON.stringify({
-                    pk: MACHINE_SEQUENCE_PAIR.pk,
+                    machine_sequence_pair_pk: MACHINE_SEQUENCE_PAIR.pk,
                     scan_pks: unprocessedScans.map(s => s.pk),
                 }),
             });
