@@ -5,22 +5,21 @@ import { connect } from 'react-redux';
 import { IPhantomDto, IGoldenFiducialsDto } from 'common/service';
 import { BoolIcon, AnchorForm, LoadingIcon } from 'common/components';
 
-import './ScanTable.scss';
-
 export interface IScanTableProps {
-    phantom: IPhantomDto[];
+    phantom: IPhantomDto;
     goldenFiducialsSet?: IGoldenFiducialsDto[];
 }
 
 class GoldStandardTable extends React.Component<IScanTableProps, {}> {
     render() {
-        const { phantom, goldenFiducialsSet } = this.props;
+        let { phantom, goldenFiducialsSet } = this.props;
+        goldenFiducialsSet = goldenFiducialsSet as IGoldenFiducialsDto[];
 
         return (
             <div>
                 <div className="phantom-details">
                     <label>Model Number</label>
-                    <p>{phantom.model}</p>
+                    <p>{phantom.model_number}</p>
                     <label>Serial Number</label>
                     <p>{phantom.serial_number}</p>
                 </div>
@@ -50,7 +49,7 @@ class GoldStandardTable extends React.Component<IScanTableProps, {}> {
                                 [
                                     <td className="action download-images">
                                         {goldenFiducials.type === 'CT' &&
-                                        <a href={goldenFiducials.zipped_dicom_files_url}>
+                                        <a href={goldenFiducials.zipped_dicom_files_url as string}>
                                             Download Images
                                         </a>}
                                     </td>,

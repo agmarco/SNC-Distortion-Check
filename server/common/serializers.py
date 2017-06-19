@@ -49,16 +49,32 @@ class MachineSequencePairSerializer(serializers.ModelSerializer):
 class PhantomSerializer(serializers.ModelSerializer):
     model_number = serializers.SerializerMethodField()
     gold_standard_grid_locations = serializers.SerializerMethodField()
+    upload_raw_url = serializers.SerializerMethodField()
+    upload_ct_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Phantom
-        fields = ('pk', 'name', 'model_number', 'serial_number', 'gold_standard_grid_locations')
+        fields = (
+            'pk',
+            'name',
+            'model_number',
+            'serial_number',
+            'gold_standard_grid_locations',
+            'upload_raw_url',
+            'upload_ct_url',
+        )
 
     def get_model_number(self, phantom):
         return phantom.model.model_number
 
     def get_gold_standard_grid_locations(self, phantom):
         return phantom.active_gold_standard.source_summary
+
+    def get_upload_raw_url(self, golden_fiducials):
+        return reverse('upload_raw', args=(golden_fiducials.phantom.pk,))
+
+    def get_upload_ct_url(self, golden_fiducials):
+        return reverse('upload_ct', args=(golden_fiducials.phantom.pk,))
 
 
 class ScanSerializer(serializers.ModelSerializer):
@@ -138,10 +154,16 @@ class GoldenFiducialsSerializer(serializers.ModelSerializer):
         )
 
     def get_dicom_series_filename(self, golden_fiducials):
-        return golden_fiducials.dicom_series.filename
+        if golden_fiducials.dicom_series is None:
+            return None
+        else:
+            return golden_fiducials.dicom_series.filename
 
     def get_zipped_dicom_files_url(self, golden_fiducials):
-        return golden_fiducials.dicom_series.zipped_dicom_files.url
+        if golden_fiducials.dicom_series is None:
+            return None
+        else:
+            return golden_fiducials.dicom_series.zipped_dicom_files.url
 
     def get_csv_url(self, golden_fiducials):
         return reverse('gold_standard_csv', args=(golden_fiducials.phantom.pk, golden_fiducials.pk))

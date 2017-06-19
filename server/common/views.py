@@ -36,15 +36,16 @@ class JsonFormMixin:
 
     def get_context_data(self, **kwargs):
         context = super(JsonFormMixin, self).get_context_data(**kwargs)
+        form_class = self.get_form_class()
         context.update({
-            'form_initial': self.renderer.render({name: '' for name in self.form_class.base_fields.keys()}),
+            'form_initial': self.renderer.render({name: '' for name in form_class.base_fields.keys()}),
         })
         return context
 
     def form_invalid(self, form):
         context = self.get_context_data(form=form)
         context.update({
-            'form_data': self.renderer.render({name: form[name].data for name in self.form_class.base_fields.keys()}),
+            'form_data': self.renderer.render({name: form[name].data for name in form.__class__.base_fields.keys()}),
             'form_errors': self.renderer.render(form.errors),
         })
         return self.render_to_response(context)
@@ -298,7 +299,6 @@ class CreatePhantomView(JsonFormMixin, FormView):
     form_class = forms.CreatePhantomForm
     success_url = reverse_lazy('configuration')
     template_name = 'common/phantom_create.html'
-    renderer = JSONRenderer()
 
     def __init__(self, **kwargs):
         self.object = None
@@ -316,6 +316,7 @@ class CreatePhantomView(JsonFormMixin, FormView):
 @method_decorator(intro_tutorial, name='dispatch')
 class UpdatePhantomView(JsonFormMixin, UpdateView):
     model = models.Phantom
+
     fields = ('name',)
     template_name_suffix = '_update'
     pk_url_kwarg = 'phantom_pk'
