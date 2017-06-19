@@ -36,7 +36,7 @@ class GoldStandardTable extends React.Component<IScanTableProps, {}> {
                     </thead>
                     <tbody>
                     {goldenFiducialsSet.map((goldenFiducials) => (
-                        <tr>
+                        <tr key={goldenFiducials.pk}>
                             <td>
                                 {goldenFiducials.is_active && <i className="fa fa-check success" aria-hidden="true" />}
                             </td>
@@ -45,18 +45,22 @@ class GoldStandardTable extends React.Component<IScanTableProps, {}> {
                             <td>{goldenFiducials.type === 'CT' && goldenFiducials.dicom_series_filename}</td>
                             <td className="sep" />
                             {goldenFiducials.processing ?
-                                <td colSpan={4}>The data is still being processed...</td> :
+                                <td colSpan={4}>
+                                    The data is still being processed...
+                                    {' '}
+                                    <LoadingIcon />
+                                </td> :
                                 [
-                                    <td className="action download-images">
+                                    <td key={0} className="action download-images">
                                         {goldenFiducials.type === 'CT' &&
                                         <a href={goldenFiducials.zipped_dicom_files_url as string}>
                                             Download Images
                                         </a>}
                                     </td>,
-                                    <td className="action download-points">
+                                    <td key={1} className="action download-points">
                                         <a href={goldenFiducials.csv_url}>Download Points</a>
                                     </td>,
-                                    <td className="action set-active">
+                                    <td key={2} className="action set-active">
                                         {!goldenFiducials.is_active && (
                                             <AnchorForm
                                                 id={`activate-${goldenFiducials.pk}`}
@@ -66,7 +70,7 @@ class GoldStandardTable extends React.Component<IScanTableProps, {}> {
                                             </AnchorForm>
                                         )}
                                     </td>,
-                                    <td className="action delete">
+                                    <td key={3} className="action delete">
                                         {!goldenFiducials.is_active && goldenFiducials.type !== 'CAD' && (
                                             <a href={goldenFiducials.delete_url}>
                                                 <i className="fa fa-trash-o" aria-hidden="true" />

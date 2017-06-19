@@ -70,11 +70,11 @@ class PhantomSerializer(serializers.ModelSerializer):
     def get_gold_standard_grid_locations(self, phantom):
         return phantom.active_gold_standard.source_summary
 
-    def get_upload_raw_url(self, golden_fiducials):
-        return reverse('upload_raw', args=(golden_fiducials.phantom.pk,))
+    def get_upload_raw_url(self, phantom):
+        return reverse('upload_raw', args=(phantom.pk,))
 
-    def get_upload_ct_url(self, golden_fiducials):
-        return reverse('upload_ct', args=(golden_fiducials.phantom.pk,))
+    def get_upload_ct_url(self, phantom):
+        return reverse('upload_ct', args=(phantom.pk,))
 
 
 class ScanSerializer(serializers.ModelSerializer):

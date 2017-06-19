@@ -122,8 +122,8 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                 >
 
                     {/* TODO global errors aren't showing */}
-                    <CirsControl type="hidden" model="_" />
-                    <CirsErrors model="_" />
+                    <CirsControl type="hidden" model="._" />
+                    <CirsErrors model="._" />
 
                     <CSRFToken />
 

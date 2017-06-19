@@ -75,8 +75,8 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
                     djangoErrors={formErrors}
                 >
 
-                    <CirsControl type="hidden" model="_" />
-                    <CirsErrors model="_" />
+                    <CirsControl type="hidden" model="._" />
+                    <CirsErrors model="._" />
 
                     <CSRFToken />
 

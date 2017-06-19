@@ -104,8 +104,8 @@ class CreatePhantomForm extends React.Component<ICreatePhantomFormProps, ICreate
                     djangoData={formData}
                     djangoErrors={formErrors}
                 >
-                    <CirsControl type="hidden" model="_" />
-                    <CirsErrors model="_" />
+                    <CirsControl type="hidden" model="._" />
+                    <CirsErrors model="._" />
 
                     <CSRFToken />
 

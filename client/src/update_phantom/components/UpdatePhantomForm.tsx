@@ -27,8 +27,8 @@ export default class extends React.Component<IUpdatePhantomFormProps, {}> {
                     djangoData={formData}
                     djangoErrors={formErrors}
                 >
-                    <CirsControl type="hidden" model="_" />
-                    <CirsErrors model="_" />
+                    <CirsControl type="hidden" model="._" />
+                    <CirsErrors model="._" />
 
                     <CSRFToken />
 
