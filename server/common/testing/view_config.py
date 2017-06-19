@@ -151,6 +151,16 @@ def poll_scans_data(user):
     }
 
 
+def poll_ct_data(user):
+    phantom = factories.PhantomFactory(institution=user.institution)
+    golden_fiducials = factories.GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.CT)
+
+    return {
+        'phantom': phantom,
+        'golden_fiducials': golden_fiducials,
+    }
+
+
 def raw_data_data(user):
     machine = factories.MachineFactory(institution=user.institution)
     sequence = factories.SequenceFactory(institution=user.institution)
@@ -348,7 +358,7 @@ VIEWS = (
         'validate_institution': True,
         'methods': {'GET': None, 'POST': None},
     }, {
-        'view': views.UploadCTView,
+        'view': views.UploadCtView,
         'data': lambda user: {'phantom': factories.PhantomFactory(institution=user.institution)},
         'url': lambda data: reverse('upload_ct', args=(data['phantom'].pk,)),
         'login_required': True,
@@ -434,6 +444,17 @@ VIEWS = (
         'methods': {'POST': lambda data: {
             'machine_sequence_pair_pk': data['machine_sequence_pair'].pk,
             'scan_pks': [data['scan'].pk],
+        }},
+    }, {
+        'view': api.PollCtView,
+        'data': poll_ct_data,
+        'url': reverse('poll_ct'),
+        'login_required': True,
+        'permissions': (),
+        'validate_institution': True,
+        'methods': {'POST': lambda data: {
+            'phantom_pk': data['phantom'].pk,
+            'golden_fiducials_pks': [data['golden_fiducials'].pk],
         }},
     }, {
         'view': views.refresh_scan_view,

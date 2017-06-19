@@ -45,3 +45,16 @@ export interface IScanDto {
     executive_report_url: string | null;
     error_mags: number[] | null;
 }
+
+export interface IGoldenFiducialsDto {
+    pk: number;
+    is_active: boolean;
+    created_on: string;
+    type: string;
+    processing: boolean;
+    dicom_series_filename: string;
+    zipped_dicom_files_url: string;
+    csv_url: string;
+    activate_url: string;
+    delete_url: string;
+}

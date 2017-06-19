@@ -2,12 +2,12 @@ import React from 'react';
 
 import { IDjangoFormErrors } from 'common/forms';
 import CreatePhantomForm from '../components/CreatePhantomForm';
-import { IPhantomForm } from '../forms';
+import { ICreatePhantomForm } from '../forms';
 
 declare const VALIDATE_SERIAL_URL: string;
 declare const CANCEL_URL: string;
 declare const FORM_ACTION: string;
-declare const FORM_DATA: IPhantomForm | null;
+declare const FORM_DATA: ICreatePhantomForm | null;
 declare const FORM_ERRORS: IDjangoFormErrors;
 
 export default () => (

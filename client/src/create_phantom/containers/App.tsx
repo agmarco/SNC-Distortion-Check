@@ -4,9 +4,9 @@ import { Provider } from 'react-redux';
 import { combineForms } from 'react-redux-form';
 
 import Root from './Root';
-import { IPhantomForm } from '../forms';
+import { ICreatePhantomForm } from '../forms';
 
-declare const FORM_INITIAL: IPhantomForm;
+declare const FORM_INITIAL: ICreatePhantomForm;
 
 const store = createStore(combineForms({
     phantom: FORM_INITIAL,

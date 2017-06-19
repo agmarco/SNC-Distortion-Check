@@ -13,6 +13,7 @@ function* pollScans(): any {
     while (true) {
         yield call(delay, 10000);
         const scans = (yield select(selectors.getScans)) as IScanDto[];
+
         if (scans.every(s => !s.processing)) {
             break;
         } else {

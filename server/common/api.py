@@ -5,10 +5,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
-from .models import MachineSequencePair, Phantom, Scan
+from .models import MachineSequencePair, Phantom, Scan, GoldenFiducials
 from .permissions import login_and_permission_required, validate_institution
 from .validators import validate_phantom_serial_number
-from .serializers import ScanSerializer
+from .serializers import ScanSerializer, GoldenFiducialsSerializer
 
 
 class ValidateSerialView(APIView):
@@ -43,7 +43,6 @@ class PollScansView(APIView):
         validate_institution(model_class=MachineSequencePair, pk_url_kwarg='machine_sequence_pair_pk'),
     )
 
-    #  TODO get?
     def post(self, request):
         scans = Scan.objects.filter(
             machine_sequence_pair=request.data['machine_sequence_pair_pk'],
@@ -51,4 +50,20 @@ class PollScansView(APIView):
             processing=False,
         )
         serializer = ScanSerializer(scans, many=True)
+        return Response(serializer.data)
+
+
+class PollCtView(APIView):
+    permission_classes = (
+        IsAuthenticated,
+        validate_institution(model_class=Phantom, pk_url_kwarg='phantom_pk'),
+    )
+
+    def post(self, request):
+        golden_fiducials_set = GoldenFiducials.objects.filter(
+            phantom=request.data['phantom_pk'],
+            pk__in=request.data['golden_fiducials_pks'],
+            processing=False,
+        )
+        serializer = GoldenFiducialsSerializer(golden_fiducials_set, many=True)
         return Response(serializer.data)

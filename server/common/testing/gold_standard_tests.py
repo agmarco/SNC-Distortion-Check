@@ -12,7 +12,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
 from .. import factories
-from ..forms import UploadCTForm, UploadRawForm
+from ..forms import UploadCtForm, UploadRawForm
 
 
 def _generate_csv(ndarray):
@@ -82,7 +82,7 @@ def test_upload_ct_form(client):
     client.force_login(current_user)
 
     with open(os.path.join(settings.BASE_DIR, 'data/dicom/004_ct_603A_UVA_IYKOQG2M.zip'), 'rb') as file:
-        form = UploadCTForm(files={'dicom_archive': SimpleUploadedFile(file.name, file.read(), 'application/zip')})
+        form = UploadCtForm(files={'dicom_archive': SimpleUploadedFile(file.name, file.read(), 'application/zip')})
         assert form.is_valid()
 
 

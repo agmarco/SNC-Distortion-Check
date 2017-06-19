@@ -91,8 +91,7 @@ def institution_required(view):
     return wrapper
 
 
-
-def check_machine_sequence(view):
+def intro_tutorial(view):
     """If there are no machines or sequences, display a message alerting the user to add them."""
 
     @wraps(view)
