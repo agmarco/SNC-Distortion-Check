@@ -283,6 +283,7 @@ VIEWS = (
         'crud': (Crud.CREATE, Sequence, {
             'name': 'Create Sequence',
             'instructions': 'Create Instructions',
+            'tolerance': 3,
         }),
         'url': reverse('create_sequence'),
         'login_required': True,

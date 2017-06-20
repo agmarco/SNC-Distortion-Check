@@ -134,6 +134,7 @@ class Sequence(CommonFieldsMixin):
     institution = models.ForeignKey(Institution, models.CASCADE)
     instructions_ht = 'Instructions describing how to capture this type of MR scan sequence'
     instructions = models.TextField(blank=True, default='', help_text=instructions_ht)
+    tolerance = models.FloatField()
 
     def __str__(self):
         return "{}".format(self.name)
@@ -325,12 +326,10 @@ def create_scan(machine, sequence, phantom, creator, dicom_archive, notes='', di
 
     dicom_series.zipped_dicom_files.save('dicom_archive', File(dicom_archive))
 
-    # TODO: grab tolerance from the sequence (will need to add a tolerance
-    # field to the sequence)
     machine_sequence_pair, _ = MachineSequencePair.objects.get_or_create(
         machine=machine,
         sequence=sequence,
-        defaults={'tolerance': 3},
+        defaults={'tolerance': sequence.tolerance},
     )
 
     scan = Scan.objects.create(

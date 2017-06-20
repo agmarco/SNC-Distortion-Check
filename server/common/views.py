@@ -400,7 +400,7 @@ class DeleteMachineView(CirsDeleteView):
 @method_decorator(check_machine_sequence, name='dispatch')
 class CreateSequenceView(CreateView):
     model = models.Sequence
-    fields = ('name', 'instructions')
+    fields = ('name', 'instructions', 'tolerance')
     success_url = reverse_lazy('configuration')
     template_name_suffix = '_create'
 

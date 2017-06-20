@@ -456,10 +456,10 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
         vmin = voxels.min()
         vmax = voxels.max()
-        ax.set_title('Fiducial ROIs')
-        ax.axis('off')
 
         gs = gridspec.GridSpecFromSubplotSpec(5, 4, width_ratios=[1, 1, 1, 2], subplot_spec=cell)
+        # ax.set_title('Top 100 Most Distorted Grid Intersections')
+        # ax.axis('off')
 
         for i, (a_S, b, error_vec, error_mag) in enumerate(chunk):
             b_ijk = apply_affine(xyz_to_ijk, np.array([b]).T).T.squeeze()
