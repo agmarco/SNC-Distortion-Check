@@ -474,12 +474,18 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
             axial, sagittal, coronal = roi_images(b_ijk, voxels, bounds_ijk, vmax)
 
             ax0 = plt.subplot(gs_inner[i, 0])
+            ax0.set_xlabel('i')
+            ax0.set_ylabel('j')
             generate_roi_view(ax0, axial, bounds_xyz[0], bounds_xyz[1], (a_S[0], a_S[1]), (b[0], b[1]), vmin, vmax)
 
             ax1 = plt.subplot(gs_inner[i, 1])
+            ax1.set_xlabel('i')
+            ax1.set_ylabel('k')
             generate_roi_view(ax1, sagittal, bounds_xyz[0], bounds_xyz[2], (a_S[0], a_S[2]), (b[0], b[2]), vmin, vmax)
 
             ax2 = plt.subplot(gs_inner[i, 2])
+            ax2.set_xlabel('j')
+            ax2.set_ylabel('k')
             generate_roi_view(ax2, coronal, bounds_xyz[1], bounds_xyz[2], (a_S[1], a_S[2]), (b[1], b[2]), vmin, vmax)
 
             ax3 = plt.subplot(gs_inner[i, 3])
