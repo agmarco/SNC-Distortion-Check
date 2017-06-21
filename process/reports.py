@@ -147,6 +147,8 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
     brand_color = (0, 95, 152)
     brand_color = tuple(c / 255 for c in brand_color)
 
+    num_roi_chunks = 4
+
     def create_page(pdf, report_title, get_page, draw):
         fig = plt.figure(figsize=figsize)
         plt.axis('off')
@@ -457,9 +459,12 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         vmin = voxels.min()
         vmax = voxels.max()
 
-        gs = gridspec.GridSpecFromSubplotSpec(5, 4, width_ratios=[1, 1, 1, 2], subplot_spec=cell)
-        # ax.set_title('Top 100 Most Distorted Grid Intersections')
-        # ax.axis('off')
+        gs_outer = gridspec.GridSpecFromSubplotSpec(2, 1, height_ratios=[1, 100], subplot_spec=cell)
+        title_ax = plt.subplot(gs_outer[0, 0])
+        title_ax.set_title('Top 100 Most Distorted Grid Intersections')
+        title_ax.axis('off')
+
+        gs_inner = gridspec.GridSpecFromSubplotSpec(num_roi_chunks, 4, width_ratios=[1, 1, 1, 2], subplot_spec=gs_outer[1, 0])
 
         for i, (a_S, b, error_vec, error_mag) in enumerate(chunk):
             b_ijk = apply_affine(xyz_to_ijk, np.array([b]).T).T.squeeze()
@@ -468,16 +473,16 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
             bounds_ijk = roi_bounds(b_ijk, shape)
             axial, sagittal, coronal = roi_images(b_ijk, voxels, bounds_ijk, vmax)
 
-            ax0 = plt.subplot(gs[i, 0])
+            ax0 = plt.subplot(gs_inner[i, 0])
             generate_roi_view(ax0, axial, bounds_xyz[0], bounds_xyz[1], (a_S[0], a_S[1]), (b[0], b[1]), vmin, vmax)
 
-            ax1 = plt.subplot(gs[i, 1])
+            ax1 = plt.subplot(gs_inner[i, 1])
             generate_roi_view(ax1, sagittal, bounds_xyz[0], bounds_xyz[2], (a_S[0], a_S[2]), (b[0], b[2]), vmin, vmax)
 
-            ax2 = plt.subplot(gs[i, 2])
+            ax2 = plt.subplot(gs_inner[i, 2])
             generate_roi_view(ax2, coronal, bounds_xyz[1], bounds_xyz[2], (a_S[1], a_S[2]), (b[1], b[2]), vmin, vmax)
 
-            ax3 = plt.subplot(gs[i, 3])
+            ax3 = plt.subplot(gs_inner[i, 3])
             generate_roi_table(ax3, a_S, b, error_vec, error_mag)
 
     def draw_points(ax, cell, looking_down_axis=None):
@@ -538,8 +543,8 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
 
         sort_indices = np.argsort(error_mags)[::-1]
         rois = zip(TP_A_S.T[sort_indices], TP_B.T[sort_indices], error_vecs.T[sort_indices], error_mags[sort_indices])
-        all_chunks = chunks(list(rois), 5)
-        for chunk in itertools.islice(all_chunks, 20):
+        all_chunks = chunks(list(rois), num_roi_chunks)
+        for chunk in itertools.islice(all_chunks, 100 // num_roi_chunks):
             draw_chunk = partial(draw_fiducial_rois, chunk)
             create_page_full(draw_chunk)
 
