@@ -290,7 +290,7 @@ class SequenceForm(CirsFormMixin, forms.ModelForm):
     tolerance = forms.FloatField(
         widget=forms.NumberInput(attrs={'step': '0.01'}),
         initial=Sequence._meta.get_field('tolerance').default,
-        help_text=Sequence.tolerance_ht,
+        help_text=Sequence._meta.get_field('tolerance').help_text,
     )
 
     class Meta:
