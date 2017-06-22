@@ -134,7 +134,10 @@ class Sequence(CommonFieldsMixin):
     institution = models.ForeignKey(Institution, models.CASCADE)
     instructions_ht = 'Instructions describing how to capture this type of MR scan sequence'
     instructions = models.TextField(blank=True, default='', help_text=instructions_ht)
-    tolerance = models.FloatField()
+    tolerance_ht = "The default maximum allowable distortion (mm) for new machine-sequence pairs that use " \
+                   "this sequence. The tolerance for a machine-sequence pair can be customized after the first " \
+                   "scan is uploaded."
+    tolerance = models.FloatField(default=3, help_text=tolerance_ht)
 
     def __str__(self):
         return "{}".format(self.name)
