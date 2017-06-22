@@ -9,7 +9,7 @@ from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 
 from process import dicom_import
-from .models import Phantom, Institution, User, Machine
+from .models import Phantom, Institution, User, Machine, Sequence
 from .validators import validate_phantom_serial_number
 
 
@@ -284,3 +284,11 @@ class CreateMachineForm(CirsFormMixin, forms.ModelForm):
     def save(self, commit=True):
         self.instance.institution = self.institution
         return super(CreateMachineForm, self).save(commit)
+
+
+class SequenceForm(CirsFormMixin, forms.ModelForm):
+    tolerance = forms.FloatField(widget=forms.NumberInput(attrs={'step': '0.01'}), help_text=Sequence.tolerance_ht)
+
+    class Meta:
+        model = Sequence
+        fields = ('name', 'instructions', 'tolerance')
