@@ -6,7 +6,6 @@ import { CirsForm, CirsControl, CirsErrors, IDjangoFormData, IDjangoFormErrors }
 import { CSRFToken } from 'common/components';
 
 interface IUpdatePhantomFormProps {
-    formData: IDjangoFormData | null;
     formErrors: IDjangoFormErrors | null;
     formAction: string;
     formState?: { [name: string]: FieldState };
@@ -15,7 +14,7 @@ interface IUpdatePhantomFormProps {
 
 export default class extends React.Component<IUpdatePhantomFormProps, {}> {
     render() {
-        const { formAction, formData, formErrors } = this.props;
+        const { formAction, formErrors } = this.props;
 
         return (
             <div>
@@ -24,11 +23,10 @@ export default class extends React.Component<IUpdatePhantomFormProps, {}> {
                     method="post"
                     model="forms.phantom"
                     className="cirs-form"
-                    djangoData={formData}
                     djangoErrors={formErrors}
                 >
-                    <CirsControl type="hidden" model="._" />
-                    <CirsErrors model="._" />
+                    <CirsControl type="hidden" model=".__all__" />
+                    <CirsErrors model=".__all__" />
 
                     <CSRFToken />
 

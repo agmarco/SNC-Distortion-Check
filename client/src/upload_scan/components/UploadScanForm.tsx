@@ -15,7 +15,6 @@ interface IUploadScanFormProps {
     initialMachinePk: number | null;
     initialSequencePk: number | null;
     cancelUrl: string;
-    formData: IDjangoFormData | null;
     formErrors: IDjangoFormErrors | null;
     formAction: string;
     form?: IUploadScanForm;
@@ -50,7 +49,7 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
     // }
 
     render() {
-        const { machines, sequences, phantoms, cancelUrl, formData, formErrors, form, formAction } = this.props;
+        const { machines, sequences, phantoms, cancelUrl, formErrors, form, formAction } = this.props;
         const { machine, sequence, phantom } = form as IUploadScanForm;
 
         const currentMachine = machine && (
@@ -71,12 +70,11 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
                     method="post"
                     model="uploadScan"
                     className="cirs-form"
-                    djangoData={formData}
                     djangoErrors={formErrors}
                 >
 
-                    <CirsControl type="hidden" model="._" />
-                    <CirsErrors model="._" />
+                    <CirsControl type="hidden" model=".__all__" />
+                    <CirsErrors model=".__all__" />
 
                     <CSRFToken />
 

@@ -12,7 +12,7 @@ declare const INITIAL_MACHINE_PK: number | null;
 declare const INITIAL_SEQUENCE_PK: number | null;
 declare const CANCEL_URL: string;
 declare const FORM_ACTION: string;
-declare const FORM_DATA: IUploadScanForm | null;
+declare const FORM_INITIAL: IUploadScanForm | null;
 declare const FORM_ERRORS: IDjangoFormErrors;
 
 export default () => (
@@ -25,7 +25,6 @@ export default () => (
             initialMachinePk={INITIAL_MACHINE_PK}
             initialSequencePk={INITIAL_SEQUENCE_PK}
             cancelUrl={CANCEL_URL}
-            formData={FORM_DATA}
             formErrors={FORM_ERRORS}
             formAction={FORM_ACTION}
         />

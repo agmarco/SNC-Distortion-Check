@@ -45,8 +45,10 @@ class JsonFormMixin:
     def form_invalid(self, form):
         context = self.get_context_data(form=form)
         form_class = self.get_form_class()
+        context['form_initial'] = self.renderer.render(
+            {name: form[name].data for name in form_class.base_fields.keys()}
+        )
         context.update({
-            'form_data': self.renderer.render({name: form[name].data for name in form_class.base_fields.keys()}),
             'form_errors': self.renderer.render(form.errors),
         })
         return self.render_to_response(context)

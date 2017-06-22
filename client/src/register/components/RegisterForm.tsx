@@ -12,9 +12,9 @@ import { CirsForm, CirsControl, CirsErrors, IDjangoFormData, IDjangoFormErrors }
 interface IRegisterFormProps {
     validateSerialUrl: string;
     cancelUrl: string;
-    formData: IDjangoFormData | null;
     formErrors: IDjangoFormErrors | null;
     formAction: string;
+    form?: IDjangoFormData;
     formState?: { [name: string]: FieldState };
     dispatch?: Dispatch<any>;
 }
@@ -40,10 +40,10 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
     }
 
     componentDidMount() {
-        const { formData } = this.props;
+        const { form } = this.props;
 
-        if (formData) {
-            this.validateSerialNumber({target: {value: formData.phantom_serial_number}});
+        if (form) {
+            this.validateSerialNumber({target: {value: form.phantom_serial_number}});
         }
     }
 
@@ -91,14 +91,14 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
     }
 
     render() {
-        const { cancelUrl, formData, formErrors, formAction, formState } = this.props;
+        const { cancelUrl, formErrors, formAction, formState, form } = this.props;
         const { serialNumberMessage, modelNumber } = this.state;
         const { pristine, validating, valid } = (formState as { [name: string]: FieldState }).phantom_serial_number;
         const cirs603AUrl = 'http://www.cirsinc.com/products/all/99/mri-distortion-phantom-for-srs/';
         const cirs604Url = 'http://www.cirsinc.com/products/all/118/large-field-mri-distortion-phantom/';
 
         let modelNumberText = null;
-        if (!pristine) {
+        if (!pristine || (form && form.phantom_serial_number !== '')) {
             if (validating) {
                 modelNumberText = "Searching...";
             } else if (valid) {
@@ -117,13 +117,12 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
                     method="post"
                     model="register"
                     className="cirs-form"
-                    djangoData={formData}
                     djangoErrors={formErrors}
                 >
 
                     {/* TODO global errors aren't showing */}
-                    <CirsControl type="hidden" model="._" />
-                    <CirsErrors model="._" />
+                    <CirsControl type="hidden" model=".__all__" />
+                    <CirsErrors model=".__all__" />
 
                     <CSRFToken />
 
@@ -252,4 +251,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
     }
 }
 
-export default connect<any, any, any>((state: any) => ({formState: state.forms.register}))(RegisterForm as any);
+export default connect<any, any, any>((state: any) => ({
+    form: state.register,
+    formState: state.forms.register,
+}))(RegisterForm as any);

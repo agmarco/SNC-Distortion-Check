@@ -94,29 +94,21 @@ export class CirsControl<T> extends React.Component<ControlProps<T>, {}> {
 
 interface ICirsFormProps extends FormProps {
     dispatch?: Dispatch<any>;
-    djangoData?: IDjangoFormData;
     djangoErrors?: IDjangoFormErrors;
 }
 
 class CirsFormImpl extends React.Component<ICirsFormProps, {}> {
     componentDidMount() {
-        const { dispatch, djangoData, djangoErrors, model } = this.props;
+        const { dispatch, djangoErrors, model } = this.props;
 
         if (dispatch && typeof model === 'string') {
-
-            // Populate form with initial data. Assumes the field model names are the same as the Django field names.
-            if (djangoData) {
-                for (let field of Object.keys(djangoData)) {
-                    dispatch(actions.change(`${model}.${field}`, djangoData[field]));
-                }
-            }
 
             // Display errors from Django. Assumes the field model names are the same as the Django field names.
             if (djangoErrors) {
                 if (djangoErrors.__all__) {
                     const formErrors = keyBy<string>(djangoErrors.__all__, s => `django${uniqueId()}`);
-                    dispatch(actions.setErrors('_', formErrors));
-                    dispatch(actions.setTouched('_'));
+                    dispatch(actions.setErrors(`${model}.__all__`, formErrors));
+                    dispatch(actions.setTouched(`${model}.__all__`));
                 }
 
                 const fieldErrors = mapValues<string[], ErrorsObject>(
@@ -133,7 +125,7 @@ class CirsFormImpl extends React.Component<ICirsFormProps, {}> {
     }
 
     render() {
-        const { dispatch, djangoData, djangoErrors, ...rest } = this.props;
+        const { dispatch, djangoErrors, ...rest } = this.props;
         return <Form {...rest} />;
     }
 }

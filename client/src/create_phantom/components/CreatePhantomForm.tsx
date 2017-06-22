@@ -12,7 +12,6 @@ import { CSRFToken } from 'common/components';
 interface ICreatePhantomFormProps {
     validateSerialUrl: string;
     cancelUrl: string;
-    formData: IDjangoFormData | null;
     formErrors: IDjangoFormErrors | null;
     formAction: string;
     formState?: { [name: string]: FieldState };
@@ -79,7 +78,7 @@ class CreatePhantomForm extends React.Component<ICreatePhantomFormProps, ICreate
     }
 
     render() {
-        const { cancelUrl, formState, formAction, formData, formErrors } = this.props;
+        const { cancelUrl, formState, formAction, formErrors } = this.props;
         const { serialNumberMessage, modelNumber} = this.state;
         const { pristine, validating, valid } = (formState as { [name: string]: FieldState }).serial_number;
 
@@ -101,11 +100,10 @@ class CreatePhantomForm extends React.Component<ICreatePhantomFormProps, ICreate
                     method="post"
                     model="phantom"
                     className="cirs-form"
-                    djangoData={formData}
                     djangoErrors={formErrors}
                 >
-                    <CirsControl type="hidden" model="._" />
-                    <CirsErrors model="._" />
+                    <CirsControl type="hidden" model=".__all__" />
+                    <CirsErrors model=".__all__" />
 
                     <CSRFToken />
 
