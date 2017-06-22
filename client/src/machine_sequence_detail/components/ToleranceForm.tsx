@@ -82,7 +82,7 @@ class ToleranceForm extends React.Component<IToleranceFormProps, IToleranceFormS
     }
 
     render() {
-        const { tolerance, handleToleranceChange, formState } = this.props;
+        const { handleToleranceChange, formState } = this.props;
         const { success } = this.state;
 
         const { pending } = (formState as { [name: string]: FieldState }).$form;
@@ -95,7 +95,6 @@ class ToleranceForm extends React.Component<IToleranceFormProps, IToleranceFormS
                     id="tolerance-form"
                     model="forms.tolerance"
                     onSubmit={this.handleSubmit.bind(this)}
-                    djangoData={{tolerance}}
                 >
                     <CSRFToken />
 

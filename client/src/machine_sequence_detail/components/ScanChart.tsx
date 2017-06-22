@@ -93,6 +93,10 @@ export default class extends React.Component<IScanChartProps, IScanChartState> {
         const { machineSequencePair, scans } = props;
         const processedScans = scans.filter(s => !s.processing && !s.errors).reverse();
 
+        if (processedScans.some((s => s.error_mags === null))) {
+            throw new Error("Scan is done processing and without errors, but doesn't have any error magnitudes.");
+        }
+
         const labels = true;
         const margin = {top: 10, right: 10, bottom: 60, left: 60};
 

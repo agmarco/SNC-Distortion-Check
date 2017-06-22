@@ -13,11 +13,11 @@ function* pollCt(): any {
     while (true) {
         yield call(delay, 10000);
         const goldenFiducialsSet = (yield select(selectors.getGoldenFiducialsSet)) as IGoldenFiducialsDto[];
+        const unprocessedGoldenFiducialsSet = goldenFiducialsSet.filter(s => s.processing);
 
-        if (goldenFiducialsSet.every(s => !s.processing)) {
+        if (unprocessedGoldenFiducialsSet.length === 0) {
             break;
         } else {
-            const unprocessedGoldenFiducialsSet = goldenFiducialsSet.filter(s => s.processing);
             const response = yield call(fetch, POLL_CT_URL, {
                 method: 'POST',
                 credentials: 'same-origin',

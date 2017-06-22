@@ -13,11 +13,11 @@ function* pollScans(): any {
     while (true) {
         yield call(delay, 10000);
         const scans = (yield select(selectors.getScans)) as IScanDto[];
+        const unprocessedScans = scans.filter(s => s.processing);
 
-        if (scans.every(s => !s.processing)) {
+        if (unprocessedScans.length === 0) {
             break;
         } else {
-            const unprocessedScans = scans.filter(s => s.processing);
             const response = yield call(fetch, POLL_SCANS_URL, {
                 method: 'POST',
                 credentials: 'same-origin',
