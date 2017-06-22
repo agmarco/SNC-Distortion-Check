@@ -1,16 +1,10 @@
 import React from 'react';
-import { createStore, applyMiddleware } from 'redux';
 import { Provider } from 'react-redux';
-import createSagaMiddleware from 'redux-saga';
 
 import Root from './Root';
-import reducer from '../reducers';
-import saga from '../sagas';
+import configureStore from '../store';
 
-const sagaMiddleware = createSagaMiddleware();
-const store = createStore(reducer, applyMiddleware(sagaMiddleware));
-
-sagaMiddleware.run(saga);
+const store = configureStore();
 
 export default () => (
     <Provider store={store}>

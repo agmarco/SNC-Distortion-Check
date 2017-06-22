@@ -1,16 +1,10 @@
 import React from 'react';
-import { createStore } from 'redux';
 import { Provider } from 'react-redux';
-import { combineForms } from 'react-redux-form';
 
 import Root from './Root';
-import { ICreatePhantomForm } from '../forms';
+import configureStore from '../store';
 
-declare const FORM_INITIAL: ICreatePhantomForm;
-
-const store = createStore(combineForms({
-    phantom: FORM_INITIAL,
-}));
+const store = configureStore();
 
 export default () => (
     <Provider store={store}>

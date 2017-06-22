@@ -4,7 +4,6 @@ import uniqBy from 'lodash/uniqBy';
 
 import { IScanDto, IPhantomDto } from 'common/service';
 import { BoolIcon, AnchorForm, LoadingIcon } from 'common/components';
-
 import './ScanTable.scss';
 
 export interface IScanTableProps {

@@ -7,15 +7,13 @@ import merge from 'webpack-merge';
 import webpackBase from './webpack.config.base.babel';
 
 
-// TODO HMR broken
-// https://github.com/webpack/webpack-dev-server/releases/tag/v2.4.3
-// https://github.com/webpack/webpack-dev-server/issues/533
-// https://github.com/webpack/webpack-dev-server/issues/882
+// TODO HMR broken - https://github.com/reactjs/react-redux/releases/tag/v2.0.0
+// TODO too much junk in the HMR output
 export default (env) => {
     const config = merge(webpackBase(env), {
         output: {
             // TODO: grab this from the .env file
-            publicPath: 'http://0.0.0.0:8000/static/',
+            publicPath: env === 'hot' ? 'http://0.0.0.0:8080/' : 'http://0.0.0.0:8000/static/',
             filename: '[name].js',
         },
 
@@ -49,6 +47,7 @@ export default (env) => {
             host: '0.0.0.0',
             port: 8080,
             stats: {chunks: false},
+            headers: {'Access-Control-Allow-Origin': '*'},
         },
     });
 

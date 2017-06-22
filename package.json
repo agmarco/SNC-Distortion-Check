@@ -40,7 +40,7 @@
     "tslint": "^4",
     "tslint-loader": "^3.4.3",
     "tslint-react": "^2.5.0",
-    "webpack-dev-server": "^2.4.2"
+    "webpack-dev-server": "^2.5.0"
   },
   "dependencies": {
     "@types/bluebird": "^3.5.2",
@@ -85,13 +85,15 @@
     "sass-loader": "^6.0.3",
     "style-loader": "^0.16.1",
     "svg-url-loader": "^2.0.2",
-    "ts-loader": "^2.1.0",
+    "ts-loader": "^2.2.0",
     "typescript": "^2.3.4",
-    "url-loader": "^0.5.8",
-    "webpack": "^2.2.1",
+    "upgrade": "^1.1.0",
+    "url-loader": "^0.5.9",
+    "webpack": "^3.0.0",
     "webpack-chunk-hash": "^0.4.0",
     "webpack-manifest-plugin": "^1.1.0",
-    "webpack-merge": "^4.1.0"
+    "webpack-merge": "^4.1.0",
+    "yarn": "^0.24.5"
   },
   "engines": {
     "node": "7.8.0"

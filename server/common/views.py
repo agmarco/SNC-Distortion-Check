@@ -30,6 +30,7 @@ from .http import CsvResponse
 logger = logging.getLogger(__name__)
 
 
+# TODO serialize help_text
 class JsonFormMixin:
     renderer = JSONRenderer()
     form_class = None

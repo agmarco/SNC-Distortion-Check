@@ -44,7 +44,8 @@ class CreatePhantomForm extends React.Component<ICreatePhantomFormProps, ICreate
             promise.cancel();
         }
 
-        // TODO redux-saga?
+        // TODO switch to redux-saga
+        // https://github.com/redux-saga/redux-saga/blob/master/docs/advanced/TaskCancellation.md
         const newPromise = Bluebird.resolve(fetch(validateSerialUrl, {
                 method: 'POST',
                 credentials: 'same-origin',
