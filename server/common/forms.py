@@ -287,7 +287,11 @@ class CreateMachineForm(CirsFormMixin, forms.ModelForm):
 
 
 class SequenceForm(CirsFormMixin, forms.ModelForm):
-    tolerance = forms.FloatField(widget=forms.NumberInput(attrs={'step': '0.01'}), help_text=Sequence.tolerance_ht)
+    tolerance = forms.FloatField(
+        widget=forms.NumberInput(attrs={'step': '0.01'}),
+        initial=Sequence._meta.get_field('tolerance').default,
+        help_text=Sequence.tolerance_ht,
+    )
 
     class Meta:
         model = Sequence
