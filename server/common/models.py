@@ -137,7 +137,7 @@ class Sequence(CommonFieldsMixin):
     tolerance_ht = "The default maximum allowable distortion (mm) for new machine-sequence pairs that use " \
                    "this sequence. The tolerance for a machine-sequence pair can be customized after the first " \
                    "scan is uploaded."
-    tolerance = models.FloatField(default=3, help_text=tolerance_ht)
+    tolerance = models.FloatField(default=3.0, help_text=tolerance_ht)
 
     def __str__(self):
         return "{}".format(self.name)
