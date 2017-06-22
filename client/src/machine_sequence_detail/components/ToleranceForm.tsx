@@ -1,93 +1,39 @@
 import React from 'react';
-import * as Cookies from 'js-cookie';
-import * as Bluebird from 'bluebird';
 import { connect } from 'react-redux';
-import { FieldState, actions } from 'react-redux-form';
+import { FieldState } from 'react-redux-form';
 import { Dispatch } from 'redux';
 
-import { encode } from 'common/utils';
 import { CSRFToken, BoolIcon, LoadingIcon } from 'common/components';
 import { CirsForm, CirsControl } from 'common/forms';
 import { IMachineSequencePairDto } from 'common/service';
+import { IAppState } from '../reducers';
+import * as actions from '../actions';
 
 import './ToleranceForm.scss';
 
 interface IToleranceFormProps {
-    updateToleranceUrl: string;
     machineSequencePair: IMachineSequencePairDto;
     tolerance: number;
     handleToleranceChange: (event: React.FormEvent<HTMLInputElement>) => void;
     formState?: { [name: string]: FieldState };
     dispatch?: Dispatch<any>;
+    updateToleranceSuccess?: boolean | null;
 }
 
-interface IToleranceFormState {
-    success: boolean | null;
-    promise: Bluebird<any> | null;
-}
-
-class ToleranceForm extends React.Component<IToleranceFormProps, IToleranceFormState> {
-    constructor() {
-        super();
-
-        Bluebird.config({cancellation: true});
-        this.state = {
-            success: null,
-            promise: null,
-        };
-    }
-
+class ToleranceForm extends React.Component<IToleranceFormProps, {}> {
     handleSubmit(data: any, event: React.FormEvent<HTMLInputElement>) {
-        const { updateToleranceUrl, tolerance, machineSequencePair, dispatch } = this.props;
-        const { promise } = this.state;
-
-        if (promise) {
-            promise.cancel();
-        }
+        const { tolerance, machineSequencePair, dispatch } = this.props;
 
         if (dispatch) {
-            dispatch(actions.setPending('forms.tolerance', true));
+            dispatch(actions.updateTolerance({pk: machineSequencePair.pk, tolerance}));
         }
-
-        const newPromise = Bluebird.resolve(fetch(updateToleranceUrl, {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': Cookies.get('csrftoken'),
-                },
-                body: encode({
-                    pk: machineSequencePair.pk,
-                    tolerance,
-                }),
-            }))
-            .then((res) => {
-                if (dispatch) {
-                    dispatch(actions.setPending('forms.tolerance', false));
-                }
-                if (res.ok) {
-                    this.setState({
-                        promise: null,
-                        success: true,
-                    });
-                } else {
-                    this.setState({
-                        promise: null,
-                        success: false,
-                    });
-                }
-            });
-
-        this.setState({success: false, promise: newPromise});
     }
 
     render() {
-        const { handleToleranceChange, formState } = this.props;
-        const { success } = this.state;
+        const { handleToleranceChange, formState, updateToleranceSuccess } = this.props;
 
         const { pending } = (formState as { [name: string]: FieldState }).$form;
 
-        // TODO tolerance form not populating with initial data
         return (
             <div>
                 <CirsForm
@@ -110,7 +56,9 @@ class ToleranceForm extends React.Component<IToleranceFormProps, IToleranceFormS
                                 required
                             />
                             <input type="submit" value="Save" className="btn tertiary" />
-                            {pending ? <LoadingIcon /> : (success !== null && <BoolIcon success={success} />)}
+                            {pending ? <LoadingIcon /> :
+                                (updateToleranceSuccess !== null &&
+                                <BoolIcon success={updateToleranceSuccess as boolean} />)}
                         </div>
                     </div>
                 </CirsForm>
@@ -119,4 +67,7 @@ class ToleranceForm extends React.Component<IToleranceFormProps, IToleranceFormS
     }
 }
 
-export default connect<any, any, any>((state: any) => ({formState: state.forms.forms.tolerance}))(ToleranceForm as any);
+export default connect<any, any, any>((state: IAppState) => ({
+    formState: state.forms.forms.tolerance,
+    updateToleranceSuccess: state.updateToleranceSuccess,
+}))(ToleranceForm as any);

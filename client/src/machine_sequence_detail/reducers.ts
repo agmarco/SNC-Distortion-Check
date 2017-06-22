@@ -10,6 +10,7 @@ declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
 
 export interface IAppState {
     scans: IScanDto[];
+    updateToleranceSuccess: boolean | null;
     forms: {
         forms: {
             tolerance: FormState;
@@ -28,8 +29,13 @@ const scanReducer = handleActions<IScanDto[], any>({
     }),
 }, SCANS);
 
+const updateToleranceSuccessReducer = handleActions<boolean | null, any>({
+    [constants.UPDATE_TOLERANCE_SUCCESS]: (state, action) => action.payload,
+}, null);
+
 export default combineReducers({
     scans: scanReducer,
+    updateToleranceSuccess: updateToleranceSuccessReducer,
     forms: combineForms({
         tolerance: {tolerance: MACHINE_SEQUENCE_PAIR.tolerance},
     }, 'forms'),

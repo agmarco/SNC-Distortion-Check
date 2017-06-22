@@ -30,9 +30,12 @@ function* pollCt(): any {
                     golden_fiducials_pks: unprocessedGoldenFiducialsSet.map(g => g.pk),
                 }),
             });
-            const updatedGoldenFiducialsSet = yield call(response.json.bind(response));
-            for (const goldenFiducials of updatedGoldenFiducialsSet) {
-                yield put(actions.updateGoldenFiducials(goldenFiducials));
+
+            if (response.ok) {
+                const updatedGoldenFiducialsSet = (yield call(response.json.bind(response))) as IGoldenFiducialsDto[];
+                for (const goldenFiducials of updatedGoldenFiducialsSet) {
+                    yield put(actions.updateGoldenFiducials(goldenFiducials));
+                }
             }
         }
     }

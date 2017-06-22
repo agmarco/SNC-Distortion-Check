@@ -1,42 +1,25 @@
 import React from 'react';
-import * as Cookies from 'js-cookie';
-import * as Bluebird from 'bluebird';
 import { connect } from 'react-redux';
-import { FieldState, actions } from 'react-redux-form';
+import { FieldState } from 'react-redux-form';
 import { Dispatch } from 'redux';
 
-import { handleErrors, encode } from 'common/utils';
 import { CSRFToken } from 'common/components';
-import { CirsForm, CirsControl, CirsErrors, IDjangoFormData, IDjangoFormErrors } from 'common/forms';
+import { CirsForm, CirsControl, CirsErrors, IDjangoFormErrors } from 'common/forms';
+import { IRegisterForm } from '../forms';
+import * as actions from '../actions';
+import { IAppState, ISerialNumberInfoState } from '../reducers';
 
 interface IRegisterFormProps {
-    validateSerialUrl: string;
     cancelUrl: string;
     formErrors: IDjangoFormErrors | null;
     formAction: string;
-    form?: IDjangoFormData;
+    form?: IRegisterForm;
     formState?: { [name: string]: FieldState };
     dispatch?: Dispatch<any>;
+    serialNumberInfo?: ISerialNumberInfoState;
 }
 
-interface IRegisterFormState {
-    serialNumberMessage: string | null;
-    modelNumber: string | null;
-    promise: Bluebird<any> | null;
-}
-
-class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormState> {
-    constructor() {
-        super();
-
-        Bluebird.config({cancellation: true});
-        this.state = {
-            serialNumberMessage: null,
-            modelNumber: null,
-            promise: null,
-        };
-    }
-
+class RegisterForm extends React.Component<IRegisterFormProps, {}> {
     componentDidMount() {
         const { form } = this.props;
 
@@ -45,52 +28,17 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
         }
     }
 
-    // TODO asyncSetValidity doesn't run on first change
-    // https://github.com/davidkpiano/react-redux-form/issues/817
-    // event: React.FormEvent<HTMLInputElement>
     validateSerialNumber(event: any) {
-        const { validateSerialUrl, dispatch } = this.props;
-        const { promise } = this.state;
+        const { dispatch } = this.props;
 
-        if (promise) {
-            promise.cancel();
+        if (dispatch) {
+            dispatch(actions.validateSerialNumber((event.target as any).value));
         }
-
-        const newPromise = Bluebird.resolve(fetch(validateSerialUrl, {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': Cookies.get('csrftoken'),
-                },
-                body: encode({serial_number: (event.target as any).value}),
-            }))
-            .then((res) => {
-                handleErrors(res, (async function() {
-                    const { valid, model_number, message } = await res.json();
-
-                    this.setState({
-                        serialNumberMessage: message,
-                        modelNumber: model_number,
-                        promise: null,
-                    });
-
-                    if (dispatch) {
-                        dispatch(actions.setValidity('register.phantom_serial_number', valid));
-                    }
-                }).bind(this));
-            });
-
-        this.setState({
-            serialNumberMessage: null,
-            modelNumber: null,
-            promise: newPromise,
-        });
     }
 
     render() {
-        const { cancelUrl, formErrors, formAction, formState, form } = this.props;
-        const { serialNumberMessage, modelNumber } = this.state;
+        const { cancelUrl, formErrors, formAction, formState, form, serialNumberInfo } = this.props;
+        const { message, modelNumber} = serialNumberInfo as ISerialNumberInfoState;
         const { pristine, validating, valid } = (formState as { [name: string]: FieldState }).phantom_serial_number;
         const cirs603AUrl = 'http://www.cirsinc.com/products/all/99/mri-distortion-phantom-for-srs/';
         const cirs604Url = 'http://www.cirsinc.com/products/all/118/large-field-mri-distortion-phantom/';
@@ -102,18 +50,16 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
             } else if (valid) {
                 modelNumberText = <span className="success">{modelNumber}</span>;
             } else {
-                modelNumberText = <span className="error">{serialNumberMessage}</span>;
+                modelNumberText = <span className="error">{message}</span>;
             }
         }
 
-        // TODO form briefly flashing wrong validation errors if form is populated with data from Django, and field is
-        // not modified prior to submission
         return (
             <div>
                 <CirsForm
                     action={formAction}
                     method="post"
-                    model="register"
+                    model="forms.register"
                     className="cirs-form"
                     djangoErrors={formErrors}
                 >
@@ -249,7 +195,8 @@ class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormStat
     }
 }
 
-export default connect<any, any, any>((state: any) => ({
-    form: state.register,
-    formState: state.forms.register,
+export default connect<any, any, any>((state: IAppState) => ({
+    form: state.forms.register,
+    formState: state.forms.forms.register,
+    serialNumberInfo: state.serialNumberInfo,
 }))(RegisterForm as any);

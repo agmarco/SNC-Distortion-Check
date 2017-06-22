@@ -1,86 +1,44 @@
 import React from 'react';
-import * as Cookies from 'js-cookie';
-import * as Bluebird from 'bluebird';
 import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
-import { FieldState, actions } from 'react-redux-form';
+import { FieldState } from 'react-redux-form';
 
-import { handleErrors, encode } from 'common/utils';
-import { CirsForm, CirsControl, CirsErrors, IDjangoFormData, IDjangoFormErrors } from 'common/forms';
+import { CirsForm, CirsControl, CirsErrors, IDjangoFormErrors } from 'common/forms';
 import { CSRFToken } from 'common/components';
+import { ICreatePhantomForm } from '../forms';
+import * as actions from '../actions';
+import { IAppState, ISerialNumberInfoState } from '../reducers';
 
 interface ICreatePhantomFormProps {
-    validateSerialUrl: string;
     cancelUrl: string;
     formErrors: IDjangoFormErrors | null;
     formAction: string;
+    form?: ICreatePhantomForm;
     formState?: { [name: string]: FieldState };
     dispatch?: Dispatch<any>;
+    serialNumberInfo?: ISerialNumberInfoState;
 }
 
-interface ICreatePhantomFormState {
-    serialNumberMessage: string | null;
-    modelNumber: string | null;
-    promise: Bluebird<any> | null;
-}
+class CreatePhantomForm extends React.Component<ICreatePhantomFormProps, {}> {
+    componentDidMount() {
+        const { form } = this.props;
 
-class CreatePhantomForm extends React.Component<ICreatePhantomFormProps, ICreatePhantomFormState> {
-    constructor() {
-        super();
-
-        Bluebird.config({cancellation: true});
-        this.state = {
-            serialNumberMessage: null,
-            modelNumber: null,
-            promise: null,
-        };
+        if (form) {
+            this.validateSerialNumber({target: {value: form.serial_number}});
+        }
     }
 
     validateSerialNumber(event: any) {
-        const { validateSerialUrl, dispatch } = this.props;
-        const { promise } = this.state;
+        const { dispatch } = this.props;
 
-        if (promise) {
-            promise.cancel();
+        if (dispatch) {
+            dispatch(actions.validateSerialNumber((event.target as any).value));
         }
-
-        // TODO switch to redux-saga
-        // https://github.com/redux-saga/redux-saga/blob/master/docs/advanced/TaskCancellation.md
-        const newPromise = Bluebird.resolve(fetch(validateSerialUrl, {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': Cookies.get('csrftoken'),
-                },
-                body: encode({serial_number: (event.target as any).value}),
-            }))
-            .then((res) => {
-                handleErrors(res, (async function() {
-                    const { valid, model_number, message } = await res.json();
-
-                    this.setState({
-                        serialNumberMessage: message,
-                        modelNumber: model_number,
-                        promise: null,
-                    });
-
-                    if (dispatch) {
-                        dispatch(actions.setValidity('phantom.serial_number', valid));
-                    }
-                }).bind(this));
-            });
-
-        this.setState({
-            serialNumberMessage: null,
-            modelNumber: null,
-            promise: newPromise,
-        });
     }
 
     render() {
-        const { cancelUrl, formState, formAction, formErrors } = this.props;
-        const { serialNumberMessage, modelNumber} = this.state;
+        const { cancelUrl, formState, formAction, formErrors, serialNumberInfo } = this.props;
+        const { message, modelNumber} = serialNumberInfo as ISerialNumberInfoState;
         const { pristine, validating, valid } = (formState as { [name: string]: FieldState }).serial_number;
 
         let modelNumberText = null;
@@ -90,7 +48,7 @@ class CreatePhantomForm extends React.Component<ICreatePhantomFormProps, ICreate
             } else if (valid) {
                 modelNumberText = <span className="success">{modelNumber}</span>;
             } else {
-                modelNumberText = <span className="error">{serialNumberMessage}</span>;
+                modelNumberText = <span className="error">{message}</span>;
             }
         }
 
@@ -99,7 +57,7 @@ class CreatePhantomForm extends React.Component<ICreatePhantomFormProps, ICreate
                 <CirsForm
                     action={formAction}
                     method="post"
-                    model="phantom"
+                    model="forms.phantom"
                     className="cirs-form"
                     djangoErrors={formErrors}
                 >
@@ -155,4 +113,8 @@ class CreatePhantomForm extends React.Component<ICreatePhantomFormProps, ICreate
 }
 
 // TODO figure out the types
-export default connect<any, any, any>((state: any) => ({formState: state.forms.phantom}))(CreatePhantomForm as any);
+export default connect<any, any, any>((state: IAppState) => ({
+    form: state.forms.phantom,
+    formState: state.forms.forms.phantom,
+    serialNumberInfo: state.serialNumberInfo,
+}))(CreatePhantomForm as any);
