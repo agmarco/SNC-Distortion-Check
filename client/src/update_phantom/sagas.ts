@@ -6,8 +6,10 @@ import { IGoldenFiducialsDto, IPhantomDto } from 'common/service';
 import * as actions from './actions';
 import * as selectors from './selectors';
 
-declare const PHANTOM: IPhantomDto;
-declare const POLL_CT_URL: string;
+
+export declare const PHANTOM: IPhantomDto;
+export declare const POLL_CT_URL: string;
+
 
 function* pollCt(): any {
     while (true) {
@@ -40,6 +42,7 @@ function* pollCt(): any {
         }
     }
 }
+
 
 export default function* () {
     yield all([

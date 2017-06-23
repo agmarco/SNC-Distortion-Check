@@ -5,8 +5,9 @@ import { Dispatch } from 'redux';
 
 import { IMachineDto, ISequenceDto, IPhantomDto } from 'common/service';
 import { CSRFToken } from 'common/components';
-import { CirsForm, CirsControl, CirsErrors, IDjangoFormData, IDjangoFormErrors } from 'common/forms';
+import { CirsForm, CirsControl, CirsErrors, IDjangoFormErrors } from 'common/forms';
 import { IUploadScanForm } from '../forms';
+
 
 interface IUploadScanFormProps {
     machines: IMachineDto[];
@@ -20,6 +21,7 @@ interface IUploadScanFormProps {
     form?: IUploadScanForm;
     dispatch?: Dispatch<any>;
 }
+
 
 class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
     constructor(props: IUploadScanFormProps) {
@@ -193,5 +195,4 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
 // TODO: fix upload issue and remove the warning
 // message; also remove the same message from the
 // static Heroku error page in S3.
-
 export default connect<any, any, any>((state: any) => ({form: state.uploadScan}))(UploadScanForm as any);

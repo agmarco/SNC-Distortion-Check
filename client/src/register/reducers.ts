@@ -5,7 +5,9 @@ import { combineForms, FormState } from 'react-redux-form';
 import { IRegisterForm } from './forms';
 import * as constants from './constants';
 
-declare const FORM_INITIAL: IRegisterForm;
+
+export declare const FORM_INITIAL: IRegisterForm;
+
 
 export interface IAppState {
     serialNumberInfo: ISerialNumberInfoState[];
@@ -17,10 +19,12 @@ export interface IAppState {
     };
 }
 
+
 export interface ISerialNumberInfoState {
     message: string | null;
     modelNumber: string | null;
 }
+
 
 const serialNumberInfoReducer = handleActions<ISerialNumberInfoState, any>({
     [constants.UPDATE_SERIAL_NUMBER_INFO]: (state, action) => ({...state, ...action.payload}),
@@ -28,6 +32,7 @@ const serialNumberInfoReducer = handleActions<ISerialNumberInfoState, any>({
     message: null,
     modelNumber: null,
 });
+
 
 export default combineReducers({
     serialNumberInfo: serialNumberInfoReducer,

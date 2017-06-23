@@ -1,17 +1,20 @@
 import * as Cookies from 'js-cookie';
+import { Action } from 'redux-actions';
 import { delay } from 'redux-saga';
-import { call, put, all, select, fork, take, cancel } from 'redux-saga/effects';
+import { call, put, all, select, takeLatest } from 'redux-saga/effects';
 import { actions as formActions } from 'react-redux-form';
 
-import { IMachineSequencePairDto, IScanDto } from 'common/service';
+import { IScanDto, IMachineSequencePairDto } from 'common/service';
 import { encode } from 'common/utils';
 import * as constants from './constants';
 import * as actions from './actions';
 import * as selectors from './selectors';
 
-declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
-declare const POLL_SCANS_URL: string;
-declare const UPDATE_TOLERANCE_URL: string;
+
+export declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
+export declare const POLL_SCANS_URL: string;
+export declare const UPDATE_TOLERANCE_URL: string;
+
 
 function* pollScans(): any {
     while (true) {
@@ -45,38 +48,36 @@ function* pollScans(): any {
     }
 }
 
-function* fetchUpdateTolerance({ pk, tolerance }: actions.IUpdateTolerancePayload): any {
-    yield put(formActions.setPending('forms.tolerance', true));
 
-    const response = yield call(fetch, UPDATE_TOLERANCE_URL, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': Cookies.get('csrftoken'),
-        },
-        body: encode({pk, tolerance}),
-    });
+function* fetchUpdateTolerance(action: Action<actions.IUpdateTolerancePayload>): any {
+    if (action.payload) {
+        yield put(formActions.setPending('forms.tolerance', true));
 
-    yield put(formActions.setPending('forms.tolerance', false));
-    if (response.ok) {
-        yield put(actions.updateToleranceSuccess(true));
-    } else {
-        yield put(actions.updateToleranceSuccess(false));
+        const response = yield call(fetch, UPDATE_TOLERANCE_URL, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': Cookies.get('csrftoken'),
+            },
+            body: encode({pk: action.payload.pk, tolerance: action.payload.tolerance}),
+        });
+
+        yield put(formActions.setPending('forms.tolerance', false));
+
+        if (response.ok) {
+            yield put(actions.updateToleranceSuccess(true));
+        } else {
+            yield put(actions.updateToleranceSuccess(false));
+        }
     }
 }
+
 
 function* updateTolerance(): any {
-    let fetchUpdateToleranceTask;
-
-    while (true) {
-        const updateToleranceAction = yield take(constants.UPDATE_TOLERANCE);
-        if (fetchUpdateToleranceTask) {
-            yield cancel(fetchUpdateToleranceTask);
-        }
-        fetchUpdateToleranceTask = yield fork(fetchUpdateTolerance, updateToleranceAction.payload);
-    }
+    yield takeLatest(constants.UPDATE_TOLERANCE, fetchUpdateTolerance);
 }
+
 
 export default function* () {
     yield all([

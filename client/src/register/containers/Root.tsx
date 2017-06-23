@@ -3,9 +3,11 @@ import React from 'react';
 import { IDjangoFormErrors } from 'common/forms';
 import RegisterForm from '../components/RegisterForm';
 
-declare const CANCEL_URL: string;
-declare const FORM_ACTION: string;
-declare const FORM_ERRORS: IDjangoFormErrors;
+
+export declare const CANCEL_URL: string;
+export declare const FORM_ACTION: string;
+export declare const FORM_ERRORS: IDjangoFormErrors;
+
 
 export default () => (
     <div>

@@ -3,11 +3,13 @@ import { handleActions } from 'redux-actions';
 import { combineForms, FormState } from 'react-redux-form';
 
 import { IGoldenFiducialsDto } from 'common/service';
-import * as constants from './constants';
 import { IUpdatePhantomForm } from './forms';
+import * as constants from './constants';
 
-declare const GOLDEN_FIDUCIALS_SET: IGoldenFiducialsDto[];
-declare const FORM_INITIAL: IUpdatePhantomForm;
+
+export declare const FORM_INITIAL: IUpdatePhantomForm;
+export declare const GOLDEN_FIDUCIALS_SET: IGoldenFiducialsDto[];
+
 
 export interface IAppState {
     goldenFiducialsSet: IGoldenFiducialsDto[];
@@ -19,6 +21,7 @@ export interface IAppState {
     };
 }
 
+
 const goldenFiducialsSetReducer = handleActions<IGoldenFiducialsDto[], any>({
     [constants.UPDATE_GOLDEN_FIDUCIALS]: (state, action) => state.map((goldenFiducials) => {
       if (goldenFiducials.pk === action.payload.pk) {
@@ -28,6 +31,7 @@ const goldenFiducialsSetReducer = handleActions<IGoldenFiducialsDto[], any>({
       }
     }),
 }, GOLDEN_FIDUCIALS_SET);
+
 
 export default combineReducers({
     goldenFiducialsSet: goldenFiducialsSetReducer,

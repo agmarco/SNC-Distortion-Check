@@ -17,21 +17,26 @@ import keyBy from 'lodash/keyBy';
 import mapValues from 'lodash/mapValues';
 import omit from 'lodash/omit';
 
+
 export interface IDjangoFormData {
     [field: string]: any;
 }
+
 
 export interface IDjangoFormErrors {
     [field: string]: string[];
 }
 
+
 const ErrorsWrapper = (props: ErrorsProps & CustomComponentProps) => <ul className="errorlist">{props.children}</ul>;
 const ErrorsComponent = (props: ErrorsProps & CustomComponentProps) => <li>{props.children}</li>;
+
 
 interface ICirsErrorsProps extends ErrorsProps {
     required?: boolean;
     email?: boolean;
 }
+
 
 export const CirsErrors = (props: ICirsErrorsProps) => {
     const { required, email, messages = {}, ...rest } = props;
@@ -55,6 +60,7 @@ export const CirsErrors = (props: ICirsErrorsProps) => {
     );
 };
 
+
 // Make the field name attribute equal to the last component of the field model
 const controlProps = (props: ControlProps<any>) => {
     const { model, required, type, validators = {}, validateOn = "blur", ...rest } = props;
@@ -76,6 +82,7 @@ const controlProps = (props: ControlProps<any>) => {
     return {name, model, required, type, validators, validateOn, formNoValidate: true, ...rest};
 };
 
+
 export class CirsControl<T> extends React.Component<ControlProps<T>, {}> {
     static custom = (props: ControlProps<any>) => <Control.custom {...controlProps(props)} />;
     static input = (props: ControlProps<any>) => <Control.input {...controlProps(props)} />;
@@ -92,10 +99,12 @@ export class CirsControl<T> extends React.Component<ControlProps<T>, {}> {
     }
 }
 
+
 interface ICirsFormProps extends FormProps {
     dispatch?: Dispatch<any>;
     djangoErrors?: IDjangoFormErrors;
 }
+
 
 class CirsFormImpl extends React.Component<ICirsFormProps, {}> {
     componentDidMount() {
@@ -129,5 +138,4 @@ class CirsFormImpl extends React.Component<ICirsFormProps, {}> {
         return <Form {...rest} />;
     }
 }
-
 export const CirsForm = connect()(CirsFormImpl as any);

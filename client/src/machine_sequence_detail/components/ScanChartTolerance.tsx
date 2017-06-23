@@ -2,7 +2,9 @@ import React from 'react';
 
 import { IScanChartProps, IScanChartSettings, IScrollable } from './ScanChart';
 
+
 interface IScanChartToleranceProps extends IScanChartProps, IScanChartSettings, IScrollable {}
+
 
 export default class extends React.Component<IScanChartToleranceProps, {}> {
     render() {

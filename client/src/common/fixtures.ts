@@ -2,6 +2,7 @@ import uniqueId from 'lodash/uniqueId';
 
 import { IMachineDto, ISequenceDto, IMachineSequencePairDto, IPhantomDto, IScanDto } from './service';
 
+
 export const machineFixture = (): IMachineDto => {
     const pk = Number(uniqueId());
     return {
@@ -12,6 +13,7 @@ export const machineFixture = (): IMachineDto => {
     };
 };
 
+
 export const sequenceFixture = (): ISequenceDto => {
     const pk = Number(uniqueId());
     return {
@@ -20,6 +22,7 @@ export const sequenceFixture = (): ISequenceDto => {
         instructions: `Instructions ${pk}`,
     };
 };
+
 
 export const machineSequencePairFixture = (machine?: IMachineDto, sequence?: ISequenceDto): IMachineSequencePairDto => {
     const pk = Number(uniqueId());
@@ -34,6 +37,7 @@ export const machineSequencePairFixture = (machine?: IMachineDto, sequence?: ISe
     };
 };
 
+
 export const phantomFixture = (): IPhantomDto => {
     const pk = Number(uniqueId());
     return {
@@ -44,6 +48,7 @@ export const phantomFixture = (): IPhantomDto => {
         gold_standard_grid_locations: `Gold Standard ${pk}`,
     };
 };
+
 
 export const scanFixture = (phantom?: IPhantomDto): IScanDto => {
     const pk = Number(uniqueId());

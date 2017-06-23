@@ -5,12 +5,14 @@ import { FieldState } from 'react-redux-form';
 import { CirsForm, CirsControl, CirsErrors, IDjangoFormData, IDjangoFormErrors } from 'common/forms';
 import { CSRFToken } from 'common/components';
 
+
 interface IUpdatePhantomFormProps {
     formErrors: IDjangoFormErrors | null;
     formAction: string;
     formState?: { [name: string]: FieldState };
     dispatch?: Dispatch<any>;
 }
+
 
 export default class extends React.Component<IUpdatePhantomFormProps, {}> {
     render() {

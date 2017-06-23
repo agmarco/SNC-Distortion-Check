@@ -1,14 +1,17 @@
 import * as Cookies from 'js-cookie';
-import { call, put, all, take, cancel, fork } from 'redux-saga/effects';
+import { Action } from 'redux-actions';
+import { call, put, all, takeEvery } from 'redux-saga/effects';
 import { actions as formActions } from 'react-redux-form';
 
 import { encode } from 'common/utils';
 import * as constants from './constants';
 import * as actions from './actions';
 
-declare const VALIDATE_SERIAL_URL: string;
 
-function* getSerialNumberValidity(serialNumber: string): any {
+export declare const VALIDATE_SERIAL_URL: string;
+
+
+function* getSerialNumberValidity(action: Action<string>): any {
     const response = yield call(fetch, VALIDATE_SERIAL_URL, {
         method: 'POST',
         credentials: 'same-origin',
@@ -16,7 +19,7 @@ function* getSerialNumberValidity(serialNumber: string): any {
             'Content-Type': 'application/x-www-form-urlencoded',
             'X-CSRFToken': Cookies.get('csrftoken'),
         },
-        body: encode({serial_number: serialNumber}),
+        body: encode({serial_number: action.payload}),
     });
 
     if (response.ok) {
@@ -29,17 +32,11 @@ function* getSerialNumberValidity(serialNumber: string): any {
     }
 }
 
-function* validateSerialNumber(): any {
-    let getSerialNumberValidityTask;
 
-    while (true) {
-        const validateSerialNumberAction = yield take(constants.VALIDATE_SERIAL_NUMBER);
-        if (getSerialNumberValidityTask) {
-            yield cancel(getSerialNumberValidityTask);
-        }
-        getSerialNumberValidityTask = yield fork(getSerialNumberValidity, validateSerialNumberAction.payload);
-    }
+function* validateSerialNumber(): any {
+    yield takeEvery(constants.VALIDATE_SERIAL_NUMBER, getSerialNumberValidity);
 }
+
 
 export default function* () {
     yield all([

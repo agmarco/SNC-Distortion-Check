@@ -5,8 +5,10 @@ import { combineForms, FormState } from 'react-redux-form';
 import { IScanDto, IMachineSequencePairDto } from 'common/service';
 import * as constants from './constants';
 
-declare const SCANS: IScanDto[];
-declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
+
+export declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
+export declare const SCANS: IScanDto[];
+
 
 export interface IAppState {
     scans: IScanDto[];
@@ -19,6 +21,7 @@ export interface IAppState {
     };
 }
 
+
 const scanReducer = handleActions<IScanDto[], any>({
     [constants.UPDATE_SCAN]: (state, action) => state.map((scan) => {
       if (scan.pk === action.payload.pk) {
@@ -29,9 +32,11 @@ const scanReducer = handleActions<IScanDto[], any>({
     }),
 }, SCANS);
 
+
 const updateToleranceSuccessReducer = handleActions<boolean | null, any>({
     [constants.UPDATE_TOLERANCE_SUCCESS]: (state, action) => action.payload,
 }, null);
+
 
 export default combineReducers({
     scans: scanReducer,

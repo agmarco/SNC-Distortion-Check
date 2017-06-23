@@ -6,8 +6,9 @@ import { FieldState } from 'react-redux-form';
 import { CirsForm, CirsControl, CirsErrors, IDjangoFormErrors } from 'common/forms';
 import { CSRFToken } from 'common/components';
 import { ICreatePhantomForm } from '../forms';
-import * as actions from '../actions';
 import { IAppState, ISerialNumberInfoState } from '../reducers';
+import * as actions from '../actions';
+
 
 interface ICreatePhantomFormProps {
     cancelUrl: string;
@@ -18,6 +19,7 @@ interface ICreatePhantomFormProps {
     dispatch?: Dispatch<any>;
     serialNumberInfo?: ISerialNumberInfoState;
 }
+
 
 class CreatePhantomForm extends React.Component<ICreatePhantomFormProps, {}> {
     componentDidMount() {

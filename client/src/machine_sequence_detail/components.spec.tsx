@@ -9,6 +9,7 @@ import { default as ScanChart, IScanChartProps, IScanChartState } from './compon
 import ScanChartData from './components/ScanChartData';
 import { IScanDto, IPhantomDto } from 'common/service';
 
+
 describe('<ScanTable />', () => {
     let phantomA: IPhantomDto;
     let phantomB: IPhantomDto;
@@ -33,6 +34,7 @@ describe('<ScanTable />', () => {
         assert(results.everyWhere(r => r.find('td').at(2).text() === phantomDisplay));
     });
 });
+
 
 describe('<ScanChart />', () => {
     let app: JQuery;

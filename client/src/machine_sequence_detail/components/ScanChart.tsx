@@ -10,6 +10,7 @@ import '../box.js';
 
 import './ScanChart.scss';
 
+
 export interface IScrollable {
     scroll: {
         start: number;
@@ -18,16 +19,20 @@ export interface IScrollable {
     };
 }
 
+
 interface IScanDistortion extends Array<number> {
     quartiles: number[];
 }
 
+
 type ScanTuple = [number, IScanDistortion]; // [pk, error_mags]
+
 
 export interface IScanData extends ScanTuple {
     passed: boolean;
     label: string;
 }
+
 
 export interface IScanChartSettings {
     labels: boolean;
@@ -43,15 +48,18 @@ export interface IScanChartSettings {
     yScale: any;
 }
 
+
 export interface IScanChartProps {
     machineSequencePair: IMachineSequencePairDto;
     scans: IScanDto[];
     tolerance: number;
 }
 
+
 export interface IScanChartState {
     scrollX: number;
 }
+
 
 const chartHelp = 'This box-and-whiskers chart should let you, at a glance, determine ' +
     'whether this machine-sequence combination\'s geometric distortion is within the ' +
@@ -59,6 +67,7 @@ const chartHelp = 'This box-and-whiskers chart should let you, at a glance, dete
     'of the box, and bottom whisker correspond to the 100-, 75-, 50-, 25-, and 0-th percentiles ' +
     'of the magnitude of the distortion found in the scan.  Red data points indicate that ' +
     'the maximum distortion was above the tolerance set when the analysis was performed.';
+
 
 export default class extends React.Component<IScanChartProps, IScanChartState> {
     svg: SVGElement;

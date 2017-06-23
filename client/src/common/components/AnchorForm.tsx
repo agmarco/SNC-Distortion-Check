@@ -2,10 +2,12 @@ import React from 'react';
 
 import CSRFToken from './CSRFToken';
 
+
 interface IAnchorFormProps extends React.HTMLAttributes<HTMLFormElement> {
     action: string;
     children?: React.ReactNode;
 }
+
 
 export default class extends React.Component<IAnchorFormProps, {}> {
     form: HTMLFormElement;
