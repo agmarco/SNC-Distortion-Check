@@ -1,7 +1,8 @@
 import { combineReducers } from 'redux';
 import { handleActions } from 'redux-actions';
-import { combineForms, FormState } from 'react-redux-form';
+import { combineForms } from 'react-redux-form';
 
+import { CirsFormState } from 'common/forms';
 import { IRegisterForm } from './forms';
 import * as constants from './constants';
 
@@ -11,12 +12,12 @@ export declare const FORM_INITIAL: IRegisterForm;
 
 export interface IAppState {
     serialNumberInfo: ISerialNumberInfoState[];
-    forms: {
-        forms: {
-            register: FormState;
-        };
-        register: IRegisterForm;
-    };
+    forms: CirsFormState<IFormModelState>;
+}
+
+
+interface IFormModelState {
+    register: IRegisterForm;
 }
 
 

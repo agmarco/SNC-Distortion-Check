@@ -1,8 +1,10 @@
 import { combineReducers } from 'redux';
 import { handleActions } from 'redux-actions';
-import { combineForms, FormState } from 'react-redux-form';
+import { combineForms } from 'react-redux-form';
 
 import { IScanDto, IMachineSequencePairDto } from 'common/service';
+import { CirsFormState } from 'common/forms';
+import { IToleranceForm } from './forms';
 import * as constants from './constants';
 
 
@@ -13,12 +15,12 @@ export declare const SCANS: IScanDto[];
 export interface IAppState {
     scans: IScanDto[];
     updateToleranceSuccess: boolean | null;
-    forms: {
-        forms: {
-            tolerance: FormState;
-        };
-        tolerance: { tolerance: number; };
-    };
+    forms: CirsFormState<IFormModelState>;
+}
+
+
+interface IFormModelState {
+    tolerance: IToleranceForm;
 }
 
 

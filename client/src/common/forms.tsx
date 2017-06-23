@@ -11,6 +11,7 @@ import {
     FormProps,
     actions,
     ErrorsObject,
+    FormState,
 } from 'react-redux-form';
 import uniqueId from 'lodash/uniqueId';
 import keyBy from 'lodash/keyBy';
@@ -139,3 +140,14 @@ class CirsFormImpl extends React.Component<ICirsFormProps, {}> {
     }
 }
 export const CirsForm = connect()(CirsFormImpl as any);
+
+
+// https://github.com/Microsoft/TypeScript/issues/2225#issuecomment-161279156
+export type CirsFormState<T extends {}> = T & {
+    forms: FormStateState<T>;
+};
+
+
+type FormStateState<T> = {
+    [P in keyof T]: FormState;
+};

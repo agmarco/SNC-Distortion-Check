@@ -1,8 +1,9 @@
 import { combineReducers } from 'redux';
 import { handleActions } from 'redux-actions';
-import { combineForms, FormState } from 'react-redux-form';
+import { combineForms } from 'react-redux-form';
 
 import { IGoldenFiducialsDto } from 'common/service';
+import { CirsFormState } from 'common/forms';
 import { IUpdatePhantomForm } from './forms';
 import * as constants from './constants';
 
@@ -13,12 +14,12 @@ export declare const GOLDEN_FIDUCIALS_SET: IGoldenFiducialsDto[];
 
 export interface IAppState {
     goldenFiducialsSet: IGoldenFiducialsDto[];
-    forms: {
-        forms: {
-            phantom: FormState;
-        };
-        phantom: IUpdatePhantomForm;
-    };
+    forms: CirsFormState<IFormModelState>;
+}
+
+
+interface IFormModelState {
+    phantom: IUpdatePhantomForm;
 }
 
 

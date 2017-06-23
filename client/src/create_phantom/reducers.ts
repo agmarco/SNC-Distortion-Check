@@ -1,7 +1,8 @@
 import { combineReducers } from 'redux';
 import { handleActions } from 'redux-actions';
-import { combineForms, FormState } from 'react-redux-form';
+import { combineForms } from 'react-redux-form';
 
+import { CirsFormState } from 'common/forms';
 import { ICreatePhantomForm } from './forms';
 import * as constants from './constants';
 
@@ -11,12 +12,12 @@ export declare const FORM_INITIAL: ICreatePhantomForm;
 
 export interface IAppState {
     serialNumberInfo: ISerialNumberInfoState[];
-    forms: {
-        forms: {
-            phantom: FormState;
-        };
-        phantom: ICreatePhantomForm;
-    };
+    forms: CirsFormState<IFormModelState>;
+}
+
+
+interface IFormModelState {
+    phantom: ICreatePhantomForm;
 }
 
 
