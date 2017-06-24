@@ -8,3 +8,5 @@ export interface IUpdateScanPayload {
 }
 
 export const updateScan = createAction<IUpdateScanPayload>(constants.UPDATE_SCAN);
+
+export const pollScansFailure = createAction<string>(constants.POLL_SCANS_FAILURE);

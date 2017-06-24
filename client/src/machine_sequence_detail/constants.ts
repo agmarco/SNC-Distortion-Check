@@ -1,1 +1,2 @@
 export const UPDATE_SCAN = 'UPDATE_SCAN';
+export const POLL_SCANS_FAILURE = 'POLL_SCANS_FAILURE';

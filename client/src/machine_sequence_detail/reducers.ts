@@ -9,6 +9,7 @@ declare const SCANS: IScanDto[];
 
 export interface IAppState {
     scans: IScanDto[];
+    pollScansError: string | null;
     forms: {
         forms: {
             tolerance: FormState;
@@ -27,8 +28,13 @@ const scanReducer = handleActions<IScanDto[], any>({
     }),
 }, SCANS);
 
+const pollScansErrorReducer = handleActions<string | null, any>({
+    [constants.POLL_SCANS_FAILURE]: (state, action) => action.payload,
+}, null);
+
 export default combineReducers({
     scans: scanReducer,
+    pollScansError: pollScansErrorReducer,
     forms: combineForms({
         tolerance: {tolerance: ''},
     }, 'forms'),
