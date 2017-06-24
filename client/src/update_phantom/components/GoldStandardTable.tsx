@@ -7,10 +7,66 @@ import { BoolIcon, AnchorForm, LoadingIcon } from 'common/components';
 
 export interface IScanTableProps {
     phantom: IPhantomDto;
+    pollCtError?: string | null;
     goldenFiducialsSet?: IGoldenFiducialsDto[];
 }
 
 class GoldStandardTable extends React.Component<IScanTableProps, {}> {
+    renderGoldStandardActions(goldStandard: IGoldenFiducialsDto) {
+        const { pollCtError } = this.props;
+
+        if (goldStandard.processing) {
+            if (pollCtError) {
+                return (
+                    <td colSpan={4}>
+                        <span className="error">
+                            Something went wrong. Please refresh the page to see if the gold standard has
+                            {' '}
+                            finished processing.
+                        </span>
+                    </td>
+                );
+            } else {
+                return (
+                    <td colSpan={4}>
+                        The data is still being processed...
+                        {' '}
+                        <LoadingIcon />
+                    </td>
+                );
+            }
+        } else {
+            return [
+                <td key={0} className="action download-images">
+                    {goldStandard.type === 'CT' &&
+                    <a href={goldStandard.zipped_dicom_files_url as string}>
+                        Download Images
+                    </a>}
+                </td>,
+                <td key={1} className="action download-points">
+                    <a href={goldStandard.csv_url}>Download Points</a>
+                </td>,
+                <td key={2} className="action set-active">
+                    {!goldStandard.is_active && (
+                        <AnchorForm
+                            id={`activate-${goldStandard.pk}`}
+                            action={goldStandard.activate_url}
+                        >
+                            Set Active
+                        </AnchorForm>
+                    )}
+                </td>,
+                <td key={3} className="action delete">
+                    {!goldStandard.is_active && goldStandard.type !== 'CAD' && (
+                        <a href={goldStandard.delete_url}>
+                            <i className="fa fa-trash-o" aria-hidden="true" />
+                        </a>
+                    )}
+                </td>,
+            ];
+        }
+    }
+
     render() {
         let { phantom, goldenFiducialsSet } = this.props;
         goldenFiducialsSet = goldenFiducialsSet as IGoldenFiducialsDto[];
@@ -44,40 +100,7 @@ class GoldStandardTable extends React.Component<IScanTableProps, {}> {
                             <td>{goldenFiducials.type}</td>
                             <td>{goldenFiducials.type === 'CT' && goldenFiducials.dicom_series_filename}</td>
                             <td className="sep" />
-                            {goldenFiducials.processing ?
-                                <td colSpan={4}>
-                                    The data is still being processed...
-                                    {' '}
-                                    <LoadingIcon />
-                                </td> :
-                                [
-                                    <td key={0} className="action download-images">
-                                        {goldenFiducials.type === 'CT' &&
-                                        <a href={goldenFiducials.zipped_dicom_files_url as string}>
-                                            Download Images
-                                        </a>}
-                                    </td>,
-                                    <td key={1} className="action download-points">
-                                        <a href={goldenFiducials.csv_url}>Download Points</a>
-                                    </td>,
-                                    <td key={2} className="action set-active">
-                                        {!goldenFiducials.is_active && (
-                                            <AnchorForm
-                                                id={`activate-${goldenFiducials.pk}`}
-                                                action={goldenFiducials.activate_url}
-                                            >
-                                                Set Active
-                                            </AnchorForm>
-                                        )}
-                                    </td>,
-                                    <td key={3} className="action delete">
-                                        {!goldenFiducials.is_active && goldenFiducials.type !== 'CAD' && (
-                                            <a href={goldenFiducials.delete_url}>
-                                                <i className="fa fa-trash-o" aria-hidden="true" />
-                                            </a>
-                                        )}
-                                    </td>,
-                                ]}
+                            {this.renderGoldStandardActions(goldenFiducials)}
                         </tr>
                     ))}
                     </tbody>
@@ -91,5 +114,7 @@ class GoldStandardTable extends React.Component<IScanTableProps, {}> {
     }
 }
 
-export default connect<any, any, any>((state: any) => ({goldenFiducialsSet: state.goldenFiducialsSet}))
-    (GoldStandardTable as any);
+export default connect<any, any, any>((state: any) => ({
+    goldenFiducialsSet: state.goldenFiducialsSet,
+    pollCtError: state.pollCtError,
+}))(GoldStandardTable as any);

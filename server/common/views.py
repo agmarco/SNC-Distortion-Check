@@ -274,6 +274,7 @@ class DicomOverlaySuccessView(TemplateView):
         return context
 
 
+# TODO it seems that if you delete a scan while it is processing, it will become undeleted when it is finished
 @method_decorator(login_required, name='dispatch')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()

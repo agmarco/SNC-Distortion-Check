@@ -4,7 +4,7 @@ import { call, put, all, select } from 'redux-saga/effects';
 import { IMachineSequencePairDto, IScanDto } from 'common/service';
 import * as actions from './actions';
 import * as selectors from './selectors';
-import Api from './Api';
+import Api from './api';
 
 declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
 

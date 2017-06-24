@@ -1,37 +1,12 @@
 import * as Cookies from 'js-cookie';
-import { delay } from 'redux-saga';
-import { call, race, CallEffect } from 'redux-saga/effects';
+import { call } from 'redux-saga/effects';
 
+import { addTimeout, addOkCheck } from 'common/api';
 import { IMachineSequencePairDto } from 'common/service';
 
 
 declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
 declare const POLL_SCANS_URL: string;
-
-
-function* addTimeout(api: CallEffect) {
-    const {response} = yield race({
-        response: api,
-        timeout: call(delay, 5000),
-    });
-
-    if (response) {
-        return response;
-    } else {
-        throw new Error("Request timeout");
-    }
-}
-
-
-function* addOkCheck(api: CallEffect) {
-    const response = yield api;
-
-    if (response.ok) {
-        return response;
-    } else {
-        throw new Error(response.statusText);
-    }
-}
 
 
 export default class Api {

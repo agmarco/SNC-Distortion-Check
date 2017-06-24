@@ -8,3 +8,5 @@ export interface IUpdateGoldenFiducialsPayload {
 }
 
 export const updateGoldenFiducials = createAction<IUpdateGoldenFiducialsPayload>(constants.UPDATE_GOLDEN_FIDUCIALS);
+
+export const pollCtFailure = createAction<string>(constants.POLL_CT_FAILURE);
