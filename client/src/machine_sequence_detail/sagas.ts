@@ -8,7 +8,7 @@ import Api from './api';
 
 declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
 
-function* pollScans(): any {
+export function* pollScans(): any {
     while (true) {
         yield call(delay, 10000);
         const scans = (yield select(selectors.getScans)) as IScanDto[];

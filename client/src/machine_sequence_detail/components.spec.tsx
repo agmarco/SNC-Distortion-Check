@@ -23,7 +23,9 @@ describe('<ScanTable />', () => {
             fixtures.scanFixture(phantomB),
         ];
 
-        wrapper = shallow<IScanTableProps, IScanTableState>(<ScanTable scans={scans} uploadScanUrl="" />);
+        wrapper = shallow<IScanTableProps, IScanTableState>(
+            <ScanTable scans={scans} uploadScanUrl="" pollScansError={null} />
+        );
     });
 
     it('filters by phantom', () => {
