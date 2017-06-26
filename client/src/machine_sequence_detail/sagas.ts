@@ -12,7 +12,6 @@ import * as selectors from './selectors';
 import Api from './api';
 
 
-
 declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
 declare const POLL_SCANS_URL: string;
 declare const UPDATE_TOLERANCE_URL: string;
