@@ -14,6 +14,7 @@ export declare const SCANS: IScanDto[];
 
 export interface IAppState {
     scans: IScanDto[];
+    pollScansError: string | null;
     updateToleranceSuccess: boolean | null;
     forms: CirsFormState<IFormModelState>;
 }
@@ -35,6 +36,11 @@ const scanReducer = handleActions<IScanDto[], any>({
 }, SCANS);
 
 
+const pollScansErrorReducer = handleActions<string | null, any>({
+    [constants.POLL_SCANS_FAILURE]: (state, action) => action.payload,
+}, null);
+
+
 const updateToleranceSuccessReducer = handleActions<boolean | null, any>({
     [constants.UPDATE_TOLERANCE_SUCCESS]: (state, action) => action.payload,
 }, null);
@@ -42,6 +48,7 @@ const updateToleranceSuccessReducer = handleActions<boolean | null, any>({
 
 export default combineReducers({
     scans: scanReducer,
+    pollScansError: pollScansErrorReducer,
     updateToleranceSuccess: updateToleranceSuccessReducer,
     forms: combineForms({
         tolerance: {tolerance: MACHINE_SEQUENCE_PAIR.tolerance},

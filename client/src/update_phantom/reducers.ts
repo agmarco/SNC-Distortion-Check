@@ -14,6 +14,7 @@ export declare const GOLDEN_FIDUCIALS_SET: IGoldenFiducialsDto[];
 
 export interface IAppState {
     goldenFiducialsSet: IGoldenFiducialsDto[];
+    pollCtError: string | null;
     forms: CirsFormState<IFormModelState>;
 }
 
@@ -33,9 +34,13 @@ const goldenFiducialsSetReducer = handleActions<IGoldenFiducialsDto[], any>({
     }),
 }, GOLDEN_FIDUCIALS_SET);
 
+const pollCtErrorReducer = handleActions<string | null, any>({
+    [constants.POLL_CT_FAILURE]: (state, action) => action.payload,
+}, null);
 
 export default combineReducers({
     goldenFiducialsSet: goldenFiducialsSetReducer,
+    pollCtError: pollCtErrorReducer,
     forms: combineForms({
         phantom: FORM_INITIAL,
     }, 'forms'),

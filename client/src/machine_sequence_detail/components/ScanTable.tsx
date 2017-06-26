@@ -10,6 +10,7 @@ import './ScanTable.scss';
 export interface IScanTableProps {
     scans: IScanDto[];
     uploadScanUrl: string;
+    pollScansError: string | null;
 }
 
 
@@ -68,20 +69,36 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
     }
 
     renderScanActions(scan: IScanDto) {
+        const { pollScansError } = this.props;
 
         if (scan.processing) {
-            return [
-                <td key={0} colSpan={5} title={processingHelp}>
-                    The data is still being processed...
-                    {' '}
-                    <LoadingIcon />
-                </td>,
-                <td key={1} className="action delete">
-                    <a href={scan.delete_url}>
-                        <i className="fa fa-trash-o" aria-hidden="true" />
-                    </a>
-                </td>,
-            ];
+            if (pollScansError) {
+                return [
+                    <td key={0} colSpan={5}>
+                        <span className="error">
+                            Something went wrong. Please refresh the page to see if the scan has finished processing.
+                        </span>
+                    </td>,
+                    <td key={1} className="action delete">
+                        <a href={scan.delete_url}>
+                            <i className="fa fa-trash-o" aria-hidden="true" />
+                        </a>
+                    </td>,
+                ];
+            } else {
+                return [
+                    <td key={0} colSpan={5} title={processingHelp}>
+                        The data is still being processed...
+                        {' '}
+                        <LoadingIcon />
+                    </td>,
+                    <td key={1} className="action delete">
+                        <a href={scan.delete_url}>
+                            <i className="fa fa-trash-o" aria-hidden="true" />
+                        </a>
+                    </td>,
+                ];
+            }
         } else if (scan.errors) {
             return [
                 <td key={0} colSpan={5}>

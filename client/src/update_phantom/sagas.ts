@@ -5,6 +5,7 @@ import { call, put, all, select } from 'redux-saga/effects';
 import { IGoldenFiducialsDto, IPhantomDto } from 'common/service';
 import * as actions from './actions';
 import * as selectors from './selectors';
+import Api from './api';
 
 
 export declare const PHANTOM: IPhantomDto;
@@ -20,24 +21,17 @@ function* pollCt(): any {
         if (unprocessedGoldenFiducialsSet.length === 0) {
             break;
         } else {
-            const response = yield call(fetch, POLL_CT_URL, {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': Cookies.get('csrftoken'),
-                },
-                body: JSON.stringify({
+            try {
+                const response = yield Api.pollCt({
                     phantom_pk: PHANTOM.pk,
                     golden_fiducials_pks: unprocessedGoldenFiducialsSet.map(g => g.pk),
-                }),
-            });
-
-            if (response.ok) {
-                const updatedGoldenFiducialsSet = (yield call(response.json.bind(response))) as IGoldenFiducialsDto[];
+                });
+                const updatedGoldenFiducialsSet = yield call(response.json.bind(response));
                 for (const goldenFiducials of updatedGoldenFiducialsSet) {
                     yield put(actions.updateGoldenFiducials(goldenFiducials));
                 }
+            } catch (error) {
+                yield put(actions.pollCtFailure(error.message));
             }
         }
     }

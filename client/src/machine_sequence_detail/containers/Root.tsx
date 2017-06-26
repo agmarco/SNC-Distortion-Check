@@ -15,6 +15,7 @@ export declare const UPLOAD_SCAN_URL: string;
 interface IRootProps {
     dispatch?: Dispatch<any>;
     scans?: IScanDto[];
+    pollScansError?: string | null;
 }
 
 
@@ -34,7 +35,7 @@ class Root extends React.Component<IRootProps, IRootState> {
     }
 
     render() {
-        const { scans } = this.props;
+        const { scans, pollScansError } = this.props;
         const { tolerance } = this.state;
 
         return (
@@ -58,9 +59,14 @@ class Root extends React.Component<IRootProps, IRootState> {
                 <ScanTable
                     scans={scans as IScanDto[]}
                     uploadScanUrl={UPLOAD_SCAN_URL}
+                    pollScansError={pollScansError as string | null}
                 />
             </div>
         );
     }
 }
-export default connect<any, any, any>((state: any) => ({scans: state.scans}))(Root as any);
+
+export default connect<any, any, any>((state: any) => ({
+    scans: state.scans,
+    pollScansError: state.pollScansError,
+}))(Root as any);

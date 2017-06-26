@@ -7,6 +7,9 @@ import * as constants from './constants';
 export const updateScan = createAction<IScanDto>(constants.UPDATE_SCAN);
 
 
+export const pollScansFailure = createAction<string>(constants.POLL_SCANS_FAILURE);
+
+
 export interface IUpdateTolerancePayload {
     pk: number;
     tolerance: number;

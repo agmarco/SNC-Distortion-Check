@@ -9,6 +9,8 @@ import { encode } from 'common/utils';
 import * as constants from './constants';
 import * as actions from './actions';
 import * as selectors from './selectors';
+import Api from './api';
+
 
 
 export declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
@@ -25,24 +27,18 @@ function* pollScans(): any {
         if (unprocessedScans.length === 0) {
             break;
         } else {
-            const response = yield call(fetch, POLL_SCANS_URL, {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': Cookies.get('csrftoken'),
-                },
-                body: JSON.stringify({
+            try {
+                const response = yield Api.pollScans({
                     machine_sequence_pair_pk: MACHINE_SEQUENCE_PAIR.pk,
                     scan_pks: unprocessedScans.map(s => s.pk),
-                }),
-            });
-
-            if (response.ok) {
-                const updatedScans = (yield call(response.json.bind(response))) as IScanDto[];
+                });
+                const updatedScans = yield call(response.json.bind(response));
                 for (const scan of updatedScans) {
                     yield put(actions.updateScan(scan));
                 }
+            } catch (error) {
+                yield put(actions.pollScansFailure(error.message));
+                break;
             }
         }
     }
