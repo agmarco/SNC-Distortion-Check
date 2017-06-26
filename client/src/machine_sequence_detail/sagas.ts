@@ -18,7 +18,7 @@ export declare const POLL_SCANS_URL: string;
 export declare const UPDATE_TOLERANCE_URL: string;
 
 
-function* pollScans(): any {
+export function* pollScans(): any {
     while (true) {
         yield call(delay, 10000);
         const scans = (yield select(selectors.getScans)) as IScanDto[];
