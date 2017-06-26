@@ -8,8 +8,8 @@ import { IUpdatePhantomForm } from './forms';
 import * as constants from './constants';
 
 
-export declare const FORM_INITIAL: IUpdatePhantomForm;
-export declare const GOLDEN_FIDUCIALS_SET: IGoldenFiducialsDto[];
+declare const FORM_INITIAL: IUpdatePhantomForm;
+declare const GOLDEN_FIDUCIALS_SET: IGoldenFiducialsDto[];
 
 
 export interface IAppState {

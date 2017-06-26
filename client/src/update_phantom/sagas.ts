@@ -8,8 +8,8 @@ import * as selectors from './selectors';
 import Api from './api';
 
 
-export declare const PHANTOM: IPhantomDto;
-export declare const POLL_CT_URL: string;
+declare const PHANTOM: IPhantomDto;
+declare const POLL_CT_URL: string;
 
 
 function* pollCt(): any {

@@ -7,7 +7,7 @@ import { ICreatePhantomForm } from './forms';
 import * as constants from './constants';
 
 
-export declare const FORM_INITIAL: ICreatePhantomForm;
+declare const FORM_INITIAL: ICreatePhantomForm;
 
 
 export interface IAppState {

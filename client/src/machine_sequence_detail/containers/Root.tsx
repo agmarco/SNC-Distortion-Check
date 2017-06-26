@@ -8,8 +8,8 @@ import ScanTable from '../components/ScanTable';
 import ToleranceForm from '../components/ToleranceForm';
 
 
-export declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
-export declare const UPLOAD_SCAN_URL: string;
+declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
+declare const UPLOAD_SCAN_URL: string;
 
 
 interface IRootProps {

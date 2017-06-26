@@ -6,9 +6,9 @@ import UpdatePhantomForm from '../components/UpdatePhantomForm';
 import GoldStandardTable from '../components/GoldStandardTable';
 
 
-export declare const FORM_ACTION: string;
-export declare const FORM_ERRORS: IDjangoFormErrors;
-export declare const PHANTOM: IPhantomDto;
+declare const FORM_ACTION: string;
+declare const FORM_ERRORS: IDjangoFormErrors;
+declare const PHANTOM: IPhantomDto;
 
 
 export default () => (

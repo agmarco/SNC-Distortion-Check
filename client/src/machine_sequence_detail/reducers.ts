@@ -8,8 +8,8 @@ import { IToleranceForm } from './forms';
 import * as constants from './constants';
 
 
-export declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
-export declare const SCANS: IScanDto[];
+declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
+declare const SCANS: IScanDto[];
 
 
 export interface IAppState {

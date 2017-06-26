@@ -1,8 +1,8 @@
 import { IDjangoFormErrors } from 'common/forms';
 import { ICreatePhantomForm } from './forms';
 
-export declare const VALIDATE_SERIAL_URL: string;
-export declare const CANCEL_URL: string;
-export declare const FORM_ACTION: string;
-export declare const FORM_INITIAL: ICreatePhantomForm;
-export declare const FORM_ERRORS: IDjangoFormErrors;
+declare const VALIDATE_SERIAL_URL: string;
+declare const CANCEL_URL: string;
+declare const FORM_ACTION: string;
+declare const FORM_INITIAL: ICreatePhantomForm;
+declare const FORM_ERRORS: IDjangoFormErrors;

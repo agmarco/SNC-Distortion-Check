@@ -7,7 +7,7 @@ import { IRegisterForm } from './forms';
 import * as constants from './constants';
 
 
-export declare const FORM_INITIAL: IRegisterForm;
+declare const FORM_INITIAL: IRegisterForm;
 
 
 export interface IAppState {

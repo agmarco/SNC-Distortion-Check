@@ -8,7 +8,7 @@ import * as constants from './constants';
 import * as actions from './actions';
 
 
-export declare const VALIDATE_SERIAL_URL: string;
+declare const VALIDATE_SERIAL_URL: string;
 
 
 function* getSerialNumberValidity(action: Action<string>): any {
