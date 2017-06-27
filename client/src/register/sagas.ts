@@ -1,5 +1,5 @@
 import { Action } from 'redux-actions';
-import { call, put, all, takeEvery } from 'redux-saga/effects';
+import { call, put, all, takeLatest } from 'redux-saga/effects';
 import { actions as formActions } from 'react-redux-form';
 
 import * as api from 'common/api';
@@ -20,7 +20,7 @@ function* getSerialNumberValidity(action: Action<string>): any {
 }
 
 function* validateSerialNumber(): any {
-    yield takeEvery(constants.VALIDATE_SERIAL_NUMBER, getSerialNumberValidity);
+    yield takeLatest(constants.VALIDATE_SERIAL_NUMBER, getSerialNumberValidity);
 }
 
 export default function* () {
