@@ -2,7 +2,7 @@ import { delay } from 'redux-saga';
 import { call, race, CallEffect } from 'redux-saga/effects';
 
 
-export function* addTimeout(apiOuter: CallEffect) {
+export function addTimeout(apiOuter: CallEffect) {
     return call(function* (api: CallEffect) {
         const {response} = yield race({
             response: api,
@@ -18,7 +18,7 @@ export function* addTimeout(apiOuter: CallEffect) {
 }
 
 
-export function* addOkCheck(apiOuter: CallEffect) {
+export function addOkCheck(apiOuter: CallEffect) {
     return call(function* (api: CallEffect) {
         const response = yield api;
 
