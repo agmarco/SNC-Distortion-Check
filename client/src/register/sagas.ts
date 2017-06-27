@@ -1,26 +1,14 @@
-import * as Cookies from 'js-cookie';
 import { Action } from 'redux-actions';
 import { call, put, all, takeEvery } from 'redux-saga/effects';
 import { actions as formActions } from 'react-redux-form';
 
-import { encode } from 'common/utils';
 import * as constants from './constants';
 import * as actions from './actions';
-
-
-declare const VALIDATE_SERIAL_URL: string;
+import * as api from './api';
 
 
 function* getSerialNumberValidity(action: Action<string>): any {
-    const response = yield call(fetch, VALIDATE_SERIAL_URL, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': Cookies.get('csrftoken'),
-        },
-        body: encode({serial_number: action.payload}),
-    });
+    const response = yield api.validateSerial({serial_number: action.payload});
 
     if (response.ok) {
         const { valid, model_number, message } = yield call(response.json.bind(response));

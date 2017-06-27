@@ -1,4 +1,3 @@
-import * as Cookies from 'js-cookie';
 import { Action } from 'redux-actions';
 import { delay } from 'redux-saga';
 import { call, put, all, select, takeLatest } from 'redux-saga/effects';
@@ -6,16 +5,13 @@ import { actions as formActions } from 'react-redux-form';
 
 import { IMachineSequencePairDto, IScanDto } from 'common/service';
 import { addOkCheck, addTimeout } from 'common/api';
-import { encode } from 'common/utils';
 import * as constants from './constants';
 import * as actions from './actions';
 import * as selectors from './selectors';
-import Api from './api';
+import * as api from './api';
 
 
 declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
-declare const POLL_SCANS_URL: string;
-declare const UPDATE_TOLERANCE_URL: string;
 
 
 export function* pollScans(): any {
@@ -28,7 +24,7 @@ export function* pollScans(): any {
             break;
         } else {
             try {
-                const response = yield addOkCheck(addTimeout(Api.pollScans({
+                const response = yield addOkCheck(addTimeout(api.pollScans({
                     machine_sequence_pair_pk: MACHINE_SEQUENCE_PAIR.pk,
                     scan_pks: unprocessedScans.map(s => s.pk),
                 })));
@@ -48,17 +44,7 @@ export function* pollScans(): any {
 function* fetchUpdateTolerance(action: Action<actions.IUpdateTolerancePayload>): any {
     if (action.payload) {
         yield put(formActions.setPending('forms.tolerance', true));
-
-        const response = yield call(fetch, UPDATE_TOLERANCE_URL, {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': Cookies.get('csrftoken'),
-            },
-            body: encode({pk: action.payload.pk, tolerance: action.payload.tolerance}),
-        });
-
+        const response = yield api.updateTolerance({pk: action.payload.pk, tolerance: action.payload.tolerance});
         yield put(formActions.setPending('forms.tolerance', false));
 
         if (response.ok) {
