@@ -307,7 +307,7 @@ VIEWS = (
         'crud': (Crud.CREATE, Sequence, {
             'name': 'Create Sequence',
             'instructions': 'Create Instructions',
-            'tolerance': 3,
+            'tolerance': 4.0,
         }),
         'url': reverse('create_sequence'),
         'login_required': True,
@@ -320,6 +320,7 @@ VIEWS = (
         'crud': (Crud.UPDATE, Sequence, {
             'name': 'Update Sequence',
             'instructions': 'Update Instructions',
+            'tolerance': 4.0,
         }),
         'url': lambda data: reverse('update_sequence', args=(data['sequence'].pk,)),
         'login_required': True,
