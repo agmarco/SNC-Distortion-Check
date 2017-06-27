@@ -2,9 +2,9 @@ import { Action } from 'redux-actions';
 import { call, put, all, takeLatest } from 'redux-saga/effects';
 import { actions as formActions } from 'react-redux-form';
 
+import * as api from 'common/api';
 import * as constants from './constants';
 import * as actions from './actions';
-import * as api from './api';
 
 function* getSerialNumberValidity(action: Action<string>): any {
     const response = yield api.validateSerial({serial_number: action.payload});
