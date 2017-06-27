@@ -5,11 +5,9 @@ import { IPhantomDto } from 'common/service';
 import UpdatePhantomForm from '../components/UpdatePhantomForm';
 import GoldStandardTable from '../components/GoldStandardTable';
 
-
 declare const FORM_ACTION: string;
 declare const FORM_ERRORS: IDjangoFormErrors;
 declare const PHANTOM: IPhantomDto;
-
 
 export default () => (
     <div>

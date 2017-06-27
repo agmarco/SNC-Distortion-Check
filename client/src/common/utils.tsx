@@ -4,7 +4,6 @@ import { AppContainer } from 'react-hot-loader';
 
 import { IDjangoFormErrors } from './forms';
 
-
 export const handleErrors = (res: Response, success: () => void) => {
     if (res.ok) {
         success();
@@ -13,12 +12,10 @@ export const handleErrors = (res: Response, success: () => void) => {
     }
 };
 
-
 // TODO handle arrays correctly according to application/x-www-form-urlencoded (?id[]=101404&id[]=7267261)
 export const encode = (data: any) => {
     return Object.keys(data).map((key) => [key, data[key]].map(encodeURIComponent).join('=')).join('&');
 };
-
 
 export const renderApp = (Component: React.ComponentClass<any> | React.StatelessComponent<any>, appId: string) => {
     ReactDOM.render(
@@ -28,7 +25,6 @@ export const renderApp = (Component: React.ComponentClass<any> | React.Stateless
         document.getElementById(appId),
     );
 };
-
 
 /**
  * Assume the array is already sorted.
@@ -41,7 +37,6 @@ export const median = (sample: number[]) => {
         return sample[i];
     }
 };
-
 
 export const quartiles = (sample: number[]) => {
     sample = [...sample].sort();

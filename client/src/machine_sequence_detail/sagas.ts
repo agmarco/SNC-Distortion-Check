@@ -10,9 +10,7 @@ import * as actions from './actions';
 import * as selectors from './selectors';
 import * as api from './api';
 
-
 declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
-
 
 export function* pollScans(): any {
     while (true) {
@@ -40,7 +38,6 @@ export function* pollScans(): any {
     }
 }
 
-
 function* fetchUpdateTolerance(action: Action<actions.IUpdateTolerancePayload>): any {
     if (action.payload) {
         yield put(formActions.setPending('forms.tolerance', true));
@@ -55,11 +52,9 @@ function* fetchUpdateTolerance(action: Action<actions.IUpdateTolerancePayload>):
     }
 }
 
-
 function* updateTolerance(): any {
     yield takeLatest(constants.UPDATE_TOLERANCE, fetchUpdateTolerance);
 }
-
 
 export default function* () {
     yield all([

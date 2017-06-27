@@ -9,7 +9,6 @@ import { IRegisterForm } from '../forms';
 import * as actions from '../actions';
 import { IAppState, ISerialNumberInfoState } from '../reducers';
 
-
 interface IRegisterFormProps {
     cancelUrl: string;
     formErrors: IDjangoFormErrors | null;
@@ -19,7 +18,6 @@ interface IRegisterFormProps {
     dispatch?: Dispatch<any>;
     serialNumberInfo?: ISerialNumberInfoState;
 }
-
 
 class RegisterForm extends React.Component<IRegisterFormProps, {}> {
     componentDidMount() {

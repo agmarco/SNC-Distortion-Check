@@ -419,9 +419,9 @@ class DeleteMachineView(CirsDeleteView):
 @method_decorator(intro_tutorial, name='dispatch')
 class CreateSequenceView(CreateView):
     model = models.Sequence
-    fields = ('name', 'instructions')
+    form_class = forms.SequenceForm
     success_url = reverse_lazy('configuration')
-    template_name_suffix = '_create'
+    template_name = 'common/sequence_create.html'
 
     def form_valid(self, form):
         self.object = form.save(commit=False)
@@ -437,9 +437,9 @@ class CreateSequenceView(CreateView):
 @method_decorator(intro_tutorial, name='dispatch')
 class UpdateSequenceView(UpdateView):
     model = models.Sequence
-    fields = ('name', 'instructions')
+    form_class = forms.SequenceForm
     success_url = reverse_lazy('configuration')
-    template_name_suffix = '_update'
+    template_name = 'common/sequence_update.html'
 
     def form_valid(self, form):
         messages.success(self.request, f"\"{self.object.name}\" has been updated.")

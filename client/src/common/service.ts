@@ -5,13 +5,11 @@ export interface IMachineDto {
     manufacturer: string;
 }
 
-
 export interface ISequenceDto {
     pk: number;
     name: string;
     instructions: string;
 }
-
 
 export interface IMachineSequencePairDto {
     pk: number;
@@ -23,7 +21,6 @@ export interface IMachineSequencePairDto {
     tolerance: number;
 }
 
-
 export interface IPhantomDto {
     pk: number;
     name: string;
@@ -33,7 +30,6 @@ export interface IPhantomDto {
     upload_raw_url: string;
     upload_ct_url: string;
 }
-
 
 export interface IScanDto {
     pk: number;
@@ -51,7 +47,6 @@ export interface IScanDto {
     executive_report_url: string | null;
     error_mags: number[] | null;
 }
-
 
 export interface IGoldenFiducialsDto {
     pk: number;

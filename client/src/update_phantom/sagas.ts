@@ -7,9 +7,7 @@ import * as actions from './actions';
 import * as selectors from './selectors';
 import * as api from './api';
 
-
 declare const PHANTOM: IPhantomDto;
-
 
 function* pollCt(): any {
     while (true) {
@@ -35,7 +33,6 @@ function* pollCt(): any {
         }
     }
 }
-
 
 export default function* () {
     yield all([

@@ -7,10 +7,8 @@ import ScanChart from '../components/ScanChart';
 import ScanTable from '../components/ScanTable';
 import ToleranceForm from '../components/ToleranceForm';
 
-
 declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
 declare const UPLOAD_SCAN_URL: string;
-
 
 interface IRootProps {
     dispatch?: Dispatch<any>;
@@ -18,11 +16,9 @@ interface IRootProps {
     pollScansError?: string | null;
 }
 
-
 interface IRootState {
     tolerance: number;
 }
-
 
 class Root extends React.Component<IRootProps, IRootState> {
     constructor() {

@@ -9,7 +9,6 @@ import { ICreatePhantomForm } from '../forms';
 import { IAppState, ISerialNumberInfoState } from '../reducers';
 import * as actions from '../actions';
 
-
 interface ICreatePhantomFormProps {
     cancelUrl: string;
     formErrors: IDjangoFormErrors | null;
@@ -19,7 +18,6 @@ interface ICreatePhantomFormProps {
     dispatch?: Dispatch<any>;
     serialNumberInfo?: ISerialNumberInfoState;
 }
-
 
 class CreatePhantomForm extends React.Component<ICreatePhantomFormProps, {}> {
     componentDidMount() {

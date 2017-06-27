@@ -6,7 +6,6 @@ import * as constants from './constants';
 import * as actions from './actions';
 import * as api from './api';
 
-
 function* getSerialNumberValidity(action: Action<string>): any {
     const response = yield api.validateSerial({serial_number: action.payload});
 
@@ -20,11 +19,9 @@ function* getSerialNumberValidity(action: Action<string>): any {
     }
 }
 
-
 function* validateSerialNumber(): any {
     yield takeLatest(constants.VALIDATE_SERIAL_NUMBER, getSerialNumberValidity);
 }
-
 
 export default function* () {
     yield all([

@@ -5,7 +5,6 @@ import { scanFixture } from 'common/fixtures';
 import * as sagas from './sagas';
 import * as actions from './actions';
 
-
 // describe('pollScans', () => {
 //     it('should throw error', () => {
 //         const scans = [

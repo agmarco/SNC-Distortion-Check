@@ -7,12 +7,10 @@ import { BoolIcon } from 'common/components';
 
 import './MachineSequenceTable.scss';
 
-
 export interface IMachineSequenceTableProps {
     machineSequencePairs: IMachineSequencePairDto[];
     uploadScanUrl: string;
 }
-
 
 export interface IMachineSequenceTableState {
     machines: IMachineDto[];
@@ -20,7 +18,6 @@ export interface IMachineSequenceTableState {
     machineFilterValue: 'all' | number;
     sequenceFilterValue: 'all' | number;
 }
-
 
 const machineHelp = 'The name of the MRI scanner whose geometric distortion is being analyzed.';
 const sequenceHelp = 'The name of the MRI sequence.  Geometric distortion is a function of both ' +
@@ -37,7 +34,6 @@ const noScansAvailableHelp = 'No scans have been uploaded.';
 const noScansMatchHelp = 'No scans match your current filter settings.';
 const viewDetailsHelp = 'View all of the scans that have been analyzed for this machine-sequence ' +
     'combination.  Download detailed reports and diagnose errors that occurred during processing.';
-
 
 export default class extends React.Component<IMachineSequenceTableProps, IMachineSequenceTableState> {
     constructor(props: IMachineSequenceTableProps) {
@@ -130,7 +126,6 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
         );
     }
 }
-
 
 const machineSequenceTableRow = (pair: IMachineSequencePairDto) => {
     return (

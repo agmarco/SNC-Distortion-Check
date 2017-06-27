@@ -11,7 +11,6 @@ import * as actions from '../actions';
 
 import './ToleranceForm.scss';
 
-
 interface IToleranceFormProps {
     machineSequencePair: IMachineSequencePairDto;
     tolerance: number;
@@ -20,7 +19,6 @@ interface IToleranceFormProps {
     dispatch?: Dispatch<any>;
     updateToleranceSuccess?: boolean | null;
 }
-
 
 class ToleranceForm extends React.Component<IToleranceFormProps, {}> {
     handleSubmit(data: any, event: React.FormEvent<HTMLInputElement>) {

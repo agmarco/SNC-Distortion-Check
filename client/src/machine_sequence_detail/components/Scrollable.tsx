@@ -1,13 +1,11 @@
 import React from 'react';
 
-
 interface IScrollableProps {
     start?: number;
     dx: number;
     clipPathId: string;
     children?: React.ReactNode;
 }
-
 
 export default (props: IScrollableProps) => {
     const { start = 0, dx, clipPathId, children } = props;

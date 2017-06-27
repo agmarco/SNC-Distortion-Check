@@ -3,9 +3,7 @@ import React from 'react';
 import { IScanChartProps, IScanChartSettings, IScanData, IScrollable } from './ScanChart';
 import Scrollable from './Scrollable';
 
-
 interface IScanChartAxesProps extends IScanChartProps, IScanChartSettings, IScrollable {}
-
 
 export default class extends React.Component<IScanChartAxesProps, {}> {
     xAxis: SVGGElement;

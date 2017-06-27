@@ -6,19 +6,16 @@ import { IScanDto, IPhantomDto } from 'common/service';
 import { BoolIcon, AnchorForm, LoadingIcon } from 'common/components';
 import './ScanTable.scss';
 
-
 export interface IScanTableProps {
     scans: IScanDto[];
     uploadScanUrl: string;
     pollScansError: string | null;
 }
 
-
 export interface IScanTableState {
     phantoms: IPhantomDto[];
     phantomFilterValue: 'all' | number;
 }
-
 
 const scanFailHelp = 'The maximum geometric distortion was greater than the allowed tolerance ' +
     'when the scan was analyzed.  The ROI charts in the full report may have details as to the ' +
@@ -39,7 +36,6 @@ const acquisitionDateHelp = 'Date when the scan was acquired if the AcquisitionD
 const passedHelp = 'Was the maximum detected geometric distortion within the tolerance set at the time when ' +
     'this scan was processed?  Note if you change the tolerance, you will need to re-run the scan.';
 const processingHelp = 'Processing may take several minutes. You will need to refresh the page to see updates.';
-
 
 export default class extends React.Component<IScanTableProps, IScanTableState> {
     constructor(props: IScanTableProps) {

@@ -8,7 +8,6 @@ import { CSRFToken } from 'common/components';
 import { CirsForm, CirsControl, CirsErrors, IDjangoFormErrors } from 'common/forms';
 import { IUploadScanForm } from '../forms';
 
-
 interface IUploadScanFormProps {
     machines: IMachineDto[];
     sequences: ISequenceDto[];
@@ -21,7 +20,6 @@ interface IUploadScanFormProps {
     form?: IUploadScanForm;
     dispatch?: Dispatch<any>;
 }
-
 
 class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
     constructor(props: IUploadScanFormProps) {

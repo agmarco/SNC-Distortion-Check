@@ -7,10 +7,8 @@ import { CirsFormState } from 'common/forms';
 import { IUpdatePhantomForm } from './forms';
 import * as constants from './constants';
 
-
 declare const FORM_INITIAL: IUpdatePhantomForm;
 declare const GOLDEN_FIDUCIALS_SET: IGoldenFiducialsDto[];
-
 
 export interface IAppState {
     goldenFiducialsSet: IGoldenFiducialsDto[];
@@ -18,11 +16,9 @@ export interface IAppState {
     forms: CirsFormState<IFormModelState>;
 }
 
-
 interface IFormModelState {
     phantom: IUpdatePhantomForm;
 }
-
 
 const goldenFiducialsSetReducer = handleActions<IGoldenFiducialsDto[], any>({
     [constants.UPDATE_GOLDEN_FIDUCIALS]: (state, action) => state.map((goldenFiducials) => {

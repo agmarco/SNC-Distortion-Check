@@ -5,13 +5,11 @@ import { connect } from 'react-redux';
 import { IPhantomDto, IGoldenFiducialsDto } from 'common/service';
 import { BoolIcon, AnchorForm, LoadingIcon } from 'common/components';
 
-
 export interface IScanTableProps {
     phantom: IPhantomDto;
     pollCtError?: string | null;
     goldenFiducialsSet?: IGoldenFiducialsDto[];
 }
-
 
 class GoldStandardTable extends React.Component<IScanTableProps, {}> {
     renderGoldStandardActions(goldStandard: IGoldenFiducialsDto) {

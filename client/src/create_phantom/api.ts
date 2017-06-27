@@ -3,9 +3,7 @@ import { call } from 'redux-saga/effects';
 
 import { encode } from 'common/utils';
 
-
 declare const VALIDATE_SERIAL_URL: string;
-
 
 export const validateSerial = (body: any) => {
     return call(fetch, VALIDATE_SERIAL_URL, {
