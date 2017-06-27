@@ -60,6 +60,7 @@ const chartHelp = 'This box-and-whiskers chart should let you, at a glance, dete
     'of the magnitude of the distortion found in the scan.  Red data points indicate that ' +
     'the maximum distortion was above the tolerance set when the analysis was performed.';
 
+// TODO new scans that just finished processing don't show up in the box plot (before refreshing the page)
 export default class extends React.Component<IScanChartProps, IScanChartState> {
     svg: SVGElement;
     settings: IScanChartSettings;

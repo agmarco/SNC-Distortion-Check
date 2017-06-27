@@ -32,23 +32,26 @@ logger = logging.getLogger(__name__)
 
 # TODO serialize help_text
 class JsonFormMixin:
+    """
+    Only use this with classes that inherit from FormMixin.
+    """
+
     renderer = JSONRenderer()
     form_class = None
 
     def get_context_data(self, **kwargs):
         context = super(JsonFormMixin, self).get_context_data(**kwargs)
         form_class = self.get_form_class()
+        form = context['form']
         context.update({
-            'form_initial': self.renderer.render({name: '' for name in form_class.base_fields.keys()}),
+            'form_initial': self.renderer.render(
+                {name: form[name].value() or '' for name in form_class.base_fields.keys()}
+            ),
         })
         return context
 
     def form_invalid(self, form):
         context = self.get_context_data(form=form)
-        form_class = self.get_form_class()
-        context['form_initial'] = self.renderer.render(
-            {name: form[name].data for name in form_class.base_fields.keys()}
-        )
         context.update({
             'form_errors': self.renderer.render(form.errors),
         })
@@ -321,7 +324,6 @@ class CreatePhantomView(JsonFormMixin, FormView):
 @method_decorator(intro_tutorial, name='dispatch')
 class UpdatePhantomView(JsonFormMixin, UpdateView):
     model = models.Phantom
-
     fields = ('name',)
     template_name_suffix = '_update'
     pk_url_kwarg = 'phantom_pk'

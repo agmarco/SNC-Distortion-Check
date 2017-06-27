@@ -82,7 +82,7 @@ work; see `matplotlibrc` for details.
 36. Navigate to the "configuration" page and verify that you can not see the "users" section.
 37. Logout, and log back into the first account.
 38. Navigate to "Configuration" and delete the new user.
-39. Create a new machine, sequence, and phantom.
+39. Create a new machine, sequence, and phantom. Use a tolerance of 2.0 for the sequence.
 40. Navigate to the home page and select "Upload Scan."
 41. Select your new machine, sequence, and phantom, and choose `data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip` for the MRI Scan Files.
 42. Submit the form and wait until the data is finished processing.
@@ -98,3 +98,5 @@ work; see `matplotlibrc` for details.
 52. Edit your account info, and verify that it's updated.
 53. Navigate to "/fake-server-error" and verify that the Server Error page is displayed.
 54. Navigate to "/missing-page" and verify that that the 404 page is displayed.
+
+[comment]: <> (TODO test filters on landing page and machine-sequence detail page)
