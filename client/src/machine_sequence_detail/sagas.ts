@@ -4,7 +4,8 @@ import { delay } from 'redux-saga';
 import { call, put, all, select, takeLatest } from 'redux-saga/effects';
 import { actions as formActions } from 'react-redux-form';
 
-import { IScanDto, IMachineSequencePairDto } from 'common/service';
+import { IMachineSequencePairDto, IScanDto } from 'common/service';
+import { addOkCheck, addTimeout } from 'common/api';
 import { encode } from 'common/utils';
 import * as constants from './constants';
 import * as actions from './actions';
@@ -27,10 +28,10 @@ export function* pollScans(): any {
             break;
         } else {
             try {
-                const response = yield Api.pollScans({
+                const response = yield addOkCheck(addTimeout(Api.pollScans({
                     machine_sequence_pair_pk: MACHINE_SEQUENCE_PAIR.pk,
                     scan_pks: unprocessedScans.map(s => s.pk),
-                });
+                })));
                 const updatedScans = yield call(response.json.bind(response));
                 for (const scan of updatedScans) {
                     yield put(actions.updateScan(scan));

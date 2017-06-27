@@ -1,8 +1,8 @@
-import * as Cookies from 'js-cookie';
 import { delay } from 'redux-saga';
 import { call, put, all, select } from 'redux-saga/effects';
 
 import { IGoldenFiducialsDto, IPhantomDto } from 'common/service';
+import { addOkCheck, addTimeout } from 'common/api';
 import * as actions from './actions';
 import * as selectors from './selectors';
 import Api from './api';
@@ -22,10 +22,10 @@ function* pollCt(): any {
             break;
         } else {
             try {
-                const response = yield Api.pollCt({
+                const response = yield addOkCheck(addTimeout(Api.pollCt({
                     phantom_pk: PHANTOM.pk,
                     golden_fiducials_pks: unprocessedGoldenFiducialsSet.map(g => g.pk),
-                });
+                })));
                 const updatedGoldenFiducialsSet = yield call(response.json.bind(response));
                 for (const goldenFiducials of updatedGoldenFiducialsSet) {
                     yield put(actions.updateGoldenFiducials(goldenFiducials));

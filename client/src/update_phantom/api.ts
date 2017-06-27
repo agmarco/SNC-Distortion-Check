@@ -11,7 +11,7 @@ declare const POLL_CT_URL: string;
 
 export default class Api {
     static pollCt(body: any) {
-        return call(addOkCheck, call(addTimeout, call(fetch, POLL_CT_URL, {
+        return call(fetch, POLL_CT_URL, {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
@@ -19,6 +19,6 @@ export default class Api {
                 'X-CSRFToken': Cookies.get('csrftoken'),
             },
             body: JSON.stringify(body),
-        })));
+        });
     }
 }
