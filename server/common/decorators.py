@@ -91,6 +91,7 @@ def institution_required(view):
     return wrapper
 
 
+# TODO messages created in the wrapped view are overwritten by the ones created in this decorator
 def intro_tutorial(view):
     """If there are no machines or sequences, display a message alerting the user to add them."""
 
@@ -128,7 +129,7 @@ def intro_tutorial(view):
             if msg and msg not in [m.message for m in get_messages(request)]:
                 messages.info(request, mark_safe(msg))
         except:
-            logger.exception('Exception occured during check machine sequences decorator')
+            logger.exception('Exception occurred during check machine sequences decorator')
 
         return response
 
