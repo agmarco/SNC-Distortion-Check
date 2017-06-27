@@ -9,7 +9,7 @@ import { handleErrors, encode } from 'common/utils';
 import { CirsForm, CirsControl, CirsErrors, IDjangoFormData, IDjangoFormErrors } from 'common/forms';
 import { CSRFToken } from 'common/components';
 
-interface IAddPhantomFormProps {
+interface ICreatePhantomFormProps {
     validateSerialUrl: string;
     cancelUrl: string;
     formData: IDjangoFormData | null;
@@ -19,13 +19,13 @@ interface IAddPhantomFormProps {
     dispatch?: Dispatch<any>;
 }
 
-interface IAddPhantomFormState {
+interface ICreatePhantomFormState {
     serialNumberMessage: string | null;
     modelNumber: string | null;
     promise: Bluebird<any> | null;
 }
 
-class CreatePhantomForm extends React.Component<IAddPhantomFormProps, IAddPhantomFormState> {
+class CreatePhantomForm extends React.Component<ICreatePhantomFormProps, ICreatePhantomFormState> {
     constructor() {
         super();
 
@@ -104,8 +104,8 @@ class CreatePhantomForm extends React.Component<IAddPhantomFormProps, IAddPhanto
                     djangoData={formData}
                     djangoErrors={formErrors}
                 >
-                    <CirsControl type="hidden" model="_" />
-                    <CirsErrors model="_" />
+                    <CirsControl type="hidden" model="._" />
+                    <CirsErrors model="._" />
 
                     <CSRFToken />
 

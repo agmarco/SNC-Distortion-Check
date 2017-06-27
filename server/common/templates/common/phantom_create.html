@@ -21,11 +21,9 @@
   <script src="{% webpack 'vendor.js' %}"></script>
   <script>
     var VALIDATE_SERIAL_URL = "{% url 'validate_serial' %}";
-    var CANCEL_URL = "{% url 'configuration' %}";
-    var FORM_INITIAL = {{ form_initial|safe }};
-    var FORM_DATA = {% if form_data %}{{ form_data|safe }}{% else %}null{% endif %};
-    var FORM_ERRORS = {% if form_errors %}{{ form_errors|safe }}{% else %}null{% endif %};
+    var CANCEL_URL = "{% url 'configuration' %}"
     var FORM_ACTION = "{% url 'create_phantom' %}";
   </script>
+  {% include 'includes/json_form.html' %}
   <script src="{% webpack 'create_phantom.js' %}"></script>
 {% endblock %}

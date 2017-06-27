@@ -1,37 +1,39 @@
-export interface IMachineDTO {
+export interface IMachineDto {
     pk: number;
     name: string;
     model: string;
     manufacturer: string;
 }
 
-export interface ISequenceDTO {
+export interface ISequenceDto {
     pk: number;
     name: string;
     instructions: string;
 }
 
-export interface IMachineSequencePairDTO {
+export interface IMachineSequencePairDto {
     pk: number;
-    machine: IMachineDTO;
-    sequence: ISequenceDTO;
+    machine: IMachineDto;
+    sequence: ISequenceDto;
     latest_scan_date: string | null;
     latest_scan_passed: boolean | null;
     detail_url: string;
     tolerance: number;
 }
 
-export interface IPhantomDTO {
+export interface IPhantomDto {
     pk: number;
     name: string;
     model_number: string;
     serial_number: string;
     gold_standard_grid_locations: string;
+    upload_raw_url: string;
+    upload_ct_url: string;
 }
 
-export interface IScanDTO {
+export interface IScanDto {
     pk: number;
-    phantom: IPhantomDTO;
+    phantom: IPhantomDto;
     processing: boolean;
     errors: string | null;
     passed: boolean | null;
@@ -44,4 +46,17 @@ export interface IScanDTO {
     full_report_url: string | null;
     executive_report_url: string | null;
     error_mags: number[] | null;
+}
+
+export interface IGoldenFiducialsDto {
+    pk: number;
+    is_active: boolean;
+    created_on: string;
+    type: string;
+    processing: boolean;
+    dicom_series_filename: string | null;
+    zipped_dicom_files_url: string | null;
+    csv_url: string;
+    activate_url: string;
+    delete_url: string;
 }

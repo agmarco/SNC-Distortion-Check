@@ -8,13 +8,13 @@ import { Dispatch } from 'redux';
 import { encode } from 'common/utils';
 import { CSRFToken, BoolIcon, LoadingIcon } from 'common/components';
 import { CirsForm, CirsControl } from 'common/forms';
-import { IMachineSequencePairDTO } from 'common/service';
+import { IMachineSequencePairDto } from 'common/service';
 
 import './ToleranceForm.scss';
 
 interface IToleranceFormProps {
     updateToleranceUrl: string;
-    machineSequencePair: IMachineSequencePairDTO;
+    machineSequencePair: IMachineSequencePairDto;
     tolerance: number;
     handleToleranceChange: (event: React.FormEvent<HTMLInputElement>) => void;
     formState?: { [name: string]: FieldState };
@@ -46,7 +46,7 @@ class ToleranceForm extends React.Component<IToleranceFormProps, IToleranceFormS
         }
 
         if (dispatch) {
-            dispatch(actions.setPending('tolerance', true));
+            dispatch(actions.setPending('forms.tolerance', true));
         }
 
         const newPromise = Bluebird.resolve(fetch(updateToleranceUrl, {
@@ -63,7 +63,7 @@ class ToleranceForm extends React.Component<IToleranceFormProps, IToleranceFormS
             }))
             .then((res) => {
                 if (dispatch) {
-                    dispatch(actions.setPending('tolerance', false));
+                    dispatch(actions.setPending('forms.tolerance', false));
                 }
                 if (res.ok) {
                     this.setState({
@@ -87,11 +87,13 @@ class ToleranceForm extends React.Component<IToleranceFormProps, IToleranceFormS
 
         const { pending } = (formState as { [name: string]: FieldState }).$form;
 
+        // TODO tolerance form not populating with initial data
         return (
             <div>
                 <CirsForm
                     className="cirs-form"
-                    model="tolerance"
+                    id="tolerance-form"
+                    model="forms.tolerance"
                     onSubmit={this.handleSubmit.bind(this)}
                     djangoData={{tolerance}}
                 >
@@ -118,4 +120,4 @@ class ToleranceForm extends React.Component<IToleranceFormProps, IToleranceFormS
     }
 }
 
-export default connect<any, any, any>((state: any) => ({formState: state.forms.tolerance}))(ToleranceForm as any);
+export default connect<any, any, any>((state: any) => ({formState: state.forms.forms.tolerance}))(ToleranceForm as any);

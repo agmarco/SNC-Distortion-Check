@@ -1,27 +1,33 @@
 import uniqueId from 'lodash/uniqueId';
 
-import { IMachineDTO, ISequenceDTO, IMachineSequencePairDTO, IPhantomDTO, IScanDTO } from './service';
+import { IMachineDto, ISequenceDto, IMachineSequencePairDto, IPhantomDto, IScanDto } from './service';
 
-export const machineFixture = (): IMachineDTO => {
+export const machineFixture = (template: Partial<IMachineDto> = {}): IMachineDto => {
     const pk = Number(uniqueId());
     return {
         pk,
         name: `Machine ${pk}`,
         model: `Model ${pk}`,
         manufacturer: `Manufacturer ${pk}`,
+        ...template,
     };
 };
 
-export const sequenceFixture = (): ISequenceDTO => {
+export const sequenceFixture = (template: Partial<ISequenceDto> = {}): ISequenceDto => {
     const pk = Number(uniqueId());
     return {
         pk,
         name: `Sequence ${pk}`,
         instructions: `Instructions ${pk}`,
+        ...template,
     };
 };
 
-export const machineSequencePairFixture = (machine?: IMachineDTO, sequence?: ISequenceDTO): IMachineSequencePairDTO => {
+export const machineSequencePairFixture = (
+    machine?: IMachineDto,
+    sequence?: ISequenceDto,
+    template: Partial<IMachineSequencePairDto> = {},
+): IMachineSequencePairDto => {
     const pk = Number(uniqueId());
     return {
         pk,
@@ -31,10 +37,11 @@ export const machineSequencePairFixture = (machine?: IMachineDTO, sequence?: ISe
         latest_scan_passed: null,
         detail_url: '',
         tolerance: 3,
+        ...template,
     };
 };
 
-export const phantomFixture = (): IPhantomDTO => {
+export const phantomFixture = (template: Partial<IPhantomDto> = {}): IPhantomDto => {
     const pk = Number(uniqueId());
     return {
         pk,
@@ -42,10 +49,13 @@ export const phantomFixture = (): IPhantomDTO => {
         model_number: `Model ${pk}`,
         serial_number: `Serial ${pk}`,
         gold_standard_grid_locations: `Gold Standard ${pk}`,
+        upload_raw_url: `/phantoms/${pk}/upload-raw/`,
+        upload_ct_url: `/phantoms/${pk}/upload-ct/`,
+        ...template,
     };
 };
 
-export const scanFixture = (phantom?: IPhantomDTO): IScanDTO => {
+export const scanFixture = (phantom?: IPhantomDto, template: Partial<IScanDto> = {}): IScanDto => {
     const pk = Number(uniqueId());
     return {
         pk,
@@ -62,5 +72,6 @@ export const scanFixture = (phantom?: IPhantomDTO): IScanDTO => {
         full_report_url: null,
         executive_report_url: null,
         error_mags: [],
+        ...template,
     };
 };

@@ -2,7 +2,7 @@ import React from 'react';
 import format from 'date-fns/format';
 import 'd3';
 
-import { IMachineSequencePairDTO, IScanDTO } from 'common/service';
+import { IMachineSequencePairDto, IScanDto } from 'common/service';
 import ScanChartData from './ScanChartData';
 import ScanChartTolerance from './ScanChartTolerance';
 import ScanChartAxes from './ScanChartAxes';
@@ -44,8 +44,8 @@ export interface IScanChartSettings {
 }
 
 export interface IScanChartProps {
-    machineSequencePair: IMachineSequencePairDTO;
-    scans: IScanDTO[];
+    machineSequencePair: IMachineSequencePairDto;
+    scans: IScanDto[];
     tolerance: number;
 }
 

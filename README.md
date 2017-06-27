@@ -62,7 +62,7 @@ work; see `matplotlibrc` for details.
 17. Change the name, and verify that the name is updated.
 18. Click on "Upload Gold Standard CT."
 19. Choose `data/dicom/001_ct_603A_E3148_ST1.25.zip`.
-20. Wait a few seconds, and refresh the page until the data is done processing.
+20. Wait until the data is finished processing.
 21. Click on "Download Images" and "Download Points" on the new gold standard row.
 22. Click on "Set Active" on the new gold standard row and verify that it becomes the active gold standard, or else shows an error.
 23. Set the CAD gold standard back to active, and click on the trashcan on the new gold standard row to delete it.
@@ -85,13 +85,13 @@ work; see `matplotlibrc` for details.
 39. Create a new machine, sequence, and phantom.
 40. Navigate to the home page and select "Upload Scan."
 41. Select your new machine, sequence, and phantom, and choose `data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip` for the MRI Scan Files.
-42. Submit the form, wait several seconds, and refresh the page until the data is finished processing.
+42. Submit the form and wait until the data is finished processing.
 43. Click on "DICOM Overlay," and fill in the form with arbitrary info.
 44. Verify that a zipfile is downloaded, and return to the machine-sequence detail page.
 45. Click on "Raw Data," and verify that dicom.zip, institution.json, machine.json, phantom.json, raw_points.mat, sequence.json, and voxels.mat are present.
 46. Click on "Executive Report" and "Full Report."
 47. Increase the tolerance threshold to somewhere above the maximum distortion, save it, and hit the refresh button on the scan row.
-48. Wait a few seconds and refresh the page until the data is finished processing.
+48. Wait until the data is finished processing.
 49. Verify that the new scan is marked as "passed."
 50. Delete the new scan.
 51. Navigate to "Account."

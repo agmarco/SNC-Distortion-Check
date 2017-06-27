@@ -2,18 +2,19 @@ import React from 'react';
 import format from 'date-fns/format';
 import uniqBy from 'lodash/uniqBy';
 
-import { IScanDTO, IPhantomDTO } from 'common/service';
-import { BoolIcon, AnchorForm } from 'common/components';
+import { IScanDto, IPhantomDto } from 'common/service';
+import { BoolIcon, AnchorForm, LoadingIcon } from 'common/components';
 
 import './ScanTable.scss';
 
 export interface IScanTableProps {
-    scans: IScanDTO[];
+    scans: IScanDto[];
     uploadScanUrl: string;
+    pollScansError: string | null;
 }
 
 export interface IScanTableState {
-    phantoms: IPhantomDTO[];
+    phantoms: IPhantomDto[];
     phantomFilterValue: 'all' | number;
 }
 
@@ -38,8 +39,6 @@ const passedHelp = 'Was the maximum detected geometric distortion within the tol
 const processingHelp = 'Processing may take several minutes. You will need to refresh the page to see updates.';
 
 export default class extends React.Component<IScanTableProps, IScanTableState> {
-    refreshScanForm: HTMLFormElement;
-
     constructor(props: IScanTableProps) {
         super();
 
@@ -52,7 +51,7 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
     filteredScans() {
         const { scans } = this.props;
         const { phantomFilterValue } = this.state;
-        const filters: Array<(scan: IScanDTO) => boolean> = [];
+        const filters: Array<(scan: IScanDto) => boolean> = [];
 
         if (phantomFilterValue !== 'all') {
             filters.push(s => s.phantom.pk === phantomFilterValue);
@@ -66,19 +65,37 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
         this.setState({phantomFilterValue: value === 'all' ? value : Number(value)});
     }
 
-    renderScanActions(scan: IScanDTO) {
+    renderScanActions(scan: IScanDto) {
+        const { pollScansError } = this.props;
 
         if (scan.processing) {
-            return [
-                <td key={0} colSpan={5} title={processingHelp}>
-                    The data is still being processed...
-                </td>,
-                <td key={1} className="action delete">
-                    <a href={scan.delete_url}>
-                        <i className="fa fa-trash-o" aria-hidden="true" />
-                    </a>
-                </td>,
-            ];
+            if (pollScansError) {
+                return [
+                    <td key={0} colSpan={5}>
+                        <span className="error">
+                            Something went wrong. Please refresh the page to see if the scan has finished processing.
+                        </span>
+                    </td>,
+                    <td key={1} className="action delete">
+                        <a href={scan.delete_url}>
+                            <i className="fa fa-trash-o" aria-hidden="true" />
+                        </a>
+                    </td>,
+                ];
+            } else {
+                return [
+                    <td key={0} colSpan={5} title={processingHelp}>
+                        The data is still being processed...
+                        {' '}
+                        <LoadingIcon />
+                    </td>,
+                    <td key={1} className="action delete">
+                        <a href={scan.delete_url}>
+                            <i className="fa fa-trash-o" aria-hidden="true" />
+                        </a>
+                    </td>,
+                ];
+            }
         } else if (scan.errors) {
             return [
                 <td key={0} colSpan={5}>

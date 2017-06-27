@@ -10,10 +10,12 @@ export default (env) => ({
             'react-hot-loader',
             'react',
             'react-dom',
+            'isomorphic-fetch',
         ],
         landing: [path.join(__dirname, 'client/src/landing/app.tsx')],
         machine_sequence_detail: [path.join(__dirname, 'client/src/machine_sequence_detail/app.tsx')],
         create_phantom: [path.join(__dirname, 'client/src/create_phantom/app.tsx')],
+        update_phantom: [path.join(__dirname, 'client/src/update_phantom/app.tsx')],
         upload_scan: [path.join(__dirname, 'client/src/upload_scan/app.tsx')],
         register: [path.join(__dirname, 'client/src/register/app.tsx')],
 
@@ -21,7 +23,6 @@ export default (env) => ({
         base: [path.join(__dirname, 'client/src/base/app.scss')],
         login: [path.join(__dirname, 'client/src/login/app.scss')],
         configuration: [path.join(__dirname, 'client/src/configuration/app.scss')],
-        update_phantom: [path.join(__dirname, 'client/src/update_phantom/app.scss')],
         dicom_overlay: [path.join(__dirname, 'client/src/dicom_overlay/app.scss')],
     },
 

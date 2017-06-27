@@ -65,7 +65,7 @@ class UploadScanForm(CirsFormMixin, forms.Form):
         return self.cleaned_data['dicom_archive']
 
 
-class UploadCTForm(CirsFormMixin, forms.Form):
+class UploadCtForm(CirsFormMixin, forms.Form):
     dicom_archive = forms.FileField(label="File Browser")
 
     def clean_dicom_archive(self):

@@ -2,7 +2,7 @@ from django.urls import reverse
 
 from rest_framework import serializers
 
-from .models import MachineSequencePair, Machine, Sequence, Phantom, Scan, Institution, DicomSeries
+from .models import MachineSequencePair, Machine, Sequence, Phantom, Scan, Institution, GoldenFiducials
 
 
 class InstitutionSerializer(serializers.ModelSerializer):
@@ -49,16 +49,32 @@ class MachineSequencePairSerializer(serializers.ModelSerializer):
 class PhantomSerializer(serializers.ModelSerializer):
     model_number = serializers.SerializerMethodField()
     gold_standard_grid_locations = serializers.SerializerMethodField()
+    upload_raw_url = serializers.SerializerMethodField()
+    upload_ct_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Phantom
-        fields = ('pk', 'name', 'model_number', 'serial_number', 'gold_standard_grid_locations')
+        fields = (
+            'pk',
+            'name',
+            'model_number',
+            'serial_number',
+            'gold_standard_grid_locations',
+            'upload_raw_url',
+            'upload_ct_url',
+        )
 
     def get_model_number(self, phantom):
         return phantom.model.model_number
 
     def get_gold_standard_grid_locations(self, phantom):
         return phantom.active_gold_standard.source_summary
+
+    def get_upload_raw_url(self, phantom):
+        return reverse('upload_raw', args=(phantom.pk,))
+
+    def get_upload_ct_url(self, phantom):
+        return reverse('upload_ct', args=(phantom.pk,))
 
 
 class ScanSerializer(serializers.ModelSerializer):
@@ -113,3 +129,47 @@ class ScanSerializer(serializers.ModelSerializer):
 
     def get_executive_report_url(self, scan):
         return scan.executive_report.name and scan.executive_report.url
+
+
+class GoldenFiducialsSerializer(serializers.ModelSerializer):
+    dicom_series_filename = serializers.SerializerMethodField()
+    zipped_dicom_files_url = serializers.SerializerMethodField()
+    csv_url = serializers.SerializerMethodField()
+    activate_url = serializers.SerializerMethodField()
+    delete_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = GoldenFiducials
+        fields = (
+            'pk',
+            'is_active',
+            'created_on',
+            'type',
+            'processing',
+            'dicom_series_filename',
+            'zipped_dicom_files_url',
+            'csv_url',
+            'activate_url',
+            'delete_url',
+        )
+
+    def get_dicom_series_filename(self, golden_fiducials):
+        if golden_fiducials.dicom_series is None:
+            return None
+        else:
+            return golden_fiducials.dicom_series.filename
+
+    def get_zipped_dicom_files_url(self, golden_fiducials):
+        if golden_fiducials.dicom_series is None:
+            return None
+        else:
+            return golden_fiducials.dicom_series.zipped_dicom_files.url
+
+    def get_csv_url(self, golden_fiducials):
+        return reverse('gold_standard_csv', args=(golden_fiducials.phantom.pk, golden_fiducials.pk))
+
+    def get_activate_url(self, golden_fiducials):
+        return reverse('activate_gold_standard', args=(golden_fiducials.phantom.pk, golden_fiducials.pk))
+
+    def get_delete_url(self, golden_fiducials):
+        return reverse('delete_gold_standard', args=(golden_fiducials.phantom.pk, golden_fiducials.pk))

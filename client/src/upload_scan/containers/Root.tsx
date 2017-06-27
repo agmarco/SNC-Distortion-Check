@@ -1,13 +1,13 @@
 import React from 'react';
 
 import { IDjangoFormErrors } from 'common/forms';
-import { IMachineDTO, ISequenceDTO, IPhantomDTO } from 'common/service';
+import { IMachineDto, ISequenceDto, IPhantomDto } from 'common/service';
 import { IUploadScanForm } from '../forms';
 import UploadScanForm from '../components/UploadScanForm';
 
-declare const MACHINES: IMachineDTO[];
-declare const SEQUENCES: ISequenceDTO[];
-declare const PHANTOMS: IPhantomDTO[];
+declare const MACHINES: IMachineDto[];
+declare const SEQUENCES: ISequenceDto[];
+declare const PHANTOMS: IPhantomDto[];
 declare const INITIAL_MACHINE_PK: number | null;
 declare const INITIAL_SEQUENCE_PK: number | null;
 declare const CANCEL_URL: string;

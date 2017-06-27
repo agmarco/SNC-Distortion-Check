@@ -24,7 +24,7 @@ from . import models
 from . import serializers
 from . import forms
 from .tasks import process_scan, process_ct_upload, process_dicom_overlay
-from .decorators import validate_institution, login_and_permission_required, institution_required, check_machine_sequence
+from .decorators import validate_institution, login_and_permission_required, institution_required, intro_tutorial
 from .http import CsvResponse
 
 logger = logging.getLogger(__name__)
@@ -36,15 +36,17 @@ class JsonFormMixin:
 
     def get_context_data(self, **kwargs):
         context = super(JsonFormMixin, self).get_context_data(**kwargs)
+        form_class = self.get_form_class()
         context.update({
-            'form_initial': self.renderer.render({name: '' for name in self.form_class.base_fields.keys()}),
+            'form_initial': self.renderer.render({name: '' for name in form_class.base_fields.keys()}),
         })
         return context
 
     def form_invalid(self, form):
         context = self.get_context_data(form=form)
+        form_class = self.get_form_class()
         context.update({
-            'form_data': self.renderer.render({name: form[name].data for name in self.form_class.base_fields.keys()}),
+            'form_data': self.renderer.render({name: form[name].data for name in form_class.base_fields.keys()}),
             'form_errors': self.renderer.render(form.errors),
         })
         return self.render_to_response(context)
@@ -73,7 +75,7 @@ def fake_server_error(request):
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(institution_required, name='dispatch')
-@method_decorator(check_machine_sequence, name='dispatch')
+@method_decorator(intro_tutorial, name='dispatch')
 class LandingView(TemplateView):
     template_name = 'common/landing.html'
 
@@ -94,7 +96,7 @@ class LandingView(TemplateView):
 
 @login_and_permission_required('common.configuration')
 @method_decorator(institution_required, name='dispatch')
-@method_decorator(check_machine_sequence, name='dispatch')
+@method_decorator(intro_tutorial, name='dispatch')
 class ConfigurationView(UpdateView):
     model = models.Institution
     form_class = forms.InstitutionForm
@@ -122,7 +124,7 @@ class ConfigurationView(UpdateView):
 
 
 @method_decorator(login_required, name='dispatch')
-@method_decorator(check_machine_sequence, name='dispatch')
+@method_decorator(intro_tutorial, name='dispatch')
 class AccountView(UpdateView):
     model = models.User
     form_class = forms.AccountForm
@@ -140,7 +142,7 @@ class AccountView(UpdateView):
 @method_decorator(login_required, name='dispatch')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()
-@method_decorator(check_machine_sequence, name='dispatch')
+@method_decorator(intro_tutorial, name='dispatch')
 class MachineSequenceDetailView(DetailView):
     model = models.MachineSequencePair
     template_name = 'common/machine_sequence_detail.html'
@@ -156,14 +158,14 @@ class MachineSequenceDetailView(DetailView):
         context.update({
             'machine_sequence_pair': self.object,
             'machine_sequence_pair_json': renderer.render(machine_sequence_pair_json.data),
-            'scans_json': renderer.render(scans_json.data)
+            'scans_json': renderer.render(scans_json.data),
         })
         return context
 
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(institution_required, name='dispatch')
-@method_decorator(check_machine_sequence, name='dispatch')
+@method_decorator(intro_tutorial, name='dispatch')
 class UploadScanView(JsonFormMixin, FormView):
     form_class = forms.UploadScanForm
     template_name = 'common/upload_scan.html'
@@ -209,15 +211,15 @@ class UploadScanView(JsonFormMixin, FormView):
         )
 
         process_scan.delay(scan.pk)
-        messages.success(self.request, "Your scan has been uploaded.  Processing will likely take " + \
-                "several minutes.  You will need to refresh the page to see the results.")
+        messages.success(self.request, "Your scan has been uploaded.  Processing will likely take several minutes. "
+                                       "This page will be updated automatically when it is finished.")
         return redirect('machine_sequence_detail', scan.machine_sequence_pair.pk)
 
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()
-@method_decorator(check_machine_sequence, name='dispatch')
+@method_decorator(intro_tutorial, name='dispatch')
 class ScanErrorsView(DetailView):
     model = models.Scan
     template_name = 'common/scan_errors.html'
@@ -226,7 +228,7 @@ class ScanErrorsView(DetailView):
 @method_decorator(login_required, name='dispatch')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution(model_class=models.Scan)
-@method_decorator(check_machine_sequence, name='dispatch')
+@method_decorator(intro_tutorial, name='dispatch')
 class DicomOverlayView(FormView):
     form_class = forms.DicomOverlayForm
     template_name = 'common/dicom_overlay.html'
@@ -261,7 +263,7 @@ class DicomOverlayView(FormView):
 @method_decorator(login_required, name='dispatch')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution(model_class=models.Scan)
-@method_decorator(check_machine_sequence, name='dispatch')
+@method_decorator(intro_tutorial, name='dispatch')
 class DicomOverlaySuccessView(TemplateView):
     template_name = 'common/dicom_overlay_success.html'
 
@@ -272,10 +274,11 @@ class DicomOverlaySuccessView(TemplateView):
         return context
 
 
+# TODO it seems that if you delete a scan while it is processing, it will become undeleted when it is finished
 @method_decorator(login_required, name='dispatch')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()
-@method_decorator(check_machine_sequence, name='dispatch')
+@method_decorator(intro_tutorial, name='dispatch')
 class DeleteScanView(CirsDeleteView):
     model = models.Scan
 
@@ -293,12 +296,11 @@ class DeleteScanView(CirsDeleteView):
 
 @login_and_permission_required('common.configuration')
 @method_decorator(institution_required, name='dispatch')
-@method_decorator(check_machine_sequence, name='dispatch')
+@method_decorator(intro_tutorial, name='dispatch')
 class CreatePhantomView(JsonFormMixin, FormView):
     form_class = forms.CreatePhantomForm
     success_url = reverse_lazy('configuration')
     template_name = 'common/phantom_create.html'
-    renderer = JSONRenderer()
 
     def __init__(self, **kwargs):
         self.object = None
@@ -313,9 +315,10 @@ class CreatePhantomView(JsonFormMixin, FormView):
 @login_and_permission_required('common.configuration')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()
-@method_decorator(check_machine_sequence, name='dispatch')
-class UpdatePhantomView(UpdateView):
+@method_decorator(intro_tutorial, name='dispatch')
+class UpdatePhantomView(JsonFormMixin, UpdateView):
     model = models.Phantom
+
     fields = ('name',)
     template_name_suffix = '_update'
     pk_url_kwarg = 'phantom_pk'
@@ -327,6 +330,19 @@ class UpdatePhantomView(UpdateView):
     def get_success_url(self):
         return reverse('update_phantom', args=(self.kwargs['phantom_pk'],))
 
+    def get_context_data(self, **kwargs):
+        context = super(UpdatePhantomView, self).get_context_data(**kwargs)
+        phantom_json = serializers.PhantomSerializer(self.object)
+        golden_fiducials_set_json = self.object.goldenfiducials_set.active().order_by('-created_on')
+        golden_fiducials_set_json = serializers.GoldenFiducialsSerializer(golden_fiducials_set_json, many=True)
+
+        renderer = JSONRenderer()
+        context.update({
+            'phantom_json': renderer.render(phantom_json.data),
+            'golden_fiducials_set_json': renderer.render(golden_fiducials_set_json.data),
+        })
+        return context
+
     @property
     def golden_fiducials(self):
         return self.object.goldenfiducials_set.active().order_by('-created_on')
@@ -335,7 +351,7 @@ class UpdatePhantomView(UpdateView):
 @login_and_permission_required('common.configuration')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()
-@method_decorator(check_machine_sequence, name='dispatch')
+@method_decorator(intro_tutorial, name='dispatch')
 class DeletePhantomView(CirsDeleteView):
     model = models.Phantom
     success_url = reverse_lazy('configuration')
@@ -349,7 +365,7 @@ class DeletePhantomView(CirsDeleteView):
 
 @login_and_permission_required('common.configuration')
 @method_decorator(institution_required, name='dispatch')
-@method_decorator(check_machine_sequence, name='dispatch')
+@method_decorator(intro_tutorial, name='dispatch')
 class CreateMachineView(CreateView):
     form_class = forms.CreateMachineForm
     success_url = reverse_lazy('configuration')
@@ -369,7 +385,7 @@ class CreateMachineView(CreateView):
 @login_and_permission_required('common.configuration')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()
-@method_decorator(check_machine_sequence, name='dispatch')
+@method_decorator(intro_tutorial, name='dispatch')
 class UpdateMachineView(UpdateView):
     model = models.Machine
     fields = ('name', 'model', 'manufacturer')
@@ -384,7 +400,7 @@ class UpdateMachineView(UpdateView):
 @login_and_permission_required('common.configuration')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()
-@method_decorator(check_machine_sequence, name='dispatch')
+@method_decorator(intro_tutorial, name='dispatch')
 class DeleteMachineView(CirsDeleteView):
     model = models.Machine
     success_url = reverse_lazy('configuration')
@@ -397,7 +413,7 @@ class DeleteMachineView(CirsDeleteView):
 
 @login_and_permission_required('common.configuration')
 @method_decorator(institution_required, name='dispatch')
-@method_decorator(check_machine_sequence, name='dispatch')
+@method_decorator(intro_tutorial, name='dispatch')
 class CreateSequenceView(CreateView):
     model = models.Sequence
     form_class = forms.SequenceForm
@@ -415,7 +431,7 @@ class CreateSequenceView(CreateView):
 @login_and_permission_required('common.configuration')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()
-@method_decorator(check_machine_sequence, name='dispatch')
+@method_decorator(intro_tutorial, name='dispatch')
 class UpdateSequenceView(UpdateView):
     model = models.Sequence
     form_class = forms.SequenceForm
@@ -430,7 +446,7 @@ class UpdateSequenceView(UpdateView):
 @login_and_permission_required('common.configuration')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()
-@method_decorator(check_machine_sequence, name='dispatch')
+@method_decorator(intro_tutorial, name='dispatch')
 class DeleteSequenceView(CirsDeleteView):
     model = models.Sequence
     success_url = reverse_lazy('configuration')
@@ -443,7 +459,7 @@ class DeleteSequenceView(CirsDeleteView):
 
 @login_and_permission_required('common.manage_users')
 @method_decorator(institution_required, name='dispatch')
-@method_decorator(check_machine_sequence, name='dispatch')
+@method_decorator(intro_tutorial, name='dispatch')
 class CreateUserView(FormView):
     form_class = forms.CreateUserForm
     success_url = reverse_lazy('configuration')
@@ -474,7 +490,7 @@ class CreateUserView(FormView):
 @login_and_permission_required('common.manage_users')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()
-@method_decorator(check_machine_sequence, name='dispatch')
+@method_decorator(intro_tutorial, name='dispatch')
 class DeleteUserView(CirsDeleteView):
     model = models.User
     success_url = reverse_lazy('configuration')
@@ -492,9 +508,9 @@ class DeleteUserView(CirsDeleteView):
 @login_and_permission_required('common.configuration')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution(model_class=models.Phantom, pk_url_kwarg='phantom_pk')
-@method_decorator(check_machine_sequence, name='dispatch')
-class UploadCTView(FormView):
-    form_class = forms.UploadCTForm
+@method_decorator(intro_tutorial, name='dispatch')
+class UploadCtView(FormView):
+    form_class = forms.UploadCtForm
     template_name = 'common/upload_ct.html'
 
     def form_valid(self, form):
@@ -523,13 +539,13 @@ class UploadCTView(FormView):
         )
 
         process_ct_upload.delay(dicom_series.pk, gold_standard.pk)
-        messages.success(self.request, "Your gold standard CT has been uploaded. " + \
-                "Processing will likely take several minutes.  You will need to " + \
-                "refresh the page to see the results.")
-        return super(UploadCTView, self).form_valid(form)
+        messages.success(self.request, "Your gold standard CT has been uploaded. "
+                                       "Processing will likely take several minutes. "
+                                       "This page will be updated automatically when it is finished.")
+        return super(UploadCtView, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
-        context = super(UploadCTView, self).get_context_data(**kwargs)
+        context = super(UploadCtView, self).get_context_data(**kwargs)
         phantom = get_object_or_404(models.Phantom, pk=self.kwargs['phantom_pk'])
         context.update({'phantom': phantom})
         return context
@@ -541,7 +557,7 @@ class UploadCTView(FormView):
 @login_and_permission_required('common.configuration')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution(model_class=models.Phantom, pk_url_kwarg='phantom_pk')
-@method_decorator(check_machine_sequence, name='dispatch')
+@method_decorator(intro_tutorial, name='dispatch')
 class UploadRawView(FormView):
     form_class = forms.UploadRawForm
     template_name = 'common/upload_raw.html'
@@ -570,7 +586,7 @@ class UploadRawView(FormView):
 @login_and_permission_required('common.configuration')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()
-@method_decorator(check_machine_sequence, name='dispatch')
+@method_decorator(intro_tutorial, name='dispatch')
 class DeleteGoldStandardView(CirsDeleteView):
     model = models.GoldenFiducials
     pk_url_kwarg = 'gold_standard_pk'
@@ -596,7 +612,7 @@ class DeleteGoldStandardView(CirsDeleteView):
 @login_and_permission_required('common.configuration')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution(model_class=models.GoldenFiducials, pk_url_kwarg='gold_standard_pk')
-@method_decorator(check_machine_sequence, name='dispatch')
+@method_decorator(intro_tutorial, name='dispatch')
 class ActivateGoldStandardView(View):
     def post(self, request, *args, phantom_pk=None, gold_standard_pk=None):
         gold_standard = get_object_or_404(models.GoldenFiducials, pk=gold_standard_pk)
@@ -637,7 +653,7 @@ class ActivateGoldStandardView(View):
 @login_and_permission_required('common.configuration')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution(model_class=models.GoldenFiducials, pk_url_kwarg='gold_standard_pk')
-@method_decorator(check_machine_sequence, name='dispatch')
+@method_decorator(intro_tutorial, name='dispatch')
 class GoldStandardCsvView(View):
     def get(self, request, *args, gold_standard_pk=None, **kwargs):
         gold_standard = get_object_or_404(models.GoldenFiducials, pk=gold_standard_pk)

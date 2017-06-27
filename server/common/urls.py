@@ -22,6 +22,8 @@ urlpatterns = [
     url(r'^api/', include([
         url(r'^validate-serial/$', api.ValidateSerialView.as_view(), name='validate_serial'),
         url(r'^update-tolerance/$', api.UpdateToleranceView.as_view(), name='update_tolerance'),
+        url(r'^poll-scans/$', api.PollScansView.as_view(), name='poll_scans'),
+        url(r'^poll-ct/$', api.PollCtView.as_view(), name='poll_ct'),
     ])),
 
     url(r'^scans/', include([
@@ -39,7 +41,7 @@ urlpatterns = [
         url(r'^(?P<phantom_pk>\d+)/delete/$', views.DeletePhantomView.as_view(), name='delete_phantom'),
 
         url(r'^(?P<phantom_pk>\d+)/gold-standards/', include([
-            url(r'^upload-ct/$', views.UploadCTView.as_view(), name='upload_ct'),
+            url(r'^upload-ct/$', views.UploadCtView.as_view(), name='upload_ct'),
             url(r'^upload-raw/$', views.UploadRawView.as_view(), name='upload_raw'),
             url(r'^(?P<gold_standard_pk>\d+)/delete/$', views.DeleteGoldStandardView.as_view(), name='delete_gold_standard'),
             url(r'^(?P<gold_standard_pk>\d+)/activate/$', views.ActivateGoldStandardView.as_view(), name='activate_gold_standard'),
