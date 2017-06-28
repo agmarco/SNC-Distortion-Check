@@ -96,8 +96,6 @@ def intro_tutorial(view):
 
     @wraps(view)
     def wrapper(request, *args, **kwargs):
-
-
         try:
             institution = request.user.get_institution(request)
             machines = Machine.objects.filter(institution=institution).active()
