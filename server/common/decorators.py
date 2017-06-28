@@ -96,6 +96,8 @@ def intro_tutorial(view):
 
     @wraps(view)
     def wrapper(request, *args, **kwargs):
+        response = view(request, *args, **kwargs)
+
         try:
             institution = request.user.get_institution(request)
             machines = Machine.objects.filter(institution=institution).active()
@@ -123,11 +125,14 @@ def intro_tutorial(view):
                 if no_machines or no_sequences:
                     msg = "A user with configuration privileges must setup at least one machine and one sequence " + \
                             "must be configured before you can begin uploading MRIs to analyze."
-            if msg and msg not in [m.message for m in get_messages(request)]:
+
+            storage = get_messages(request)
+            if msg and msg not in [m.message for m in storage]:
                 messages.info(request, mark_safe(msg))
+            storage.used = False
         except:
             logger.exception('Exception occurred during check machine sequences decorator')
 
-        return view(request, *args, **kwargs)
+        return response
 
     return wrapper
