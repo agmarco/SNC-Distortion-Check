@@ -156,9 +156,8 @@ class MachineSequenceDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super(MachineSequenceDetailView, self).get_context_data(**kwargs)
         machine_sequence_pair_json = serializers.MachineSequencePairSerializer(self.object)
-        scans_json = models.Scan.objects.filter(machine_sequence_pair=self.object)
-        scans_json = scans_json.active().order_by('-dicom_series__acquisition_date', '-created_on')
-        scans_json = serializers.ScanSerializer(scans_json, many=True)
+        scans = models.Scan.objects.filter(machine_sequence_pair=self.object).active()
+        scans_json = serializers.ScanSerializer(scans, many=True)
 
         renderer = JSONRenderer()
         context.update({

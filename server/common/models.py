@@ -154,7 +154,7 @@ class MachineSequencePair(CommonFieldsMixin):
 
     @cached_property
     def latest_scan(self):
-        return self.scan_set.active().order_by('-dicom_series__acquisition_date', '-created_on').first()
+        return self.scan_set.active().first()
 
     @property
     def latest_scan_date(self):
@@ -296,6 +296,9 @@ class Scan(CommonFieldsMixin):
     @property
     def acquisition_date(self):
         return DicomSeries.objects.values_list('acquisition_date', flat=True).get(scan=self)
+
+    class Meta:
+        ordering = ('-dicom_series__acquisition_date', '-created_on')
 
 
 # This table creates permissions that are not associated with a model.
