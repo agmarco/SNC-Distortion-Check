@@ -60,7 +60,6 @@ const chartHelp = 'This box-and-whiskers chart should let you, at a glance, dete
     'of the magnitude of the distortion found in the scan.  Red data points indicate that ' +
     'the maximum distortion was above the tolerance set when the analysis was performed.';
 
-// TODO new scans that just finished processing don't show up in the box plot (before refreshing the page)
 export default class extends React.Component<IScanChartProps, IScanChartState> {
     svg: SVGElement;
     settings: IScanChartSettings;
@@ -118,7 +117,7 @@ export default class extends React.Component<IScanChartProps, IScanChartState> {
         });
 
         const chart = d3.box()
-            .whiskers(this.iqr(Infinity)) // 1.5
+            .whiskers(this.iqr(Infinity))
             .height(height)
             .domain([yMin, yMax])
             .showLabels(labels);
@@ -146,7 +145,7 @@ export default class extends React.Component<IScanChartProps, IScanChartState> {
         };
     }
 
-    componentDidMount() {
+    configureScroll() {
         const { clipWidth, width } = this.settings;
 
         const scroll = d3.behavior.zoom()
@@ -171,6 +170,10 @@ export default class extends React.Component<IScanChartProps, IScanChartState> {
             });
 
         d3.select(this.svg).call(scroll);
+    }
+
+    componentDidMount() {
+        this.configureScroll();
     }
 
     render() {

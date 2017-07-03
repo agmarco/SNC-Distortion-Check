@@ -10,14 +10,14 @@ export default class extends React.Component<IScanChartAxesProps, {}> {
     yAxis: SVGGElement;
 
     componentDidMount() {
-        this.renderAxes();
+        this.drawAxes();
     }
 
     componentDidUpdate() {
-        this.renderAxes();
+        this.drawAxes();
     }
 
-    renderAxes() {
+    drawAxes() {
         const { xScale, yScale, clipWidth, yMin, yMax, data } = this.props;
 
         d3.select(this.xAxis).call(d3.svg.axis()

@@ -1,6 +1,8 @@
 import React from 'react';
 import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
+import isEqual from 'lodash/isEqual';
+import uniqueId from 'lodash/uniqueId';
 
 import { IScanDto, IMachineSequencePairDto } from 'common/service';
 import ScanChart from '../components/ScanChart';
@@ -18,21 +20,30 @@ interface IRootProps {
 
 interface IRootState {
     tolerance: number;
+    chartId: string;
 }
 
 class Root extends React.Component<IRootProps, IRootState> {
     constructor() {
         super();
-        this.state = { tolerance: MACHINE_SEQUENCE_PAIR.tolerance };
+        this.state = {tolerance: MACHINE_SEQUENCE_PAIR.tolerance, chartId: uniqueId()};
     }
 
     handleToleranceChange(event: React.FormEvent<HTMLInputElement>) {
         this.setState({tolerance: (event.target as any).value});
     }
 
+    componentWillReceiveProps(nextProps: IRootProps) {
+        if (!isEqual(nextProps.scans, this.props.scans)) {
+            // force the component to remount when new data is available
+            // ideally, we would update incrementally with d3, but this may require modifying/rewriting box.js
+            this.setState({chartId: uniqueId()});
+        }
+    }
+
     render() {
         const { scans, pollScansError } = this.props;
-        const { tolerance } = this.state;
+        const { tolerance, chartId } = this.state;
 
         return (
             <div>
@@ -50,6 +61,7 @@ class Root extends React.Component<IRootProps, IRootState> {
                     machineSequencePair={MACHINE_SEQUENCE_PAIR}
                     tolerance={tolerance}
                     scans={scans as IScanDto[]}
+                    key={chartId}
                 />
                 <h2>Scans</h2>
                 <ScanTable

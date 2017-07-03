@@ -9,14 +9,14 @@ export default class extends React.Component<IScanChartDataProps, {}> {
     g: SVGGElement;
 
     componentDidMount() {
-        this.renderPlot();
+        this.drawPlot();
     }
 
     componentDidUpdate() {
-        this.renderPlot();
+        this.drawPlot();
     }
 
-    renderPlot() {
+    drawPlot() {
         const { data, chart, xScale } = this.props;
 
         // draw the boxplots
