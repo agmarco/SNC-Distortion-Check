@@ -1,5 +1,11 @@
 {% extends "base.html" %}
 
+{% load common %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{% webpack 'upload_ct.css' %}">
+{% endblock %}
+
 {% block breadcrumbs %}
   <a href="{% url 'landing' %}">Home</a>
   {% include 'includes/breadcrumb_sep.html' %}
@@ -9,23 +15,18 @@
 {% endblock %}
 
 {% block content %}
-  <h1>Upload Gold Standard CT</h1>
-  <form enctype="multipart/form-data" method="post" class="cirs-form">
-    {% csrf_token %}
-    <p>The uploaded file should be a zip-archive containing CT DICOM slices for the gold standard CT scan of the phantom.</p>
-    {% include 'includes/form_fields.html' %}
-    <div class="form-links">
-      <a href="{% url 'update_phantom' phantom.pk %}" class="btn tertiary">Cancel</a>
-      <input type="submit" value="Upload CT" class="btn secondary">
-    </div>
+  <div id="upload-ct-app"></div>
+{% endblock %}
 
-    <!-- TODO: fix uploads and remove this -->
-    <p>
-        <strong>PLEASE NOTE:</strong> Due to a known error in our data upload
-        process, uploads, especially on slow connections, can
-        cause an application error.  We apologize in advance if your
-        upload fails halfway through.  We are aware of the issue and
-        are working on a fix.
-    </p>
-  </form>
+{% block scripts %}
+  {% chunk_manifest %}
+  {% manifest %}
+  <script src="{% webpack 'vendor.js' %}"></script>
+  <script>
+    var CANCEL_URL = "{% url 'update_phantom' phantom.pk %}";
+    var SIGN_S3_URL = "{% url 'sign_s3' %}";
+    var FORM_ACTION = "{% url 'upload_ct' %}";
+  </script>
+  {% include 'includes/json_form.html' %}
+  <script src="{% webpack 'upload_ct.js' %}"></script>
 {% endblock %}

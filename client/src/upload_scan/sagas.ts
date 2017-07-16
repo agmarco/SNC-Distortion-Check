@@ -4,11 +4,11 @@ import { actions as formActions } from 'react-redux-form';
 
 import * as constants from './constants';
 import * as actions from './actions';
-import * as api from './api';
+import * as api from 'common/api';
 
 export function* uploadScanToS3(action: Action<actions.IUploadScanToS3Payload>): any {
     const errorMsg = `Your file could not be uploaded. Please try again,
-            or contact CIRS support if this problem persists.`;  // TODO: doesn't work
+            or contact CIRS support if this problem persists.`;
 
     yield put(formActions.setPending('uploadScan', true));
 

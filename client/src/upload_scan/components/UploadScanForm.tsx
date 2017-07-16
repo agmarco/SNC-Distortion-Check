@@ -28,8 +28,8 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
 
     constructor(props: IUploadScanFormProps) {
         super();
-
         const { initialMachinePk, initialSequencePk, dispatch } = props;
+
         if (dispatch) {
             dispatch(formActions.change('uploadScan.machine', initialMachinePk || ''));
             dispatch(formActions.change('uploadScan.sequence', initialSequencePk || ''));
@@ -68,7 +68,6 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
             <div>
                 <CirsForm
                     action={formAction}
-                    encType="multipart/form-data"
                     method="post"
                     model="uploadScan"
                     className="cirs-form"

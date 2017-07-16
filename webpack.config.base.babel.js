@@ -17,6 +17,7 @@ export default (env) => ({
         create_phantom: [path.join(__dirname, 'client/src/create_phantom/app.tsx')],
         update_phantom: [path.join(__dirname, 'client/src/update_phantom/app.tsx')],
         upload_scan: [path.join(__dirname, 'client/src/upload_scan/app.tsx')],
+        upload_ct: [path.join(__dirname, 'client/src/upload_ct/app.tsx')],
         register: [path.join(__dirname, 'client/src/register/app.tsx')],
 
         // CSS only:

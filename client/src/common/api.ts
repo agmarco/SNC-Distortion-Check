@@ -5,6 +5,7 @@ import { call, race, CallEffect } from 'redux-saga/effects';
 import { encode } from 'common/utils';
 
 declare const VALIDATE_SERIAL_URL: string;
+declare const SIGN_S3_URL: string;
 
 export function addTimeout(apiOuter: CallEffect) {
     return call(function* (api: CallEffect) {
@@ -42,5 +43,25 @@ export const validateSerial = (body: any) => {
             'X-CSRFToken': Cookies.get('csrftoken'),
         },
         body: encode(body),
+    });
+};
+
+export const signS3 = (file: File) => {
+    return call(fetch, `${SIGN_S3_URL}?file_name=${file.name}&file_type=${file.type}`, {
+        method: 'GET',
+        credentials: 'same-origin',
+        headers: {
+            'X-CSRFToken': Cookies.get('csrftoken'),
+        },
+    });
+};
+
+export const uploadToS3 = (url: string, body: FormData) => {
+    return call(fetch, url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+        body,
     });
 };

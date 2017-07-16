@@ -513,11 +513,12 @@ class DeleteUserView(CirsDeleteView):
 @method_decorator(institution_required, name='dispatch')
 @validate_institution(model_class=models.Phantom, pk_url_kwarg='phantom_pk')
 @method_decorator(intro_tutorial, name='dispatch')
-class UploadCtView(FormView):
+class UploadCtView(JsonFormMixin, FormView):
     form_class = forms.UploadCtForm
     template_name = 'common/upload_ct.html'
 
     def form_valid(self, form):
+        # TODO: move to celery task
         voxels, ijk_to_xyz = dicom_import.combine_slices(form.cleaned_data['datasets'])
         ds = form.cleaned_data['datasets'][0]
 
