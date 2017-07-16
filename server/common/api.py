@@ -81,7 +81,7 @@ class SignS3View(APIView):
         S3_BUCKET = os.environ.get('S3_BUCKET')
 
         file_name = request.POST.get('file_name')
-        file_name = f"{uuid.uuid4().{file_name.split('.')[-1]}}"
+        file_name = f"{uuid.uuid4()}.{file_name.split('.')[-1]}"
         file_type = request.POST.get('file_type')
 
         s3 = boto3.client('s3')
