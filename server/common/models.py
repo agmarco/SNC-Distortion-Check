@@ -1,8 +1,11 @@
 import os
+import boto3
 from datetime import datetime
 import zipfile
 
+import botocore
 import numpy as np
+from django.conf import settings
 
 from django.core.files import File
 from django.db import models
@@ -311,9 +314,9 @@ class Global(models.Model):
         )
 
 
-def create_scan(machine, sequence, phantom, creator, dicom_archive, notes='', dicom_datasets=None, request=None):
+def create_scan(machine, sequence, phantom, creator, dicom_archive_url, notes='', dicom_datasets=None, request=None):
     if dicom_datasets is None:
-        with zipfile.ZipFile(dicom_archive, 'r') as dicom_archive_zipfile:
+        with zipfile.ZipFile(dicom_archive_url, 'r') as dicom_archive_zipfile:  # TODO: probably wrong
             dicom_datasets = dicom_import.dicom_datasets_from_zip(dicom_archive_zipfile)
 
     voxels, ijk_to_xyz = dicom_import.combine_slices(dicom_datasets)
@@ -330,7 +333,7 @@ def create_scan(machine, sequence, phantom, creator, dicom_archive, notes='', di
         acquisition_date=infer_acquisition_date(ds, request),
     )
 
-    dicom_series.zipped_dicom_files.save('dicom_archive', File(dicom_archive))
+    dicom_series.zipped_dicom_files = dicom_archive_url  # TODO: probably wrong
 
     machine_sequence_pair, _ = MachineSequencePair.objects.get_or_create(
         machine=machine,

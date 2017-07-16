@@ -1,12 +1,13 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { actions } from 'react-redux-form';
+import { actions as formActions, FormState } from 'react-redux-form';
 import { Dispatch } from 'redux';
 
 import { IMachineDto, ISequenceDto, IPhantomDto } from 'common/service';
-import { CSRFToken } from 'common/components';
+import { CSRFToken, LoadingIcon } from 'common/components';
 import { CirsForm, CirsControl, CirsErrors, IDjangoFormErrors } from 'common/forms';
 import { IUploadScanForm } from '../forms';
+import * as actions from '../actions';
 
 interface IUploadScanFormProps {
     machines: IMachineDto[];
@@ -18,38 +19,41 @@ interface IUploadScanFormProps {
     formErrors: IDjangoFormErrors | null;
     formAction: string;
     form?: IUploadScanForm;
+    formState?: FormState;
     dispatch?: Dispatch<any>;
 }
 
 class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
+    formId: string;
+
     constructor(props: IUploadScanFormProps) {
         super();
 
         const { initialMachinePk, initialSequencePk, dispatch } = props;
         if (dispatch) {
-            dispatch(actions.change('uploadScan.machine', initialMachinePk || ''));
-            dispatch(actions.change('uploadScan.sequence', initialSequencePk || ''));
-            dispatch(actions.change('uploadScan.phantom', ''));
+            dispatch(formActions.change('uploadScan.machine', initialMachinePk || ''));
+            dispatch(formActions.change('uploadScan.sequence', initialSequencePk || ''));
+            dispatch(formActions.change('uploadScan.phantom', ''));
+        }
+        this.formId = 'upload-scan';
+    }
+
+    handleSubmit(data: IUploadScanForm) {
+        const { dispatch } = this.props;
+
+        // TODO: data.dicom_archive may not be correct
+        // console.log(data.dicom_archive)
+
+        if (dispatch) {
+            dispatch(actions.uploadScanToS3({
+                file: data.dicom_archive[0],
+                formId: this.formId,
+            }));
         }
     }
 
-    // handleMachineChange(event: React.FormEvent<HTMLInputElement>) {
-    //     const value = (event.target as any).value;
-    //     this.setState({machineFilterValue: value === '' ? value : Number(value)});
-    // }
-//
-    // handleSequenceChange(event: React.FormEvent<HTMLInputElement>) {
-    //     const value = (event.target as any).value;
-    //     this.setState({sequenceFilterValue: value === '' ? value : Number(value)});
-    // }
-//
-    // handlePhantomChange(event: React.FormEvent<HTMLInputElement>) {
-    //     const value = (event.target as any).value;
-    //     this.setState({phantomFilterValue: value === '' ? value : Number(value)});
-    // }
-
     render() {
-        const { machines, sequences, phantoms, cancelUrl, formErrors, form, formAction } = this.props;
+        const { machines, sequences, phantoms, cancelUrl, formErrors, form, formState, formAction } = this.props;
         const { machine, sequence, phantom } = form as IUploadScanForm;
 
         const currentMachine = machine && (
@@ -62,6 +66,9 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
             phantoms.find((p) => p.pk === Number(phantom))
         );
 
+        // TODO: formState may not be correct
+        // console.log(formState)
+
         return (
             <div>
                 <CirsForm
@@ -71,12 +78,18 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
                     model="uploadScan"
                     className="cirs-form"
                     djangoErrors={formErrors}
+                    onSubmit={this.handleSubmit.bind(this)}
+                    id={this.formId}
                 >
 
                     <CirsControl type="hidden" model=".__all__" />
                     <CirsErrors model=".__all__" />
 
+                    {formState && formState.pending && <p>Your file is uploading... <LoadingIcon /></p>}
+
                     <CSRFToken />
+
+                    <CirsControl type="hidden" model=".dicom_archive_url" />
 
                     <div>
                         <label htmlFor="upload-scan-machine">Machine</label>
@@ -176,14 +189,6 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
                         <a href={cancelUrl} className="btn tertiary">Cancel</a>
                         <input type="submit" value="Process Scan" className="btn secondary" />
                     </div>
-                    <br />
-                    <p>
-                        <strong>PLEASE NOTE:</strong> Due to an issue with our data upload
-                        process, uploads can occasionally time out.  This occurs most frequently
-                        on slow connections.  We apologize in advance if your
-                        upload fails halfway through and you need to re-upload it.  We are aware of the issue and
-                        are working on finding a solution.
-                    </p>
                 </CirsForm>
             </div>
         );
@@ -193,4 +198,7 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
 // TODO: fix upload issue and remove the warning
 // message; also remove the same message from the
 // static Heroku error page in S3.
-export default connect<any, any, any>((state: any) => ({form: state.uploadScan}))(UploadScanForm as any);
+export default connect<any, any, any>((state: any) => ({
+    form: state.uploadScan,
+    formState: state.forms.uploadScan,
+}))(UploadScanForm as any);

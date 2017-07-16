@@ -49,20 +49,8 @@ class UploadScanForm(CirsFormMixin, forms.Form):
     machine = forms.IntegerField()
     sequence = forms.IntegerField()
     phantom = forms.IntegerField()
-    dicom_archive = forms.FileField(label="MRI Scan Files")
+    dicom_archive_url = forms.HiddenInput()
     notes = forms.CharField(required=False)
-
-    def clean_dicom_archive(self):
-        try:
-            dicom_import.combined_series_from_zip(self.cleaned_data['dicom_archive'])
-        except dicom_import.DicomImportException as e:
-            raise forms.ValidationError(e.args[0])
-
-        with zipfile.ZipFile(self.cleaned_data['dicom_archive'], 'r') as zip_file:
-            datasets = dicom_import.dicom_datasets_from_zip(zip_file)
-
-        self.cleaned_data['datasets'] = datasets
-        return self.cleaned_data['dicom_archive']
 
 
 class UploadCtForm(CirsFormMixin, forms.Form):

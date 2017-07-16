@@ -209,9 +209,9 @@ class UploadScanView(JsonFormMixin, FormView):
             sequence,
             phantom,
             self.request.user,
-            self.request.FILES['dicom_archive'],
+            form.cleaned_data['dicom_archive_url'],
             form.cleaned_data['notes'],
-            form.cleaned_data['datasets'],
+            None,
             self.request,
         )
 

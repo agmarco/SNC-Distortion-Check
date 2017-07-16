@@ -24,6 +24,7 @@
     var SEQUENCES = {{ sequences_json|safe }};
     var PHANTOMS = {{ phantoms_json|safe }};
     var CANCEL_URL = "{% if request.GET.cancel %}{{ request.GET.cancel }}{% else %}{% url 'landing' %}{% endif %}";
+    var SIGN_S3_URL = "{% url 'sign_s3' %}";
     var INITIAL_MACHINE_PK = {% if request.GET.machine %}{{ request.GET.machine }}{% else %}null{% endif %};
     var INITIAL_SEQUENCE_PK = {% if request.GET.sequence %}{{ request.GET.sequence }}{% else %}null{% endif %};
     var FORM_ACTION = "{% url 'upload_scan' %}";

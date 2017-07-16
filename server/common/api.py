@@ -1,3 +1,6 @@
+import os, json, boto3
+import uuid
+
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 
@@ -67,3 +70,34 @@ class PollCtView(APIView):
         )
         serializer = GoldenFiducialsSerializer(golden_fiducials_set, many=True)
         return Response(serializer.data)
+
+
+class SignS3View(APIView):
+    permission_classes = (
+        IsAuthenticated,
+    )
+
+    def post(self, request):
+        S3_BUCKET = os.environ.get('S3_BUCKET')
+
+        file_name = request.POST.get('file_name')
+        file_name = f"{uuid.uuid4().{file_name.split('.')[-1]}}"
+        file_type = request.POST.get('file_type')
+
+        s3 = boto3.client('s3')
+
+        presigned_post = s3.generate_presigned_post(
+            Bucket=S3_BUCKET,
+            Key=file_name,
+            Fields={"acl": "public-read", "Content-Type": file_type},
+            Conditions=[
+                {"acl": "public-read"},
+                {"Content-Type": file_type}
+            ],
+            ExpiresIn=3600
+        )
+
+        return json.dumps({
+            'data': presigned_post,
+            'url': 'https://%s.s3.amazonaws.com/%s' % (S3_BUCKET, file_name)
+        })
