@@ -41,9 +41,6 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
     handleSubmit(data: IUploadScanForm, event: React.FormEvent<HTMLInputElement>) {
         const { dispatch } = this.props;
 
-        // TODO: data.dicom_archive may not be correct
-        // console.log(data.dicom_archive)
-
         event.preventDefault();
         if (dispatch) {
             dispatch(actions.uploadScanToS3({
