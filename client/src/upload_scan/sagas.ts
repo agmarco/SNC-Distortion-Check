@@ -7,6 +7,9 @@ import * as actions from './actions';
 import * as api from './api';
 
 export function* uploadScanToS3(action: Action<actions.IUploadScanToS3Payload>): any {
+    const errorMsg = `Your file could not be uploaded. Please try again,
+            or contact CIRS support if this problem persists.`;  // TODO: doesn't work
+
     yield put(formActions.setPending('uploadScan', true));
 
     const getS3UrlResponse = yield api.signS3((action.payload as actions.IUploadScanToS3Payload).file);
@@ -26,18 +29,17 @@ export function* uploadScanToS3(action: Action<actions.IUploadScanToS3Payload>):
             ).submit();
         } else {
             yield put(formActions.setPending('uploadScan', false));
-            formActions.setErrors(
-                'uploadScan.__all__',
-                'Your file could not be uploaded. Please try again, or contact CIRS support if this problem persists.',
-            );
+            yield put(formActions.setErrors('uploadScan.__all__', errorMsg));
+            yield put(formActions.setTouched(`uploadScan.__all__`));
         }
 
     } else {
         yield put(formActions.setPending('uploadScan', false));
-        formActions.setErrors(
-            'uploadScan.__all__',
-            'Your file could not be uploaded. Please try again, or contact CIRS support if this problem persists.',
-        );
+        yield put(formActions.setErrors('uploadScan.__all__', errorMsg));
+
+        // TODO: this shouldn't be necessary
+        // Will probably fix itself when we can properly set global errors on the form model itself
+        yield put(formActions.setTouched(`uploadScan.__all__`));
     }
 }
 

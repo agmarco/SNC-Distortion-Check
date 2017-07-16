@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { actions as formActions, FormState } from 'react-redux-form';
+import { actions as formActions, FieldState } from 'react-redux-form';
 import { Dispatch } from 'redux';
 
 import { IMachineDto, ISequenceDto, IPhantomDto } from 'common/service';
@@ -19,7 +19,7 @@ interface IUploadScanFormProps {
     formErrors: IDjangoFormErrors | null;
     formAction: string;
     form?: IUploadScanForm;
-    formState?: FormState;
+    formState?: { [name: string]: FieldState };
     dispatch?: Dispatch<any>;
 }
 
@@ -38,12 +38,13 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
         this.formId = 'upload-scan';
     }
 
-    handleSubmit(data: IUploadScanForm) {
+    handleSubmit(data: IUploadScanForm, event: React.FormEvent<HTMLInputElement>) {
         const { dispatch } = this.props;
 
         // TODO: data.dicom_archive may not be correct
         // console.log(data.dicom_archive)
 
+        event.preventDefault();
         if (dispatch) {
             dispatch(actions.uploadScanToS3({
                 file: data.dicom_archive[0],
@@ -66,9 +67,6 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
             phantoms.find((p) => p.pk === Number(phantom))
         );
 
-        // TODO: formState may not be correct
-        // console.log(formState)
-
         return (
             <div>
                 <CirsForm
@@ -84,8 +82,6 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
 
                     <CirsControl type="hidden" model=".__all__" />
                     <CirsErrors model=".__all__" />
-
-                    {formState && formState.pending && <p>Your file is uploading... <LoadingIcon /></p>}
 
                     <CSRFToken />
 
@@ -189,6 +185,9 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
                         <a href={cancelUrl} className="btn tertiary">Cancel</a>
                         <input type="submit" value="Process Scan" className="btn secondary" />
                     </div>
+
+                    {formState && formState.$form && formState.$form.pending &&
+                    <p>Your file is uploading... <LoadingIcon /></p>}
                 </CirsForm>
             </div>
         );
