@@ -1,4 +1,4 @@
-import os, json, boto3
+import os, boto3
 import uuid
 
 from django.core.exceptions import ValidationError
@@ -78,7 +78,7 @@ class SignS3View(APIView):
     )
 
     def get(self, request):
-        S3_BUCKET = os.environ.get('S3_BUCKET')
+        S3_BUCKET = os.environ.get('AWS_STORAGE_BUCKET_NAME')
 
         file_name = request.GET.get('file_name')
         file_name = f"{uuid.uuid4()}.{file_name.split('.')[-1]}"
@@ -97,7 +97,7 @@ class SignS3View(APIView):
             ExpiresIn=3600
         )
 
-        return json.dumps({
+        return Response({
             'data': presigned_post,
             'url': 'https://%s.s3.amazonaws.com/%s' % (S3_BUCKET, file_name)
         })
