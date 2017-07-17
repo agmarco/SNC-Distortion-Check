@@ -20,7 +20,7 @@ export function* uploadScanToS3(action: Action<actions.IUploadScanToS3Payload>):
         Object.keys(s3Data.data.fields).forEach(key => postData.append(key, s3Data.data.fields[key]));
         postData.append('file', (action.payload as actions.IUploadScanToS3Payload).file);
 
-        const uploadToS3Response = yield api.uploadToS3(s3Data.data.url, postData);
+        const uploadToS3Response = yield api.uploadToS3(s3Data.data.url, postData);  // TODO: s3Data.url?
 
         if (uploadToS3Response.ok) {
             yield put(formActions.change('uploadScan.dicom_archive_url', s3Data.url));
