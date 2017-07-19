@@ -24,6 +24,7 @@ export function* uploadCtToS3(action: Action<actions.IUploadCtToS3Payload>): any
 
         if (uploadToS3Response.ok) {
             yield put(formActions.change('uploadCt.dicom_archive_url', s3Data.url));
+            yield put(formActions.setSubmitted('uploadCt', true));
             (document.getElementById(
                 (action.payload as actions.IUploadCtToS3Payload).formId) as HTMLFormElement
             ).submit();

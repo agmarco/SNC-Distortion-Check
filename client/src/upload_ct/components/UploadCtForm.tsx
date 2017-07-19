@@ -18,22 +18,19 @@ interface IUploadCtFormProps {
 }
 
 class UploadCtForm extends React.Component<IUploadCtFormProps, {}> {
-    formId: string;
-
-    constructor(props: IUploadCtFormProps) {
-        super();
-        this.formId = 'upload-ct';
-    }
+    formId = 'upload-ct';
 
     handleSubmit(data: IUploadCtForm, event: React.FormEvent<HTMLInputElement>) {
-        const { dispatch } = this.props;
+        const { dispatch, formState } = this.props;
 
-        event.preventDefault();
-        if (dispatch) {
-            dispatch(actions.uploadCtToS3({
-                file: data.dicom_archive[0],
-                formId: this.formId,
-            }));
+        if (!(formState && formState.$form && formState.$form.submitted)) {
+            event.preventDefault();
+            if (dispatch) {
+                dispatch(actions.uploadCtToS3({
+                    file: data.dicom_archive[0],
+                    formId: this.formId,
+                }));
+            }
         }
     }
 

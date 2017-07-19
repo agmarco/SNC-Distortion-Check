@@ -59,9 +59,6 @@ export const signS3 = (file: File) => {
 export const uploadToS3 = (url: string, body: FormData) => {
     return call(fetch, url, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'multipart/form-data',
-        },
         body,
     });
 };

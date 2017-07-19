@@ -49,7 +49,7 @@ class UploadScanForm(CirsFormMixin, forms.Form):
     machine = forms.IntegerField()
     sequence = forms.IntegerField()
     phantom = forms.IntegerField()
-    dicom_archive_url = forms.HiddenInput()
+    dicom_archive_url = forms.CharField()
     notes = forms.CharField(required=False)
 
     # def clean_dicom_archive(self):
@@ -66,7 +66,7 @@ class UploadScanForm(CirsFormMixin, forms.Form):
 
 
 class UploadCtForm(CirsFormMixin, forms.Form):
-    dicom_archive_url = forms.HiddenInput()
+    dicom_archive_url = forms.CharField()
 
     # def clean_dicom_archive(self):
     #     try:

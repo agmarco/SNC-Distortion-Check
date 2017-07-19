@@ -24,7 +24,7 @@ interface IUploadScanFormProps {
 }
 
 class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
-    formId: string;
+    formId = 'upload-scan';
 
     constructor(props: IUploadScanFormProps) {
         super();
@@ -35,18 +35,19 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
             dispatch(formActions.change('uploadScan.sequence', initialSequencePk || ''));
             dispatch(formActions.change('uploadScan.phantom', ''));
         }
-        this.formId = 'upload-scan';
     }
 
     handleSubmit(data: IUploadScanForm, event: React.FormEvent<HTMLInputElement>) {
-        const { dispatch } = this.props;
+        const { dispatch, formState } = this.props;
 
-        event.preventDefault();
-        if (dispatch) {
-            dispatch(actions.uploadScanToS3({
-                file: data.dicom_archive[0],
-                formId: this.formId,
-            }));
+        if (!(formState && formState.$form && formState.$form.submitted)) {
+            event.preventDefault();
+            if (dispatch) {
+                dispatch(actions.uploadScanToS3({
+                    file: data.dicom_archive[0],
+                    formId: this.formId,
+                }));
+            }
         }
     }
 
@@ -190,9 +191,6 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
     }
 }
 
-// TODO: fix upload issue and remove the warning
-// message; also remove the same message from the
-// static Heroku error page in S3.
 export default connect<any, any, any>((state: any) => ({
     form: state.uploadScan,
     formState: state.forms.uploadScan,

@@ -16,14 +16,16 @@ export function* uploadScanToS3(action: Action<actions.IUploadScanToS3Payload>):
 
     if (getS3UrlResponse.ok) {
         const s3Data = yield call(getS3UrlResponse.json.bind(getS3UrlResponse));
+
         const postData = new FormData();
         Object.keys(s3Data.data.fields).forEach(key => postData.append(key, s3Data.data.fields[key]));
         postData.append('file', (action.payload as actions.IUploadScanToS3Payload).file);
 
-        const uploadToS3Response = yield api.uploadToS3(s3Data.data.url, postData);  // TODO: s3Data.url?
+        const uploadToS3Response = yield api.uploadToS3(s3Data.data.url, postData);
 
         if (uploadToS3Response.ok) {
             yield put(formActions.change('uploadScan.dicom_archive_url', s3Data.url));
+            yield put(formActions.setSubmitted('uploadScan', true));
             (document.getElementById(
                 (action.payload as actions.IUploadScanToS3Payload).formId) as HTMLFormElement
             ).submit();
