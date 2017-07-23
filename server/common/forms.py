@@ -2,6 +2,7 @@ import zipfile
 from functools import partial
 
 from django import forms
+from django.forms import FileInput
 
 import numpy as np
 from django.contrib.auth.forms import PasswordResetForm
@@ -49,7 +50,7 @@ class UploadScanForm(CirsFormMixin, forms.Form):
     machine = forms.IntegerField()
     sequence = forms.IntegerField()
     phantom = forms.IntegerField()
-    dicom_archive = forms.FileField(label="MRI Scan Files")
+    dicom_archive = forms.FileField(label="MRI Scan Files", widget=FileInput(attrs={'accept': '.zip'}))
     notes = forms.CharField(required=False)
 
     def clean_dicom_archive(self):
@@ -66,7 +67,7 @@ class UploadScanForm(CirsFormMixin, forms.Form):
 
 
 class UploadCtForm(CirsFormMixin, forms.Form):
-    dicom_archive = forms.FileField(label="File Browser")
+    dicom_archive = forms.FileField(label="File Browser", widget=FileInput(attrs={'accept': '.zip'}))
 
     def clean_dicom_archive(self):
         try:
@@ -90,7 +91,7 @@ class UploadCtForm(CirsFormMixin, forms.Form):
 
 
 class UploadRawForm(CirsFormMixin, forms.Form):
-    csv = forms.FileField(label="File Browser")
+    csv = forms.FileField(label="File Browser", widget=FileInput(attrs={'accept': '.csv,.txt'}))
 
     @staticmethod
     def _has_duplicates(ndarray):

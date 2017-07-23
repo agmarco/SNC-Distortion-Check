@@ -158,7 +158,7 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
 
                     <div>
                         <label htmlFor="upload-scan-dicom-archive">MRI Scan Files</label>
-                        <CirsControl.file type="file" id="upload-scan-dicom-archive" model=".dicom_archive" required />
+                        <CirsControl.file type="file" id="upload-scan-dicom-archive" model=".dicom_archive" accept=".zip" required />
                         <CirsErrors model=".dicom_archive" required />
                         <p>
                             Please upload a zip-file containing the MRI DICOM files of a scan of the specified phatom,
