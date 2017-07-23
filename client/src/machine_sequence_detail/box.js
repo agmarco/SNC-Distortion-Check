@@ -26,7 +26,7 @@ import { quartiles as getQuartiles } from 'common/utils';
                 //var boxIndex = 1;
                 var d = data[1].sort(d3.ascending);
 
-                // console.log(boxIndex);
+                //console.log(boxIndex);
                 //console.log(d);
 
                 var g = d3.select(this),

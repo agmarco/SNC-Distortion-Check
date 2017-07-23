@@ -72,6 +72,7 @@ class PollCtView(APIView):
         return Response(serializer.data)
 
 
+# TODO upload to subdirectory
 class SignS3View(APIView):
     permission_classes = (
         IsAuthenticated,

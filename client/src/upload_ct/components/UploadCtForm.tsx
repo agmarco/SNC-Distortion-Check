@@ -17,25 +17,36 @@ interface IUploadCtFormProps {
     dispatch?: Dispatch<any>;
 }
 
-class UploadCtForm extends React.Component<IUploadCtFormProps, {}> {
-    formId = 'upload-ct';
+interface IUploadCtFormState {
+    dicomArchiveDisabled: boolean;
+}
 
-    handleSubmit(data: IUploadCtForm, event: React.FormEvent<HTMLInputElement>) {
-        const { dispatch, formState } = this.props;
+class UploadCtForm extends React.Component<IUploadCtFormProps, IUploadCtFormState> {
+    constructor() {
+        super();
+        this.state = {dicomArchiveDisabled: false};
+    }
 
-        if (!(formState && formState.$form && formState.$form.submitted)) {
-            event.preventDefault();
+    handleSubmit() {
+        this.setState({dicomArchiveDisabled: true});
+    }
+
+    handleDicomArchiveChange(event: React.FormEvent<HTMLInputElement>) {
+        const { dispatch } = this.props;
+        const value = (event.target as any).files;
+
+        if (value) {
             if (dispatch) {
-                dispatch(actions.uploadCtToS3({
-                    file: data.dicom_archive[0],
-                    formId: this.formId,
-                }));
+                dispatch(actions.uploadCtToS3(value[0]));
             }
         }
     }
 
     render() {
         const { cancelUrl, formErrors, formState, formAction } = this.props;
+        const { dicomArchiveDisabled } = this.state;
+        const dicomArchiveState: FieldState | undefined = formState && formState.dicom_archive &&
+            (formState.dicom_archive as FieldState[])[0];
 
 
         return (
@@ -47,7 +58,6 @@ class UploadCtForm extends React.Component<IUploadCtFormProps, {}> {
                     className="cirs-form"
                     djangoErrors={formErrors}
                     onSubmit={this.handleSubmit.bind(this)}
-                    id={this.formId}
                 >
 
                     <CirsControl type="hidden" model=".__all__" />
@@ -59,7 +69,9 @@ class UploadCtForm extends React.Component<IUploadCtFormProps, {}> {
 
                     <div>
                         <label htmlFor="upload-ct-dicom-archive">File Browser</label>
-                        <CirsControl.file type="file" id="upload-ct-dicom-archive" model=".dicom_archive" required />
+                        <CirsControl.file type="file" id="upload-ct-dicom-archive" model=".dicom_archive" required
+                                          onChange={this.handleDicomArchiveChange.bind(this)}
+                                          disabled={dicomArchiveDisabled}/>
                         <CirsErrors model=".dicom_archive" required />
                         <p>
                             The uploaded file should be a zip-archive containing CT DICOM slices for the gold standard
@@ -67,13 +79,16 @@ class UploadCtForm extends React.Component<IUploadCtFormProps, {}> {
                         </p>
                     </div>
 
+                    {dicomArchiveState && dicomArchiveState.pending &&
+                    <p>Please wait while your file uploads... <LoadingIcon /></p>}
+                    {dicomArchiveState && !dicomArchiveState.pristine && !dicomArchiveState.pending &&
+                    <p className="success">Your file has been uploaded successfully.</p>}
+
                     <div className="form-links">
                         <a href={cancelUrl} className="btn tertiary">Cancel</a>
-                        <input type="submit" value="Upload CT" className="btn secondary" />
+                        <input type="submit" value="Upload CT" className="btn secondary"
+                               disabled={dicomArchiveState && dicomArchiveState.pending}/>
                     </div>
-
-                    {formState && formState.$form && formState.$form.pending &&
-                    <p>Your file is uploading... <LoadingIcon /></p>}
                 </CirsForm>
             </div>
         );

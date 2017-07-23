@@ -23,9 +23,11 @@ interface IUploadScanFormProps {
     dispatch?: Dispatch<any>;
 }
 
-class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
-    formId = 'upload-scan';
+interface IUploadScanFormState {
+    dicomArchiveDisabled: boolean;
+}
 
+class UploadScanForm extends React.Component<IUploadScanFormProps, IUploadScanFormState> {
     constructor(props: IUploadScanFormProps) {
         super();
         const { initialMachinePk, initialSequencePk, dispatch } = props;
@@ -35,25 +37,30 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
             dispatch(formActions.change('uploadScan.sequence', initialSequencePk || ''));
             dispatch(formActions.change('uploadScan.phantom', ''));
         }
+        this.state = {dicomArchiveDisabled: false};
     }
 
-    handleSubmit(data: IUploadScanForm, event: React.FormEvent<HTMLInputElement>) {
-        const { dispatch, formState } = this.props;
+    handleSubmit() {
+        this.setState({dicomArchiveDisabled: true});
+    }
 
-        if (!(formState && formState.$form && formState.$form.submitted)) {
-            event.preventDefault();
+    handleDicomArchiveChange(event: React.FormEvent<HTMLInputElement>) {
+        const { dispatch } = this.props;
+        const value = (event.target as any).files;
+
+        if (value) {
             if (dispatch) {
-                dispatch(actions.uploadScanToS3({
-                    file: data.dicom_archive[0],
-                    formId: this.formId,
-                }));
+                dispatch(actions.uploadScanToS3(value[0]));
             }
         }
     }
 
     render() {
         const { machines, sequences, phantoms, cancelUrl, formErrors, form, formState, formAction } = this.props;
+        const { dicomArchiveDisabled } = this.state;
         const { machine, sequence, phantom } = form as IUploadScanForm;
+        const dicomArchiveState: FieldState | undefined = formState && formState.dicom_archive &&
+            (formState.dicom_archive as FieldState[])[0];
 
         const currentMachine = machine && (
             machines.find((m) => m.pk === Number(machine))
@@ -74,7 +81,6 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
                     className="cirs-form"
                     djangoErrors={formErrors}
                     onSubmit={this.handleSubmit.bind(this)}
-                    id={this.formId}
                 >
 
                     <CirsControl type="hidden" model=".__all__" />
@@ -164,13 +170,20 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
 
                     <div>
                         <label htmlFor="upload-scan-dicom-archive">MRI Scan Files</label>
-                        <CirsControl.file type="file" id="upload-scan-dicom-archive" model=".dicom_archive" required />
+                        <CirsControl.file type="file" id="upload-scan-dicom-archive" model=".dicom_archive" required
+                                          onChange={this.handleDicomArchiveChange.bind(this)}
+                                          disabled={dicomArchiveDisabled} />
                         <CirsErrors model=".dicom_archive" required />
                         <p>
                             Please upload a zip-file containing the MRI DICOM files of a scan of the specified phatom,
                             on the specified machine, using the specified sequence.
                         </p>
                     </div>
+
+                    {dicomArchiveState && dicomArchiveState.pending &&
+                    <p>Please wait while your file uploads... <LoadingIcon /></p>}
+                    {dicomArchiveState && !dicomArchiveState.pristine && !dicomArchiveState.pending &&
+                    <p className="success">Your file has been uploaded successfully.</p>}
 
                     <div>
                         <label htmlFor="upload-scan-notes">Notes</label>
@@ -180,11 +193,9 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, {}> {
 
                     <div className="form-links">
                         <a href={cancelUrl} className="btn tertiary">Cancel</a>
-                        <input type="submit" value="Process Scan" className="btn secondary" />
+                        <input type="submit" value="Process Scan" className="btn secondary"
+                               disabled={dicomArchiveState && dicomArchiveState.pending} />
                     </div>
-
-                    {formState && formState.$form && formState.$form.pending &&
-                    <p>Your file is uploading... <LoadingIcon /></p>}
                 </CirsForm>
             </div>
         );
