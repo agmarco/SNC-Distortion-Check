@@ -35,7 +35,7 @@ const acquisitionDateHelp = 'Date when the scan was acquired if the AcquisitionD
     'or the date when the file was uploaded if not.';
 const passedHelp = 'Was the maximum detected geometric distortion within the tolerance set at the time when ' +
     'this scan was processed?  Note if you change the tolerance, you will need to re-run the scan.';
-const processingHelp = 'Processing may take several minutes. You will need to refresh the page to see updates.';
+const processingHelp = 'Processing may take several minutes.';
 
 export default class extends React.Component<IScanTableProps, IScanTableState> {
     constructor(props: IScanTableProps) {

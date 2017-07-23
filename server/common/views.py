@@ -691,7 +691,7 @@ def refresh_scan_view(request, pk=None):
         process_scan.delay(new_scan.pk)
         messages.success(request, "Scan is being re-run using the current tolerance threshold, phantom gold standard "
                                   "grid intersection locations, and image processing algorithm.  Processing will "
-                                  "likely take several minutes.  You will need to refresh the page to see the results.")
+                                  "likely take several minutes.")
         return redirect('machine_sequence_detail', new_scan.machine_sequence_pair.pk)
     else:
         return HttpResponseNotAllowed(['POST'])
