@@ -27,14 +27,14 @@ export function* uploadCtToS3(action: Action<File>): any {
             yield put(formActions.setPending('uploadCt.dicom_archive.0', false));
         } else {
             yield put(formActions.setPending('uploadCt.dicom_archive.0', false));
-            yield put(formActions.setErrors('uploadCt.__all__', errorMsg));
-            yield put(formActions.setTouched(`uploadCt.__all__`));
+            yield put(formActions.setErrors('uploadCt.dicom_archive.0', errorMsg));
+            yield put(formActions.setTouched(`uploadCt.dicom_archive.0`));
         }
 
     } else {
         yield put(formActions.setPending('uploadCt.dicom_archive.0', false));
-        yield put(formActions.setErrors('uploadCt.__all__', errorMsg));
-        yield put(formActions.setTouched(`uploadCt.__all__`));
+        yield put(formActions.setErrors('uploadCt.dicom_archive.0', errorMsg));
+        yield put(formActions.setTouched(`uploadCt.dicom_archive.0`));
     }
 }
 

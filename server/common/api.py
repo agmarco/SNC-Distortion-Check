@@ -1,4 +1,5 @@
-import os, boto3
+import os
+import boto3
 import uuid
 
 from django.core.exceptions import ValidationError
@@ -72,7 +73,6 @@ class PollCtView(APIView):
         return Response(serializer.data)
 
 
-# TODO upload to subdirectory
 class SignS3View(APIView):
     permission_classes = (
         IsAuthenticated,
@@ -81,15 +81,15 @@ class SignS3View(APIView):
     def get(self, request):
         S3_BUCKET = os.environ.get('AWS_STORAGE_BUCKET_NAME')
 
-        file_name = request.GET.get('file_name')
-        file_name = f"{uuid.uuid4()}.{file_name.split('.')[-1]}"
+        file_name, ext = os.path.splitext(request.GET.get('file_name'))
+        file_path = os.path.join('dicom_archives', f'{uuid.uuid4()}{ext}')
         file_type = request.GET.get('file_type')
 
         s3 = boto3.client('s3')
 
         presigned_post = s3.generate_presigned_post(
             Bucket=S3_BUCKET,
-            Key=file_name,
+            Key=file_path,
             Fields={"acl": "public-read", "Content-Type": file_type},
             Conditions=[
                 {"acl": "public-read"},
@@ -100,5 +100,5 @@ class SignS3View(APIView):
 
         return Response({
             'data': presigned_post,
-            'url': 'https://%s.s3.amazonaws.com/%s' % (S3_BUCKET, file_name)
+            'url': os.path.join(f'https://{S3_BUCKET}.s3.amazonaws.com', file_path),
         })

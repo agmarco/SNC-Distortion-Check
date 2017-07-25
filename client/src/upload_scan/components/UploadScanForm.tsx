@@ -173,17 +173,19 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, IUploadScanFo
                         <CirsControl.file type="file" id="upload-scan-dicom-archive" model=".dicom_archive" required
                                           onChange={this.handleDicomArchiveChange.bind(this)}
                                           disabled={dicomArchiveDisabled} />
-                        <CirsErrors model=".dicom_archive" required />
                         <p>
                             Please upload a zip-file containing the MRI DICOM files of a scan of the specified phatom,
                             on the specified machine, using the specified sequence.
                         </p>
-                    </div>
 
-                    {dicomArchiveState && dicomArchiveState.pending &&
-                    <p>Please wait while your file uploads... <LoadingIcon /></p>}
-                    {dicomArchiveState && !dicomArchiveState.pristine && !dicomArchiveState.pending &&
-                    <p className="success">Your file has been uploaded successfully.</p>}
+                        <CirsErrors model=".dicom_archive.0" required />
+
+                        {dicomArchiveState && dicomArchiveState.pending &&
+                        <p>Please wait while your file uploads... <LoadingIcon /></p>}
+
+                        {dicomArchiveState && !dicomArchiveState.pristine && !dicomArchiveState.pending &&
+                        dicomArchiveState.valid && <p className="success">Your file has been uploaded successfully.</p>}
+                    </div>
 
                     <div>
                         <label htmlFor="upload-scan-notes">Notes</label>

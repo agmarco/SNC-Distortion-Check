@@ -72,17 +72,19 @@ class UploadCtForm extends React.Component<IUploadCtFormProps, IUploadCtFormStat
                         <CirsControl.file type="file" id="upload-ct-dicom-archive" model=".dicom_archive" required
                                           onChange={this.handleDicomArchiveChange.bind(this)}
                                           disabled={dicomArchiveDisabled}/>
-                        <CirsErrors model=".dicom_archive" required />
                         <p>
                             The uploaded file should be a zip-archive containing CT DICOM slices for the gold standard
                             CT scan of the phantom.
                         </p>
-                    </div>
 
-                    {dicomArchiveState && dicomArchiveState.pending &&
-                    <p>Please wait while your file uploads... <LoadingIcon /></p>}
-                    {dicomArchiveState && !dicomArchiveState.pristine && !dicomArchiveState.pending &&
-                    <p className="success">Your file has been uploaded successfully.</p>}
+                        <CirsErrors model=".dicom_archive" required />
+
+                        {dicomArchiveState && dicomArchiveState.pending &&
+                        <p>Please wait while your file uploads... <LoadingIcon /></p>}
+
+                        {dicomArchiveState && !dicomArchiveState.pristine && !dicomArchiveState.pending &&
+                        <p className="success">Your file has been uploaded successfully.</p>}
+                    </div>
 
                     <div className="form-links">
                         <a href={cancelUrl} className="btn tertiary">Cancel</a>

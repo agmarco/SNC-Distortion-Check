@@ -27,17 +27,14 @@ export function* uploadScanToS3(action: Action<File>): any {
             yield put(formActions.setPending('uploadScan.dicom_archive.0', false));
         } else {
             yield put(formActions.setPending('uploadScan.dicom_archive.0', false));
-            yield put(formActions.setErrors('uploadScan.__all__', errorMsg));
-            yield put(formActions.setTouched(`uploadScan.__all__`));
+            yield put(formActions.setErrors('uploadScan.dicom_archive.0', errorMsg));
+            yield put(formActions.setTouched(`uploadScan.dicom_archive.0`));
         }
 
     } else {
         yield put(formActions.setPending('uploadScan.dicom_archive.0', false));
-        yield put(formActions.setErrors('uploadScan.__all__', errorMsg));
-
-        // TODO: this shouldn't be necessary
-        // Will probably fix itself when we can properly set global errors on the form model itself
-        yield put(formActions.setTouched(`uploadScan.__all__`));
+        yield put(formActions.setErrors('uploadScan.dicom_archive.0', errorMsg));
+        yield put(formActions.setTouched(`uploadScan.dicom_archive.0`));
     }
 }
 
