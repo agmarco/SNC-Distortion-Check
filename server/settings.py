@@ -174,11 +174,14 @@ BASE_URL = os.environ["BASE_URL"]
 MEDIA_PATH = 'media/'
 MEDIA_URL = '/media/'
 
-if TESTING:
+# TODO: S3 direct uploads complicate using a local media root
+#if TESTING:
+if False:
     MEDIA_ROOT = os.path.join(
         tempfile.gettempdir(), 'cirs', 'media', str(int(time.time())),
     )
-elif DEBUG:
+#elif DEBUG:
+elif False:
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 else:
     AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")

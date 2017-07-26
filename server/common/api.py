@@ -82,7 +82,7 @@ class SignS3View(APIView):
         S3_BUCKET = os.environ.get('AWS_STORAGE_BUCKET_NAME')
 
         file_name, ext = os.path.splitext(request.GET.get('file_name'))
-        file_path = os.path.join('dicom_archives', f'{uuid.uuid4()}{ext}')
+        file_path = os.path.join('zipped_dicom_files', f'{uuid.uuid4()}{ext}')
         file_type = request.GET.get('file_type')
 
         s3 = boto3.client('s3')

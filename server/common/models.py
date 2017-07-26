@@ -1,13 +1,10 @@
 import os
-import boto3
 from datetime import datetime
 import zipfile
+from urllib.parse import urlparse
 
-import botocore
 import numpy as np
-from django.conf import settings
 
-from django.core.files import File
 from django.db import models
 from django.utils.functional import cached_property
 from django.utils import timezone
@@ -315,25 +312,25 @@ class Global(models.Model):
 
 
 def create_scan(machine, sequence, phantom, creator, dicom_archive_url, notes='', dicom_datasets=None, request=None):
+    dicom_series = DicomSeries(zipped_dicom_files=urlparse(dicom_archive_url).path)
+
     if dicom_datasets is None:
-        with zipfile.ZipFile(dicom_archive_url, 'r') as dicom_archive_zipfile:  # TODO: probably wrong
+        with zipfile.ZipFile(dicom_series.zipped_dicom_files, 'r') as dicom_archive_zipfile:
             dicom_datasets = dicom_import.dicom_datasets_from_zip(dicom_archive_zipfile)
 
     voxels, ijk_to_xyz = dicom_import.combine_slices(dicom_datasets)
     ds = dicom_datasets[0]
 
-    dicom_series = DicomSeries.objects.create(
-        voxels=voxels,
-        ijk_to_xyz=ijk_to_xyz,
-        shape=voxels.shape,
-        series_uid=ds.SeriesInstanceUID,
-        study_uid=ds.StudyInstanceUID,
-        frame_of_reference_uid=ds.FrameOfReferenceUID,
-        patient_id=ds.PatientID,
-        acquisition_date=infer_acquisition_date(ds, request),
-    )
+    dicom_series.voxels = voxels
+    dicom_series.ijk_to_xyz = ijk_to_xyz
+    dicom_series.shape = voxels.shape
+    dicom_series.series_uid = ds.SeriesInstanceUID
+    dicom_series.study_uid = ds.StudyInstanceUID
+    dicom_series.frame_of_reference_uid = ds.FrameOfReferenceUID
+    dicom_series.patient_id = ds.PatientID
+    dicom_series.acquisition_date = infer_acquisition_date(ds, request)
 
-    dicom_series.zipped_dicom_files = dicom_archive_url  # TODO: probably wrong
+    dicom_series.save()
 
     machine_sequence_pair, _ = MachineSequencePair.objects.get_or_create(
         machine=machine,
