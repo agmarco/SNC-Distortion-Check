@@ -205,19 +205,15 @@ class UploadScanView(JsonFormMixin, FormView):
 
         # TODO: check that the uploaded DICOM is an MRI (we can't support DICOM
         # Secondary Captures here, like we do for CT uploads)
-
         scan = models.create_scan(
             machine,
             sequence,
             phantom,
             self.request.user,
-            form.cleaned_data['dicom_archive_url'],
             form.cleaned_data['notes'],
-            None,
-            self.request,
         )
 
-        process_scan.delay(scan.pk)
+        process_scan.delay(scan.pk, form.cleaned_data['dicom_archive_url'])
         messages.success(self.request, "Your scan has been uploaded.  Processing will likely take several minutes. "
                                        "This page will be updated automatically when it is finished.")
         return redirect('machine_sequence_detail', scan.machine_sequence_pair.pk)
@@ -520,33 +516,13 @@ class UploadCtView(JsonFormMixin, FormView):
     template_name = 'common/upload_ct.html'
 
     def form_valid(self, form):
-        dicom_series = models.DicomSeries(zipped_dicom_files=urlparse(form.cleaned_data['dicom_archive_url']).path)
-
-        with zipfile.ZipFile(dicom_series.zipped_dicom_files, 'r') as zip_file:
-            datasets = dicom_import.dicom_datasets_from_zip(zip_file)
-
-        voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
-        ds = datasets[0]
-
-        dicom_series.voxels = voxels
-        dicom_series.ijk_to_xyz = ijk_to_xyz
-        dicom_series.shape = voxels.shape
-        dicom_series.series_uid = ds.SeriesInstanceUID
-        dicom_series.study_uid = ds.StudyInstanceUID
-        dicom_series.patient_id = ds.PatientID
-        dicom_series.acquisition_date = models.infer_acquisition_date(ds, self.request)
-        dicom_series.frame_of_reference_uid = getattr(ds, 'FrameOfReferenceUID', None)
-
-        dicom_series.save()
-
         gold_standard = models.GoldenFiducials.objects.create(
             phantom=models.Phantom.objects.get(pk=self.kwargs['phantom_pk']),
-            dicom_series=dicom_series,
             type=models.GoldenFiducials.CT,
             processing=True,
         )
 
-        process_ct_upload.delay(dicom_series.pk, gold_standard.pk)
+        process_ct_upload.delay(gold_standard.pk, form.cleaned_data['dicom_archive_url'])
         messages.success(self.request, "Your gold standard CT has been uploaded. "
                                        "Processing will likely take several minutes. "
                                        "This page will be updated automatically when it is finished.")

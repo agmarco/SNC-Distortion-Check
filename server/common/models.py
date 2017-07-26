@@ -256,7 +256,7 @@ def scan_upload_path(instance, filename):
 class Scan(CommonFieldsMixin):
     creator = models.ForeignKey(User, models.SET_NULL, null=True)
     machine_sequence_pair = models.ForeignKey(MachineSequencePair, models.CASCADE)
-    dicom_series = models.ForeignKey(DicomSeries, models.CASCADE)
+    dicom_series = models.ForeignKey(DicomSeries, models.CASCADE, null=True)
     detected_fiducials = models.ForeignKey(Fiducials, models.CASCADE, null=True)
     golden_fiducials = models.ForeignKey(GoldenFiducials, models.CASCADE)
     TP_A_S = models.ForeignKey(Fiducials, models.CASCADE, null=True, related_name='scan_tp_a_s_set')
@@ -311,27 +311,7 @@ class Global(models.Model):
         )
 
 
-def create_scan(machine, sequence, phantom, creator, dicom_archive_url, notes='', dicom_datasets=None, request=None):
-    dicom_series = DicomSeries(zipped_dicom_files=urlparse(dicom_archive_url).path)
-
-    if dicom_datasets is None:
-        with zipfile.ZipFile(dicom_series.zipped_dicom_files, 'r') as dicom_archive_zipfile:
-            dicom_datasets = dicom_import.dicom_datasets_from_zip(dicom_archive_zipfile)
-
-    voxels, ijk_to_xyz = dicom_import.combine_slices(dicom_datasets)
-    ds = dicom_datasets[0]
-
-    dicom_series.voxels = voxels
-    dicom_series.ijk_to_xyz = ijk_to_xyz
-    dicom_series.shape = voxels.shape
-    dicom_series.series_uid = ds.SeriesInstanceUID
-    dicom_series.study_uid = ds.StudyInstanceUID
-    dicom_series.frame_of_reference_uid = ds.FrameOfReferenceUID
-    dicom_series.patient_id = ds.PatientID
-    dicom_series.acquisition_date = infer_acquisition_date(ds, request)
-
-    dicom_series.save()
-
+def create_scan(machine, sequence, phantom, creator, notes=''):
     machine_sequence_pair, _ = MachineSequencePair.objects.get_or_create(
         machine=machine,
         sequence=sequence,
@@ -340,7 +320,6 @@ def create_scan(machine, sequence, phantom, creator, dicom_archive_url, notes=''
 
     scan = Scan.objects.create(
         machine_sequence_pair=machine_sequence_pair,
-        dicom_series=dicom_series,
         golden_fiducials=phantom.active_gold_standard,
         tolerance=machine_sequence_pair.tolerance,
         processing=True,
@@ -351,7 +330,7 @@ def create_scan(machine, sequence, phantom, creator, dicom_archive_url, notes=''
     return scan
 
 
-def infer_acquisition_date(dataset, request):
+def infer_acquisition_date(dataset, request=None):
     '''
     We rely on the acquisition date for sorting and charting, but it is not a
     required DICOM attribute.  Hence, we infer it as the current date if
