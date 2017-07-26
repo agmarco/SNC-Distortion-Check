@@ -175,8 +175,7 @@ MEDIA_PATH = 'media/'
 MEDIA_URL = '/media/'
 
 # TODO: S3 direct uploads complicate using a local media root
-#if TESTING:
-if False:
+if TESTING:
     MEDIA_ROOT = os.path.join(
         tempfile.gettempdir(), 'cirs', 'media', str(int(time.time())),
     )

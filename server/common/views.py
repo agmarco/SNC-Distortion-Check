@@ -1,4 +1,6 @@
 import logging
+import zipfile
+from urllib.parse import urlparse
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
@@ -518,21 +520,22 @@ class UploadCtView(JsonFormMixin, FormView):
     template_name = 'common/upload_ct.html'
 
     def form_valid(self, form):
-        # TODO: move to celery task
-        voxels, ijk_to_xyz = dicom_import.combine_slices(form.cleaned_data['datasets'])
-        ds = form.cleaned_data['datasets'][0]
+        dicom_series = models.DicomSeries(zipped_dicom_files=urlparse(form.cleaned_data['dicom_archive_url']).path)
 
-        dicom_series = models.DicomSeries(
-            zipped_dicom_files=self.request.FILES['dicom_archive'],
-            voxels=voxels,
-            ijk_to_xyz=ijk_to_xyz,
-            shape=voxels.shape,
-            series_uid=ds.SeriesInstanceUID,
-            study_uid=ds.StudyInstanceUID,
-            patient_id=ds.PatientID,
-            acquisition_date=models.infer_acquisition_date(ds, self.request),
-            frame_of_reference_uid=getattr(ds, 'FrameOfReferenceUID', None),
-        )
+        with zipfile.ZipFile(dicom_series.zipped_dicom_files, 'r') as zip_file:
+            datasets = dicom_import.dicom_datasets_from_zip(zip_file)
+
+        voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
+        ds = datasets[0]
+
+        dicom_series.voxels = voxels
+        dicom_series.ijk_to_xyz = ijk_to_xyz
+        dicom_series.shape = voxels.shape
+        dicom_series.series_uid = ds.SeriesInstanceUID
+        dicom_series.study_uid = ds.StudyInstanceUID
+        dicom_series.patient_id = ds.PatientID
+        dicom_series.acquisition_date = models.infer_acquisition_date(ds, self.request)
+        dicom_series.frame_of_reference_uid = getattr(ds, 'FrameOfReferenceUID', None)
 
         dicom_series.save()
 
