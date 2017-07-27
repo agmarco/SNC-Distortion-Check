@@ -83,7 +83,7 @@ class UploadCtForm extends React.Component<IUploadCtFormProps, IUploadCtFormStat
                         <p>Please wait while your file uploads... <LoadingIcon /></p>}
 
                         {dicomArchiveState && !dicomArchiveState.pristine && !dicomArchiveState.pending &&
-                        <p className="success">Your file has been uploaded successfully.</p>}
+                        dicomArchiveState.valid && <p className="success">Your file has been uploaded successfully.</p>}
                     </div>
 
                     <div className="form-links">
