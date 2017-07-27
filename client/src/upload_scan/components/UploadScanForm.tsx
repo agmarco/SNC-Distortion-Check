@@ -72,8 +72,6 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, IUploadScanFo
             phantoms.find((p) => p.pk === Number(phantom))
         );
 
-        console.log(dicomArchiveState);
-
         return (
             <div>
                 <CirsForm

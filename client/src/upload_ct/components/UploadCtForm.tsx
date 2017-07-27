@@ -48,7 +48,6 @@ class UploadCtForm extends React.Component<IUploadCtFormProps, IUploadCtFormStat
         const dicomArchiveState: FieldState | undefined = formState && formState.dicom_archive &&
             (formState.dicom_archive as FieldState[])[0];
 
-
         return (
             <div>
                 <CirsForm
