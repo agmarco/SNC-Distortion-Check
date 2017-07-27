@@ -2,7 +2,6 @@ import os
 from datetime import datetime
 
 import numpy as np
-from django.core.exceptions import ObjectDoesNotExist
 
 from django.db import models
 from django.utils.functional import cached_property
@@ -295,7 +294,7 @@ class Scan(CommonFieldsMixin):
     def acquisition_date(self):
         try:
             return DicomSeries.objects.values_list('acquisition_date', flat=True).get(scan=self)
-        except ObjectDoesNotExist:
+        except DicomSeries.DoesNotExist:
             return None
 
     class Meta:
