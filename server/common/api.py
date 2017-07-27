@@ -90,9 +90,8 @@ class SignS3View(APIView):
         presigned_post = s3.generate_presigned_post(
             Bucket=S3_BUCKET,
             Key=file_path,
-            Fields={"acl": "public-read", "Content-Type": file_type},
+            Fields={"Content-Type": file_type},
             Conditions=[
-                {"acl": "public-read"},
                 {"Content-Type": file_type}
             ],
             ExpiresIn=3600
