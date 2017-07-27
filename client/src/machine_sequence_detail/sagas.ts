@@ -22,10 +22,10 @@ export function* pollScans(): any {
             break;
         } else {
             try {
-                const response = yield addOkCheck(addTimeout(api.pollScans({
+                const response = yield call(addOkCheck(addTimeout(api.pollScans)), {
                     machine_sequence_pair_pk: MACHINE_SEQUENCE_PAIR.pk,
                     scan_pks: unprocessedScans.map(s => s.pk),
-                })));
+                });
                 const updatedScans = yield call(response.json.bind(response));
                 for (const scan of updatedScans) {
                     yield put(actions.updateScan(scan));
@@ -41,7 +41,7 @@ export function* pollScans(): any {
 function* fetchUpdateTolerance(action: Action<actions.IUpdateTolerancePayload>): any {
     if (action.payload) {
         yield put(formActions.setPending('forms.tolerance', true));
-        const response = yield api.updateTolerance({pk: action.payload.pk, tolerance: action.payload.tolerance});
+        const response = yield call(api.updateTolerance, {pk: action.payload.pk, tolerance: action.payload.tolerance});
         yield put(formActions.setPending('forms.tolerance', false));
 
         if (response.ok) {

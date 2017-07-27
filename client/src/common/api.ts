@@ -1,16 +1,26 @@
 import * as Cookies from 'js-cookie';
 import { delay } from 'redux-saga';
-import { call, race, CallEffect } from 'redux-saga/effects';
+import { call, race, CallEffectFn, CallEffect } from 'redux-saga/effects';
 
 import { encode } from 'common/utils';
 
 declare const VALIDATE_SERIAL_URL: string;
 declare const SIGN_S3_URL: string;
 
-export function addTimeout(apiOuter: CallEffect) {
-    return call(function* (api: CallEffect) {
-        const {response} = yield race({
-            response: api,
+type UniversalFunc<T> = (...args: T[]) => any;
+
+interface IUniversalCallEffectFactory<R> {
+  <T>(fn: CallEffectFn<UniversalFunc<T>>, ...args: T[]): R;
+}
+
+type UniversalCallEffectFactory = IUniversalCallEffectFactory<CallEffect>;
+
+// TODO: handle network errors as well (via a try/catch with fetch)
+
+export function addTimeout(api: (...args: any[]) => Promise<Response> | IterableIterator<any>) {
+    return function* (...args: any[]) {
+        const { response } = yield race({
+            response: (call as UniversalCallEffectFactory)(api, ...args),
             timeout: call(delay, 5000),
         });
 
@@ -19,23 +29,23 @@ export function addTimeout(apiOuter: CallEffect) {
         } else {
             throw new Error("Request timeout");
         }
-    }, apiOuter);
+    };
 }
 
-export function addOkCheck(apiOuter: CallEffect) {
-    return call(function* (api: CallEffect) {
-        const response = yield api;
+export function addOkCheck(api: (...args: any[]) => Promise<Response> | IterableIterator<any>) {
+    return function* (...args: any[]) {
+        const response = yield (call as UniversalCallEffectFactory)(api, ...args);
 
         if (response.ok) {
             return response;
         } else {
             throw new Error(response.statusText);
         }
-    }, apiOuter);
+    };
 }
 
 export const validateSerial = (body: any) => {
-    return call(fetch, VALIDATE_SERIAL_URL, {
+    return fetch(VALIDATE_SERIAL_URL, {
         method: 'POST',
         credentials: 'same-origin',
         headers: {
@@ -47,7 +57,7 @@ export const validateSerial = (body: any) => {
 };
 
 export const signS3 = (file: File) => {
-    return call(fetch, `${SIGN_S3_URL}?file_name=${file.name}&file_type=${file.type}`, {
+    return fetch(`${SIGN_S3_URL}?file_name=${file.name}&file_type=${file.type}`, {
         method: 'GET',
         credentials: 'same-origin',
         headers: {
@@ -57,7 +67,7 @@ export const signS3 = (file: File) => {
 };
 
 export const uploadToS3 = (url: string, body: FormData) => {
-    return call(fetch, url, {
+    return fetch(url, {
         method: 'POST',
         body,
     });

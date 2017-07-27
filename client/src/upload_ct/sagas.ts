@@ -11,7 +11,7 @@ export function* uploadCtToS3(action: Action<File>): any {
             or contact CIRS support if this problem persists.`;
 
     yield put(formActions.setPending('uploadCt.dicom_archive.0', true));
-    const getS3UrlResponse = yield api.signS3(file);
+    const getS3UrlResponse = yield call(api.signS3, file);
 
     if (getS3UrlResponse.ok) {
         const s3Data = yield call(getS3UrlResponse.json.bind(getS3UrlResponse));
@@ -20,7 +20,7 @@ export function* uploadCtToS3(action: Action<File>): any {
         Object.keys(s3Data.data.fields).forEach(key => postData.append(key, s3Data.data.fields[key]));
         postData.append('file', file);
 
-        const uploadToS3Response = yield api.uploadToS3(s3Data.data.url, postData);
+        const uploadToS3Response = yield call(api.uploadToS3, s3Data.data.url, postData);
 
         if (uploadToS3Response.ok) {
             yield put(formActions.change('uploadCt.dicom_archive_url', s3Data.url));
