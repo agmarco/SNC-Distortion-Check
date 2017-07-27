@@ -1,16 +1,14 @@
 import os
 from datetime import datetime
-import zipfile
-from urllib.parse import urlparse
 
 import numpy as np
+from django.core.exceptions import ObjectDoesNotExist
 
 from django.db import models
 from django.utils.functional import cached_property
 from django.utils import timezone
 from django.contrib import messages
 
-from process import dicom_import
 from server.django_numpy.fields import NdarrayTextField#, NdarrayFileField
 from server.emailauth.models import AbstractUser, UserManager
 
@@ -229,12 +227,12 @@ class GoldenFiducials(CommonFieldsMixin):
 
     @property
     def source_summary(self):
-        if self.type == GoldenFiducials.CT:
-            return f"{self.get_type_display()} Taken on {self.dicom_series.acquisition_date.strftime('%d %B %Y')}"
+        summary = self.get_type_display()
+        if self.type == GoldenFiducials.CT and self.dicom_series:
+            summary += f" Taken on {self.dicom_series.acquisition_date.strftime('%d %B %Y')}"
         elif self.type == GoldenFiducials.CSV:
-            return f"{self.get_type_display()} Uploaded on {self.created_on.strftime('%d %B %Y')}"
-        else:
-            return self.get_type_display()
+            summary += f" Uploaded on {self.created_on.strftime('%d %B %Y')}"
+        return summary
 
     @property
     def institution(self):
@@ -295,7 +293,10 @@ class Scan(CommonFieldsMixin):
 
     @property
     def acquisition_date(self):
-        return DicomSeries.objects.values_list('acquisition_date', flat=True).get(scan=self)
+        try:
+            return DicomSeries.objects.values_list('acquisition_date', flat=True).get(scan=self)
+        except ObjectDoesNotExist:
+            return None
 
     class Meta:
         ordering = ('-dicom_series__acquisition_date', '-created_on')

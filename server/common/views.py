@@ -287,10 +287,13 @@ class DeleteScanView(CirsDeleteView):
 
     def delete(self, request, *args, **kwargs):
         response = super(DeleteScanView, self).delete(request, *args, **kwargs)
-        messages.success(self.request, f"""Scan for phantom
+        success_message = f"""Scan for phantom
             \"{self.object.golden_fiducials.phantom.model.model_number} —
-            {self.object.golden_fiducials.phantom.serial_number}\", captured on
-            {formats.date_format(self.object.acquisition_date)}, has been deleted.""")
+            {self.object.golden_fiducials.phantom.serial_number}\""""
+        if self.object.acquisition_date:
+            success_message += f", captured on {formats.date_format(self.object.acquisition_date)}"
+        success_message += ", has been deleted."
+        messages.success(self.request, success_message)
         return response
 
     def get_success_url(self):
