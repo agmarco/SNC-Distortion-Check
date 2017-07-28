@@ -15,9 +15,13 @@ interface IUniversalCallEffectFactory<R> {
 
 type UniversalCallEffectFactory = IUniversalCallEffectFactory<CallEffect>;
 
+interface IApiCall {
+    (...args: any[]): Promise<Response> | IterableIterator<any>;
+}
+
 // TODO: handle network errors as well (via a try/catch with fetch)
 
-export function addTimeout(api: (...args: any[]) => Promise<Response> | IterableIterator<any>) {
+export function addTimeout(api: IApiCall) {
     return function* (...args: any[]) {
         const { response } = yield race({
             response: (call as UniversalCallEffectFactory)(api, ...args),
@@ -32,7 +36,7 @@ export function addTimeout(api: (...args: any[]) => Promise<Response> | Iterable
     };
 }
 
-export function addOkCheck(api: (...args: any[]) => Promise<Response> | IterableIterator<any>) {
+export function addOkCheck(api: IApiCall) {
     return function* (...args: any[]) {
         const response = yield (call as UniversalCallEffectFactory)(api, ...args);
 
