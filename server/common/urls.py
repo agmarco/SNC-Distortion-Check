@@ -24,6 +24,7 @@ urlpatterns = [
         url(r'^update-tolerance/$', api.UpdateToleranceView.as_view(), name='update_tolerance'),
         url(r'^poll-scans/$', api.PollScansView.as_view(), name='poll_scans'),
         url(r'^poll-ct/$', api.PollCtView.as_view(), name='poll_ct'),
+        url(r'^sign-s3/$', api.SignS3View.as_view(), name='sign_s3'),
     ])),
 
     url(r'^scans/', include([

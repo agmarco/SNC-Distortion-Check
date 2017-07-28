@@ -1,4 +1,6 @@
 import logging
+import zipfile
+from urllib.parse import urlparse
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
@@ -203,19 +205,15 @@ class UploadScanView(JsonFormMixin, FormView):
 
         # TODO: check that the uploaded DICOM is an MRI (we can't support DICOM
         # Secondary Captures here, like we do for CT uploads)
-
         scan = models.create_scan(
             machine,
             sequence,
             phantom,
             self.request.user,
-            self.request.FILES['dicom_archive'],
             form.cleaned_data['notes'],
-            form.cleaned_data['datasets'],
-            self.request,
         )
 
-        process_scan.delay(scan.pk)
+        process_scan.delay(scan.pk, form.cleaned_data['dicom_archive_url'])
         messages.success(self.request, "Your scan has been uploaded.  Processing will likely take several minutes. "
                                        "This page will be updated automatically when it is finished.")
         return redirect('machine_sequence_detail', scan.machine_sequence_pair.pk)
@@ -289,10 +287,13 @@ class DeleteScanView(CirsDeleteView):
 
     def delete(self, request, *args, **kwargs):
         response = super(DeleteScanView, self).delete(request, *args, **kwargs)
-        messages.success(self.request, f"""Scan for phantom
+        success_message = f"""Scan for phantom
             \"{self.object.golden_fiducials.phantom.model.model_number} —
-            {self.object.golden_fiducials.phantom.serial_number}\", captured on
-            {formats.date_format(self.object.acquisition_date)}, has been deleted.""")
+            {self.object.golden_fiducials.phantom.serial_number}\""""
+        if self.object.acquisition_date:
+            success_message += f", captured on {formats.date_format(self.object.acquisition_date)}"
+        success_message += ", has been deleted."
+        messages.success(self.request, success_message)
         return response
 
     def get_success_url(self):
@@ -513,36 +514,18 @@ class DeleteUserView(CirsDeleteView):
 @method_decorator(institution_required, name='dispatch')
 @validate_institution(model_class=models.Phantom, pk_url_kwarg='phantom_pk')
 @method_decorator(intro_tutorial, name='dispatch')
-class UploadCtView(FormView):
+class UploadCtView(JsonFormMixin, FormView):
     form_class = forms.UploadCtForm
     template_name = 'common/upload_ct.html'
 
     def form_valid(self, form):
-        voxels, ijk_to_xyz = dicom_import.combine_slices(form.cleaned_data['datasets'])
-        ds = form.cleaned_data['datasets'][0]
-
-        dicom_series = models.DicomSeries(
-            zipped_dicom_files=self.request.FILES['dicom_archive'],
-            voxels=voxels,
-            ijk_to_xyz=ijk_to_xyz,
-            shape=voxels.shape,
-            series_uid=ds.SeriesInstanceUID,
-            study_uid=ds.StudyInstanceUID,
-            patient_id=ds.PatientID,
-            acquisition_date=models.infer_acquisition_date(ds, self.request),
-            frame_of_reference_uid=getattr(ds, 'FrameOfReferenceUID', None),
-        )
-
-        dicom_series.save()
-
         gold_standard = models.GoldenFiducials.objects.create(
             phantom=models.Phantom.objects.get(pk=self.kwargs['phantom_pk']),
-            dicom_series=dicom_series,
             type=models.GoldenFiducials.CT,
             processing=True,
         )
 
-        process_ct_upload.delay(dicom_series.pk, gold_standard.pk)
+        process_ct_upload.delay(gold_standard.pk, form.cleaned_data['dicom_archive_url'])
         messages.success(self.request, "Your gold standard CT has been uploaded. "
                                        "Processing will likely take several minutes. "
                                        "This page will be updated automatically when it is finished.")

@@ -19,10 +19,10 @@ function* pollCt(): any {
             break;
         } else {
             try {
-                const response = yield addOkCheck(addTimeout(api.pollCt({
+                const response = yield call(addOkCheck(addTimeout(api.pollCt)), {
                     phantom_pk: PHANTOM.pk,
                     golden_fiducials_pks: unprocessedGoldenFiducialsSet.map(g => g.pk),
-                })));
+                });
                 const updatedGoldenFiducialsSet = yield call(response.json.bind(response));
                 for (const goldenFiducials of updatedGoldenFiducialsSet) {
                     yield put(actions.updateGoldenFiducials(goldenFiducials));

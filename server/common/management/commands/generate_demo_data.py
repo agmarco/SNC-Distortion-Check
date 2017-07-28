@@ -189,6 +189,7 @@ class Command(BaseCommand):
         demonstrate.
         '''
 
+        # TODO: this is broken since S3 direct uploads
         with open(zip_filename, 'rb') as dicom_archive:
             scan = create_scan(machine, sequence, phantom, creator, dicom_archive)
         process_scan(scan.pk)

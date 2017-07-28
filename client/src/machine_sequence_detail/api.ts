@@ -1,15 +1,12 @@
 import * as Cookies from 'js-cookie';
-import { call } from 'redux-saga/effects';
 
 import { encode } from 'common/utils';
-import { IMachineSequencePairDto } from 'common/service';
 
-declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
 declare const POLL_SCANS_URL: string;
 declare const UPDATE_TOLERANCE_URL: string;
 
 export const pollScans = (body: any) => {
-    return call(fetch, POLL_SCANS_URL, {
+    return fetch(POLL_SCANS_URL, {
         method: 'POST',
         credentials: 'same-origin',
         headers: {
@@ -21,7 +18,7 @@ export const pollScans = (body: any) => {
 };
 
 export const updateTolerance = (body: any) => {
-    return call(fetch, UPDATE_TOLERANCE_URL, {
+    return fetch(UPDATE_TOLERANCE_URL, {
         method: 'POST',
         credentials: 'same-origin',
         headers: {

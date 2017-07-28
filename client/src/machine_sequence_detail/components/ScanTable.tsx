@@ -120,13 +120,15 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
                     <a href={scan.dicom_overlay_url}>DICOM Overlay</a>
                 </td>,
                 <td key={2} className="action raw-data" title={rawDataHelp}>
-                    <a href={scan.raw_data_url}>Raw Data</a>
+                    <a href={scan.raw_data_url} download>Raw Data</a>
                 </td>,
                 <td key={3} className="action executive-report" title={executiveReportHelp}>
-                    <a href={scan.executive_report_url === null ? '#' : scan.executive_report_url}>Executive Report</a>
+                    <a href={scan.executive_report_url === null ? '#' : scan.executive_report_url} download>
+                        Executive Report
+                    </a>
                 </td>,
                 <td key={4} className="action full-report" title={fullReportHelp}>
-                    <a href={scan.full_report_url === null ? '#' : scan.full_report_url}>Full Report</a>
+                    <a href={scan.full_report_url === null ? '#' : scan.full_report_url} download>Full Report</a>
                 </td>,
                 <td key={5} className="action delete">
                     <a href={scan.delete_url}>

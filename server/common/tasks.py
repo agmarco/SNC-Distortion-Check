@@ -6,8 +6,9 @@ import tempfile
 
 import io
 import time
-import math
 from datetime import datetime
+from urllib.parse import urlparse
+
 import dicom
 from dicom.dataset import Dataset, FileDataset
 from dicom.UID import generate_uid
@@ -35,15 +36,15 @@ from process.reports import generate_reports
 from process.utils import fov_center_xyz
 from process.points_utils import format_point_metrics, metrics
 from . import serializers
-from .models import Scan, Fiducials, GoldenFiducials, DicomSeries
+from .import models
 from process.exceptions import AlgorithmException
 
 logger = logging.getLogger(__name__)
 
 
 @shared_task
-def process_scan(scan_pk):
-    scan = Scan.objects.get(pk=scan_pk)
+def process_scan(scan_pk, dicom_archive_url=None):
+    scan = models.Scan.objects.get(pk=scan_pk)
 
     try:
         with transaction.atomic():
@@ -53,13 +54,34 @@ def process_scan(scan_pk):
             active_gold_standard = scan.phantom.active_gold_standard
             _, num_golden_fiducials = active_gold_standard.fiducials.fiducials.shape
 
-            # TODO: save condensed DICOM tags onto `dicom_series` on upload so
-            # we don't need to load all the zip files just to get at the
-            # metadata; this should be a feature of dicom-numpy
-            dicom_archive = scan.dicom_series.zipped_dicom_files
+            if dicom_archive_url:
+                dicom_series = models.DicomSeries(zipped_dicom_files=urlparse(dicom_archive_url).path)
 
-            with zipfile.ZipFile(dicom_archive, 'r') as zip_file:
-                datasets = dicom_import.dicom_datasets_from_zip(zip_file)
+                # TODO: save condensed DICOM tags onto `dicom_series` on upload so
+                # we don't need to load all the zip files just to get at the
+                # metadata; this should be a feature of dicom-numpy
+                dicom_archive = dicom_series.zipped_dicom_files
+
+                with zipfile.ZipFile(dicom_archive, 'r') as dicom_archive_zipfile:
+                    datasets = dicom_import.dicom_datasets_from_zip(dicom_archive_zipfile)
+
+                voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
+                ds = datasets[0]
+
+                dicom_series.voxels = voxels
+                dicom_series.ijk_to_xyz = ijk_to_xyz
+                dicom_series.shape = voxels.shape
+                dicom_series.series_uid = ds.SeriesInstanceUID
+                dicom_series.study_uid = ds.StudyInstanceUID
+                dicom_series.frame_of_reference_uid = ds.FrameOfReferenceUID
+                dicom_series.patient_id = ds.PatientID
+                dicom_series.acquisition_date = models.infer_acquisition_date(ds)
+
+                dicom_series.save()
+                scan.dicom_series = dicom_series
+            else:
+                with zipfile.ZipFile(scan.dicom_series.zipped_dicom_files, 'r') as dicom_archive_zipfile:
+                    datasets = dicom_import.dicom_datasets_from_zip(dicom_archive_zipfile)
 
             voxels = scan.dicom_series.voxels
             ijk_to_xyz = scan.dicom_series.ijk_to_xyz
@@ -80,7 +102,7 @@ def process_scan(scan_pk):
             )
             pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
 
-            scan.detected_fiducials = Fiducials.objects.create(fiducials=pruned_points_xyz)
+            scan.detected_fiducials = models.Fiducials.objects.create(fiducials=pruned_points_xyz)
 
             _, num_fiducials = pruned_points_xyz.shape
             error_cutoff = 0.5
@@ -118,8 +140,8 @@ def process_scan(scan_pk):
                     f"the issue."
                 )
 
-            scan.TP_A_S = Fiducials.objects.create(fiducials=TP_A_S)
-            scan.TP_B = Fiducials.objects.create(fiducials=TP_B)
+            scan.TP_A_S = models.Fiducials.objects.create(fiducials=TP_A_S)
+            scan.TP_B = models.Fiducials.objects.create(fiducials=TP_B)
 
             full_report_filename = 'full_report.pdf'
             executive_report_filename = 'executive_report.pdf'
@@ -154,12 +176,12 @@ def process_scan(scan_pk):
             scan.raw_data.save(raw_data_filename, File(raw_data))
 
     except AlgorithmException as e:
-        scan = Scan.objects.get(pk=scan_pk)  # fresh instance
+        scan = models.Scan.objects.get(pk=scan.pk)  # fresh instance
         logger.exception('Algorithm error')
         scan.errors = str(e)
 
     except Exception as e:
-        scan = Scan.objects.get(pk=scan_pk)  # fresh instance
+        scan = models.Scan.objects.get(pk=scan.pk)  # fresh instance
 
         creator_email = scan.creator.email
         logger.exception(f'Unhandled scan exception occurred while processing scan for "{creator_email}"')
@@ -171,12 +193,32 @@ def process_scan(scan_pk):
 
 
 @shared_task
-def process_ct_upload(dicom_series_pk, gold_standard_pk):
+def process_ct_upload(gold_standard_pk, dicom_archive_url):
     try:
         with transaction.atomic():
             modality = 'ct'
-            dicom_series = DicomSeries.objects.get(pk=dicom_series_pk)
-            gold_standard = GoldenFiducials.objects.get(pk=gold_standard_pk)
+
+            gold_standard = models.GoldenFiducials.objects.get(pk=gold_standard_pk)
+
+            dicom_series = models.DicomSeries(zipped_dicom_files=urlparse(dicom_archive_url).path)
+
+            with zipfile.ZipFile(dicom_series.zipped_dicom_files, 'r') as zip_file:
+                datasets = dicom_import.dicom_datasets_from_zip(zip_file)
+
+            voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
+            ds = datasets[0]
+
+            dicom_series.voxels = voxels
+            dicom_series.ijk_to_xyz = ijk_to_xyz
+            dicom_series.shape = voxels.shape
+            dicom_series.series_uid = ds.SeriesInstanceUID
+            dicom_series.study_uid = ds.StudyInstanceUID
+            dicom_series.patient_id = ds.PatientID
+            dicom_series.acquisition_date = models.infer_acquisition_date(ds)
+            dicom_series.frame_of_reference_uid = getattr(ds, 'FrameOfReferenceUID', None)
+
+            dicom_series.save()
+            gold_standard.dicom_series = dicom_series
 
             feature_detector = FeatureDetector(
                 gold_standard.phantom.model.model_number,
@@ -187,7 +229,7 @@ def process_ct_upload(dicom_series_pk, gold_standard_pk):
 
             # TODO: apply the FP rejector to this stage
 
-            fiducials = Fiducials.objects.create(fiducials=feature_detector.points_xyz)
+            fiducials = models.Fiducials.objects.create(fiducials=feature_detector.points_xyz)
             gold_standard.fiducials = fiducials
             gold_standard.processing = False
             gold_standard.save()
@@ -267,7 +309,7 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
             GRID_DENSITY_mm = 1
             BLUR_SIGMA = 2
 
-            scan = Scan.objects.get(pk=scan_pk)
+            scan = models.Scan.objects.get(pk=scan_pk)
             ds = scan.dicom_series
             ijk_to_xyz = ds.ijk_to_xyz
             coord_min_xyz, coord_max_xyz = apply_affine(ijk_to_xyz, np.array([(0.0, 0.0, 0.0), ds.shape]).T).T

@@ -1,3 +1,20 @@
 import React from 'react';
 
-export default () => <i className="fa fa-spinner fa-pulse fa-fw" aria-hidden="true" />;
+import './LoadingIcon.scss';
+
+export default () => (
+    <span className="lds-spinner">
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+    </span>
+);

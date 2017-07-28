@@ -1,16 +1,13 @@
 import os
 from datetime import datetime
-import zipfile
 
 import numpy as np
 
-from django.core.files import File
 from django.db import models
 from django.utils.functional import cached_property
 from django.utils import timezone
 from django.contrib import messages
 
-from process import dicom_import
 from server.django_numpy.fields import NdarrayTextField#, NdarrayFileField
 from server.emailauth.models import AbstractUser, UserManager
 
@@ -229,12 +226,12 @@ class GoldenFiducials(CommonFieldsMixin):
 
     @property
     def source_summary(self):
-        if self.type == GoldenFiducials.CT:
-            return f"{self.get_type_display()} Taken on {self.dicom_series.acquisition_date.strftime('%d %B %Y')}"
+        summary = self.get_type_display()
+        if self.type == GoldenFiducials.CT and self.dicom_series:
+            summary += f" Taken on {self.dicom_series.acquisition_date.strftime('%d %B %Y')}"
         elif self.type == GoldenFiducials.CSV:
-            return f"{self.get_type_display()} Uploaded on {self.created_on.strftime('%d %B %Y')}"
-        else:
-            return self.get_type_display()
+            summary += f" Uploaded on {self.created_on.strftime('%d %B %Y')}"
+        return summary
 
     @property
     def institution(self):
@@ -256,7 +253,7 @@ def scan_upload_path(instance, filename):
 class Scan(CommonFieldsMixin):
     creator = models.ForeignKey(User, models.SET_NULL, null=True)
     machine_sequence_pair = models.ForeignKey(MachineSequencePair, models.CASCADE)
-    dicom_series = models.ForeignKey(DicomSeries, models.CASCADE)
+    dicom_series = models.ForeignKey(DicomSeries, models.CASCADE, null=True)
     detected_fiducials = models.ForeignKey(Fiducials, models.CASCADE, null=True)
     golden_fiducials = models.ForeignKey(GoldenFiducials, models.CASCADE)
     TP_A_S = models.ForeignKey(Fiducials, models.CASCADE, null=True, related_name='scan_tp_a_s_set')
@@ -295,7 +292,10 @@ class Scan(CommonFieldsMixin):
 
     @property
     def acquisition_date(self):
-        return DicomSeries.objects.values_list('acquisition_date', flat=True).get(scan=self)
+        try:
+            return DicomSeries.objects.values_list('acquisition_date', flat=True).get(scan=self)
+        except DicomSeries.DoesNotExist:
+            return None
 
     class Meta:
         ordering = ('-dicom_series__acquisition_date', '-created_on')
@@ -311,27 +311,7 @@ class Global(models.Model):
         )
 
 
-def create_scan(machine, sequence, phantom, creator, dicom_archive, notes='', dicom_datasets=None, request=None):
-    if dicom_datasets is None:
-        with zipfile.ZipFile(dicom_archive, 'r') as dicom_archive_zipfile:
-            dicom_datasets = dicom_import.dicom_datasets_from_zip(dicom_archive_zipfile)
-
-    voxels, ijk_to_xyz = dicom_import.combine_slices(dicom_datasets)
-    ds = dicom_datasets[0]
-
-    dicom_series = DicomSeries.objects.create(
-        voxels=voxels,
-        ijk_to_xyz=ijk_to_xyz,
-        shape=voxels.shape,
-        series_uid=ds.SeriesInstanceUID,
-        study_uid=ds.StudyInstanceUID,
-        frame_of_reference_uid=ds.FrameOfReferenceUID,
-        patient_id=ds.PatientID,
-        acquisition_date=infer_acquisition_date(ds, request),
-    )
-
-    dicom_series.zipped_dicom_files.save('dicom_archive', File(dicom_archive))
-
+def create_scan(machine, sequence, phantom, creator, notes=''):
     machine_sequence_pair, _ = MachineSequencePair.objects.get_or_create(
         machine=machine,
         sequence=sequence,
@@ -340,7 +320,6 @@ def create_scan(machine, sequence, phantom, creator, dicom_archive, notes='', di
 
     scan = Scan.objects.create(
         machine_sequence_pair=machine_sequence_pair,
-        dicom_series=dicom_series,
         golden_fiducials=phantom.active_gold_standard,
         tolerance=machine_sequence_pair.tolerance,
         processing=True,
@@ -351,7 +330,7 @@ def create_scan(machine, sequence, phantom, creator, dicom_archive, notes='', di
     return scan
 
 
-def infer_acquisition_date(dataset, request):
+def infer_acquisition_date(dataset, request=None):
     '''
     We rely on the acquisition date for sorting and charting, but it is not a
     required DICOM attribute.  Hence, we infer it as the current date if
