@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+node --version 2>&1 | grep -q 7.[0-9] || { echo "Need Node 7.0 or greater" && exit 1; }
+python --version 2>&1 | grep -q 3.[56] || { echo "Need Python 3.5 or greater" && exit 1; }
+postgres --version 2>&1 | grep -q 9.[0-9] || { echo "Need Postgres 9.0 or greater" && exit 1; }
+redis-server --version 2>&1 | grep -q 3.[0-9] || { echo "Need Redis 3.0 or greater" && exit 1; }
+
 if [ ! -f .env ]; then cp .sample.env .env; fi;
 pip install pip-tools
 pip-sync requirements.txt dev-requirements.txt
