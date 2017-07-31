@@ -81,8 +81,8 @@ def process_scan(scan_pk, dicom_archive_url=None):
                 dicom_series.save()
                 scan.dicom_series = dicom_series
             else:
-                with zipfile.ZipFile(scan.dicom_series.zipped_dicom_files, 'r') as f:
-                    datasets = dicom_import.dicom_datasets_from_zip(f)
+                with zipfile.ZipFile(scan.dicom_series.zipped_dicom_files, 'r') as zf:
+                    datasets = dicom_import.dicom_datasets_from_zip(zf)
 
             voxels = scan.dicom_series.voxels
             ijk_to_xyz = scan.dicom_series.ijk_to_xyz
@@ -291,7 +291,9 @@ def dump_raw_data(scan):
 
     s = io.BytesIO()
     with zipfile.ZipFile(s, 'w', zipfile.ZIP_DEFLATED) as zf:
-        zf.writestr('dicom.zip', scan.dicom_series.zipped_dicom_files.read())
+        zipped_dicom_files = scan.dicom_series.zipped_dicom_files
+        zipped_dicom_files.seek(0)  # rewind the file, as it may have been read earlier
+        zf.writestr('dicom.zip', zipped_dicom_files.read())
 
         for zip_path, path in files.items():
             zf.write(path, zip_path)
