@@ -55,7 +55,8 @@ def process_scan(scan_pk, dicom_archive_url=None):
             _, num_golden_fiducials = active_gold_standard.fiducials.fiducials.shape
 
             if dicom_archive_url:
-                dicom_series = models.DicomSeries(zipped_dicom_files=urlparse(dicom_archive_url).path)
+                zipped_dicom_files = urlparse(dicom_archive_url).path
+                dicom_series = models.DicomSeries(zipped_dicom_files=zipped_dicom_files)
 
                 # TODO: save condensed DICOM tags onto `dicom_series` on upload so
                 # we don't need to load all the zip files just to get at the
@@ -80,8 +81,8 @@ def process_scan(scan_pk, dicom_archive_url=None):
                 dicom_series.save()
                 scan.dicom_series = dicom_series
             else:
-                with zipfile.ZipFile(scan.dicom_series.zipped_dicom_files, 'r') as dicom_archive_zipfile:
-                    datasets = dicom_import.dicom_datasets_from_zip(dicom_archive_zipfile)
+                with zipfile.ZipFile(scan.dicom_series.zipped_dicom_files, 'r') as f:
+                    datasets = dicom_import.dicom_datasets_from_zip(f)
 
             voxels = scan.dicom_series.voxels
             ijk_to_xyz = scan.dicom_series.ijk_to_xyz
@@ -302,7 +303,8 @@ def dump_raw_data(scan):
 
 
 @shared_task
-def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, patient_id, user_email, domain, site_name, use_https):
+def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, patient_id, user_email,
+            domain, site_name, use_https):
     try:
         with transaction.atomic():
             # TODO: Consolidate and split out these constants in the process module.
@@ -315,9 +317,11 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
             coord_min_xyz, coord_max_xyz = apply_affine(ijk_to_xyz, np.array([(0.0, 0.0, 0.0), ds.shape]).T).T
             TP_A = scan.TP_A_S.fiducials
             error_mags = scan.error_mags
-            grid_x, grid_y, grid_z = np.meshgrid(np.arange(coord_min_xyz[0], coord_max_xyz[0], GRID_DENSITY_mm),
-                                                 np.arange(coord_min_xyz[1], coord_max_xyz[1], GRID_DENSITY_mm),
-                                                 np.arange(coord_min_xyz[2], coord_max_xyz[2], GRID_DENSITY_mm))
+            grid_x, grid_y, grid_z = np.meshgrid(
+                np.arange(coord_min_xyz[0], coord_max_xyz[0], GRID_DENSITY_mm),
+                np.arange(coord_min_xyz[1], coord_max_xyz[1], GRID_DENSITY_mm),
+                np.arange(coord_min_xyz[2], coord_max_xyz[2], GRID_DENSITY_mm),
+            )
             logger.info("Gridding data for overlay generation.")
             gridded = griddata(TP_A.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
             gridded = scipy.ndimage.filters.gaussian_filter(gridded, BLUR_SIGMA,
@@ -360,7 +364,14 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
                 'site_name': site_name,
                 'expires_in_days': expires_in_days,
             }
-            send_mail(subject_template_name, email_template_name, context, from_email, to_email, html_email_template_name)
+            send_mail(
+                subject_template_name,
+                email_template_name,
+                context,
+                from_email,
+                to_email,
+                html_email_template_name
+            )
     except Exception as e:
         raise e
 
@@ -383,7 +394,8 @@ def send_mail(subject_template_name, email_template_name,
     email_message.send()
 
 
-def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstanceUID, seriesInstanceUID, frameOfReferenceUID, patientID, output_directory):
+def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstanceUID, seriesInstanceUID,
+            frameOfReferenceUID, patientID, output_directory):
     '''
     Exports a voxel array to a series of dicom files.
 
@@ -400,8 +412,8 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
 
     def _rescale_to_stored_values(pixel_array):
         '''
-        Rescales the provided pixel array values from output units to storage units such that the dynamic range for 16 bit
-        image is maximized.
+        Rescales the provided pixel array values from output units to storage
+        units such that the dynamic range for 16 bit image is maximized.
         '''
         rescaleIntercept, max_val = np.min(pixel_array), np.max(pixel_array)
         rescaleSlope = (max_val - rescaleIntercept) / np.iinfo(np.uint16).max
@@ -411,7 +423,8 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
 
     def _encode_multival(values):
         '''
-        Encodes a collection of multivalued elements in backslash separated syntax known by dicom spec.
+        Encodes a collection of multivalued elements in backslash separated
+        syntax known by dicom spec.
         '''
         return '\\'.join(str(val) for val in values)
 
@@ -432,7 +445,8 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
         return voxel_array.transpose(2, 0, 1)
 
     if len(voxel_array.shape) != 3:
-        raise Exception('Only 3d arrays are supported for dicom export, got shape {}'.format(voxel_array.shape))
+        msg = 'Only 3d arrays are supported for dicom export, got shape {}'
+        raise Exception(msg.format(voxel_array.shape))
     rescaleSlope, rescaleIntercept, rescaled_voxel_array = _rescale_to_stored_values(voxel_array)
     slices_array = _unstack(rescaled_voxel_array)
     for slice_num, slice_arr in enumerate(slices_array):
