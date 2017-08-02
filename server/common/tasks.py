@@ -422,7 +422,7 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
         colorbar_canvas = ImageDraw.Draw(colorbar_img)
         colorbar_canvas.text((20, 0), str(max_val)+units)
         colorbar_canvas.text((20, -10), "0"+units)
-        colorbar = np.array(colorbar_img) * np.ones((len(slices_array, 40, 100)))
+        colorbar = np.array(colorbar_img) * np.ones((len(slices_array), 40, 100))
         slices_array[:, :40, :100] = colorbar
         return slices_array
 
