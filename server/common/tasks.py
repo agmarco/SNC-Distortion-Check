@@ -26,7 +26,7 @@ from django.conf import settings
 from django.template import loader
 from rest_framework.renderers import JSONRenderer
 from scipy.interpolate.ndgriddata import griddata
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 from process import dicom_import, affine, fp_rejector, phantoms
 from process.affine import apply_affine
@@ -396,7 +396,21 @@ def send_mail(subject_template_name, email_template_name,
 
     email_message.send()
 
+def add_colorbar(slices_array, units='mm'):
+    max_val = np.round(np.max(slices_array))
+    colorbar = np.zeros((100, 60))
+    gradient = np.linspace(max_val, 0, 90) * np.ones((20, 90))
+    colorbar[5:95, :20] = gradient.T
+    colorbar_img = Image.fromarray(colorbar)
+    colorbar_canvas = ImageDraw.Draw(colorbar_img)
+    colorbar_canvas.text((20, 0), str(max_val)+units, fill=max_val)
+    colorbar_canvas.text((20, 85), "0"+units, fill=max_val)
+    colorbar = np.array(colorbar_img) * np.ones((len(slices_array), 100, 60))
+    colorbar_area = slices_array[:, :100, :60]
+    colorbar_area[colorbar != 0] = colorbar[colorbar != 0]
+    return slices_array
 
+# TODO: convert to class for easier unit testing
 def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstanceUID, seriesInstanceUID,
             frameOfReferenceUID, patientID, output_directory):
     '''
@@ -431,19 +445,6 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
         '''
         return '\\'.join(str(val) for val in values)
 
-    def _add_colorbar(slices_array, units='mm'):
-        max_val = np.round(np.max(slices_array))
-        colorbar = np.zeros((40, 100))
-        gradient = np.linspace(0, max_val, 90) * np.ones((20, 90))
-        colorbar[:20, 4:95] = gradient
-        colorbar_img = Image.fromarray(colorbar)
-        colorbar_canvas = ImageDraw.Draw(colorbar_img)
-        colorbar_canvas.text((20, 0), str(max_val)+units)
-        colorbar_canvas.text((20, -10), "0"+units)
-        colorbar = np.array(colorbar_img) * np.ones((len(slices_array), 40, 100))
-        slices_array[:, :40, :100] = colorbar
-        return slices_array
-
     def _base_ds():
         sopinst = generate_uid()
         file_meta = Dataset()
@@ -465,7 +466,7 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
         raise Exception(msg.format(voxel_array.shape))
     rescaleSlope, rescaleIntercept, rescaled_voxel_array = _rescale_to_stored_values(voxel_array)
     slices_array = _unstack(rescaled_voxel_array)
-    slices_with_colobar = _add_colorbar(slices_array)
+    slices_with_colobar = add_colorbar(slices_array)
     for slice_num, slice_arr in enumerate(slices_with_colobar):
         sliceVoxelPosition = (voxelPosition_tup[0],
                               voxelPosition_tup[1],
