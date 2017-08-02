@@ -121,8 +121,15 @@ def rigidly_register(A, B, g, rho, xtol=1e-4, brute_search_slices=None):
     return result.x
 
 
+# TODO: make g_cutoff adapt to different grid spacings; the 603A and 604
+# phantoms have a grid spacing of 15mm.  We want to encompass the middle 125
+# points in a sphere (we will of course get some extra points too in the corners)
+_typical_grid_spacing = 15
+_num_grid_spacings = 2
+_g_cutoff_buffer = 3
+
 # points further than `g_cutoff` are not considered during registration
-g_cutoff = 50
+g_cutoff = _typical_grid_spacing*_num_grid_spacings*sqrt(3) + _g_cutoff_buffer
 registeration_tolerance = 1e-4
 
 
@@ -134,7 +141,7 @@ def g(bmag):
     It should never drop to 0, since if it does, the optimizer may shift the
     match over by an integer grid_spacing.
     '''
-    return 1 - bmag/g_cutoff if bmag < 0.8*g_cutoff else 0.2
+    return 1.0 if bmag < g_cutoff else 0.0
 
 
 def rho(bmag):
