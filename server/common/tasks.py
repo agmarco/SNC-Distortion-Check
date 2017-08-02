@@ -26,6 +26,7 @@ from django.conf import settings
 from django.template import loader
 from rest_framework.renderers import JSONRenderer
 from scipy.interpolate.ndgriddata import griddata
+from PIL import Image, ImageDraw
 
 from process import dicom_import, affine, fp_rejector, phantoms
 from process.affine import apply_affine
@@ -412,6 +413,19 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
         '''
         return '\\'.join(str(val) for val in values)
 
+    def _add_colorbar(slices_array, units='mm'):
+        max_val = np.round(np.max(slices_array))
+        colorbar = np.zeros((40, 100))
+        gradient = np.linspace(0, max_val, 90) * np.ones((20, 90))
+        colorbar[:20, 4:95] = gradient
+        colorbar_img = Image.fromarray(colorbar)
+        colorbar_canvas = ImageDraw.Draw(colorbar_img)
+        colorbar_canvas.text((20, 0), str(max_val)+units)
+        colorbar_canvas.text((20, -10), "0"+units)
+        colorbar = np.array(colorbar_img) * np.ones((len(slices_array, 40, 100)))
+        slices_array[:, :40, :100] = colorbar
+        return slices_array
+
     def _base_ds():
         sopinst = generate_uid()
         file_meta = Dataset()
@@ -432,7 +446,8 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
         raise Exception('Only 3d arrays are supported for dicom export, got shape {}'.format(voxel_array.shape))
     rescaleSlope, rescaleIntercept, rescaled_voxel_array = _rescale_to_stored_values(voxel_array)
     slices_array = _unstack(rescaled_voxel_array)
-    for slice_num, slice_arr in enumerate(slices_array):
+    slices_with_colobar = _add_colorbar(slices_array)
+    for slice_num, slice_arr in enumerate(slices_with_colobar):
         sliceVoxelPosition = (voxelPosition_tup[0],
                               voxelPosition_tup[1],
                               voxelPosition_tup[2] + voxelSpacing_tup[2]*slice_num)
