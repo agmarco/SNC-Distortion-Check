@@ -19,3 +19,4 @@ requests
 whitenoise
 factory_boy
 django-debug-toolbar
+pillow
