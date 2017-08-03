@@ -38,6 +38,7 @@ from process.utils import fov_center_xyz
 from process.points_utils import format_point_metrics, metrics
 from . import serializers
 from .import models
+from .overlay_utilities import add_colorbar
 from process.exceptions import AlgorithmException
 
 logger = logging.getLogger(__name__)
@@ -395,20 +396,6 @@ def send_mail(subject_template_name, email_template_name,
         email_message.attach_alternative(html_email, 'text/html')
 
     email_message.send()
-
-def add_colorbar(slices_array, units='mm'):
-    max_val = np.round(np.max(slices_array))
-    colorbar = np.zeros((100, 60))
-    gradient = np.linspace(max_val, 0, 60) * np.ones((10, 60))
-    colorbar[5:65, :10] = gradient.T
-    colorbar_img = Image.fromarray(colorbar)
-    colorbar_canvas = ImageDraw.Draw(colorbar_img)
-    colorbar_canvas.text((10, 0), str(max_val)+units, fill=max_val)
-    colorbar_canvas.text((10, 55), "0"+units, fill=max_val)
-    colorbar = np.array(colorbar_img) * np.ones((len(slices_array), 100, 60))
-    colorbar_area = slices_array[:, :100, :60]
-    colorbar_area[colorbar != 0] = colorbar[colorbar != 0]
-    return slices_array
 
 # TODO: convert to class for easier unit testing
 def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstanceUID, seriesInstanceUID,
