@@ -26,6 +26,7 @@ from django.conf import settings
 from django.template import loader
 from rest_framework.renderers import JSONRenderer
 from scipy.interpolate.ndgriddata import griddata
+from PIL import Image, ImageDraw, ImageFont
 
 from process import dicom_import, affine, fp_rejector, phantoms
 from process.affine import apply_affine
@@ -37,6 +38,7 @@ from process.utils import fov_center_xyz
 from process.points_utils import format_point_metrics, metrics
 from . import serializers
 from .import models
+from .overlay_utilities import add_colorbar
 from process.exceptions import AlgorithmException
 
 logger = logging.getLogger(__name__)
@@ -395,7 +397,7 @@ def send_mail(subject_template_name, email_template_name,
 
     email_message.send()
 
-
+# TODO: convert to class for easier unit testing
 def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstanceUID, seriesInstanceUID,
             frameOfReferenceUID, patientID, output_directory):
     '''
@@ -451,7 +453,8 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
         raise Exception(msg.format(voxel_array.shape))
     rescaleSlope, rescaleIntercept, rescaled_voxel_array = _rescale_to_stored_values(voxel_array)
     slices_array = _unstack(rescaled_voxel_array)
-    for slice_num, slice_arr in enumerate(slices_array):
+    slices_with_colobar = add_colorbar(slices_array)
+    for slice_num, slice_arr in enumerate(slices_with_colobar):
         sliceVoxelPosition = (voxelPosition_tup[0],
                               voxelPosition_tup[1],
                               voxelPosition_tup[2] + voxelSpacing_tup[2]*slice_num)
