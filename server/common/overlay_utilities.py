@@ -2,7 +2,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 def add_colorbar(slices_array, units='mm'):
-    max_val = np.round(np.max(slices_array))
+    max_val = np.round(np.max(slices_array), decimals=1)
     colorbar = np.zeros((100, 60))
     gradient = np.linspace(max_val, 0, 60) * np.ones((10, 60))
     colorbar[5:65, :10] = gradient.T
