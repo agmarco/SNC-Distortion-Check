@@ -171,8 +171,9 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, IUploadScanFo
 
                     <div>
                         <label htmlFor="upload-scan-dicom-archive">MRI Scan Files</label>
+                        {/* TODO: accept=".zip" breaks the input */}
                         <CirsControl.file type="file" id="upload-scan-dicom-archive" model=".dicom_archive"
-                                          accept=".zip" required
+                                          required
                                           onChange={this.handleDicomArchiveChange.bind(this)}
                                           disabled={dicomArchiveDisabled} />
                         <p>
