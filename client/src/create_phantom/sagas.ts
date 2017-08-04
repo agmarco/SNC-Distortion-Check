@@ -7,15 +7,16 @@ import * as constants from './constants';
 import * as actions from './actions';
 
 function* getSerialNumberValidity(action: Action<string>): any {
-    const response = yield call(api.validateSerial, {serial_number: action.payload});
-
-    if (response.ok) {
+    try {
+        const response = yield call(api.addOkCheck(api.validateSerial), {serial_number: action.payload});
         const { valid, model_number, message } = yield call(response.json.bind(response));
         yield put(actions.updateSerialNumberInfo({
             message,
             modelNumber: model_number,
         }));
         yield put(formActions.setValidity('forms.phantom.serial_number', valid));
+    } catch (error) {
+        yield put(formActions.setValidity('forms.phantom.serial_number', false));
     }
 }
 

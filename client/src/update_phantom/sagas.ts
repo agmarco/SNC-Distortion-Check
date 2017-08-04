@@ -19,7 +19,7 @@ function* pollCt(): any {
             break;
         } else {
             try {
-                const response = yield call(addOkCheck(addTimeout(api.pollCt)), {
+                const response = yield call(addTimeout(addOkCheck(api.pollCt)), {
                     phantom_pk: PHANTOM.pk,
                     golden_fiducials_pks: unprocessedGoldenFiducialsSet.map(g => g.pk),
                 });

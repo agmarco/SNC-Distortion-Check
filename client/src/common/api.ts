@@ -19,8 +19,6 @@ interface IApiCall {
     (...args: any[]): Promise<Response> | IterableIterator<any>;
 }
 
-// TODO: handle network errors as well (via a try/catch with fetch)
-
 export function addTimeout(api: IApiCall) {
     return function* (...args: any[]) {
         const { response } = yield race({
