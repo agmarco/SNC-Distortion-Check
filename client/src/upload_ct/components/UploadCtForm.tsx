@@ -68,8 +68,9 @@ class UploadCtForm extends React.Component<IUploadCtFormProps, IUploadCtFormStat
 
                     <div>
                         <label htmlFor="upload-ct-dicom-archive">File Browser</label>
+                        {/* TODO: accept=".zip" breaks the input */}
                         <CirsControl.file type="file" id="upload-ct-dicom-archive" model=".dicom_archive"
-                                          accept=".zip" required
+                                          required
                                           onChange={this.handleDicomArchiveChange.bind(this)}
                                           disabled={dicomArchiveDisabled}/>
                         <p>
