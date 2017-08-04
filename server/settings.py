@@ -179,8 +179,7 @@ if TESTING:
     MEDIA_ROOT = os.path.join(
         tempfile.gettempdir(), 'cirs', 'media', str(int(time.time())),
     )
-#elif DEBUG:
-elif False:
+elif DEBUG:
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 else:
     AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
