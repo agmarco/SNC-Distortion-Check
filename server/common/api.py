@@ -5,7 +5,6 @@ import uuid
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from django.core.files import File
-from django.conf import settings
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -16,8 +15,6 @@ from .permissions import login_and_permission_required, validate_institution
 from .validators import validate_phantom_serial_number
 from .serializers import ScanSerializer, GoldenFiducialsSerializer
 
-import logging
-logger = logging.getLogger(__name__)
 
 class ValidateSerialView(APIView):
     def post(self, request):
