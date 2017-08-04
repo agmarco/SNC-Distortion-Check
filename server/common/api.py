@@ -5,6 +5,7 @@ import uuid
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from django.core.files import File
+from django.conf import settings
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -15,6 +16,8 @@ from .permissions import login_and_permission_required, validate_institution
 from .validators import validate_phantom_serial_number
 from .serializers import ScanSerializer, GoldenFiducialsSerializer
 
+import logging
+logger = logging.getLogger(__name__)
 
 class ValidateSerialView(APIView):
     def post(self, request):
@@ -92,11 +95,14 @@ class SignS3View(APIView):
             api_endpoint = '/api/upload-as-dev/'
             return Response({
                 'data': {
-                    'file_name': file_name,
-                    'file_path': file_path,
+                    'fields': {
+                        'file_name': file_name,
+                        'file_path': file_path,
+                        'ok': True,
+                    },
+                    'url': f'{base_url}:{dev_port}{api_endpoint}',
                 },
-                'url': f'{base_url}:{dev_port}{api_endpoint}',
-                'ok': True,
+                'url': f'{file_path}', # In dev env, this url is used to locate the file
             })
 
         else:
@@ -118,8 +124,10 @@ class SignS3View(APIView):
             })
 
 class UploadAsDev(APIView):
-    def post(self, request):
-        # TODO: use default django storage system to store file in request
-        with open(request.POST.get('file_path'), 'rw') as f:
-            scan_file = File(f)
-            scan_file.write(request.POST.get('file'))
+    def post(self, request, format=None):
+        full_path = '/'.join([settings.MEDIA_ROOT, request.POST.get('file_path')])
+        uploaded_file = request.FILES.get('file')
+        with open(full_path, 'wb+') as f:
+            for chunk in uploaded_file.chunks():
+                f.write(chunk)
+        return Response()
