@@ -2,10 +2,8 @@ pip-tools
 ipython
 pytest
 pytest-django
-nbstripout
 honcho
 gitpython
 pylint
-ipywidgets
 pyqt5
 tabulate
