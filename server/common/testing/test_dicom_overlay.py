@@ -21,5 +21,15 @@ def test_dicom_overlay():
     print(new_colorbar_bottom[new_colorbar_bottom != 0])
     assert False not in np.equal(new_colorbar_bottom, 0)
 
+def test_dicom_overlay_ticks_aligned():
+    max_value = 20
+    test_volume = np.ones((700,512,512))*(max_value/2)
+    test_volume[:,300,300] = max_value
+    voxels_with_colorbar = add_colorbar(test_volume)
+    top_tick = voxels_with_colorbar[:, GRADIENT_TOP_IDX, 1:8]
+    bottom_tick = voxels_with_colorbar[:, GRADIENT_BOTTOM_IDX-1, 1:8]
+    assert False not in np.equal(top_tick, max_value)
+    assert False not in np.equal(bottom_tick, max_value)
+
 def visualize_colorbar(slices_array):
     imsave('example_array.png', slices_array[192,:,:])
