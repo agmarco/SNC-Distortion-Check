@@ -19,7 +19,6 @@ def test_dicom_overlay():
     expected_colorbar_top = max_value * np.ones((GRADIENT_WIDTH, len(max_value)))
     new_colorbar_bottom = test_volume[:, GRADIENT_BOTTOM_IDX-1, 10:(GRADIENT_WIDTH+10)]
     assert False not in np.equal(new_colorbar_top, expected_colorbar_top.T)
-    print(new_colorbar_bottom[new_colorbar_bottom != 0])
     assert False not in np.equal(new_colorbar_bottom, 0)
 
 def test_dicom_overlay_ticks_aligned():
