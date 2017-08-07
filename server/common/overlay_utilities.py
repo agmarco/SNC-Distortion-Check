@@ -29,7 +29,8 @@ def add_unit_labels(canvas, max_val, max_distortion, units='mm'):
     return canvas
 
 def add_gradient_ticks(canvas, max_val):
-    tick_indices = np.linspace(GRADIENT_TOP_IDX, GRADIENT_BOTTOM_IDX-1, 7)
+    number_of_ticks = 6
+    tick_indices = np.linspace(GRADIENT_TOP_IDX, GRADIENT_BOTTOM_IDX-1, number_of_ticks)
     for idx, coord in enumerate(tick_indices):
         if idx == 0 or idx == len(tick_indices)-1:
             tick_coords = (1, coord, 7, coord)
