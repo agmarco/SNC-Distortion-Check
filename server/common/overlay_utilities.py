@@ -6,12 +6,7 @@ GRADIENT_LENGTH = 90
 GRADIENT_TOP_IDX = 5
 GRADIENT_BOTTOM_IDX = 95
 
-def add_colorbar(slices_array, units='mm'):
-    for voxel_slice in slices_array:
-        add_colorbar_to_slice(voxel_slice, units)
-    return slices_array
-
-def add_colorbar_to_slice(voxel_slice, units='mm'):
+def add_colorbar_to_slice(voxel_slice, max_distortion, units='mm'):
     max_val = np.round(np.max(voxel_slice), decimals=1)
     colorbar = np.zeros((100, 60))
     gradient = np.linspace(max_val, 0, GRADIENT_LENGTH) * np.ones((GRADIENT_WIDTH, GRADIENT_LENGTH))
@@ -19,7 +14,7 @@ def add_colorbar_to_slice(voxel_slice, units='mm'):
 
     colorbar_img = Image.fromarray(colorbar)
     colorbar_canvas = ImageDraw.Draw(colorbar_img)
-    add_unit_labels(colorbar_canvas, max_val, units)
+    add_unit_labels(colorbar_canvas, max_val, max_distortion, units)
     add_gradient_ticks(colorbar_canvas, max_val)
 
     colorbar = np.array(colorbar_img) * np.ones((100, 60))
@@ -28,8 +23,8 @@ def add_colorbar_to_slice(voxel_slice, units='mm'):
     colorbar_area[GRADIENT_BOTTOM_IDX-1, 10:(GRADIENT_WIDTH+10)] = np.zeros(GRADIENT_WIDTH)
     return voxel_slice
 
-def add_unit_labels(canvas, max_val, units='mm'):
-    canvas.text((21, 0), str(max_val)+units, fill=max_val)
+def add_unit_labels(canvas, max_val, max_distortion, units='mm'):
+    canvas.text((21, 0), str(max_distortion)+units, fill=max_val)
     canvas.text((21, 85), "0"+units, fill=max_val)
     return canvas
 

@@ -38,7 +38,7 @@ from process.utils import fov_center_xyz
 from process.points_utils import format_point_metrics, metrics
 from . import serializers
 from .import models
-from .overlay_utilities import add_colorbar
+from .overlay_utilities import add_colorbar_to_slice
 from process.exceptions import AlgorithmException
 
 logger = logging.getLogger(__name__)
@@ -451,10 +451,11 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
     if len(voxel_array.shape) != 3:
         msg = 'Only 3d arrays are supported for dicom export, got shape {}'
         raise Exception(msg.format(voxel_array.shape))
-    slices_with_colorbar = add_colorbar(voxel_array)
-    rescaleSlope, rescaleIntercept, rescaled_voxel_array = _rescale_to_stored_values(slices_with_colorbar)
+    rescaleSlope, rescaleIntercept, rescaled_voxel_array = _rescale_to_stored_values(voxel_array)
     slices_array = _unstack(rescaled_voxel_array)
     for slice_num, slice_arr in enumerate(slices_array):
+        slice_arr = add_colorbar_to_slice(slice_arr, np.max(voxel_array[slice_num]))
+
         sliceVoxelPosition = (voxelPosition_tup[0],
                               voxelPosition_tup[1],
                               voxelPosition_tup[2] + voxelSpacing_tup[2]*slice_num)
