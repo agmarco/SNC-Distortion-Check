@@ -25,15 +25,16 @@ def add_colorbar_to_slice(voxel_slice, units='mm'):
     colorbar = np.array(colorbar_img) * np.ones((100, 60))
     colorbar_area = voxel_slice[:100, :60]
     colorbar_area[colorbar != 0] = colorbar[colorbar != 0]
+    colorbar_area[GRADIENT_BOTTOM_IDX-1, 10:(GRADIENT_WIDTH+10)] = np.zeros(GRADIENT_WIDTH)
     return voxel_slice
 
 def add_unit_labels(canvas, max_val, units='mm'):
-    canvas.text((20, 0), str(max_val)+units, fill=max_val)
-    canvas.text((20, 85), "0"+units, fill=max_val)
+    canvas.text((21, 0), str(max_val)+units, fill=max_val)
+    canvas.text((21, 85), "0"+units, fill=max_val)
     return canvas
 
 def add_gradient_ticks(canvas, max_val):
-    tick_indices = np.linspace(GRADIENT_TOP_IDX, GRADIENT_BOTTOM_IDX, 7)
+    tick_indices = np.linspace(GRADIENT_TOP_IDX, GRADIENT_BOTTOM_IDX-1, 7)
     for idx, coord in enumerate(tick_indices):
         if idx == 0 or idx == len(tick_indices)-1:
             tick_coords = (1, coord, 7, coord)
