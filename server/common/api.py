@@ -122,9 +122,12 @@ class SignS3View(APIView):
 
 class UploadAsDev(APIView):
     def post(self, request, format=None):
-        full_path = '/'.join([settings.MEDIA_ROOT, request.POST.get('file_path')])
-        uploaded_file = request.FILES.get('file')
-        with open(full_path, 'wb+') as f:
-            for chunk in uploaded_file.chunks():
-                f.write(chunk)
-        return Response()
+        if os.getenv('DEBUG'):
+            full_path = '/'.join([settings.MEDIA_ROOT, request.POST.get('file_path')])
+            uploaded_file = request.FILES.get('file')
+            with open(full_path, 'w+') as f:
+                for chunk in uploaded_file.chunks():
+                    f.write(chunk)
+            return Response()
+        else:
+            return Response(status=403)
