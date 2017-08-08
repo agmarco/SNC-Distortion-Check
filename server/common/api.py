@@ -4,6 +4,7 @@ import uuid
 
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
+from django.conf import settings
 from django.core.files import File
 
 from rest_framework.response import Response
@@ -125,7 +126,7 @@ class UploadAsDev(APIView):
         if os.getenv('DEBUG'):
             full_path = '/'.join([settings.MEDIA_ROOT, request.POST.get('file_path')])
             uploaded_file = request.FILES.get('file')
-            with open(full_path, 'w+') as f:
+            with open(full_path, 'wb+') as f:
                 for chunk in uploaded_file.chunks():
                     f.write(chunk)
             return Response()
