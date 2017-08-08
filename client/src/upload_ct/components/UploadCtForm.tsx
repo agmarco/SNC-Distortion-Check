@@ -54,7 +54,6 @@ class UploadCtForm extends React.Component<IUploadCtFormProps, IUploadCtFormStat
                     action={formAction}
                     method="post"
                     model="uploadCt"
-                    encType="multipart/form-data"
                     className="cirs-form"
                     djangoErrors={formErrors}
                     onSubmit={this.handleSubmit.bind(this)}

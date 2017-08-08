@@ -78,7 +78,6 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, IUploadScanFo
                     action={formAction}
                     method="post"
                     model="uploadScan"
-                    encType="multipart/form-data"
                     className="cirs-form"
                     djangoErrors={formErrors}
                     onSubmit={this.handleSubmit.bind(this)}
