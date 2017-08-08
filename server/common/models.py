@@ -315,7 +315,6 @@ class Global(models.Model):
 
 
 def create_dicom_series(dicom_archive, request=None):
-    # dicom_series = DicomSeries(zipped_dicom_files=dicom_archive_url)
 
     with zipfile.ZipFile(dicom_archive, 'r') as dicom_archive_zipfile:
         dicom_datasets = dicom_import.dicom_datasets_from_zip(dicom_archive_zipfile)
@@ -333,15 +332,6 @@ def create_dicom_series(dicom_archive, request=None):
         patient_id=ds.PatientID,
         acquisition_date=infer_acquisition_date(ds, request),
     )
-    # dicom_series.voxels = voxels
-    # dicom_series.ijk_to_xyz = ijk_to_xyz
-    # dicom_series.shape = voxels.shape
-    # dicom_series.series_uid = ds.SeriesInstanceUID
-    # dicom_series.study_uid = ds.StudyInstanceUID
-    # dicom_series.frame_of_reference_uid = ds.FrameOfReferenceUID
-    # dicom_series.patient_id = ds.PatientID
-    # dicom_series.acquisition_date = infer_acquisition_date(ds, request)
-
     dicom_series.save()
     return dicom_series
 
