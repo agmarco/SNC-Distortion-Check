@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+import zipfile
 
 import numpy as np
 
@@ -7,6 +8,8 @@ from django.db import models
 from django.utils.functional import cached_property
 from django.utils import timezone
 from django.contrib import messages
+
+from process import dicom_import
 
 from server.django_numpy.fields import NdarrayTextField#, NdarrayFileField
 from server.emailauth.models import AbstractUser, UserManager
@@ -311,21 +314,54 @@ class Global(models.Model):
         )
 
 
-def create_scan(machine, sequence, phantom, creator, notes=''):
+def create_dicom_series(dicom_archive, request=None):
+
+    with zipfile.ZipFile(dicom_archive, 'r') as dicom_archive_zipfile:
+        dicom_datasets = dicom_import.dicom_datasets_from_zip(dicom_archive_zipfile)
+
+    voxels, ijk_to_xyz = dicom_import.combine_slices(dicom_datasets)
+    ds = dicom_datasets[0]
+    dicom_series = DicomSeries.objects.create(
+        voxels=voxels,
+        zipped_dicom_files=dicom_archive,
+        ijk_to_xyz=ijk_to_xyz,
+        shape=voxels.shape,
+        series_uid=ds.SeriesInstanceUID,
+        study_uid=ds.StudyInstanceUID,
+        frame_of_reference_uid=ds.FrameOfReferenceUID,
+        patient_id=ds.PatientID,
+        acquisition_date=infer_acquisition_date(ds, request),
+    )
+    dicom_series.save()
+    return dicom_series
+
+def create_scan(machine, sequence, phantom, creator, dicom_archive=None, notes=''):
     machine_sequence_pair, _ = MachineSequencePair.objects.get_or_create(
         machine=machine,
         sequence=sequence,
         defaults={'tolerance': sequence.tolerance},
     )
 
-    scan = Scan.objects.create(
-        machine_sequence_pair=machine_sequence_pair,
-        golden_fiducials=phantom.active_gold_standard,
-        tolerance=machine_sequence_pair.tolerance,
-        processing=True,
-        creator=creator,
-        notes=notes,
-    )
+    if dicom_archive:
+        dicom_series = create_dicom_series(dicom_archive)
+        scan = Scan.objects.create(
+            machine_sequence_pair=machine_sequence_pair,
+            golden_fiducials=phantom.active_gold_standard,
+            tolerance=machine_sequence_pair.tolerance,
+            processing=True,
+            dicom_series=dicom_series,
+            creator=creator,
+            notes=notes,
+        )
+    else:
+        scan = Scan.objects.create(
+            machine_sequence_pair=machine_sequence_pair,
+            golden_fiducials=phantom.active_gold_standard,
+            tolerance=machine_sequence_pair.tolerance,
+            processing=True,
+            creator=creator,
+            notes=notes,
+        )
 
     return scan
 

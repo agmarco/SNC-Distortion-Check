@@ -210,7 +210,7 @@ class UploadScanView(JsonFormMixin, FormView):
             sequence,
             phantom,
             self.request.user,
-            form.cleaned_data['notes'],
+            notes=form.cleaned_data['notes'],
         )
 
         process_scan.delay(scan.pk, form.cleaned_data['dicom_archive_url'])

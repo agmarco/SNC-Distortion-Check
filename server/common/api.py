@@ -4,6 +4,8 @@ import uuid
 
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
+from django.conf import settings
+from django.core.files import File
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -85,19 +87,48 @@ class SignS3View(APIView):
         file_path = os.path.join('zipped_dicom_files', f'{uuid.uuid4()}{ext}')
         file_type = request.GET.get('file_type')
 
-        s3 = boto3.client('s3')
+        if os.getenv('DEBUG'):
+            base_url = 'http://localhost'
+            dev_port = '8000'
+            api_endpoint = '/api/upload-as-dev/'
+            return Response({
+                'data': {
+                    'fields': {
+                        'file_name': file_name,
+                        'file_path': file_path,
+                        'ok': True,
+                    },
+                    'url': f'{base_url}:{dev_port}{api_endpoint}',
+                },
+                'url': f'{file_path}', # In dev env, this url is used to locate the file
+            })
 
-        presigned_post = s3.generate_presigned_post(
-            Bucket=S3_BUCKET,
-            Key=file_path,
-            Fields={"Content-Type": file_type},
-            Conditions=[
-                {"Content-Type": file_type}
-            ],
-            ExpiresIn=3600
-        )
+        else:
+            s3 = boto3.client('s3')
 
-        return Response({
-            'data': presigned_post,
-            'url': os.path.join(f'https://{S3_BUCKET}.s3.amazonaws.com', file_path),
-        })
+            presigned_post = s3.generate_presigned_post(
+                Bucket=S3_BUCKET,
+                Key=file_path,
+                Fields={"Content-Type": file_type},
+                Conditions=[
+                    {"Content-Type": file_type}
+                ],
+                ExpiresIn=3600
+            )
+
+            return Response({
+                'data': presigned_post,
+                'url': os.path.join(f'https://{S3_BUCKET}.s3.amazonaws.com', file_path),
+            })
+
+class UploadAsDev(APIView):
+    def post(self, request, format=None):
+        if os.getenv('DEBUG'):
+            full_path = '/'.join([settings.MEDIA_ROOT, request.POST.get('file_path')])
+            uploaded_file = request.FILES.get('file')
+            with open(full_path, 'wb+') as f:
+                for chunk in uploaded_file.chunks():
+                    f.write(chunk)
+            return Response()
+        else:
+            return Response(status=403)

@@ -7,6 +7,7 @@ import numpy as np
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.core.management.base import BaseCommand
+from django.core.files import File
 
 from server.common import factories
 from server.common.models import GoldenFiducials, create_scan
@@ -191,7 +192,8 @@ class Command(BaseCommand):
 
         # TODO: this is broken since S3 direct uploads
         with open(zip_filename, 'rb') as dicom_archive:
-            scan = create_scan(machine, sequence, phantom, creator, dicom_archive)
+            dicom_archive_file = File(dicom_archive)
+            scan = create_scan(machine, sequence, phantom, creator, dicom_archive_file)
         process_scan(scan.pk)
 
     def generate_scan_progression_demo(self, creator, machine, sequence, sequence_length):
