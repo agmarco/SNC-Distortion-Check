@@ -25,7 +25,8 @@ from django.db import transaction
 from django.conf import settings
 from django.template import loader
 from rest_framework.renderers import JSONRenderer
-from scipy.interpolate.ndgriddata import griddata
+# from scipy.interpolate.ndgriddata import griddata
+from naturalneighbor import griddata
 from PIL import Image, ImageDraw, ImageFont
 
 from process import dicom_import, affine, fp_rejector, phantoms
@@ -321,15 +322,14 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
             coord_min_xyz, coord_max_xyz = apply_affine(ijk_to_xyz, np.array([(0.0, 0.0, 0.0), ds.shape]).T).T
             TP_A = scan.TP_A_S.fiducials
             error_mags = scan.error_mags
-            grid_x, grid_y, grid_z = np.meshgrid(
-                np.arange(coord_min_xyz[0], coord_max_xyz[0], GRID_DENSITY_mm),
-                np.arange(coord_min_xyz[1], coord_max_xyz[1], GRID_DENSITY_mm),
-                np.arange(coord_min_xyz[2], coord_max_xyz[2], GRID_DENSITY_mm),
-            )
+            interp_grid_ranges = [
+                [coord_min_xyz[0], coord_max_xyz[0], GRID_DENSITY_mm],
+                [coord_min_xyz[1], coord_max_xyz[1], GRID_DENSITY_mm],
+                [coord_min_xyz[2], coord_max_xyz[2], GRID_DENSITY_mm],
+            ]
             logger.info("Gridding data for overlay generation.")
-            gridded = griddata(TP_A.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
-            gridded = scipy.ndimage.filters.gaussian_filter(gridded, BLUR_SIGMA,
-                                                            truncate=2)  # TODO: remove this once we fix interpolation
+
+            gridded = griddata(TP_A.T, error_mags.T, interp_grid_ranges)
             gridded[np.isnan(gridded)] = 0
             output_dir = tempfile.mkdtemp()
             logger.info("Exporting overlay to dicoms.")
