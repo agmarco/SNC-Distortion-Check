@@ -313,7 +313,6 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
         with transaction.atomic():
             # TODO: Consolidate and split out these constants in the process module.
             GRID_DENSITY_mm = 1
-            BLUR_SIGMA = 2
 
             scan = models.Scan.objects.get(pk=scan_pk)
             ds = scan.dicom_series
@@ -328,8 +327,6 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
             )
             logger.info("Gridding data for overlay generation.")
             gridded = griddata(TP_A.T, error_mags.T, (grid_x, grid_y, grid_z), method='linear')
-            gridded = scipy.ndimage.filters.gaussian_filter(gridded, BLUR_SIGMA,
-                                                            truncate=2)  # TODO: remove this once we fix interpolation
             gridded[np.isnan(gridded)] = 0
             output_dir = tempfile.mkdtemp()
             logger.info("Exporting overlay to dicoms.")
