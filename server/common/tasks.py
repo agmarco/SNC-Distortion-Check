@@ -25,7 +25,6 @@ from django.db import transaction
 from django.conf import settings
 from django.template import loader
 from rest_framework.renderers import JSONRenderer
-# from scipy.interpolate.ndgriddata import griddata
 from naturalneighbor import griddata
 from PIL import Image, ImageDraw, ImageFont
 
