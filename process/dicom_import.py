@@ -115,6 +115,26 @@ def merge_slice_pixel_arrays(slice_datasets):
     return voxels
 
 
+def transform_point(tmat, i, j, k):
+    '''
+    Convenience function that transforms points i,j,k with transform matrix tmat
+    '''
+    return (tmat @ np.array([i, j, k, 1]).T)[:3]
+
+
+def image_orientation_from_tmat(ijk_to_xyz_tmat):
+    '''
+    Returns the image orientation direction cosines to be used in dicom.
+    Rounds to 1e-6 to remove numerical errors introduced by rotations.
+    '''
+    origin_xyz = transform_point(ijk_to_xyz_tmat, 0, 0, 0)
+    i_vec = transform_point(ijk_to_xyz_tmat, 1, 0, 0) - origin_xyz
+    j_vec = transform_point(ijk_to_xyz_tmat, 0, 1, 0) - origin_xyz
+    i_dir_cosine = i_vec / np.linalg.norm(i_vec)
+    j_dir_cosine = j_vec / np.linalg.norm(j_vec)
+    return np.round(np.concatenate((i_dir_cosine, j_dir_cosine)), 6)
+
+
 def ijk_to_xyz_matrix(slice_datasets):
     first_slice_dataset = _sort_by_slice_spacing(slice_datasets)[0]
     row_cosine, column_cosine, slice_cosine = _extract_cosines(first_slice_dataset.ImageOrientationPatient)
