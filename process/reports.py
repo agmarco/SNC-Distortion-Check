@@ -31,10 +31,9 @@ from process import dicom_import
 logger = logging.getLogger(__name__)
 
 
-GRID_DENSITY_mm = 0.5
+GRID_DENSITY_mm = 2.0
 SPHERE_STEP_mm = 1
 SPHERE_POINTS_PER_AREA = 1
-CONTOUR_SERIES_STEP_mm = 2
 
 
 def surface_area(r):
