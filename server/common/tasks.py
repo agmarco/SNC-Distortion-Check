@@ -313,7 +313,7 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
     try:
         with transaction.atomic():
             # TODO: Consolidate and split out these constants in the process module.
-            GRID_DENSITY_mm = 1
+            GRID_DENSITY_mm = 1.5
 
             scan = models.Scan.objects.get(pk=scan_pk)
             ds = scan.dicom_series
