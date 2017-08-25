@@ -17,7 +17,7 @@ from matplotlib import gridspec
 import matplotlib.patches as patches
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy.interpolate.interpnd import LinearNDInterpolator
-from scipy.interpolate.ndgriddata import griddata
+from naturalneighbor import griddata
 from mpl_toolkits.mplot3d import Axes3D  # import has needed side effect
 import scipy.ndimage.filters
 
@@ -31,10 +31,9 @@ from process import dicom_import
 logger = logging.getLogger(__name__)
 
 
-GRID_DENSITY_mm = 0.5
+GRID_DENSITY_mm = 2.0
 SPHERE_STEP_mm = 1
 SPHERE_POINTS_PER_AREA = 1
-CONTOUR_SERIES_STEP_mm = 2
 
 
 def surface_area(r):
@@ -368,20 +367,6 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         ax.set_ylabel('z [mm]')
         ax.set_title('Coronal Contour Plot')
 
-    def axial_spacial_mapping_slice_data(z):
-        grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
-                                             np.arange(y_min, y_max, GRID_DENSITY_mm),
-                                             np.array([z]))
-        gridded = griddata(TP_A_S.T, error_mags, (grid_x, grid_y, grid_z), method='linear')
-        gridded = scipy.ndimage.filters.gaussian_filter(gridded, 2, truncate=2)
-        return grid_x, grid_y, gridded
-
-    def draw_axial_spatial_mapping_slice(z, grid_a, grid_b, gridded, ax, cell):
-        draw_spacial_mapping(grid_a, grid_b, gridded, ax)
-        ax.set_xlabel('x [mm]')
-        ax.set_ylabel('y [mm]')
-        ax.set_title(f'Axial Contour Plot Series (z = {round(z, 3)} mm)')
-
     def error_table_data():
         rows = []
 
@@ -537,14 +522,6 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         create_page_full(draw_sagittal_spatial_mapping)
         create_page_full(draw_coronal_spatial_mapping)
 
-        # for z in np.arange(z_min, z_max, CONTOUR_SERIES_STEP_mm):
-            # grid_a, grid_b, gridded = axial_spacial_mapping_slice_data(z)
-            # draw_slice = partial(draw_axial_spatial_mapping_slice, z, grid_a, grid_b, gridded)
-            # try:
-                # create_page_full(draw_slice)
-            # except ValueError:
-                # pass
-
         create_page_full(draw_error_table)
 
         sort_indices = np.argsort(error_mags)[::-1]
@@ -555,8 +532,6 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
             create_page_full(draw_chunk)
 
         create_page_full(draw_points_x_perspective)
-        # create_page_full(draw_points_y_perspective)
-        # create_page_full(draw_points_z_perspective)
 
     with PdfPages(executive_report_path) as pdf:
         report_title = "Executive Report"
@@ -574,9 +549,6 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         create_page_executive(draw_coronal_spatial_mapping)
         create_page_executive(draw_error_table)
         create_page_executive(draw_points_x_perspective)
-        # create_page_executive(draw_points_y_perspective)
-        # create_page_executive(draw_points_z_perspective)
-
 
     logger.info("finished report generation")
 
