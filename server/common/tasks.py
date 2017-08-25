@@ -30,6 +30,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from process import dicom_import, affine, fp_rejector, phantoms
 from process.affine import apply_affine
+from process.dicom_import import image_orientation_from_tmat
 from process.feature_detection import FeatureDetector
 from process.file_io import save_voxels
 from process.registration import rigidly_register_and_categorize
@@ -339,7 +340,8 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
                 seriesInstanceUID=generate_uid(),
                 frameOfReferenceUID=frame_of_reference_uid or ds.frame_of_reference_uid,
                 patientID=patient_id or ds.patient_id,
-                output_directory=output_dir
+                output_directory=output_dir,
+                imageOrientationPatient=image_orientation_from_tmat(ijk_to_xyz)
             )
             zip_bytes = io.BytesIO()
             with zipfile.ZipFile(zip_bytes, 'w', zipfile.ZIP_DEFLATED) as zf:
@@ -397,7 +399,7 @@ def send_mail(subject_template_name, email_template_name,
 
 # TODO: convert to class for easier unit testing
 def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstanceUID, seriesInstanceUID,
-            frameOfReferenceUID, patientID, output_directory):
+            frameOfReferenceUID, patientID, output_directory, imageOrientationPatient):
     '''
     Exports a voxel array to a series of dicom files.
 
@@ -477,7 +479,7 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
 
         # Image plane module
         xSpacing_mm, ySpacing_mm, zSpacing_mm = voxelSpacing_tup
-        ds.ImageOrientationPatient = _encode_multival([1, 0, 0, 0, 1, 0])  # direction cosines
+        ds.ImageOrientationPatient = _encode_multival(imageOrientationPatient)  # direction cosines
         ds.ImagePositionPatient = _encode_multival(sliceVoxelPosition)
         ds.PixelSpacing = _encode_multival([xSpacing_mm, ySpacing_mm])
         ds.SliceThickness = str(zSpacing_mm)

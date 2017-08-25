@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
 
+from process.affine import translation, scaleing, rotation_x
+from process.dicom_import import image_orientation_from_tmat
 from .dicom_import import (
     combine_slices,
     validate_slices_form_uniform_grid,
@@ -122,3 +124,16 @@ class TestValidateSlicesFormUniformGrid:
 
 def randi(*shape):
     return np.random.randint(1000, size=shape, dtype='uint16')
+
+def test_imageOrientationFromTmat():
+    ijk_to_xyz_tmat = np.identity(4)
+    np.allclose(np.array([1,0,0,0,1,0]), image_orientation_from_tmat(ijk_to_xyz_tmat))
+
+    ijk_to_xyz_tmat = translation(5,5,5)
+    np.allclose(np.array([1,0,0,0,1,0]), image_orientation_from_tmat(ijk_to_xyz_tmat))
+
+    ijk_to_xyz_tmat = scaleing(5, 5, 5)
+    np.allclose(np.array([1,0,0,0,1,0]), image_orientation_from_tmat(ijk_to_xyz_tmat))
+
+    ijk_to_xyz_tmat = rotation_x(np.pi/2)
+    np.allclose(np.array([0,1,0,-1,0,0]), image_orientation_from_tmat(ijk_to_xyz_tmat))
