@@ -498,6 +498,6 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
         ds.NumberOfFrames = 1
         ds.RescaleIntercept = rescaleIntercept
         ds.RescaleSlope = rescaleSlope
-        ds.PixelData = slice_arr.astype(np.uint16).tobytes()
+        ds.PixelData = slice_arr.astype(np.uint16).T.tobytes()  # TODO: Fix incorrect transpositions upstream
         ds.Units = 'mm'
         dicom.write_file(os.path.join(output_directory, '{}.dcm'.format(ds.SOPInstanceUID)), ds)
