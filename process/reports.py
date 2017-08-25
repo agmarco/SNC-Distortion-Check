@@ -368,20 +368,6 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         ax.set_ylabel('z [mm]')
         ax.set_title('Coronal Contour Plot')
 
-    def axial_spacial_mapping_slice_data(z):
-        grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
-                                             np.arange(y_min, y_max, GRID_DENSITY_mm),
-                                             np.array([z]))
-        gridded = griddata(TP_A_S.T, error_mags, (grid_x, grid_y, grid_z), method='linear')
-        gridded = scipy.ndimage.filters.gaussian_filter(gridded, 2, truncate=2)
-        return grid_x, grid_y, gridded
-
-    def draw_axial_spatial_mapping_slice(z, grid_a, grid_b, gridded, ax, cell):
-        draw_spacial_mapping(grid_a, grid_b, gridded, ax)
-        ax.set_xlabel('x [mm]')
-        ax.set_ylabel('y [mm]')
-        ax.set_title(f'Axial Contour Plot Series (z = {round(z, 3)} mm)')
-
     def error_table_data():
         rows = []
 
