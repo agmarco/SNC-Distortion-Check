@@ -348,7 +348,7 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
             logger.info(msg, *coord_min_xyz, *coord_max_xyz, GRID_DENSITY_mm)
 
             gridded = griddata(TP_A.T, error_mags.T, interp_grid_ranges)
-            #zero_extrapolated_values(gridded, TP_A.T, error_mags.T, interp_grid_ranges)
+            zero_extrapolated_values(gridded, TP_A.T, error_mags.T, interp_grid_ranges)
 
             output_dir = tempfile.mkdtemp()
             logger.info("Exporting overlay to dicoms.")
@@ -474,7 +474,7 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
     rescaleSlope, rescaleIntercept, rescaled_voxel_array = _rescale_to_stored_values(voxel_array)
     slices_array = _unstack(rescaled_voxel_array)
     for slice_num, slice_arr in enumerate(slices_array):
-        #slice_arr = add_colorbar_to_slice(slice_arr, np.max(voxel_array[slice_num]))
+        slice_arr = add_colorbar_to_slice(slice_arr, np.max(voxel_array[slice_num]))
 
         sliceVoxelPosition = (voxelPosition_tup[0],
                               voxelPosition_tup[1],
