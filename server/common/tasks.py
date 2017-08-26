@@ -15,6 +15,7 @@ from dicom.UID import generate_uid
 
 import numpy as np
 import scipy.io
+import scipy.interpolate
 import scipy.ndimage.filters
 from celery import shared_task
 from celery.signals import task_failure
@@ -307,13 +308,27 @@ def dump_raw_data(scan):
     return s
 
 
+def zero_extrapolated_values(nn_interp_values, points, values, grid_ranges):
+    grids = tuple(np.mgrid[
+        grid_ranges[0][0]:grid_ranges[0][1]:grid_ranges[0][2],
+        grid_ranges[1][0]:grid_ranges[1][1]:grid_ranges[1][2],
+        grid_ranges[2][0]:grid_ranges[2][1]:grid_ranges[2][2],
+    ])
+
+    # HACK: use scipy's interpolation to indirectly find the convex hull (so we
+    # can set values outside of it to zero)
+    nearest_interp_values = scipy.interpolate.griddata(points, values, grids, method='nearest')
+
+    nn_interp_values[np.isnan(nearest_interp_values)] = 0.0
+
+
 @shared_task
 def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, patient_id, user_email,
             domain, site_name, use_https):
     try:
         with transaction.atomic():
             # TODO: Consolidate and split out these constants in the process module.
-            GRID_DENSITY_mm = 1.5
+            GRID_DENSITY_mm = 1.0
 
             scan = models.Scan.objects.get(pk=scan_pk)
             ds = scan.dicom_series
@@ -329,7 +344,8 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
             logger.info("Gridding data for overlay generation.")
 
             gridded = griddata(TP_A.T, error_mags.T, interp_grid_ranges)
-            gridded[np.isnan(gridded)] = 0
+            zero_extrapolated_values(gridded, TP_A.T, error_mags.T, interp_grid_ranges)
+
             output_dir = tempfile.mkdtemp()
             logger.info("Exporting overlay to dicoms.")
             export_overlay(
