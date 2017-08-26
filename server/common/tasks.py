@@ -334,8 +334,9 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
             ds = scan.dicom_series
             ijk_to_xyz = ds.ijk_to_xyz
             TP_A = scan.TP_A_S.fiducials
-            coord_min_xyz = np.amin(TP_A, axis=1)
-            coord_max_xyz = np.amax(TP_A, axis=1)
+            # coord_min_xyz = np.amin(TP_A, axis=1)
+            # coord_max_xyz = np.amax(TP_A, axis=1)
+            coord_min_xyz, coord_max_xyz = apply_affine(ijk_to_xyz, np.array([(0.0, 0.0, 0.0), ds.shape]).T).T
             error_mags = scan.error_mags
             interp_grid_ranges = [
                 [coord_min_xyz[0], coord_max_xyz[0], GRID_DENSITY_mm],
