@@ -334,8 +334,8 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
             ds = scan.dicom_series
             ijk_to_xyz = ds.ijk_to_xyz
             TP_A = scan.TP_A_S.fiducials
-            coord_min_xyz = np.min(TP_A, axis=1)
-            coord_max_xyz = np.max(TP_A, axis=1)
+            coord_min_xyz = np.amin(TP_A, axis=1)
+            coord_max_xyz = np.amax(TP_A, axis=1)
             error_mags = scan.error_mags
             interp_grid_ranges = [
                 [coord_min_xyz[0], coord_max_xyz[0], GRID_DENSITY_mm],
@@ -343,7 +343,8 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
                 [coord_min_xyz[2], coord_max_xyz[2], GRID_DENSITY_mm],
             ]
             output_dimensions = (coord_max_xyz - coord_min_xyz)/GRID_DENSITY_mm
-            logger.info("Performing naturalneighbor interpolation on %dx%dx%d grid", *output_dimensions)
+            msg = "Performing naturalneighbor interpolation on %dx%dx%d grid from %fx%fx%f to %fx%fx%f"
+            logger.info(msg, *output_dimensions, *coord_min_xyz, *coord_max_xyz)
 
             gridded = griddata(TP_A.T, error_mags.T, interp_grid_ranges)
             zero_extrapolated_values(gridded, TP_A.T, error_mags.T, interp_grid_ranges)
