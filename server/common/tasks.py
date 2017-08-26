@@ -343,11 +343,11 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
                 [coord_min_xyz[2], coord_max_xyz[2], GRID_DENSITY_mm],
             ]
             output_dimensions = (coord_max_xyz - coord_min_xyz)/GRID_DENSITY_mm
-            msg = "Performing naturalneighbor interpolation on %dx%dx%d grid from %fx%fx%f to %fx%fx%f"
-            logger.info(msg, *output_dimensions, *coord_min_xyz, *coord_max_xyz)
+            msg = "Performing naturalneighbor interpolation from %fx%fx%f to %fx%fx%f with %f resolution"
+            logger.info(msg, *coord_min_xyz, *coord_max_xyz, GRID_DENSITY_mm)
 
             gridded = griddata(TP_A.T, error_mags.T, interp_grid_ranges)
-            zero_extrapolated_values(gridded, TP_A.T, error_mags.T, interp_grid_ranges)
+            #zero_extrapolated_values(gridded, TP_A.T, error_mags.T, interp_grid_ranges)
 
             output_dir = tempfile.mkdtemp()
             logger.info("Exporting overlay to dicoms.")
