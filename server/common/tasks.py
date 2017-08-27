@@ -317,7 +317,7 @@ def zero_extrapolated_values(nn_interp_values, points, values, grid_ranges):
 
     # HACK: use scipy's interpolation to indirectly find the convex hull (so we
     # can set values outside of it to zero)
-    nearest_interp_values = scipy.interpolate.griddata(points, values, grids, method='nearest')
+    nearest_interp_values = scipy.interpolate.griddata(points, values, grids, method='linear')
 
     nn_interp_values[np.isnan(nearest_interp_values)] = 0.0
 
@@ -334,6 +334,7 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
             ds = scan.dicom_series
             ijk_to_xyz = ds.ijk_to_xyz
             TP_A = scan.TP_A_S.fiducials
+            # TODO: figure out how only interpolate on the bounding box
             # coord_min_xyz = np.amin(TP_A, axis=1)
             # coord_max_xyz = np.amax(TP_A, axis=1)
             coord_min_xyz, coord_max_xyz = apply_affine(ijk_to_xyz, np.array([(0.0, 0.0, 0.0), ds.shape]).T).T
