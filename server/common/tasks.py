@@ -309,17 +309,22 @@ def dump_raw_data(scan):
 
 
 def zero_extrapolated_values(nn_interp_values, points, values, grid_ranges):
+    # HACK: use scipy's interpolation to indirectly find the convex hull (so we
+    # can set values outside of it to zero); will swap this out once
+    # naturalneighbor supports more extrapolation handling approaches
+
     grids = tuple(np.mgrid[
         grid_ranges[0][0]:grid_ranges[0][1]:grid_ranges[0][2],
         grid_ranges[1][0]:grid_ranges[1][1]:grid_ranges[1][2],
         grid_ranges[2][0]:grid_ranges[2][1]:grid_ranges[2][2],
     ])
+    scipy_interp_values = scipy.interpolate.griddata(points, values, grids, method='linear')
 
-    # HACK: use scipy's interpolation to indirectly find the convex hull (so we
-    # can set values outside of it to zero)
-    nearest_interp_values = scipy.interpolate.griddata(points, values, grids, method='linear')
+    assert scipy_interp_value.shape == nn_interp_values.shape
 
-    nn_interp_values[np.isnan(nearest_interp_values)] = 0.0
+    nan_indices = np.isnan(scipy_interp_values)
+    logger.info("Zeroing out %d voxels", np.sum(nan_indices))
+    nn_interp_values[nan_indices] = 0.0
 
 
 @shared_task
@@ -349,6 +354,7 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
             logger.info(msg, *coord_min_xyz, *coord_max_xyz, GRID_DENSITY_mm)
 
             gridded = griddata(TP_A.T, error_mags.T, interp_grid_ranges)
+
             zero_extrapolated_values(gridded, TP_A.T, error_mags.T, interp_grid_ranges)
 
             output_dir = tempfile.mkdtemp()
