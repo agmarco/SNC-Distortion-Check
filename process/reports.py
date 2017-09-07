@@ -17,7 +17,7 @@ from matplotlib import gridspec
 import matplotlib.patches as patches
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy.interpolate.interpnd import LinearNDInterpolator
-from naturalneighbor import griddata
+from scipy.interpolate.ndgriddata import griddata
 from mpl_toolkits.mplot3d import Axes3D  # import has needed side effect
 import scipy.ndimage.filters
 
