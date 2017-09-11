@@ -342,7 +342,7 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
             interpolated_error_mags[extrapolated_region] = 0.0
 
             output_dir = tempfile.mkdtemp()
-            logger.info("Exporting overlay to dicoms.")
+            logger.info("Exporting overlay to dicoms")
             export_overlay(
                 voxel_array=interpolated_error_mags,
                 voxelSpacing_tup=(GRID_DENSITY_mm, GRID_DENSITY_mm, GRID_DENSITY_mm),
@@ -354,16 +354,20 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
                 output_directory=output_dir,
                 imageOrientationPatient=image_orientation_from_tmat(ijk_to_xyz)
             )
+            logger.info("Done exporting overlay")
             zip_bytes = io.BytesIO()
+            num_files = 0
             with zipfile.ZipFile(zip_bytes, 'w', zipfile.ZIP_DEFLATED) as zf:
                 for dirname, subdirs, files in os.walk(output_dir):
                     zf.write(dirname)
                     for filename in files:
+                        num_files += 1
                         zf.write(os.path.join(dirname, filename), arcname=filename)
-            logger.info("done zipping generated dicoms.")
+            logger.info("Done zipping %d generated dicom files to temp folder", num_files)
 
             zip_filename = f'overlay/{uuid.uuid4()}/overlay.zip'
             default_storage.save(zip_filename, zip_bytes)
+            logger.info("Done saving temporary file to online storage")
 
             subject_template_name = 'common/email/dicom_overlay_subject.txt'
             email_template_name = 'common/email/dicom_overlay_email.txt'
