@@ -15,7 +15,6 @@ from dicom.UID import generate_uid
 
 import numpy as np
 import scipy.io
-import scipy.interpolate
 import scipy.ndimage.filters
 from celery import shared_task
 from celery.signals import task_failure
@@ -40,7 +39,7 @@ from process.utils import fov_center_xyz
 from process.points_utils import format_point_metrics, metrics
 from . import serializers
 from .import models
-from .overlay_utilities import add_colorbar_to_slice
+from .overlay_utilities import add_colorbar_to_slice, convex_hull_region
 from process.exceptions import AlgorithmException
 
 logger = logging.getLogger(__name__)
@@ -308,25 +307,6 @@ def dump_raw_data(scan):
     return s
 
 
-def zero_extrapolated_values(nn_interp_values, points, values, grid_ranges):
-    # HACK: use scipy's interpolation to indirectly find the convex hull (so we
-    # can set values outside of it to zero); will swap this out once
-    # naturalneighbor supports more extrapolation handling approaches
-
-    grids = tuple(np.mgrid[
-        grid_ranges[0][0]:grid_ranges[0][1]:grid_ranges[0][2],
-        grid_ranges[1][0]:grid_ranges[1][1]:grid_ranges[1][2],
-        grid_ranges[2][0]:grid_ranges[2][1]:grid_ranges[2][2],
-    ])
-    scipy_interp_values = scipy.interpolate.griddata(points, values, grids, method='linear')
-
-    assert scipy_interp_values.shape == nn_interp_values.shape
-
-    nan_indices = np.isnan(scipy_interp_values)
-    logger.info("Zeroing out %d voxels", np.sum(nan_indices))
-    nn_interp_values[nan_indices] = 0.0
-
-
 @shared_task
 def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, patient_id, user_email,
             domain, site_name, use_https):
@@ -353,14 +333,18 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
             msg = "Performing naturalneighbor interpolation from %fx%fx%f to %fx%fx%f with %f resolution"
             logger.info(msg, *coord_min_xyz, *coord_max_xyz, GRID_DENSITY_mm)
 
-            gridded = griddata(TP_A.T, error_mags.T, interp_grid_ranges)
+            interpolated_error_mags = griddata(TP_A.T, error_mags.T, interp_grid_ranges)
 
-            zero_extrapolated_values(gridded, TP_A.T, error_mags.T, interp_grid_ranges)
+            extrapolated_region = ~convex_hull_region(TP_A.T, interp_grid_ranges)
+            logger.info("Zeroing %d of %d extrapolated voxels in the overlay",
+                    np.sum(extrapolated_region), extrapolated_region.size)
+
+            interpolated_error_mags[extrapolated_region] = 0.0
 
             output_dir = tempfile.mkdtemp()
             logger.info("Exporting overlay to dicoms.")
             export_overlay(
-                voxel_array=gridded,
+                voxel_array=interpolated_error_mags,
                 voxelSpacing_tup=(GRID_DENSITY_mm, GRID_DENSITY_mm, GRID_DENSITY_mm),
                 voxelPosition_tup=coord_min_xyz,
                 studyInstanceUID=study_instance_uid or ds.study_uid,

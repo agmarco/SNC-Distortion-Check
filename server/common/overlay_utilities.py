@@ -1,6 +1,7 @@
 import logging
 
 import numpy as np
+import scipy.interpolate
 from PIL import Image, ImageDraw
 
 logger = logging.getLogger(__name__)
@@ -48,3 +49,23 @@ def add_gradient_ticks(canvas, max_val):
         canvas.line(tick_coords, fill=max_val)
     canvas.line((7, tick_indices[0], 7, tick_indices[-1]), fill=max_val)
     return canvas
+
+
+def convex_hull_region(points, grid_ranges):
+    # HACK: use scipy's interpolation to indirectly find the convex hull (so we
+    # can set values outside of it to zero); will swap this out once
+    # naturalneighbor supports more extrapolation handling approaches
+
+    grids = tuple(np.mgrid[
+        grid_ranges[0][0]:grid_ranges[0][1]:grid_ranges[0][2],
+        grid_ranges[1][0]:grid_ranges[1][1]:grid_ranges[1][2],
+        grid_ranges[2][0]:grid_ranges[2][1]:grid_ranges[2][2],
+    ])
+
+    num_points, num_dimensions = points.shape
+    assert num_dimensions == 3
+    assert num_points >= 4
+    values = np.zeros(num_points)
+    interp_values = scipy.interpolate.griddata(points, values, grids, method='linear')
+
+    return ~np.isnan(interp_values)
