@@ -471,7 +471,7 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
     rescaleSlope, rescaleIntercept, rescaled_voxel_array = _rescale_to_stored_values(voxel_array)
     slices_array = _unstack(rescaled_voxel_array)
     for slice_num, slice_arr in enumerate(slices_array):
-        slice_arr = add_colorbar_to_slice(slice_arr, np.max(voxel_array[slice_num]))
+        add_colorbar_to_slice(slice_arr, np.max(voxel_array[slice_num]))
 
         sliceVoxelPosition = (voxelPosition_tup[0],
                               voxelPosition_tup[1],
