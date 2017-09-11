@@ -15,7 +15,6 @@ GRADIENT_BOTTOM_IDX = 95
 def add_colorbar_to_slice(voxel_slice, max_distortion, units='mm'):
     slice_shape = voxel_slice.shape
     if slice_shape[0] < 200 or slice_shape[1] < 200:
-        logger.info('Not adding colorbar because slice shape is too small %s', slice_shape)
         return
 
     max_val = np.round(np.max(voxel_slice), decimals=1)
