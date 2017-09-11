@@ -32,5 +32,13 @@ def test_dicom_overlay_ticks_aligned():
     assert False not in np.equal(top_tick, max_value)
     assert False not in np.equal(bottom_tick, max_value)
 
+def test_dicom_overlay_not_added_when_slice_too_small():
+    test_slice = np.random.rand(100, 140)
+    original_slice = test_slice.copy()
+    max_value = 20
+    add_colorbar_to_slice(test_slice, max_value)
+
+    assert np.array_equal(original_slice, test_slice)
+
 def visualize_colorbar(slices_array):
     imsave('example_array.png', slices_array[192,:,:])

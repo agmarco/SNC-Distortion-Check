@@ -1,5 +1,9 @@
+import logging
+
 import numpy as np
 from PIL import Image, ImageDraw
+
+logger = logging.getLogger(__name__)
 
 GRADIENT_WIDTH = 10
 GRADIENT_LENGTH = 90
@@ -7,6 +11,11 @@ GRADIENT_TOP_IDX = 5
 GRADIENT_BOTTOM_IDX = 95
 
 def add_colorbar_to_slice(voxel_slice, max_distortion, units='mm'):
+    slice_shape = voxel_slice.shape
+    if slice_shape[0] < 200 or slice_shape[1] < 200:
+        logger.info('Not adding colorbar because slice shape is too small %s', slice_shape)
+        return
+
     max_val = np.round(np.max(voxel_slice), decimals=1)
     colorbar = np.zeros((100, 60))
     gradient = np.linspace(max_val, 0, GRADIENT_LENGTH) * np.ones((GRADIENT_WIDTH, GRADIENT_LENGTH))
