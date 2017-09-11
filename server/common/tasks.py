@@ -395,6 +395,7 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
                 'site_name': site_name,
                 'expires_in_days': expires_in_days,
             }
+            logger.info("Emailing overlay (%s) to %s", zip_url, to_email)
             send_mail(
                 subject_template_name,
                 email_template_name,
