@@ -320,7 +320,7 @@ def zero_extrapolated_values(nn_interp_values, points, values, grid_ranges):
     ])
     scipy_interp_values = scipy.interpolate.griddata(points, values, grids, method='linear')
 
-    assert scipy_interp_value.shape == nn_interp_values.shape
+    assert scipy_interp_values.shape == nn_interp_values.shape
 
     nan_indices = np.isnan(scipy_interp_values)
     logger.info("Zeroing out %d voxels", np.sum(nan_indices))
