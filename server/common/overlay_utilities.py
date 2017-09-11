@@ -11,6 +11,7 @@ GRADIENT_LENGTH = 90
 GRADIENT_TOP_IDX = 5
 GRADIENT_BOTTOM_IDX = 95
 
+
 def add_colorbar_to_slice(voxel_slice, max_distortion, units='mm'):
     slice_shape = voxel_slice.shape
     if slice_shape[0] < 200 or slice_shape[1] < 200:
@@ -33,10 +34,12 @@ def add_colorbar_to_slice(voxel_slice, max_distortion, units='mm'):
     colorbar_area[GRADIENT_BOTTOM_IDX-1, 10:(GRADIENT_WIDTH+10)] = np.zeros(GRADIENT_WIDTH)
     return voxel_slice
 
+
 def add_unit_labels(canvas, max_val, max_distortion, units='mm'):
     canvas.text((21, 0), str(max_distortion)+units, fill=max_val)
     canvas.text((21, 85), "0"+units, fill=max_val)
     return canvas
+
 
 def add_gradient_ticks(canvas, max_val):
     number_of_ticks = 6
