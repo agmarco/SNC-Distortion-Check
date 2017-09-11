@@ -45,7 +45,7 @@ from process.exceptions import AlgorithmException
 logger = logging.getLogger(__name__)
 
 
-@shared_task(max_retries=3, task_reject_on_worker_lost=True)
+@shared_task
 def process_scan(scan_pk, dicom_archive_url=None):
     scan = models.Scan.objects.get(pk=scan_pk)
 
@@ -196,7 +196,7 @@ def process_scan(scan_pk, dicom_archive_url=None):
         logger.info('finished processing scan')
 
 
-@shared_task(max_retries=3, task_reject_on_worker_lost=True)
+@shared_task
 def process_ct_upload(gold_standard_pk, dicom_archive_url):
     try:
         with transaction.atomic():
@@ -307,7 +307,7 @@ def dump_raw_data(scan):
     return s
 
 
-@shared_task(max_retries=3, task_reject_on_worker_lost=True)
+@shared_task
 def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, patient_id, user_email,
             domain, site_name, use_https):
     try:
