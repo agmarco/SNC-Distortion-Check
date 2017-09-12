@@ -1,20 +1,24 @@
 import React from 'react';
 import format from 'date-fns/format';
 import uniqBy from 'lodash/uniqBy';
+import { connect } from 'react-redux';
+import { Dispatch } from 'redux';
 
 import { IScanDto, IPhantomDto } from 'common/service';
 import { BoolIcon, AnchorForm, LoadingIcon } from 'common/components';
+import { IAppState } from '../reducers';
+import { filterScans } from '../actions';
 import './ScanTable.scss';
 
 export interface IScanTableProps {
     scans: IScanDto[];
     uploadScanUrl: string;
     pollScansError: string | null;
+    dispatch?: Dispatch<any>;
 }
 
 export interface IScanTableState {
     phantoms: IPhantomDto[];
-    phantomFilterValue: 'all' | number;
 }
 
 const scanFailHelp = 'The maximum geometric distortion was greater than the allowed tolerance ' +
@@ -37,31 +41,19 @@ const passedHelp = 'Was the maximum detected geometric distortion within the tol
     'this scan was processed?  Note if you change the tolerance, you will need to re-run the scan.';
 const processingHelp = 'Processing may take several minutes.';
 
-export default class extends React.Component<IScanTableProps, IScanTableState> {
+class ScanTable extends React.Component<IScanTableProps, IScanTableState> {
     constructor(props: IScanTableProps) {
         super();
 
         this.state = {
             phantoms: uniqBy(props.scans, s => s.phantom.pk).map(s => s.phantom),
-            phantomFilterValue: 'all',
         };
     }
 
-    filteredScans() {
-        const { scans } = this.props;
-        const { phantomFilterValue } = this.state;
-        const filters: Array<(scan: IScanDto) => boolean> = [];
-
-        if (phantomFilterValue !== 'all') {
-            filters.push(s => s.phantom.pk === phantomFilterValue);
-        }
-
-        return scans.filter(p => filters.every(filter => filter(p)));
-    }
-
     handlePhantomChange(event: React.FormEvent<HTMLInputElement>) {
+        const { dispatch } = this.props;
         const value = (event.target as any).value;
-        this.setState({phantomFilterValue: value === 'all' ? value : Number(value)});
+        dispatch!(filterScans(value));
     }
 
     renderScanActions(scan: IScanDto) {
@@ -140,9 +132,8 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
     }
 
     render() {
-        const { uploadScanUrl } = this.props;
-        const { phantoms, phantomFilterValue } = this.state;
-        const filteredScans = this.filteredScans();
+        const { uploadScanUrl, scans } = this.props;
+        const { phantoms } = this.state;
 
         return (
             <div>
@@ -151,7 +142,6 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
                     <span>Filter By</span>
                     <select
                         className="phantom-filter"
-                        value={phantomFilterValue}
                         onChange={this.handlePhantomChange.bind(this)}
                     >
                         <option value="all">All Phantoms</option>
@@ -171,7 +161,7 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredScans.map((scan, i) => (
+                        {scans.map((scan, i) => (
                             <tr key={scan.pk}>
                                 <td title={scan.passed ? scanPassHelp : scanFailHelp}>
                                     {scan.passed !== null && <BoolIcon success={scan.passed} />}
@@ -188,3 +178,5 @@ export default class extends React.Component<IScanTableProps, IScanTableState> {
         );
     }
 }
+
+export default connect<any, any, any>((state: IAppState) => ({}))(ScanTable);

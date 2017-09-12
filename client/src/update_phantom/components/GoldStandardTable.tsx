@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 
 import { IPhantomDto, IGoldenFiducialsDto } from 'common/service';
 import { BoolIcon, AnchorForm, LoadingIcon } from 'common/components';
+import { IAppState } from '../reducers';
 
 export interface IScanTableProps {
     phantom: IPhantomDto;
@@ -114,7 +115,7 @@ class GoldStandardTable extends React.Component<IScanTableProps, {}> {
     }
 }
 
-export default connect<any, any, any>((state: any) => ({
+export default connect<any, any, any>((state: IAppState) => ({
     goldenFiducialsSet: state.goldenFiducialsSet,
     pollCtError: state.pollCtError,
-}))(GoldStandardTable as any);
+}))(GoldStandardTable);

@@ -14,3 +14,5 @@ export interface IUpdateTolerancePayload {
 export const updateTolerance = createAction<IUpdateTolerancePayload>(constants.UPDATE_TOLERANCE);
 
 export const updateToleranceSuccess = createAction<boolean | null>(constants.UPDATE_TOLERANCE_SUCCESS);
+
+export const filterScans = createAction<string>(constants.FILTER_SCANS);

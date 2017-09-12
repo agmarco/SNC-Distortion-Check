@@ -36,9 +36,7 @@ class UploadCtForm extends React.Component<IUploadCtFormProps, IUploadCtFormStat
         const value = (event.target as any).files;
 
         if (value) {
-            if (dispatch) {
-                dispatch(actions.uploadCtToS3(value[0]));
-            }
+            dispatch!(actions.uploadCtToS3(value[0]));
         }
     }
 
@@ -101,4 +99,4 @@ class UploadCtForm extends React.Component<IUploadCtFormProps, IUploadCtFormStat
 export default connect<any, any, any>((state: any) => ({
     form: state.uploadCt,
     formState: state.forms.uploadCt,
-}))(UploadCtForm as any);
+}))(UploadCtForm);

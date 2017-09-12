@@ -8,6 +8,7 @@ import { IScanDto, IMachineSequencePairDto } from 'common/service';
 import ScanChart from '../components/ScanChart';
 import ScanTable from '../components/ScanTable';
 import ToleranceForm from '../components/ToleranceForm';
+import { IAppState } from '../reducers';
 
 declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
 declare const UPLOAD_SCAN_URL: string;
@@ -74,7 +75,7 @@ class Root extends React.Component<IRootProps, IRootState> {
     }
 }
 
-export default connect<any, any, any>((state: any) => ({
+export default connect<any, any, any>((state: IAppState) => ({
     scans: state.scans,
     pollScansError: state.pollScansError,
-}))(Root as any);
+}))(Root);

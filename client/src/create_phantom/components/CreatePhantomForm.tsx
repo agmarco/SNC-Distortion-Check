@@ -30,10 +30,7 @@ class CreatePhantomForm extends React.Component<ICreatePhantomFormProps, {}> {
 
     validateSerialNumber(event: any) {
         const { dispatch } = this.props;
-
-        if (dispatch) {
-            dispatch(actions.validateSerialNumber((event.target as any).value));
-        }
+        dispatch!(actions.validateSerialNumber((event.target as any).value));
     }
 
     render() {
@@ -117,4 +114,4 @@ export default connect<any, any, any>((state: IAppState) => ({
     form: state.forms.phantom,
     formState: state.forms.forms.phantom,
     serialNumberInfo: state.serialNumberInfo,
-}))(CreatePhantomForm as any);
+}))(CreatePhantomForm);

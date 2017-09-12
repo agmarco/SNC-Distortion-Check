@@ -30,10 +30,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, {}> {
 
     validateSerialNumber(event: any) {
         const { dispatch } = this.props;
-
-        if (dispatch) {
-            dispatch(actions.validateSerialNumber((event.target as any).value));
-        }
+        dispatch!(actions.validateSerialNumber((event.target as any).value));
     }
 
     render() {
@@ -198,4 +195,4 @@ export default connect<any, any, any>((state: IAppState) => ({
     form: state.forms.register,
     formState: state.forms.forms.register,
     serialNumberInfo: state.serialNumberInfo,
-}))(RegisterForm as any);
+}))(RegisterForm);

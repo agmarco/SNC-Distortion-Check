@@ -23,10 +23,7 @@ interface IToleranceFormProps {
 class ToleranceForm extends React.Component<IToleranceFormProps, {}> {
     handleSubmit(data: any, event: React.FormEvent<HTMLInputElement>) {
         const { tolerance, machineSequencePair, dispatch } = this.props;
-
-        if (dispatch) {
-            dispatch(actions.updateTolerance({pk: machineSequencePair.pk, tolerance}));
-        }
+        dispatch!(actions.updateTolerance({pk: machineSequencePair.pk, tolerance}));
     }
 
     render() {
@@ -69,4 +66,4 @@ class ToleranceForm extends React.Component<IToleranceFormProps, {}> {
 export default connect<any, any, any>((state: IAppState) => ({
     formState: state.forms.forms.tolerance,
     updateToleranceSuccess: state.updateToleranceSuccess,
-}))(ToleranceForm as any);
+}))(ToleranceForm);

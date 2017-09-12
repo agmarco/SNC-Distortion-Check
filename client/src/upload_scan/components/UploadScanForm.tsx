@@ -31,12 +31,9 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, IUploadScanFo
     constructor(props: IUploadScanFormProps) {
         super();
         const { initialMachinePk, initialSequencePk, dispatch } = props;
-
-        if (dispatch) {
-            dispatch(formActions.change('uploadScan.machine', initialMachinePk || ''));
-            dispatch(formActions.change('uploadScan.sequence', initialSequencePk || ''));
-            dispatch(formActions.change('uploadScan.phantom', ''));
-        }
+        dispatch!(formActions.change('uploadScan.machine', initialMachinePk || ''));
+        dispatch!(formActions.change('uploadScan.sequence', initialSequencePk || ''));
+        dispatch!(formActions.change('uploadScan.phantom', ''));
         this.state = {dicomArchiveDisabled: false};
     }
 
@@ -49,9 +46,7 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, IUploadScanFo
         const value = (event.target as any).files;
 
         if (value) {
-            if (dispatch) {
-                dispatch(actions.uploadScanToS3(value[0]));
-            }
+            dispatch!(actions.uploadScanToS3(value[0]));
         }
     }
 
@@ -209,4 +204,4 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, IUploadScanFo
 export default connect<any, any, any>((state: any) => ({
     form: state.uploadScan,
     formState: state.forms.uploadScan,
-}))(UploadScanForm as any);
+}))(UploadScanForm);

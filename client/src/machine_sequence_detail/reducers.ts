@@ -29,6 +29,9 @@ const scanReducer = handleActions<IScanDto[], any>({
           return scan;
       }
     }),
+    [constants.FILTER_SCANS]: (state, action) => {
+        return SCANS.filter(s => action.payload === "all" || s.phantom.pk === Number(action.payload));
+    },
 }, SCANS);
 
 const pollScansErrorReducer = handleActions<string | null, any>({
