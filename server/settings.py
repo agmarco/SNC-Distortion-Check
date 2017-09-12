@@ -162,8 +162,22 @@ if not DEBUG:
 
 CELERY_BROKER_URL = os.getenv('REDIS_URL')
 CELERY_ACCEPT_CONTENT = ['json']
+
+# only acknowledge tasks once we have finished; this ensures that if Heroku
+# hard-resets our dyno, the tasks will be restarted once the dyno is restarted
 CELERY_TASK_ACKS_LATE = True
+
+# kill workers after each task to control memory leaks (we don't care about
+# latency very much)
 CELERYD_MAX_TASKS_PER_CHILD = 1
+
+# only run two tasks at a time (to stay within Heroku memory limits)
+CELERYD_CONCURRENCY = 2
+
+# we want to disable prefetch, since long-running processes can unnecessarily
+# delay running other tasks, and we don't care about the latency savings that
+# prefetch provides
+CELERYD_PREFETCH_MULTIPLIER = 1
 
 if TESTING:
     CELERY_ALWAYS_EAGER = True
