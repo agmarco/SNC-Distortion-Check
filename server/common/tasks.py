@@ -504,7 +504,7 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
         ds.InstanceNumber = slice_num
 
         # image pixel module
-        rows, columns = slice_arr.shape
+        columns, rows = slice_arr.shape
         ds.SamplesPerPixel = 1
         ds.PhotometricInterpretation = "MONOCHROME2"
         ds.PixelRepresentation = 0  # unsigned int
@@ -516,6 +516,8 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
         ds.NumberOfFrames = 1
         ds.RescaleIntercept = rescaleIntercept
         ds.RescaleSlope = rescaleSlope
-        ds.PixelData = slice_arr.astype(np.uint16).T.tobytes()  # TODO: Fix incorrect transpositions upstream
+
+        # TODO: Fix incorrect transpositions upstream; also swap back rows and columns
+        ds.PixelData = slice_arr.astype(np.uint16).T.tobytes()  
         ds.Units = 'mm'
         dicom.write_file(os.path.join(output_directory, '{}.dcm'.format(ds.SOPInstanceUID)), ds)
