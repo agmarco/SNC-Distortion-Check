@@ -34,6 +34,10 @@ app.conf.worker_concurrency = 2
 # prefetch provides
 app.conf.worker_prefetch_multiplier = 1
 
+# ensure that tasks don't run forever, and that they are not redelivered to
+# other workers until after the timeout length
+app.conf.broker_transport_options = {'visibility_timeout': 6*3600 + 60}
+app.conf.task_time_limit = 6*3600
 
 if settings.TESTING:
     app.conf.task_always_eager = True
