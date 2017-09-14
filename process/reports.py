@@ -41,24 +41,6 @@ def surface_area(r):
     return 4*np.pi*r*r
 
 
-def generate_equidistant_sphere(n=256):
-    """
-    Evenly samples a unit sphere with n points. Based on the fibonacci lattice
-    http://blog.marmakoide.org/?p=1.
-    """
-
-    golden_angle = np.pi * (3 - np.sqrt(5))
-    theta = golden_angle * np.arange(n)
-    z = np.linspace(1 - 1.0 / n, 1.0 / n - 1, n)
-    radius = np.sqrt(1 - z * z)
-
-    points = np.zeros((n, 3))
-    points[:, 0] = radius * np.cos(theta)
-    points[:, 1] = radius * np.sin(theta)
-    points[:, 2] = z
-    return points
-
-
 def roi_shape(grid_radius, voxel_spacing):
     return tuple(math.ceil(grid_radius / dim * 8) for dim in voxel_spacing)
 
