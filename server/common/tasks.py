@@ -468,10 +468,11 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
     if len(voxel_array.shape) != 3:
         msg = 'Only 3d arrays are supported for dicom export, got shape {}'
         raise Exception(msg.format(voxel_array.shape))
+
     rescaleSlope, rescaleIntercept, rescaled_voxel_array = _rescale_to_stored_values(voxel_array)
     slices_array = _unstack(rescaled_voxel_array)
     for slice_num, slice_arr in enumerate(slices_array):
-        add_colorbar_to_slice(slice_arr, np.max(voxel_array[slice_num]))
+        add_colorbar_to_slice(slice_arr, np.max(slice_arr))
 
         sliceVoxelPosition = (voxelPosition_tup[0],
                               voxelPosition_tup[1],
