@@ -20,12 +20,6 @@ app.conf.task_acks_late = True
 # latency very much)
 app.conf.worker_max_tasks_per_child = 1
 
-total_ram = 2500000  # in KBytes
-
-# this should be redundant with the previous setting, but it is extra insurance
-# that the workers are killed when the memory usage is too high
-app.conf.worker_max_memory_per_child = int(total_ram/2)
-
 # only run two tasks at a time (to stay within Heroku memory limits)
 app.conf.worker_concurrency = 2
 
@@ -36,8 +30,9 @@ app.conf.worker_prefetch_multiplier = 1
 
 # ensure that tasks don't run forever, and that they are not redelivered to
 # other workers until after the timeout length
-app.conf.broker_transport_options = {'visibility_timeout': 6*3600 + 60}
-app.conf.task_time_limit = 6*3600
+max_task_duration_secs = 4*3600
+app.conf.broker_transport_options = {'visibility_timeout': max_task_duration_secs + 60}
+app.conf.task_time_limit = max_task_duration_secs
 
 if settings.TESTING:
     app.conf.task_always_eager = True
