@@ -1,6 +1,6 @@
 import numpy as np
 
-from process.reports import generate_equidistant_sphere, roi_shape, roi_bounds, roi_image, roi_images
+from process.reports import generate_equidistant_sphere, roi_shape, roi_bounds, roi_images, error_table_data
 
 
 def test_evenly_sampled_sphere_equidistant():
@@ -239,3 +239,21 @@ def test_roi_center_rounding():
     B = (49.5, 49.5, 49.5)
     bounds_list = roi_bounds(B, shape)
     assert all(bounds in ((45, 54), (46, 55)) for bounds in bounds_list)
+
+
+def test_error_table():
+    TP_A_S = np.array([
+        [0, 0, 0, -12],
+        [0, 2.5, 0, 0],
+        [0, 0, 5, 0],
+    ])
+    isocenter = [0, 0, 0]
+    origins = np.repeat([isocenter], TP_A_S.shape[1], axis=0)
+    distances = np.linalg.norm(TP_A_S.T - origins, axis=1)
+    error_mags = np.array([0, 1, 0.5, 2.5])
+    error_table = error_table_data(TP_A_S, distances, error_mags)
+    assert error_table == [
+        (5, 1.0, 0.5, 2),
+        (10, 1.0, 0.5, 3),
+        (15, 2.5, 1.0, 4),
+    ]

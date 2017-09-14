@@ -7,6 +7,7 @@ import logging
 from textwrap import wrap
 from functools import partial
 import itertools
+import numbers
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -32,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 
 GRID_DENSITY_mm = 2.0
-SPHERE_STEP_mm = 1
+SPHERE_STEP_mm = 5
 SPHERE_POINTS_PER_AREA = 1
 
 
@@ -116,6 +117,37 @@ def roi_images(b, voxels, bounds_list, vmax):
     )
 
 
+def error_table_data(TP_A_S, distances, error_mags):
+    rows = []
+    radius2max_mean_error = OrderedDict()
+    step = SPHERE_STEP_mm
+
+    r = step
+    total_points = TP_A_S.shape[1]
+    reported_points = 0
+    while reported_points < total_points:
+        indices = np.where(distances < r)
+        values = error_mags[indices]
+
+        radius2max_mean_error[r] = (
+            np.max(values) if values.size > 0 else "",
+            np.mean(values) if values.size > 0 else "",
+            len(values),
+        )
+        r += step
+        reported_points = len(values)
+
+    for r, (max_value, mean_value, num_values) in radius2max_mean_error.items():
+        rows.append((
+            r,
+            np.round(max_value, 3) if isinstance(max_value, numbers.Number) else max_value,
+            np.round(mean_value, 3) if isinstance(mean_value, numbers.Number) else mean_value,
+            num_values,
+        ))
+
+    return rows
+
+
 # TODO: refactor this somehow, so it doesn't require so many arguments
 def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, threshold,
             institution, machine_name, sequence_name, phantom_name, acquisition_date,
@@ -142,6 +174,8 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
     figsize = (fig_width, fig_height)
 
     isocenter = fov_center_xyz(voxels.shape, ijk_to_xyz)
+    origins = np.repeat([isocenter], TP_A_S.shape[1], axis=0)
+    distances = np.linalg.norm(TP_A_S.T - origins, axis=1)
 
     brand_color = (0, 95, 152)
     brand_color = tuple(c / 255 for c in brand_color)
@@ -302,9 +336,6 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         ax.text(0, 0.5, t)
 
     def draw_scatter_plot(ax, cell):
-        origins = np.repeat([isocenter], TP_A_S.shape[1], axis=0)
-        distances = np.linalg.norm(TP_A_S.T - origins, axis=1)
-
         cmap = colors.ListedColormap(['green', 'red'])
         bounds = [0, threshold, math.inf]
         norm = colors.BoundaryNorm(bounds, cmap.N)
@@ -367,38 +398,15 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         ax.set_ylabel('z [mm]')
         ax.set_title('Coronal Contour Plot')
 
-    def error_table_data():
-        rows = []
-
-        # interpolate onto spheres of increasing size to calculate average and max error table
-        interpolator = LinearNDInterpolator(TP_A_S.T, error_mags)
-        radius2max_mean_error = OrderedDict()
-
-        origins = np.repeat([isocenter], TP_A_S.shape[1], axis=0)
-        distances = np.linalg.norm(TP_A_S.T - origins, axis=1)
-        step = max(math.ceil(distances.max() / 20), SPHERE_STEP_mm)
-
-        r = step
-        while True:
-            num_points = int(round(surface_area(r) / SPHERE_POINTS_PER_AREA))
-            equidistant_sphere_points = generate_equidistant_sphere(num_points) * r + np.array(isocenter)
-            values = interpolator(equidistant_sphere_points)
-            values = values[~np.isnan(values)]
-            if values.size == 0:
-                break
-            else:
-                radius2max_mean_error[r] = (np.max(values), np.mean(values), len(values))
-                r += step
-
-        for r, (max_value, mean_value, num_values) in radius2max_mean_error.items():
-            rows.append((r, np.round(max_value, 3), np.round(mean_value, 3), num_values))
-
-        return rows
-
     def draw_error_table(rows, ax, cell):
         table = ax.table(
             cellText=rows,
-            colLabels=['Distance from Isocenter [mm]', 'Maximum Error [mm]', 'Average Error [mm]', 'N'],
+            colLabels=[
+                "Radius of Spherical Volume [mm]",
+                "Maximum Error [mm]",
+                "Average Error [mm]",
+                "Number of Control Points",
+            ],
             loc='center',
         )
         table_props = table.properties()
@@ -503,7 +511,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
     grid_a, grid_b, gridded = coronal_spatial_mapping_data()
     draw_coronal_spatial_mapping = partial(draw_coronal_spatial_mapping, grid_a, grid_b, gridded)
 
-    rows = error_table_data()
+    rows = error_table_data(TP_A_S, distances, error_mags)
     draw_error_table = partial(draw_error_table, rows)
 
     # TODO write PDF in memory
