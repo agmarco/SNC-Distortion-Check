@@ -10,6 +10,7 @@ from ..models import Phantom, GoldenFiducials, Machine, Sequence, User
 
 # This is the configuration for the view tests. Each configuration dict may contain the following keys:
 # 'view': the view object.
+# 'exclude': a boolean representing whether the view is tested.
 # 'data': a function that returns a dict containing additional data that is needed for the tests. It receives the
 #     current user as an argument.
 # 'crud': a 3-tuple containing:
@@ -532,5 +533,8 @@ VIEWS = (
         'permissions': (),
         'validate_institution': False,
         'methods': {'GET': None},
-    },
+    }, {
+        'view': views.fake_server_error,
+        'exclude': True,
+    }
 )

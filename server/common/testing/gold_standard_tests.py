@@ -29,18 +29,17 @@ def test_upload_ct(client):
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
     current_user = factories.UserFactory.create(email='current_user@johnshopkins.edu', institution=johns_hopkins, groups=[group])
     phantom = factories.PhantomFactory(institution=johns_hopkins)
+    goldenfiducials_count = phantom.goldenfiducials_set.count()
 
     client.force_login(current_user)
 
-    with open(os.path.join(settings.BASE_DIR, 'data/dicom/004_ct_603A_UVA_IYKOQG2M.zip'), 'rb') as file:
-        post_data = {'dicom_archive': SimpleUploadedFile(file.name, file.read(), 'application/zip')}
-
+    post_data = {'dicom_archive_url': 'http://localhost'}
     url = reverse('upload_ct', args=(phantom.pk,))
     with mock.patch('server.common.views.process_ct_upload'):
         client.post(url, post_data)
 
     # check that a new gold standard was created and that it is processing
-    assert phantom.goldenfiducials_set.count() == 2
+    assert phantom.goldenfiducials_set.count() == goldenfiducials_count + 1
     gold_standard = phantom.goldenfiducials_set.order_by('-last_modified_on').first()
     assert gold_standard.processing
 
@@ -81,9 +80,8 @@ def test_upload_ct_form(client):
 
     client.force_login(current_user)
 
-    with open(os.path.join(settings.BASE_DIR, 'data/dicom/004_ct_603A_UVA_IYKOQG2M.zip'), 'rb') as file:
-        form = UploadCtForm(files={'dicom_archive': SimpleUploadedFile(file.name, file.read(), 'application/zip')})
-        assert form.is_valid()
+    form = UploadCtForm(data={'dicom_archive_url': 'http://localhost'})
+    assert form.is_valid()
 
 
 @pytest.mark.django_db

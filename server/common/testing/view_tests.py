@@ -13,6 +13,8 @@ from .utils import validate_create_view, validate_update_view, validate_delete_v
     get_response
 from .fixtures import permissions_data, institution_data, http_method_data  # import needed for side effect
 
+TESTED_VIEWS = [view for view in VIEWS if not view.get('exclude')]
+
 
 def _view_data(view, user):
     if 'data' in view:
@@ -40,12 +42,12 @@ def _methods(view, view_data=None):
 
 
 def _get_views_from_urlpatterns(url_patterns):
-    views = []
+    views = set()
     for pattern in url_patterns:
         if isinstance(pattern, RegexURLPattern):
-            views.append(getattr(pattern.callback, 'view_class', pattern.callback))
+            views.add(getattr(pattern.callback, 'view_class', pattern.callback))
         elif isinstance(pattern, RegexURLResolver):
-            views.extend(_get_views_from_urlpatterns(pattern.url_patterns))
+            views.update(_get_views_from_urlpatterns(pattern.url_patterns))
     return views
 
 
@@ -53,15 +55,13 @@ def test_regression():
     """
     Test that each view used in the URLconf is tested.
     """
-    excluded_view_names = {'fake_server_error'}
-
-    should_be_tested_views = {v for v in _get_views_from_urlpatterns(urlpatterns) if v.__name__ not in excluded_view_names}
-    tested_views = set(view['view'] for view in VIEWS)
-    untested_view_names = [view.__name__ for view in should_be_tested_views - tested_views]
-    assert should_be_tested_views == tested_views, f"The following views are not tested: {untested_view_names}"
+    views = set(_get_views_from_urlpatterns(urlpatterns))
+    configured_views = set(view['view'] for view in VIEWS)
+    unconfigured_view_names = [view.__name__ for view in views - configured_views]
+    assert views == configured_views, f"The following views have no test configuration: {unconfigured_view_names}"
 
 
-@pytest.mark.parametrize('view', (view for view in VIEWS if not view['login_required']))
+@pytest.mark.parametrize('view', (view for view in TESTED_VIEWS if not view['login_required']))
 @pytest.mark.django_db
 def test_login_not_required(client, view):
     """
@@ -80,7 +80,7 @@ def test_login_not_required(client, view):
             assert response.status_code == 200
 
 
-@pytest.mark.parametrize('view', (view for view in VIEWS if view['login_required']))
+@pytest.mark.parametrize('view', (view for view in TESTED_VIEWS if view['login_required']))
 @pytest.mark.django_db
 def test_login_required(client, view):
     """
@@ -107,7 +107,7 @@ def test_login_required(client, view):
         assert allowed_access(client, url, method, method_data, patches)
 
 
-@pytest.mark.parametrize('view', (view for view in VIEWS if view['permissions']))
+@pytest.mark.parametrize('view', (view for view in TESTED_VIEWS if view['permissions']))
 def test_permissions(client, permissions_data, view):
     """
     For each view that requires some permission, test that a user that has the required permissions is granted access,
@@ -129,7 +129,7 @@ def test_permissions(client, permissions_data, view):
             assert denied_access(client, url, method, method_data, patches)
 
 
-@pytest.mark.parametrize('view', (view for view in VIEWS if view['validate_institution']))
+@pytest.mark.parametrize('view', (view for view in TESTED_VIEWS if view['validate_institution']))
 def test_institution(client, institution_data, view):
     """
     For each view that requires validation of the institution, test that a user that belongs to a matching institution
@@ -157,7 +157,7 @@ def test_institution(client, institution_data, view):
             assert denied_access(client, url, method, method_data, patches)
 
 
-@pytest.mark.parametrize('view', VIEWS)
+@pytest.mark.parametrize('view', TESTED_VIEWS)
 def test_http_methods(client, http_method_data, view):
     """
     For each view, test that the HTTP methods listed in the configuration dictionary are authorized,
@@ -181,7 +181,7 @@ def test_http_methods(client, http_method_data, view):
         assert denied_access(client, url, method, None, patches)
 
 
-@pytest.mark.parametrize('view', (view for view in VIEWS if 'crud' in view))
+@pytest.mark.parametrize('view', (view for view in TESTED_VIEWS if 'crud' in view))
 @pytest.mark.django_db
 def test_crud(client, view):
     """

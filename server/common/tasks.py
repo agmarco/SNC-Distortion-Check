@@ -377,7 +377,9 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
             protocol = 'https' if use_https else 'http'
             expires_in_days = 30
             expires_in_seconds = 60*60*24*expires_in_days
-            zip_url_or_path = default_storage.url(zip_filename, expire=expires_in_seconds)
+
+            # TODO: expire urls after 30 days
+            zip_url_or_path = default_storage.url(zip_filename)
             zip_url = f'{protocol}://{domain}{zip_url_or_path}' if zip_url_or_path[0] == '/' else zip_url_or_path
             context = {
                 'zip_url': zip_url,
