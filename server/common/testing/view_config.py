@@ -536,5 +536,18 @@ VIEWS = (
     }, {
         'view': views.fake_server_error,
         'exclude': True,
+    }, {
+        'view': api.UploadAsDev,
+        'exclude': True,
+    }, {
+        'view': api.SignS3View,
+        'url': reverse('sign_s3'),
+        'login_required': True,
+        'permissions': (),
+        'validate_institution': False,
+        'methods': {'GET': {
+            'file_name': 'test.txt',
+            'file_type': 'text/plain',
+        }},
     }
 )

@@ -87,7 +87,7 @@ class SignS3View(APIView):
         file_path = os.path.join('zipped_dicom_files', f'{uuid.uuid4()}{ext}')
         file_type = request.GET.get('file_type')
 
-        if os.getenv('DEBUG'):
+        if settings.DEBUG or settings.TESTING:
             base_url = 'http://localhost'
             dev_port = '8000'
             api_endpoint = '/api/upload-as-dev/'
@@ -100,7 +100,7 @@ class SignS3View(APIView):
                     },
                     'url': f'{base_url}:{dev_port}{api_endpoint}',
                 },
-                'url': f'{file_path}', # In dev env, this url is used to locate the file
+                'url': f'{file_path}',  # In dev env, this url is used to locate the file
             })
 
         else:
@@ -121,9 +121,10 @@ class SignS3View(APIView):
                 'url': os.path.join(f'https://{S3_BUCKET}.s3.amazonaws.com', file_path),
             })
 
+
 class UploadAsDev(APIView):
     def post(self, request, format=None):
-        if os.getenv('DEBUG'):
+        if settings.DEBUG or settings.TESTING:
             full_path = '/'.join([settings.MEDIA_ROOT, request.POST.get('file_path')])
             uploaded_file = request.FILES.get('file')
             with open(full_path, 'wb+') as f:
