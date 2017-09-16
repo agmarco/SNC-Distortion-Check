@@ -55,7 +55,7 @@ def test_regression():
     """
     Test that each view used in the URLconf is tested.
     """
-    views = set(_get_views_from_urlpatterns(urlpatterns))
+    views = _get_views_from_urlpatterns(urlpatterns)
     configured_views = set(view['view'] for view in VIEWS)
     unconfigured_view_names = [view.__name__ for view in views - configured_views]
     assert views == configured_views, f"The following views have no test configuration: {unconfigured_view_names}"
