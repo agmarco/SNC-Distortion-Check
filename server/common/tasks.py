@@ -137,9 +137,9 @@ def process_scan(scan_pk, dicom_archive_url=None):
                     f"be matched to one of the {num_fiducials} detected grid intersection locations.  This "
                     f"is less than our minimum allowable {TPF_minimum*100:.1f}%, thus we aborted processing "
                     f"the scan.  Please be sure to (1) orient the phantom correctly with 4° along each axis, "
-                    f"(2) position the phantom's center within 5mm of the isocenter, (3) position the "
+                    f"(2) position the phantom's center within 5 mm of the isocenter, (3) position the "
                     f"scanner's isocenter in the exact center of the field of view, (4) ensure the pixel "
-                    f"size and slice spacing is sufficient to resolve the grid intersections.  If you believe"
+                    f"size and slice spacing is sufficient to resolve the grid intersections.  If you believe "
                     f"none of these scenarios can explain the failure, please let CIRS support know about "
                     f"the issue."
                 )
