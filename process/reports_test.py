@@ -250,6 +250,6 @@ def test_error_table_long_range():
     error_table = error_table_data(distances, error_mags, 5)
     assert len(error_table) == 150/5
     assert [r for r, _, _, _ in error_table] == [str(r) for r in range(0 + 5, 150 + 5, 5)]
-    assert all([max_value == "1.000" for _, max_value, _, _ in error_table])
-    assert all([mean_value == "1.000" for _, _, mean_value, _ in error_table])
-    assert all([num_values == "5" for _, _, _, num_values in error_table])
+    assert all(max_value == "1.000" for _, max_value, _, _ in error_table)
+    assert all(mean_value == "1.000" for _, _, mean_value, _ in error_table)
+    assert all(num_values == "5" for _, _, _, num_values in error_table)
