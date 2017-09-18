@@ -22,7 +22,7 @@ from mpl_toolkits.mplot3d import Axes3D  # import has needed side effect
 import scipy.ndimage.filters
 
 from process import affine, phantoms
-from process.affine import apply_affine, voxel_spacing
+from process.affine import apply_affine, voxel_spacing, apply_affine_1
 from process.visualization import scatter3
 from process.utils import chunks, fov_center_xyz
 from process import dicom_import
@@ -57,44 +57,46 @@ def generate_equidistant_sphere(n=256):
     points[:, 2] = z
     return points
 
+ROI_UPSCALE_FACTOR = 8
+
 
 def roi_shape(grid_radius, voxel_spacing):
-    return tuple(math.ceil(grid_radius / dim * 8) for dim in voxel_spacing)
+    return tuple(math.ceil(grid_radius / dim * ROI_UPSCALE_FACTOR) for dim in voxel_spacing)
 
 
-def roi_bounds(B, shape):
+def roi_bounds(center, shape):
     return tuple((
-        int(math.ceil(a)) - int(math.floor(b / 2)),
-        int(math.ceil(a)) + int(math.ceil(b / 2)),
-    ) for a, b in zip(B, shape))
+        int(math.ceil(a - b / 2)),
+        int(math.ceil(a + b / 2)),
+    ) for a, b in zip(center, shape))
 
 
-def fill_image(image, voxels_shape, bounds_list, vmax):
+def fill_image(image, voxels_shape, bounds_list):
     """Fill the image with black borders if necessary."""
 
     bounds_a, bounds_b = [bounds for bounds in bounds_list if type(bounds) != int]
     max_a, max_b = tuple(n for i, n in enumerate(voxels_shape) if type(bounds_list[i]) != int)
 
     if bounds_a[0] < 0:
-        border = np.full((0 - bounds_a[0], image.shape[1]), vmax, dtype=float)
+        border = np.full((0 - bounds_a[0], image.shape[1]), np.nan, dtype=float)
         image = np.vstack((border, image))
 
     if bounds_a[1] > max_a:
-        border = np.full((bounds_a[1] - max_a, image.shape[1]), vmax, dtype=float)
+        border = np.full((bounds_a[1] - max_a, image.shape[1]), np.nan, dtype=float)
         image = np.vstack((image, border))
 
     if bounds_b[0] < 0:
-        border = np.full((image.shape[0], 0 - bounds_b[0]), vmax, dtype=float)
+        border = np.full((image.shape[0], 0 - bounds_b[0]), np.nan, dtype=float)
         image = np.hstack((border, image))
 
     if bounds_b[1] > max_b:
-        border = np.full((image.shape[0], bounds_b[1] - max_b), vmax, dtype=float)
+        border = np.full((image.shape[0], bounds_b[1] - max_b), np.nan, dtype=float)
         image = np.hstack((image, border))
 
     return image
 
 
-def roi_image(voxels, bounds_list, vmax):
+def roi_image(voxels, bounds_list):
     adjusted_bounds_list = []
     for i, bounds in enumerate(bounds_list):
         if type(bounds) == int:
@@ -105,14 +107,14 @@ def roi_image(voxels, bounds_list, vmax):
 
     slices = tuple(bounds if type(bounds) == int else slice(*bounds) for bounds in adjusted_bounds_list)
     image = voxels[slices]
-    return fill_image(image, voxels.shape, bounds_list, vmax)
+    return fill_image(image, voxels.shape, bounds_list)
 
 
-def roi_images(b, voxels, bounds_list, vmax):
+def roi_images(b, voxels, bounds_list):
     return (
-        roi_image(voxels, (bounds_list[0], bounds_list[1], int(round(b[2]))), vmax),
-        roi_image(voxels, (bounds_list[0], int(round(b[1])), bounds_list[2]), vmax),
-        roi_image(voxels, (int(round(b[0])), bounds_list[1], bounds_list[2]), vmax),
+        roi_image(voxels, (bounds_list[0], bounds_list[1], int(round(b[2])))),
+        roi_image(voxels, (bounds_list[0], int(round(b[1])), bounds_list[2])),
+        roi_image(voxels, (int(round(b[0])), bounds_list[1], bounds_list[2])),
     )
 
 
@@ -452,26 +454,26 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         gs_inner = gridspec.GridSpecFromSubplotSpec(num_roi_chunks, 4, width_ratios=[1, 1, 1, 2], subplot_spec=gs_outer[1, 0])
 
         for i, (a_S, b, error_vec, error_mag) in enumerate(chunk):
-            b_ijk = apply_affine(xyz_to_ijk, np.array([b]).T).T.squeeze()
+            b_ijk = apply_affine_1(xyz_to_ijk, b)
+            a_S_ijk = apply_affine_1(xyz_to_ijk, a_S)
             shape = roi_shape(grid_radius, voxel_spacing(ijk_to_xyz))
-            bounds_xyz = roi_bounds(b, shape)
-            bounds_ijk = roi_bounds(b_ijk, shape)
-            axial, sagittal, coronal = roi_images(b_ijk, voxels, bounds_ijk, vmax)
+            bounds = roi_bounds(b_ijk, shape)
+            ij, ik, jk = roi_images(b_ijk, voxels, bounds)
 
             ax0 = plt.subplot(gs_inner[i, 0])
             ax0.set_xlabel('i')
             ax0.set_ylabel('j')
-            generate_roi_view(ax0, axial, bounds_xyz[0], bounds_xyz[1], (a_S[0], a_S[1]), (b[0], b[1]), vmin, vmax)
+            generate_roi_view(ax0, ij, bounds[0], bounds[1], (a_S_ijk[0], a_S_ijk[1]), (b_ijk[0], b_ijk[1]), vmin, vmax)
 
             ax1 = plt.subplot(gs_inner[i, 1])
             ax1.set_xlabel('i')
             ax1.set_ylabel('k')
-            generate_roi_view(ax1, sagittal, bounds_xyz[0], bounds_xyz[2], (a_S[0], a_S[2]), (b[0], b[2]), vmin, vmax)
+            generate_roi_view(ax1, ik, bounds[0], bounds[2], (a_S_ijk[0], a_S_ijk[2]), (b_ijk[0], b_ijk[2]), vmin, vmax)
 
             ax2 = plt.subplot(gs_inner[i, 2])
             ax2.set_xlabel('j')
             ax2.set_ylabel('k')
-            generate_roi_view(ax2, coronal, bounds_xyz[1], bounds_xyz[2], (a_S[1], a_S[2]), (b[1], b[2]), vmin, vmax)
+            generate_roi_view(ax2, jk, bounds[1], bounds[2], (a_S_ijk[1], a_S_ijk[2]), (b_ijk[1], b_ijk[2]), vmin, vmax)
 
             ax3 = plt.subplot(gs_inner[i, 3])
             generate_roi_table(ax3, a_S, b, error_vec, error_mag)
