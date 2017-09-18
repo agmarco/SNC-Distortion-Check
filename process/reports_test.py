@@ -1,25 +1,6 @@
 import numpy as np
 
-from process.reports import generate_equidistant_sphere, roi_shape, roi_bounds, roi_images
-
-
-def test_evenly_sampled_sphere_equidistant():
-    """
-    Asserts the algorithm to evenly space points on a sphere appears to work as expected.
-    """
-
-    n = 256
-    points = generate_equidistant_sphere(n)
-    min_distances_squared = []
-    for point in points:
-        distances_squared = np.sum((points.T - point.reshape((3, 1)))**2, axis=0)
-        min_distance = np.min(distances_squared[distances_squared>0])
-        min_distances_squared.append(min_distance)
-    distances = np.sqrt(np.array(min_distances_squared))
-    std = np.std(distances)
-    mean = np.mean(distances)
-    cv = std / mean
-    assert cv < 0.02
+from process.reports import roi_shape, roi_bounds, roi_images, error_table_data
 
 
 def test_roi_shape():
@@ -239,3 +220,36 @@ def test_roi_center_rounding():
     B = (49.5, 49.5, 49.5)
     bounds_list = roi_bounds(B, shape)
     assert all(bounds in ((45, 54), (46, 55)) for bounds in bounds_list)
+
+
+def test_error_table_simple():
+    distances = np.array([0, 2.5, 5, 12])
+    error_mags = np.array([0, 1, 0.5, 2.5])
+    error_table = error_table_data(distances, error_mags, 5)
+    assert error_table == [
+        (5, 1.0, 0.5, 2),
+        (10, 0.5, 0.5, 1),
+        (15, 2.5, 2.5, 1),
+    ]
+
+
+def test_error_table_empty_bands():
+    distances = np.array([1, 12])
+    error_mags = np.array([1, 12])
+    error_table = error_table_data(distances, error_mags, 5)
+    assert error_table == [
+        (5, 1.0, 1.0, 1),
+        (10, "", "", 0),
+        (15, 12, 12, 1),
+    ]
+
+
+def test_error_table_long_range():
+    distances = np.arange(150)
+    error_mags = np.ones(150)
+    error_table = error_table_data(distances, error_mags, 5)
+    assert len(error_table) == 150/5
+    assert [r for r, _, _, _ in error_table] == list(range(0 + 5, 150 + 5, 5))
+    assert all([max_value == 1 for _, max_value, _, _ in error_table])
+    assert all([mean_value == 1 for _, _, mean_value, _ in error_table])
+    assert all([num_values == 5 for _, _, _, num_values in error_table])
