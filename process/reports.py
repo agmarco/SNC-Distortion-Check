@@ -101,7 +101,6 @@ def roi_images(b, voxels, bounds_list, vmax):
 
 def error_table_data(TP_A_S, distances, error_mags):
     rows = []
-    radius2max_mean_error = OrderedDict()
     step = SPHERE_STEP_mm
 
     r = step
@@ -110,23 +109,14 @@ def error_table_data(TP_A_S, distances, error_mags):
     while reported_points < total_points:
         indices = np.where(distances < r)
         values = error_mags[indices]
-
-        radius2max_mean_error[r] = (
-            np.max(values) if values.size > 0 else "",
-            np.mean(values) if values.size > 0 else "",
-            len(values),
-        )
-        r += step
-        reported_points = len(values)
-
-    for r, (max_value, mean_value, num_values) in radius2max_mean_error.items():
         rows.append((
             r,
-            np.round(max_value, 3) if isinstance(max_value, numbers.Number) else max_value,
-            np.round(mean_value, 3) if isinstance(mean_value, numbers.Number) else mean_value,
-            num_values,
+            np.round(np.max(values), 3) if values.size > 0 else "",
+            np.round(np.mean(values), 3) if values.size > 0 else "",
+            len(values),
         ))
-
+        r += step
+        reported_points = len(values)
     return rows
 
 
