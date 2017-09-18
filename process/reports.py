@@ -105,23 +105,26 @@ def error_table_data(distances, error_mags, step):
     rows = []
 
     band_outer_radius = step
-    total_points = len(distances)
-    reported_points = 0
-    while reported_points < total_points:
+    num_total_points = len(distances)
+    num_reported_points = 0
+    while num_reported_points < num_total_points:
         band_inner_radius = band_outer_radius - step
-        indices = np.where((band_inner_radius <= distances) & (distances < band_outer_radius))
-        values = error_mags[indices]
-        points_in_band = len(values)
+        band_indices = np.where(
+                (band_inner_radius <= distances) & \
+                (distances < band_outer_radius))
+
+        band_values = error_mags[band_indices]
+        num_points_in_band = len(band_values)
 
         rows.append((
             str(band_outer_radius),
-            "{:.3f}".format(np.max(values)) if values.size > 0 else "-",
-            "{:.3f}".format(np.mean(values)) if values.size > 0 else "-",
-            str(points_in_band),
+            "{:.3f}".format(np.max(band_values)) if num_points_in_band else "-",
+            "{:.3f}".format(np.mean(band_values)) if num_points_in_band else "-",
+            str(num_points_in_band),
         ))
 
         band_outer_radius += step
-        reported_points += points_in_band
+        num_reported_points += num_points_in_band
     return rows
 
 
