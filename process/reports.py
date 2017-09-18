@@ -104,21 +104,24 @@ def error_table_data(distances, error_mags, step):
 
     rows = []
 
-    r = step
+    band_outer_radius = step
     total_points = len(distances)
     reported_points = 0
     while reported_points < total_points:
-        indices = np.where(((r - step) <= distances) & (distances < r))
+        band_inner_radius = band_outer_radius - step
+        indices = np.where((band_inner_radius <= distances) & (distances < band_outer_radius))
         values = error_mags[indices]
+        points_in_band = len(values)
 
         rows.append((
-            r,
-            np.round(np.max(values), 3) if values.size > 0 else "",
-            np.round(np.mean(values), 3) if values.size > 0 else "",
-            len(values),
+            str(band_outer_radius),
+            "{:.3f}".format(np.max(values)) if values.size > 0 else "-",
+            "{:.3f}".format(np.mean(values)) if values.size > 0 else "-",
+            str(points_in_band),
         ))
-        r += step
-        reported_points += len(values)
+
+        band_outer_radius += step
+        reported_points += points_in_band
     return rows
 
 
@@ -376,10 +379,10 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         table = ax.table(
             cellText=rows,
             colLabels=[
-                "Radius of Spherical Volume [mm]",
+                "Outer Radius of\nSpherical Band [mm]",
                 "Maximum Error [mm]",
                 "Average Error [mm]",
-                "Number of Control Points",
+                "Number of Control\nPoints within Band",
             ],
             loc='center',
         )

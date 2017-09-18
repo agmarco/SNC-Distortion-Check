@@ -227,9 +227,9 @@ def test_error_table_simple():
     error_mags = np.array([0, 1, 0.5, 2.5])
     error_table = error_table_data(distances, error_mags, 5)
     assert error_table == [
-        (5, 1.0, 0.5, 2),
-        (10, 0.5, 0.5, 1),
-        (15, 2.5, 2.5, 1),
+        ("5", "1.000", "0.500", "2"),
+        ("10", "0.500", "0.500", "1"),
+        ("15", "2.500", "2.500", "1"),
     ]
 
 
@@ -238,9 +238,9 @@ def test_error_table_empty_bands():
     error_mags = np.array([1, 12])
     error_table = error_table_data(distances, error_mags, 5)
     assert error_table == [
-        (5, 1.0, 1.0, 1),
-        (10, "", "", 0),
-        (15, 12, 12, 1),
+        ("5", "1.000", "1.000", "1"),
+        ("10", "-", "-", "0"),
+        ("15", "12.000", "12.000", "1"),
     ]
 
 
@@ -249,7 +249,7 @@ def test_error_table_long_range():
     error_mags = np.ones(150)
     error_table = error_table_data(distances, error_mags, 5)
     assert len(error_table) == 150/5
-    assert [r for r, _, _, _ in error_table] == list(range(0 + 5, 150 + 5, 5))
-    assert all([max_value == 1 for _, max_value, _, _ in error_table])
-    assert all([mean_value == 1 for _, _, mean_value, _ in error_table])
-    assert all([num_values == 5 for _, _, _, num_values in error_table])
+    assert [r for r, _, _, _ in error_table] == [str(r) for r in range(0 + 5, 150 + 5, 5)]
+    assert all([max_value == "1.000" for _, max_value, _, _ in error_table])
+    assert all([mean_value == "1.000" for _, _, mean_value, _ in error_table])
+    assert all([num_values == "5" for _, _, _, num_values in error_table])
