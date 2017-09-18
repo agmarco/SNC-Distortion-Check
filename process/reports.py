@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 
 GRID_DENSITY_mm = 2.0
-SPHERE_POINTS_PER_AREA = 1
+ROI_UPSCALE_FACTOR = 8
 
 
 def surface_area(r):
