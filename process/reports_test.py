@@ -1,6 +1,6 @@
 import numpy as np
 
-from process.reports import generate_equidistant_sphere, roi_shape, roi_bounds, roi_image, roi_images
+from process.reports import generate_equidistant_sphere, roi_shape, roi_bounds, roi_images
 
 
 def test_evenly_sampled_sphere_equidistant():
@@ -35,7 +35,7 @@ def test_roi_shape():
 
 def test_roi_shape_rounding():
     """
-    Asserts the dimension sizes are rounded up if 8x the grid radius is not a multiple of the pixel spacing.
+    Asserts the dimension sizes are rounded up if 8x the grid radius is not a multiple of the voxel spacing.
     """
 
     grid_radius = 1.51
@@ -69,29 +69,29 @@ def test_roi_images():
     voxels[50, B_ijk[1] + 1, B_ijk[2] - 1] = 0.33
     voxels[50, B_ijk[1] + 1, B_ijk[2] + 1] = 0.43
 
-    axial, sagittal, coronal = roi_images(B_ijk, voxels, roi_bounds(B_ijk, shape), 1)
+    ij, ik, jk = roi_images(B_ijk, voxels, roi_bounds(B_ijk, shape))
 
-    B_axial = (4, 5)
-    B_sagittal = (4, 6)
-    B_coronal = (5, 6)
+    B_ij = (4, 5)
+    B_ik = (4, 6)
+    B_jk = (5, 6)
 
-    assert axial.shape == (9, 11)
-    assert axial[B_axial[0] - 1, B_axial[1] - 1] == 0.11
-    assert axial[B_axial[0] - 1, B_axial[1] + 1] == 0.21
-    assert axial[B_axial[0] + 1, B_axial[1] - 1] == 0.31
-    assert axial[B_axial[0] + 1, B_axial[1] + 1] == 0.41
+    assert ij.shape == (9, 11)
+    assert ij[B_ij[0] - 1, B_ij[1] - 1] == 0.11
+    assert ij[B_ij[0] - 1, B_ij[1] + 1] == 0.21
+    assert ij[B_ij[0] + 1, B_ij[1] - 1] == 0.31
+    assert ij[B_ij[0] + 1, B_ij[1] + 1] == 0.41
 
-    assert sagittal.shape == (9, 13)
-    assert sagittal[B_sagittal[0] - 1, B_sagittal[1] - 1] == 0.12
-    assert sagittal[B_sagittal[0] - 1, B_sagittal[1] + 1] == 0.22
-    assert sagittal[B_sagittal[0] + 1, B_sagittal[1] - 1] == 0.32
-    assert sagittal[B_sagittal[0] + 1, B_sagittal[1] + 1] == 0.42
+    assert ik.shape == (9, 13)
+    assert ik[B_ik[0] - 1, B_ik[1] - 1] == 0.12
+    assert ik[B_ik[0] - 1, B_ik[1] + 1] == 0.22
+    assert ik[B_ik[0] + 1, B_ik[1] - 1] == 0.32
+    assert ik[B_ik[0] + 1, B_ik[1] + 1] == 0.42
 
-    assert coronal.shape == (11, 13)
-    assert coronal[B_coronal[0] - 1, B_coronal[1] - 1] == 0.13
-    assert coronal[B_coronal[0] - 1, B_coronal[1] + 1] == 0.23
-    assert coronal[B_coronal[0] + 1, B_coronal[1] - 1] == 0.33
-    assert coronal[B_coronal[0] + 1, B_coronal[1] + 1] == 0.43
+    assert jk.shape == (11, 13)
+    assert jk[B_jk[0] - 1, B_jk[1] - 1] == 0.13
+    assert jk[B_jk[0] - 1, B_jk[1] + 1] == 0.23
+    assert jk[B_jk[0] + 1, B_jk[1] - 1] == 0.33
+    assert jk[B_jk[0] + 1, B_jk[1] + 1] == 0.43
 
 
 def test_roi_fiducial_near_x_start():
@@ -102,15 +102,15 @@ def test_roi_fiducial_near_x_start():
     center = (0, 50, 50)
     bounds = ((-4, 5), (46, 55), (46, 55))
 
-    axial, sagittal, coronal = roi_images(center, voxels, bounds, 1)
+    ij, ik, jk = roi_images(center, voxels, bounds)
 
-    assert axial.shape == (shape[0], shape[1])
-    assert sagittal.shape == (shape[0], shape[2])
-    assert coronal.shape == (shape[1], shape[2])
+    assert ij.shape == (shape[0], shape[1])
+    assert ik.shape == (shape[0], shape[2])
+    assert jk.shape == (shape[1], shape[2])
 
-    assert (axial[0:4, :] == 1).all()
-    assert (sagittal[0:4, :] == 1).all()
-    assert (coronal == 0).all()
+    assert np.isnan(ij[0:4, :]).all()
+    assert np.isnan(ik[0:4, :]).all()
+    assert (jk == 0).all()
 
 
 def test_roi_fiducial_near_x_end():
@@ -121,15 +121,15 @@ def test_roi_fiducial_near_x_end():
     center = (99, 50, 50)
     bounds = ((95, 104), (46, 55), (46, 55))
 
-    axial, sagittal, coronal = roi_images(center, voxels, bounds, 1)
+    ij, ik, jk = roi_images(center, voxels, bounds)
 
-    assert axial.shape == (shape[0], shape[1])
-    assert sagittal.shape == (shape[0], shape[2])
-    assert coronal.shape == (shape[1], shape[2])
+    assert ij.shape == (shape[0], shape[1])
+    assert ik.shape == (shape[0], shape[2])
+    assert jk.shape == (shape[1], shape[2])
 
-    assert (axial[5:, :] == 1).all()
-    assert (sagittal[5:, :] == 1).all()
-    assert (coronal == 0).all()
+    assert np.isnan(ij[5:, :]).all()
+    assert np.isnan(ik[5:, :]).all()
+    assert (jk == 0).all()
 
 
 def test_roi_fiducial_near_y_start():
@@ -140,15 +140,15 @@ def test_roi_fiducial_near_y_start():
     center = (50, 0, 50)
     bounds = ((46, 55), (-4, 5), (46, 55))
 
-    axial, sagittal, coronal = roi_images(center, voxels, bounds, 1)
+    ij, ik, jk = roi_images(center, voxels, bounds)
 
-    assert axial.shape == (shape[0], shape[1])
-    assert sagittal.shape == (shape[0], shape[2])
-    assert coronal.shape == (shape[1], shape[2])
+    assert ij.shape == (shape[0], shape[1])
+    assert ik.shape == (shape[0], shape[2])
+    assert jk.shape == (shape[1], shape[2])
 
-    assert (axial[:, 0:4] == 1).all()
-    assert (sagittal == 0).all()
-    assert (coronal[0:4, :] == 1).all()
+    assert np.isnan(ij[:, 0:4]).all()
+    assert (ik == 0).all()
+    assert np.isnan(jk[0:4, :]).all()
 
 
 def test_roi_fiducial_near_y_end():
@@ -159,15 +159,15 @@ def test_roi_fiducial_near_y_end():
     center = (50, 99, 50)
     bounds = ((46, 55), (95, 104), (46, 55))
 
-    axial, sagittal, coronal = roi_images(center, voxels, bounds, 1)
+    ij, ik, jk = roi_images(center, voxels, bounds)
 
-    assert axial.shape == (shape[0], shape[1])
-    assert sagittal.shape == (shape[0], shape[2])
-    assert coronal.shape == (shape[1], shape[2])
+    assert ij.shape == (shape[0], shape[1])
+    assert ik.shape == (shape[0], shape[2])
+    assert jk.shape == (shape[1], shape[2])
 
-    assert (axial[:, 5:] == 1).all()
-    assert (sagittal == 0).all()
-    assert (coronal[5:, :] == 1).all()
+    assert np.isnan(ij[:, 5:]).all()
+    assert (ik == 0).all()
+    assert np.isnan(jk[5:, :]).all()
 
 
 def test_roi_fiducial_near_z_start():
@@ -178,15 +178,15 @@ def test_roi_fiducial_near_z_start():
     center = (50, 50, 0)
     bounds = ((46, 55), (46, 55), (-4, 5))
 
-    axial, sagittal, coronal = roi_images(center, voxels, bounds, 1)
+    ij, ik, jk = roi_images(center, voxels, bounds)
 
-    assert axial.shape == (shape[0], shape[1])
-    assert sagittal.shape == (shape[0], shape[2])
-    assert coronal.shape == (shape[1], shape[2])
+    assert ij.shape == (shape[0], shape[1])
+    assert ik.shape == (shape[0], shape[2])
+    assert jk.shape == (shape[1], shape[2])
 
-    assert (axial == 0).all()
-    assert (sagittal[:, 0:4] == 1).all()
-    assert (coronal[:, 0:4] == 1).all()
+    assert (ij == 0).all()
+    assert np.isnan(ik[:, 0:4]).all()
+    assert np.isnan(jk[:, 0:4]).all()
 
 
 def test_roi_fiducial_near_z_end():
@@ -197,15 +197,15 @@ def test_roi_fiducial_near_z_end():
     center = (50, 50, 99)
     bounds = ((46, 55), (46, 55), (95, 104))
 
-    axial, sagittal, coronal = roi_images(center, voxels, bounds, 1)
+    ij, ik, jk = roi_images(center, voxels, bounds)
 
-    assert axial.shape == (shape[0], shape[1])
-    assert sagittal.shape == (shape[0], shape[2])
-    assert coronal.shape == (shape[1], shape[2])
+    assert ij.shape == (shape[0], shape[1])
+    assert ik.shape == (shape[0], shape[2])
+    assert jk.shape == (shape[1], shape[2])
 
-    assert (axial == 0).all()
-    assert (sagittal[:, 5:] == 1).all()
-    assert (coronal[:, 5:] == 1).all()
+    assert (ij == 0).all()
+    assert np.isnan(ik[:, 5:]).all()
+    assert np.isnan(jk[:, 5:]).all()
 
 
 def test_roi_center_odd_size():

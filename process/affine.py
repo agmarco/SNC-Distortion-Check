@@ -67,6 +67,17 @@ def apply_affine(affine_matrix, A):
     return A_transformed
 
 
+def apply_affine_1(affine_matrix, A):
+    (m,) = A.shape
+    assert m == 3
+    assert A.dtype == float
+
+    A1 = np.array([[*A, 1]]).T
+    A1_transformed = affine_matrix @ A1
+    A_transformed = A1_transformed[:3, :].T.squeeze()
+    return A_transformed
+
+
 def apply_xyztpx(xyztpx, points):
     return apply_affine(rotation_translation(*xyztpx), points)
 
