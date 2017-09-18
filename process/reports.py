@@ -33,7 +33,6 @@ logger = logging.getLogger(__name__)
 
 
 GRID_DENSITY_mm = 2.0
-SPHERE_STEP_mm = 5
 SPHERE_POINTS_PER_AREA = 1
 
 
@@ -99,16 +98,19 @@ def roi_images(b, voxels, bounds_list, vmax):
     )
 
 
-def error_table_data(TP_A_S, distances, error_mags):
+def error_table_data(distances, error_mags, step):
+    assert len(distances) == len(error_mags)
+    assert not any(np.isnan(error_mags))
+
     rows = []
-    step = SPHERE_STEP_mm
 
     r = step
-    total_points = TP_A_S.shape[1]
+    total_points = len(distances)
     reported_points = 0
     while reported_points < total_points:
-        indices = np.where(distances < r)
+        indices = np.where(((r - step) <= distances) & (distances < r))
         values = error_mags[indices]
+
         rows.append((
             r,
             np.round(np.max(values), 3) if values.size > 0 else "",
@@ -116,7 +118,7 @@ def error_table_data(TP_A_S, distances, error_mags):
             len(values),
         ))
         r += step
-        reported_points = len(values)
+        reported_points += len(values)
     return rows
 
 
@@ -483,7 +485,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
     grid_a, grid_b, gridded = coronal_spatial_mapping_data()
     draw_coronal_spatial_mapping = partial(draw_coronal_spatial_mapping, grid_a, grid_b, gridded)
 
-    rows = error_table_data(TP_A_S, distances, error_mags)
+    rows = error_table_data(distances, error_mags, 5)
     draw_error_table = partial(draw_error_table, rows)
 
     # TODO write PDF in memory

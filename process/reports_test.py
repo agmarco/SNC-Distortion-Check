@@ -222,19 +222,34 @@ def test_roi_center_rounding():
     assert all(bounds in ((45, 54), (46, 55)) for bounds in bounds_list)
 
 
-def test_error_table():
-    TP_A_S = np.array([
-        [0, 0, 0, -12],
-        [0, 2.5, 0, 0],
-        [0, 0, 5, 0],
-    ])
-    isocenter = [0, 0, 0]
-    origins = np.repeat([isocenter], TP_A_S.shape[1], axis=0)
-    distances = np.linalg.norm(TP_A_S.T - origins, axis=1)
+def test_error_table_simple():
+    distances = np.array([0, 2.5, 5, 12])
     error_mags = np.array([0, 1, 0.5, 2.5])
-    error_table = error_table_data(TP_A_S, distances, error_mags)
+    error_table = error_table_data(distances, error_mags, 5)
     assert error_table == [
         (5, 1.0, 0.5, 2),
-        (10, 1.0, 0.5, 3),
-        (15, 2.5, 1.0, 4),
+        (10, 0.5, 0.5, 1),
+        (15, 2.5, 2.5, 1),
     ]
+
+
+def test_error_table_empty_bands():
+    distances = np.array([1, 12])
+    error_mags = np.array([1, 12])
+    error_table = error_table_data(distances, error_mags, 5)
+    assert error_table == [
+        (5, 1.0, 1.0, 1),
+        (10, "", "", 0),
+        (15, 12, 12, 1),
+    ]
+
+
+def test_error_table_long_range():
+    distances = np.arange(150)
+    error_mags = np.ones(150)
+    error_table = error_table_data(distances, error_mags, 5)
+    assert len(error_table) == 150/5
+    assert [r for r, _, _, _ in error_table] == list(range(0 + 5, 150 + 5, 5))
+    assert all([max_value == 1 for _, max_value, _, _ in error_table])
+    assert all([mean_value == 1 for _, _, mean_value, _ in error_table])
+    assert all([num_values == 5 for _, _, _, num_values in error_table])
