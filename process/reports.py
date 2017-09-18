@@ -331,17 +331,17 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         bounds = [0, threshold, math.inf]
         norm = colors.BoundaryNorm(bounds, cmap.N)
 
-        levels = np.arange(0, error_mags.max() + 0.3, 0.3)
+        levels = np.arange(0.3, error_mags.max() + 0.3, 0.3)
         contour = plt.contour(grid_a.squeeze(), grid_b.squeeze(), gridded.squeeze(), cmap=cmap, norm=norm, levels=levels)
         ax.clabel(contour, inline=True, fontsize=10)
 
     def axial_spatial_mapping_data():
-        # interpolate onto plane at the isocenter to generate contour
         grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
                                              np.arange(y_min, y_max, GRID_DENSITY_mm),
                                              [isocenter[2]])
         gridded = griddata(TP_A_S.T, error_mags, (grid_x, grid_y, grid_z), method='linear')
         gridded = scipy.ndimage.filters.gaussian_filter(gridded, 2, truncate=2)
+        gridded[np.isnan(gridded)] = 0
         return grid_x, grid_y, gridded
 
     def draw_axial_spatial_mapping(grid_a, grid_b, gridded, ax, cell):
@@ -356,6 +356,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
                                              np.arange(z_min, z_max, GRID_DENSITY_mm), )
         gridded = griddata(TP_A_S.T, error_mags, (grid_x, grid_y, grid_z), method='linear')
         gridded = scipy.ndimage.filters.gaussian_filter(gridded, 2, truncate=2)
+        gridded[np.isnan(gridded)] = 0
         return grid_x, grid_z, gridded
 
     def draw_sagittal_spatial_mapping(grid_a, grid_b, gridded, ax, cell):
@@ -370,6 +371,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
                                              np.arange(z_min, z_max, GRID_DENSITY_mm))
         gridded = griddata(TP_A_S.T, error_mags, (grid_x, grid_y, grid_z), method='linear')
         gridded = scipy.ndimage.filters.gaussian_filter(gridded, 2, truncate=2)
+        gridded[np.isnan(gridded)] = 0
         return grid_y, grid_z, gridded
 
     def draw_coronal_spatial_mapping(grid_a, grid_b, gridded, ax, cell):
