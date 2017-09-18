@@ -2,12 +2,23 @@ import React from 'react';
 import $ from 'jquery';
 import { assert } from 'chai';
 import { shallow, mount, ShallowWrapper, ReactWrapper } from 'enzyme';
+import createSagaMiddleware from 'redux-saga';
+import { createStore, applyMiddleware } from 'redux';
 
 import * as fixtures from 'common/fixtures';
 import { default as ScanTable, IScanTableProps, IScanTableState } from './components/ScanTable';
 import { default as ScanChart, IScanChartProps, IScanChartState } from './components/ScanChart';
 import ScanChartData from './components/ScanChartData';
-import { IScanDto, IPhantomDto } from 'common/service';
+import { IScanDto, IPhantomDto, IMachineSequencePairDto } from 'common/service';
+import rootReducer from './reducers';
+import rootSaga from './sagas';
+
+declare global {
+    interface Window {
+        MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
+        SCANS: IScanDto[];
+    }
+}
 
 describe('<ScanTable />', () => {
     let phantomA: IPhantomDto;
@@ -23,8 +34,16 @@ describe('<ScanTable />', () => {
             fixtures.scanFixture(phantomB),
         ];
 
+        const initialState = {
+            scans,
+        };
+
+        const sagaMiddleware = createSagaMiddleware();
+        const store = createStore(rootReducer, initialState, applyMiddleware(sagaMiddleware));
+        sagaMiddleware.run(rootSaga);
+
         wrapper = shallow<IScanTableProps, IScanTableState>(
-            <ScanTable scans={scans} uploadScanUrl="" pollScansError={null} />
+            <ScanTable scans={scans} uploadScanUrl="" pollScansError={null} store={store} />
         );
     });
 

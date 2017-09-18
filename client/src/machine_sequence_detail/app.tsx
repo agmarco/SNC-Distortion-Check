@@ -1,5 +1,13 @@
 import { renderApp } from 'common/utils';
+import { IScanDto, IMachineSequencePairDto } from 'common/service';
 import App from './containers/App';
+
+declare global {
+    interface Window {
+        MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
+        SCANS: IScanDto[];
+    }
+}
 
 renderApp(App, 'machine-sequence-detail-app');
 

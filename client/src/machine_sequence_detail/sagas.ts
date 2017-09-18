@@ -3,14 +3,12 @@ import { delay } from 'redux-saga';
 import { call, put, all, select, takeLatest } from 'redux-saga/effects';
 import { actions as formActions } from 'react-redux-form';
 
-import { IMachineSequencePairDto, IScanDto } from 'common/service';
+import { IScanDto } from 'common/service';
 import { addOkCheck, addTimeout } from 'common/api';
 import * as constants from './constants';
 import * as actions from './actions';
 import * as selectors from './selectors';
 import * as api from './api';
-
-declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
 
 export function* pollScans(): any {
     while (true) {
@@ -23,7 +21,7 @@ export function* pollScans(): any {
         } else {
             try {
                 const response = yield call(addTimeout(addOkCheck(api.pollScans)), {
-                    machine_sequence_pair_pk: MACHINE_SEQUENCE_PAIR.pk,
+                    machine_sequence_pair_pk: window.MACHINE_SEQUENCE_PAIR.pk,
                     scan_pks: unprocessedScans.map(s => s.pk),
                 });
                 const updatedScans = yield call(response.json.bind(response));

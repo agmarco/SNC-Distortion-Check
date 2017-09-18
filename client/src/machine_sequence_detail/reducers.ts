@@ -2,13 +2,10 @@ import { combineReducers } from 'redux';
 import { handleActions } from 'redux-actions';
 import { combineForms } from 'react-redux-form';
 
-import { IScanDto, IMachineSequencePairDto } from 'common/service';
+import { IScanDto } from 'common/service';
 import { CirsFormState } from 'common/forms';
 import { IToleranceForm } from './forms';
 import * as constants from './constants';
-
-declare const MACHINE_SEQUENCE_PAIR: IMachineSequencePairDto;
-declare const SCANS: IScanDto[];
 
 export interface IAppState {
     scans: IScanDto[];
@@ -30,9 +27,9 @@ const scanReducer = handleActions<IScanDto[], any>({
       }
     }),
     [constants.FILTER_SCANS]: (state, action) => {
-        return SCANS.filter(s => action.payload === "all" || s.phantom.pk === Number(action.payload));
+        return window.SCANS.filter(s => action.payload === "all" || s.phantom.pk === Number(action.payload));
     },
-}, SCANS);
+}, window.SCANS || []);
 
 const pollScansErrorReducer = handleActions<string | null, any>({
     [constants.POLL_SCANS_FAILURE]: (state, action) => action.payload,
@@ -47,6 +44,6 @@ export default combineReducers({
     pollScansError: pollScansErrorReducer,
     updateToleranceSuccess: updateToleranceSuccessReducer,
     forms: combineForms({
-        tolerance: {tolerance: MACHINE_SEQUENCE_PAIR.tolerance},
+        tolerance: {tolerance: window.MACHINE_SEQUENCE_PAIR && window.MACHINE_SEQUENCE_PAIR.tolerance},
     }, 'forms'),
 });
