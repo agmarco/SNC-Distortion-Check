@@ -98,8 +98,9 @@ def fov_center_xyz(voxel_shape, ijk_to_xyz):
     fov_center_ijk = np.array([(c - 1)/2.0 for c in voxel_shape]).reshape((3, 1))
     return apply_affine(ijk_to_xyz, fov_center_ijk).reshape(3)
 
-def chunks(l, n):
-    """Yield successive n-sized chunks from l."""
 
-    for i in range(0, len(l), n):
-        yield l[i:i + n]
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]

@@ -161,6 +161,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
     brand_color = tuple(c / 255 for c in brand_color)
 
     num_roi_chunks = 4
+    num_error_table_rows = 16
 
     def create_page(pdf, report_title, get_page, draw):
         fig = plt.figure(figsize=figsize)
@@ -493,8 +494,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
     grid_a, grid_b, gridded = coronal_spatial_mapping_data()
     draw_coronal_spatial_mapping = partial(draw_coronal_spatial_mapping, grid_a, grid_b, gridded)
 
-    rows = error_table_data(distances, error_mags, 5)
-    draw_error_table = partial(draw_error_table, rows)
+    error_table_rows = error_table_data(distances, error_mags, 5)
 
     # TODO write PDF in memory
     with PdfPages(full_report_path) as pdf:
@@ -512,7 +512,10 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         create_page_full(draw_sagittal_spatial_mapping)
         create_page_full(draw_coronal_spatial_mapping)
 
-        create_page_full(draw_error_table)
+        all_chunks = chunks(error_table_rows, num_error_table_rows)
+        for chunk in all_chunks:
+            draw_chunk = partial(draw_error_table, chunk)
+            create_page_full(draw_chunk)
 
         sort_indices = np.argsort(error_mags)[::-1]
         rois = zip(TP_A_S.T[sort_indices], TP_B.T[sort_indices], error_vecs.T[sort_indices], error_mags[sort_indices])
@@ -537,7 +540,12 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         create_page_executive(draw_axial_spatial_mapping)
         create_page_executive(draw_sagittal_spatial_mapping)
         create_page_executive(draw_coronal_spatial_mapping)
-        create_page_executive(draw_error_table)
+
+        all_chunks = chunks(error_table_rows, num_error_table_rows)
+        for chunk in all_chunks:
+            draw_chunk = partial(draw_error_table, chunk)
+            create_page_executive(draw_chunk)
+
         create_page_executive(draw_points_x_perspective)
 
     logger.info("finished report generation")
