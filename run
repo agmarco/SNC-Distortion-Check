@@ -1,4 +1,5 @@
 #!/bin/bash
 set -e
 
-honcho start
+honcho start &
+npm run build:hot
