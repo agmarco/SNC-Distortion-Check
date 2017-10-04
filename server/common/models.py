@@ -372,7 +372,7 @@ def infer_acquisition_date(dataset, request=None):
     required DICOM attribute.  Hence, we infer it as the current date if
     necessary, and display a warning to the user.
     '''
-    if hasattr(dataset, 'AcquisitionDate'):
+    if hasattr(dataset, 'AcquisitionDate') and dataset.AcquisitionDate:
         acquisition_date = datetime.strptime(dataset.AcquisitionDate, '%Y%m%d')
     else:
         # the view should set this to the current date and warn the user; this
