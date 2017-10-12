@@ -523,7 +523,7 @@ class UploadCtView(JsonFormMixin, FormView):
             phantom=models.Phantom.objects.get(pk=self.kwargs['phantom_pk']),
             type=models.GoldenFiducials.CT,
             processing=True,
-            filename=form.cleaned_data['filename'],
+            filename=form.cleaned_data['dicom_archive'],
         )
 
         process_ct_upload.delay(gold_standard.pk, form.cleaned_data['dicom_archive_url'])

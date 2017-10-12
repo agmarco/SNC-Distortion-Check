@@ -56,9 +56,6 @@ class UploadCtForm(CirsFormMixin, forms.Form):
     dicom_archive_url = forms.CharField()
     dicom_archive = forms.CharField()
 
-    def clean(self):
-        self.cleaned_data['filename'] = self.cleaned_data['dicom_archive']
-
 
 class UploadRawForm(CirsFormMixin, forms.Form):
     csv = forms.FileField(label="File Browser", widget=FileInput(attrs={'accept': '.csv,.txt'}))
