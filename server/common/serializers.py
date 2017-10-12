@@ -132,7 +132,6 @@ class ScanSerializer(serializers.ModelSerializer):
 
 
 class GoldenFiducialsSerializer(serializers.ModelSerializer):
-    dicom_series_filename = serializers.SerializerMethodField()
     zipped_dicom_files_url = serializers.SerializerMethodField()
     csv_url = serializers.SerializerMethodField()
     activate_url = serializers.SerializerMethodField()
@@ -146,18 +145,12 @@ class GoldenFiducialsSerializer(serializers.ModelSerializer):
             'created_on',
             'type',
             'processing',
-            'dicom_series_filename',
+            'filename',
             'zipped_dicom_files_url',
             'csv_url',
             'activate_url',
             'delete_url',
         )
-
-    def get_dicom_series_filename(self, golden_fiducials):
-        if golden_fiducials.dicom_series is None:
-            return None
-        else:
-            return golden_fiducials.dicom_series.filename
 
     def get_zipped_dicom_files_url(self, golden_fiducials):
         if golden_fiducials.dicom_series is None:

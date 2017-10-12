@@ -99,7 +99,7 @@ class GoldStandardTable extends React.Component<IScanTableProps, {}> {
                             </td>
                             <td>{format(goldenFiducials.created_on, 'MMMM D, YYYY')}</td>
                             <td>{goldenFiducials.type}</td>
-                            <td>{goldenFiducials.type === 'CT' && goldenFiducials.dicom_series_filename}</td>
+                            <td>{goldenFiducials.filename}</td>
                             <td className="sep" />
                             {this.renderGoldStandardActions(goldenFiducials)}
                         </tr>

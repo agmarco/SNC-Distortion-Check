@@ -1,4 +1,3 @@
-import zipfile
 from functools import partial
 
 from django import forms
@@ -9,7 +8,6 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 
-from process import dicom_import
 from .models import Phantom, Institution, User, Machine, Sequence
 from .validators import validate_phantom_serial_number
 
@@ -56,6 +54,10 @@ class UploadScanForm(CirsFormMixin, forms.Form):
 
 class UploadCtForm(CirsFormMixin, forms.Form):
     dicom_archive_url = forms.CharField()
+    dicom_archive = forms.CharField()
+
+    def clean(self):
+        self.cleaned_data['filename'] = self.cleaned_data['dicom_archive']
 
 
 class UploadRawForm(CirsFormMixin, forms.Form):
@@ -86,6 +88,7 @@ class UploadRawForm(CirsFormMixin, forms.Form):
             raise forms.ValidationError("The file contains duplicate points.")
 
         self.cleaned_data['fiducials'] = fiducials
+        self.cleaned_data['filename'] = self.cleaned_data['csv'].name
         return self.cleaned_data['csv']
 
 

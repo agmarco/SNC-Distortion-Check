@@ -215,6 +215,7 @@ class GoldenFiducials(CommonFieldsMixin):
     type_ht = 'The source type for the golden fiducials  (e.g. CT Scan or CAD Model).'
     type = models.CharField(max_length=3, choices=TYPE_CHOICES, help_text=type_ht)
     processing = models.BooleanField(default=False)
+    filename = models.CharField(max_length=255)
 
     def __str__(self):
         return "Golden Fiducials {}".format(self.id)

@@ -54,7 +54,7 @@ export interface IGoldenFiducialsDto {
     created_on: string;
     type: string;
     processing: boolean;
-    dicom_series_filename: string | null;
+    filename: string | null;
     zipped_dicom_files_url: string | null;
     csv_url: string;
     activate_url: string;

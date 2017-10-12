@@ -523,6 +523,7 @@ class UploadCtView(JsonFormMixin, FormView):
             phantom=models.Phantom.objects.get(pk=self.kwargs['phantom_pk']),
             type=models.GoldenFiducials.CT,
             processing=True,
+            filename=form.cleaned_data['filename'],
         )
 
         process_ct_upload.delay(gold_standard.pk, form.cleaned_data['dicom_archive_url'])
@@ -556,6 +557,7 @@ class UploadRawView(FormView):
             phantom=phantom,
             fiducials=fiducials,
             type=models.GoldenFiducials.CSV,
+            filename=form.cleaned_data['filename'],
         )
         messages.success(self.request, "Your gold standard points have been uploaded.")
         return super(UploadRawView, self).form_valid(form)

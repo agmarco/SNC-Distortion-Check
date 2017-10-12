@@ -17,20 +17,7 @@ interface IUploadCtFormProps {
     dispatch?: Dispatch<any>;
 }
 
-interface IUploadCtFormState {
-    dicomArchiveDisabled: boolean;
-}
-
-class UploadCtForm extends React.Component<IUploadCtFormProps, IUploadCtFormState> {
-    constructor() {
-        super();
-        this.state = {dicomArchiveDisabled: false};
-    }
-
-    handleSubmit() {
-        this.setState({dicomArchiveDisabled: true});
-    }
-
+class UploadCtForm extends React.Component<IUploadCtFormProps, {}> {
     handleDicomArchiveChange(event: React.FormEvent<HTMLInputElement>) {
         const { dispatch } = this.props;
         const value = (event.target as any).files;
@@ -42,7 +29,6 @@ class UploadCtForm extends React.Component<IUploadCtFormProps, IUploadCtFormStat
 
     render() {
         const { cancelUrl, formErrors, formState, formAction } = this.props;
-        const { dicomArchiveDisabled } = this.state;
         const dicomArchiveState: FieldState | undefined = formState && formState.dicom_archive &&
             (formState.dicom_archive as FieldState[])[0];
 
@@ -54,7 +40,6 @@ class UploadCtForm extends React.Component<IUploadCtFormProps, IUploadCtFormStat
                     model="uploadCt"
                     className="cirs-form"
                     djangoErrors={formErrors}
-                    onSubmit={this.handleSubmit.bind(this)}
                 >
 
                     <CirsControl type="hidden" model=".__all__" />
@@ -69,8 +54,7 @@ class UploadCtForm extends React.Component<IUploadCtFormProps, IUploadCtFormStat
                         {/* TODO: accept=".zip" breaks the input */}
                         <CirsControl.file type="file" id="upload-ct-dicom-archive" model=".dicom_archive"
                                           required
-                                          onChange={this.handleDicomArchiveChange.bind(this)}
-                                          disabled={dicomArchiveDisabled}/>
+                                          onChange={this.handleDicomArchiveChange.bind(this)} />
                         <p>
                             The uploaded file should be a zip-archive containing CT DICOM slices for the gold standard
                             CT scan of the phantom.
