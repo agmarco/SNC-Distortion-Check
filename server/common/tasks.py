@@ -198,11 +198,11 @@ def process_scan(scan_pk, dicom_archive_url=None):
 
 @shared_task(name='common.tasks.process_ct_upload')
 def process_ct_upload(gold_standard_pk, dicom_archive_url):
+    gold_standard = models.GoldenFiducials.objects.get(pk=gold_standard_pk)
+
     try:
         with transaction.atomic():
             modality = 'ct'
-
-            gold_standard = models.GoldenFiducials.objects.get(pk=gold_standard_pk)
 
             dicom_series = models.DicomSeries(zipped_dicom_files=urlparse(dicom_archive_url).path)
 
@@ -235,10 +235,13 @@ def process_ct_upload(gold_standard_pk, dicom_archive_url):
 
             fiducials = models.Fiducials.objects.create(fiducials=feature_detector.points_xyz)
             gold_standard.fiducials = fiducials
-            gold_standard.processing = False
-            gold_standard.save()
+
     except Exception as e:
         raise e
+
+    finally:
+        gold_standard.processing = False
+        gold_standard.save()
 
 
 @task_failure.connect
@@ -412,6 +415,7 @@ def send_mail(subject_template_name, email_template_name,
         email_message.attach_alternative(html_email, 'text/html')
 
     email_message.send()
+
 
 # TODO: convert to class for easier unit testing
 def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstanceUID, seriesInstanceUID,
