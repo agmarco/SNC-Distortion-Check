@@ -179,6 +179,7 @@ else:
     AWS_S3_FILE_OVERWRITE = False
     AWS_DEFAULT_ACL = 'private'
     DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    AWS_QUERYSTRING_EXPIRE = 3600 * 24 * 30
 
 
 # Logging
