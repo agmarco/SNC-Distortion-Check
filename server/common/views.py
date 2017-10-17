@@ -615,10 +615,12 @@ class ActivateGoldStandardView(View):
         fractional_difference = abs(num_points - num_cad_points)/num_cad_points
         is_ct = gold_standard.type == models.GoldenFiducials.CT
         if is_ct and fractional_difference > error_threshold:
-            msg = 'There was an error processing the CT upload, and too many or too few points were detected. ' + \
+            msg = 'There was an error processing the CT upload, and too many or too few points were detected ' + \
+                    f'({num_points} in the upload, vs {num_cad_points} in the CAD model).' + \
                     'Thus, the points can not be used.  CIRS has been notified of the result, and is looking ' + \
                     'into the failure.'
             messages.error(request, msg)
+            logger.error(msg)
 
         elif fractional_difference > warning_threshold:
             msg = f'"{gold_standard.source_summary}" is now active.  Note that it ' + \
@@ -627,6 +629,7 @@ class ActivateGoldStandardView(View):
             if is_ct:
                 msg += ' This mismatch in points may be due to issues with the image processing algorithm. ' + \
                         'CIRS has been notified of the result, and is looking into the failure.'
+                logger.error(msg)
 
             messages.warning(request, msg)
             gold_standard.activate()
