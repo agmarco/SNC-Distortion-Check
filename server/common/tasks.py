@@ -14,8 +14,6 @@ from dicom.dataset import Dataset, FileDataset
 from dicom.UID import generate_uid
 
 import numpy as np
-import scipy.io
-import scipy.ndimage.filters
 from celery import shared_task
 from celery.signals import task_failure
 from django.core.files import File
@@ -24,7 +22,6 @@ from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
 from django.conf import settings
 from django.template import loader
-from rest_framework.renderers import JSONRenderer
 from naturalneighbor import griddata
 from PIL import Image, ImageDraw, ImageFont
 
@@ -32,13 +29,12 @@ from process import dicom_import, affine, fp_rejector, phantoms
 from process.affine import apply_affine
 from process.dicom_import import image_orientation_from_tmat
 from process.feature_detection import FeatureDetector
-from process.file_io import save_voxels
 from process.registration import rigidly_register_and_categorize
 from process.reports import generate_reports
 from process.utils import fov_center_xyz
 from process.points_utils import format_point_metrics, metrics
-from . import serializers
-from .import models
+from .dump_raw_scan_data import dump_raw_scan_data
+from . import models
 from .overlay_utilities import add_colorbar_to_slice, convex_hull_region
 from process.exceptions import AlgorithmException
 
@@ -107,6 +103,7 @@ def process_scan(scan_pk, dicom_archive_url=None):
             pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
 
             scan.detected_fiducials = models.Fiducials.objects.create(fiducials=pruned_points_xyz)
+            scan.save()
 
             _, num_fiducials = pruned_points_xyz.shape
             error_cutoff = 0.5
@@ -126,6 +123,10 @@ def process_scan(scan_pk, dicom_archive_url=None):
                 phantom_paramaters['brute_search_slices'],
             )
 
+            scan.TP_A_S = models.Fiducials.objects.create(fiducials=TP_A_S)
+            scan.TP_B = models.Fiducials.objects.create(fiducials=TP_B)
+            scan.save()
+
             TPF, FPF, FLE_percentiles = metrics(FN_A_S, TP_A_S, TP_B, FP_B)
             logger.info(format_point_metrics(TPF, FPF, FLE_percentiles))
 
@@ -143,9 +144,6 @@ def process_scan(scan_pk, dicom_archive_url=None):
                     f"none of these scenarios can explain the failure, please let CIRS support know about "
                     f"the issue."
                 )
-
-            scan.TP_A_S = models.Fiducials.objects.create(fiducials=TP_A_S)
-            scan.TP_B = models.Fiducials.objects.create(fiducials=TP_B)
 
             full_report_filename = 'full_report.pdf'
             executive_report_filename = 'executive_report.pdf'
@@ -175,14 +173,14 @@ def process_scan(scan_pk, dicom_archive_url=None):
             with open(executive_report_path, 'rb') as report_file:
                 scan.executive_report.save(executive_report_filename, File(report_file))
 
-            raw_data_filename = 'raw_data.zip'
-            raw_data = dump_raw_data(scan)
-            scan.raw_data.save(raw_data_filename, File(raw_data))
-
     except AlgorithmException as e:
         scan = models.Scan.objects.get(pk=scan.pk)  # fresh instance
         logger.exception('Algorithm error')
         scan.errors = str(e)
+
+        raw_data_filename = 'raw_data.zip'
+        raw_data = dump_raw_scan_data(scan)
+        scan.raw_data.save(raw_data_filename, File(raw_data))
 
     except Exception as e:
         scan = models.Scan.objects.get(pk=scan.pk)  # fresh instance
@@ -247,67 +245,6 @@ def process_ct_upload(gold_standard_pk, dicom_archive_url):
 @task_failure.connect
 def task_failure_handler(task_id=None, exception=None, args=None, **kwargs):
     logging.info("{} {} {}".format(task_id, str(exception), str(args)))
-
-
-def dump_raw_data(scan):
-    voxels_path = os.path.join(settings.BASE_DIR, f'tmp/{uuid.uuid4()}.mat')
-    voxels_data = {
-        'phantom_model': scan.phantom.model.model_number,
-        'modality': 'mri',
-        'voxels': scan.dicom_series.voxels,
-    }
-    save_voxels(voxels_path, voxels_data)
-
-    raw_points_path = os.path.join(settings.BASE_DIR, f'tmp/{uuid.uuid4()}.mat')
-    raw_points_data = {
-        'all': scan.detected_fiducials.fiducials,
-        'TP': scan.TP_B.fiducials,
-    }
-    scipy.io.savemat(raw_points_path, raw_points_data)
-
-    renderer = JSONRenderer()
-
-    phantom = serializers.PhantomSerializer(scan.phantom)
-    phantom_s = io.BytesIO()
-    phantom_s.write(renderer.render(phantom.data))
-
-    machine = serializers.MachineSerializer(scan.machine_sequence_pair.machine)
-    machine_s = io.BytesIO()
-    machine_s.write(renderer.render(machine.data))
-
-    sequence = serializers.SequenceSerializer(scan.machine_sequence_pair.sequence)
-    sequence_s = io.BytesIO()
-    sequence_s.write(renderer.render(sequence.data))
-
-    institution = serializers.InstitutionSerializer(scan.institution)
-    institution_s = io.BytesIO()
-    institution_s.write(renderer.render(institution.data))
-
-    files = {
-        'voxels.mat': voxels_path,
-        'raw_points.mat': raw_points_path,
-    }
-
-    streams = {
-        'phantom.json': phantom_s,
-        'machine.json': machine_s,
-        'sequence.json': sequence_s,
-        'institution.json': institution_s,
-    }
-
-    s = io.BytesIO()
-    with zipfile.ZipFile(s, 'w', zipfile.ZIP_DEFLATED) as zf:
-        zipped_dicom_files = scan.dicom_series.zipped_dicom_files
-        zipped_dicom_files.seek(0)  # rewind the file, as it may have been read earlier
-        zf.writestr('dicom.zip', zipped_dicom_files.read())
-
-        for zip_path, path in files.items():
-            zf.write(path, zip_path)
-
-        for zip_path, stream in streams.items():
-            zf.writestr(zip_path, stream.getvalue())
-
-    return s
 
 
 @shared_task(name='common.tasks.process_dicom_overlay')

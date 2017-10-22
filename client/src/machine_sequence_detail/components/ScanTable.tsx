@@ -89,13 +89,16 @@ class ScanTable extends React.Component<IScanTableProps, IScanTableState> {
             }
         } else if (scan.errors) {
             return [
-                <td key={0} colSpan={5}>
+                <td key={0} colSpan={4}>
                     <span className="error">
                         There was an error while processing the data
                         (<a href={scan.errors_url}>view details</a>).
                     </span>
                 </td>,
-                <td key={1} className="action delete">
+                <td key={1} className="action raw-data" title={rawDataHelp}>
+                    <a href={scan.raw_data_url} download>Raw Data</a>
+                </td>,
+                <td key={2} className="action delete">
                     <a href={scan.delete_url}>
                         <i className="fa fa-trash-o" aria-hidden="true" />
                     </a>
