@@ -291,8 +291,10 @@ class Scan(CommonFieldsMixin):
 
     @property
     def passed(self):
-        """Return True if the max error_mags is below the threshold."""
-        return self.error_mags.max() < self.tolerance if self.error_mags is not None else None
+        if self.errors is None:
+            return self.error_mags.max() < self.tolerance
+        else:
+            return None
 
     @property
     def acquisition_date(self):

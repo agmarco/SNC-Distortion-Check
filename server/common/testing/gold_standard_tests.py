@@ -33,7 +33,10 @@ def test_upload_ct(client):
 
     client.force_login(current_user)
 
-    post_data = {'dicom_archive_url': 'http://localhost'}
+    post_data = {
+        'dicom_archive_url': 'http://localhost',
+        'dicom_archive': 'arbitrary.zip',
+    }
     url = reverse('upload_ct', args=(phantom.pk,))
     with mock.patch('server.common.views.process_ct_upload'):
         client.post(url, post_data)
@@ -80,7 +83,10 @@ def test_upload_ct_form(client):
 
     client.force_login(current_user)
 
-    form = UploadCtForm(data={'dicom_archive_url': 'http://localhost'})
+    form = UploadCtForm(data={
+        'dicom_archive_url': 'http://localhost',
+        'dicom_archive': 'arbitrary.zip',
+    })
     assert form.is_valid()
 
 

@@ -20,7 +20,7 @@ class InstitutionAdmin(admin.ModelAdmin):
 
 @admin.register(models.User)
 class UserAdmin(admin.ModelAdmin):
-    exclude = ('user_permissions',)
+    exclude = ('user_permissions', 'password')
     list_display = ('first_name', 'last_name', 'email', 'institution')
 
 
@@ -47,21 +47,6 @@ class SequenceAdmin(admin.ModelAdmin):
 @admin.register(models.MachineSequencePair)
 class MachineSequencePairAdmin(admin.ModelAdmin):
     pass
-
-
-@admin.register(models.DicomSeries)
-class DicomSeriesAdmin(admin.ModelAdmin):
-    readonly_fields = ('series_uid',)
-
-
-@admin.register(models.Fiducials)
-class FiducialsAdmin(admin.ModelAdmin):
-    list_display = ('created_on',)
-
-
-@admin.register(models.GoldenFiducials)
-class GoldenFiducialsAdmin(admin.ModelAdmin):
-    list_display = ('type', 'processing', 'phantom', 'created_on')
 
 
 @admin.register(models.Scan)

@@ -36,6 +36,15 @@ Then run `manage.py migrate` and `manage.py generate_demo_data` from your local 
 
 NOTE: you can not use a Heroku one-off dyno for this, since some of the DICOM files needed for the `generate_demo_data` script are excluded from the slug for size reasons.
 
+## Demo User Data
+
+After running the demo script, you can use:
+
+    manager@cirsinc.com
+    password
+
+to login as a manager and view the generated scans.
+
 ## Interactive Algorithm Work
 
 You will need to swap out the matplotlib backend for interactive algorithm

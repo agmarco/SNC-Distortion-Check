@@ -14,8 +14,6 @@ from dicom.dataset import Dataset, FileDataset
 from dicom.UID import generate_uid
 
 import numpy as np
-import scipy.io
-import scipy.ndimage.filters
 from celery import shared_task
 from celery.signals import task_failure
 from django.core.files import File
@@ -24,7 +22,6 @@ from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
 from django.conf import settings
 from django.template import loader
-from rest_framework.renderers import JSONRenderer
 from naturalneighbor import griddata
 from PIL import Image, ImageDraw, ImageFont
 
@@ -32,13 +29,12 @@ from process import dicom_import, affine, fp_rejector, phantoms
 from process.affine import apply_affine
 from process.dicom_import import image_orientation_from_tmat
 from process.feature_detection import FeatureDetector
-from process.file_io import save_voxels
 from process.registration import rigidly_register_and_categorize
 from process.reports import generate_reports
 from process.utils import fov_center_xyz
-from process.points_utils import format_point_metrics, metrics
-from . import serializers
-from .import models
+import process.points_utils
+from .dump_raw_scan_data import dump_raw_scan_data
+from . import models
 from .overlay_utilities import add_colorbar_to_slice, convex_hull_region
 from process.exceptions import AlgorithmException
 
@@ -50,134 +46,131 @@ def process_scan(scan_pk, dicom_archive_url=None):
     scan = models.Scan.objects.get(pk=scan_pk)
 
     try:
-        with transaction.atomic():
-            modality = 'mri'
-            phantom_model = scan.phantom.model.model_number
-            phantom_paramaters = phantoms.paramaters[phantom_model]
-            active_gold_standard = scan.phantom.active_gold_standard
-            _, num_golden_fiducials = active_gold_standard.fiducials.fiducials.shape
+        modality = 'mri'
+        phantom_model = scan.phantom.model.model_number
+        phantom_paramaters = phantoms.paramaters[phantom_model]
+        active_gold_standard = scan.phantom.active_gold_standard
+        _, num_golden_fiducials = active_gold_standard.fiducials.fiducials.shape
 
-            if dicom_archive_url:
-                zipped_dicom_files = urlparse(dicom_archive_url).path
-                dicom_series = models.DicomSeries(zipped_dicom_files=zipped_dicom_files)
+        if dicom_archive_url:
+            zipped_dicom_files = urlparse(dicom_archive_url).path
+            dicom_series = models.DicomSeries(zipped_dicom_files=zipped_dicom_files)
 
-                # TODO: save condensed DICOM tags onto `dicom_series` on upload so
-                # we don't need to load all the zip files just to get at the
-                # metadata; this should be a feature of dicom-numpy
-                dicom_archive = dicom_series.zipped_dicom_files
+            # TODO: save condensed DICOM tags onto `dicom_series` on upload so
+            # we don't need to load all the zip files just to get at the
+            # metadata; this should be a feature of dicom-numpy
+            dicom_archive = dicom_series.zipped_dicom_files
 
-                with zipfile.ZipFile(dicom_archive, 'r') as dicom_archive_zipfile:
-                    datasets = dicom_import.dicom_datasets_from_zip(dicom_archive_zipfile)
+            with zipfile.ZipFile(dicom_archive, 'r') as dicom_archive_zipfile:
+                datasets = dicom_import.dicom_datasets_from_zip(dicom_archive_zipfile)
 
-                voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
-                ds = datasets[0]
+            voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
+            ds = datasets[0]
 
-                dicom_series.voxels = voxels
-                dicom_series.ijk_to_xyz = ijk_to_xyz
-                dicom_series.shape = voxels.shape
-                dicom_series.series_uid = ds.SeriesInstanceUID
-                dicom_series.study_uid = ds.StudyInstanceUID
-                dicom_series.frame_of_reference_uid = ds.FrameOfReferenceUID
-                dicom_series.patient_id = ds.PatientID
-                dicom_series.acquisition_date = models.infer_acquisition_date(ds)
+            dicom_series.voxels = voxels
+            dicom_series.ijk_to_xyz = ijk_to_xyz
+            dicom_series.shape = voxels.shape
+            dicom_series.series_uid = ds.SeriesInstanceUID
+            dicom_series.study_uid = ds.StudyInstanceUID
+            dicom_series.frame_of_reference_uid = ds.FrameOfReferenceUID
+            dicom_series.patient_id = ds.PatientID
+            dicom_series.acquisition_date = models.infer_acquisition_date(ds)
 
-                dicom_series.save()
-                scan.dicom_series = dicom_series
-            else:
-                with zipfile.ZipFile(scan.dicom_series.zipped_dicom_files, 'r') as zf:
-                    datasets = dicom_import.dicom_datasets_from_zip(zf)
+            dicom_series.save()
+            scan.dicom_series = dicom_series
+        else:
+            with zipfile.ZipFile(scan.dicom_series.zipped_dicom_files, 'r') as zf:
+                datasets = dicom_import.dicom_datasets_from_zip(zf)
 
-            voxels = scan.dicom_series.voxels
-            ijk_to_xyz = scan.dicom_series.ijk_to_xyz
-            voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
+        voxels = scan.dicom_series.voxels
+        ijk_to_xyz = scan.dicom_series.ijk_to_xyz
+        voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
 
-            feature_detector = FeatureDetector(
-                phantom_model,
-                modality,
-                voxels,
-                ijk_to_xyz,
+        feature_detector = FeatureDetector(
+            phantom_model,
+            modality,
+            voxels,
+            ijk_to_xyz,
+        )
+
+        pruned_points_ijk = fp_rejector.remove_fps(
+            feature_detector.points_ijk,
+            voxels,
+            voxel_spacing,
+            phantom_model,
+        )
+        pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
+
+        scan.detected_fiducials = models.Fiducials.objects.create(fiducials=pruned_points_xyz)
+        scan.save()
+
+        _, num_fiducials = pruned_points_xyz.shape
+        error_cutoff = 0.5
+        if abs(num_fiducials - num_golden_fiducials)/num_golden_fiducials > error_cutoff:
+            raise AlgorithmException(
+                f"Detected {num_fiducials} grid intersections, but expected to find "
+                f"{num_golden_fiducials}, according to {active_gold_standard.source_summary}. "
+                f"Aborting analysis since the fractional error is larger than {error_cutoff*100:.1f}%."
             )
 
-            pruned_points_ijk = fp_rejector.remove_fps(
-                feature_detector.points_ijk,
-                voxels,
-                voxel_spacing,
-                phantom_model,
-            )
-            pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
+        isocenter_in_B = fov_center_xyz(voxels.shape, ijk_to_xyz)
 
-            scan.detected_fiducials = models.Fiducials.objects.create(fiducials=pruned_points_xyz)
+        _, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
+            scan.golden_fiducials.fiducials.fiducials,
+            scan.detected_fiducials.fiducials,
+            isocenter_in_B,
+            phantom_paramaters['brute_search_slices'],
+        )
 
-            _, num_fiducials = pruned_points_xyz.shape
-            error_cutoff = 0.5
-            if abs(num_fiducials - num_golden_fiducials)/num_golden_fiducials > error_cutoff:
-                raise AlgorithmException(
-                    f"Detected {num_fiducials} grid intersections, but expected to find "
-                    f"{num_golden_fiducials}, according to {active_gold_standard.source_summary}. "
-                    f"Aborting analysis since the fractional error is larger than {error_cutoff*100:.1f}%."
-                )
+        scan.TP_A_S = models.Fiducials.objects.create(fiducials=TP_A_S)
+        scan.TP_B = models.Fiducials.objects.create(fiducials=TP_B)
+        scan.save()
 
-            isocenter_in_B = fov_center_xyz(voxels.shape, ijk_to_xyz)
+        TPF, FPF, FLE_percentiles = process.points_utils.metrics(FN_A_S, TP_A_S, TP_B, FP_B)
+        logger.info(process.points_utils.format_point_metrics(TPF, FPF, FLE_percentiles))
 
-            xyztpx, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
-                scan.golden_fiducials.fiducials.fiducials,
-                scan.detected_fiducials.fiducials,
-                isocenter_in_B,
-                phantom_paramaters['brute_search_slices'],
-            )
+        TPF_minimum = 0.85
 
-            TPF, FPF, FLE_percentiles = metrics(FN_A_S, TP_A_S, TP_B, FP_B)
-            logger.info(format_point_metrics(TPF, FPF, FLE_percentiles))
-
-            TPF_minimum = 0.85
-
-            if TPF < TPF_minimum:
-                raise AlgorithmException(
-                    f"Only {TPF*100:.1f}% of the {num_golden_fiducials} gold standard points could "
-                    f"be matched to one of the {num_fiducials} detected grid intersection locations.  This "
-                    f"is less than our minimum allowable {TPF_minimum*100:.1f}%, thus we aborted processing "
-                    f"the scan.  Please be sure to (1) orient the phantom correctly with 4° along each axis, "
-                    f"(2) position the phantom's center within 5 mm of the isocenter, (3) position the "
-                    f"scanner's isocenter in the exact center of the field of view, (4) ensure the pixel "
-                    f"size and slice spacing is sufficient to resolve the grid intersections.  If you believe "
-                    f"none of these scenarios can explain the failure, please let CIRS support know about "
-                    f"the issue."
-                )
-
-            scan.TP_A_S = models.Fiducials.objects.create(fiducials=TP_A_S)
-            scan.TP_B = models.Fiducials.objects.create(fiducials=TP_B)
-
-            full_report_filename = 'full_report.pdf'
-            executive_report_filename = 'executive_report.pdf'
-            full_report_path = os.path.join(settings.BASE_DIR, 'tmp', full_report_filename)
-            executive_report_path = os.path.join(settings.BASE_DIR, 'tmp', executive_report_filename)
-
-            generate_reports(
-                TP_A_S,
-                TP_B,
-                datasets,
-                scan.dicom_series.voxels,
-                scan.dicom_series.ijk_to_xyz,
-                scan.golden_fiducials.phantom.model.model_number,
-                scan.tolerance,
-                scan.institution,
-                scan.machine_sequence_pair.machine.name,
-                scan.machine_sequence_pair.sequence.name,
-                scan.golden_fiducials.phantom.name,
-                scan.dicom_series.acquisition_date,
-                full_report_path,
-                executive_report_path,
+        if TPF < TPF_minimum:
+            raise AlgorithmException(
+                f"Only {TPF*100:.1f}% of the {num_golden_fiducials} gold standard points could "
+                f"be matched to one of the {num_fiducials} detected grid intersection locations.  This "
+                f"is less than our minimum allowable {TPF_minimum*100:.1f}%, thus we aborted processing "
+                f"the scan.  Please be sure to (1) orient the phantom correctly with 4° along each axis, "
+                f"(2) position the phantom's center within 5 mm of the isocenter, (3) position the "
+                f"scanner's isocenter in the exact center of the field of view, (4) ensure the pixel "
+                f"size and slice spacing is sufficient to resolve the grid intersections.  If you believe "
+                f"none of these scenarios can explain the failure, please let CIRS support know about "
+                f"the issue."
             )
 
-            with open(full_report_path, 'rb') as report_file:
-                scan.full_report.save(full_report_filename, File(report_file))
+        full_report_filename = 'full_report.pdf'
+        executive_report_filename = 'executive_report.pdf'
+        full_report_path = os.path.join(settings.BASE_DIR, 'tmp', full_report_filename)
+        executive_report_path = os.path.join(settings.BASE_DIR, 'tmp', executive_report_filename)
 
-            with open(executive_report_path, 'rb') as report_file:
-                scan.executive_report.save(executive_report_filename, File(report_file))
+        generate_reports(
+            TP_A_S,
+            TP_B,
+            datasets,
+            scan.dicom_series.voxels,
+            scan.dicom_series.ijk_to_xyz,
+            scan.golden_fiducials.phantom.model.model_number,
+            scan.tolerance,
+            scan.institution,
+            scan.machine_sequence_pair.machine.name,
+            scan.machine_sequence_pair.sequence.name,
+            scan.golden_fiducials.phantom.name,
+            scan.dicom_series.acquisition_date,
+            full_report_path,
+            executive_report_path,
+        )
 
-            raw_data_filename = 'raw_data.zip'
-            raw_data = dump_raw_data(scan)
-            scan.raw_data.save(raw_data_filename, File(raw_data))
+        with open(full_report_path, 'rb') as report_file:
+            scan.full_report.save(full_report_filename, File(report_file))
+
+        with open(executive_report_path, 'rb') as report_file:
+            scan.executive_report.save(executive_report_filename, File(report_file))
 
     except AlgorithmException as e:
         scan = models.Scan.objects.get(pk=scan.pk)  # fresh instance
@@ -191,6 +184,10 @@ def process_scan(scan_pk, dicom_archive_url=None):
         logger.exception(f'Unhandled scan exception occurred while processing scan for "{creator_email}"')
         scan.errors = 'A server error occurred while processing the scan.'
     finally:
+        raw_data_filename = 'raw_data.zip'
+        raw_data = dump_raw_scan_data(scan)
+        scan.raw_data.save(raw_data_filename, File(raw_data))
+
         scan.processing = False
         scan.save()
         logger.info('finished processing scan')
@@ -247,67 +244,6 @@ def process_ct_upload(gold_standard_pk, dicom_archive_url):
 @task_failure.connect
 def task_failure_handler(task_id=None, exception=None, args=None, **kwargs):
     logging.info("{} {} {}".format(task_id, str(exception), str(args)))
-
-
-def dump_raw_data(scan):
-    voxels_path = os.path.join(settings.BASE_DIR, f'tmp/{uuid.uuid4()}.mat')
-    voxels_data = {
-        'phantom_model': scan.phantom.model.model_number,
-        'modality': 'mri',
-        'voxels': scan.dicom_series.voxels,
-    }
-    save_voxels(voxels_path, voxels_data)
-
-    raw_points_path = os.path.join(settings.BASE_DIR, f'tmp/{uuid.uuid4()}.mat')
-    raw_points_data = {
-        'all': scan.detected_fiducials.fiducials,
-        'TP': scan.TP_B.fiducials,
-    }
-    scipy.io.savemat(raw_points_path, raw_points_data)
-
-    renderer = JSONRenderer()
-
-    phantom = serializers.PhantomSerializer(scan.phantom)
-    phantom_s = io.BytesIO()
-    phantom_s.write(renderer.render(phantom.data))
-
-    machine = serializers.MachineSerializer(scan.machine_sequence_pair.machine)
-    machine_s = io.BytesIO()
-    machine_s.write(renderer.render(machine.data))
-
-    sequence = serializers.SequenceSerializer(scan.machine_sequence_pair.sequence)
-    sequence_s = io.BytesIO()
-    sequence_s.write(renderer.render(sequence.data))
-
-    institution = serializers.InstitutionSerializer(scan.institution)
-    institution_s = io.BytesIO()
-    institution_s.write(renderer.render(institution.data))
-
-    files = {
-        'voxels.mat': voxels_path,
-        'raw_points.mat': raw_points_path,
-    }
-
-    streams = {
-        'phantom.json': phantom_s,
-        'machine.json': machine_s,
-        'sequence.json': sequence_s,
-        'institution.json': institution_s,
-    }
-
-    s = io.BytesIO()
-    with zipfile.ZipFile(s, 'w', zipfile.ZIP_DEFLATED) as zf:
-        zipped_dicom_files = scan.dicom_series.zipped_dicom_files
-        zipped_dicom_files.seek(0)  # rewind the file, as it may have been read earlier
-        zf.writestr('dicom.zip', zipped_dicom_files.read())
-
-        for zip_path, path in files.items():
-            zf.write(path, zip_path)
-
-        for zip_path, stream in streams.items():
-            zf.writestr(zip_path, stream.getvalue())
-
-    return s
 
 
 @shared_task(name='common.tasks.process_dicom_overlay')
