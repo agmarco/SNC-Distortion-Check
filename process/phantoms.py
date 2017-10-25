@@ -30,9 +30,9 @@ paramaters = {
         'grid_spacing': 15,
         'keras_model': 'data/keras_models/603/weights.h5',
         'brute_search_slices': [
-            slice(-15, 15, 6j),
-            slice(-15, 15, 6j),
-            slice(-15, 15, 6j),
+            slice(-12, 12, 5j),
+            slice(-12, 12, 5j),
+            slice(-12, 12, 5j),
             slice(-2*deg, 2*deg, 3j),
             slice(-2*deg, 2*deg, 3j),
             slice(-2*deg, 2*deg, 3j),
