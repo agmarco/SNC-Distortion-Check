@@ -2,13 +2,12 @@ from collections import OrderedDict
 import math
 
 import numpy as np
-from scipy.interpolate.interpnd import LinearNDInterpolator
 import matplotlib.pyplot as plt
 
 from . import points_utils, phantoms, slicer, affine, file_io
 from .utils import fov_center_xyz
 from .visualization import scatter3
-from .interpolate import interpolate_distortion
+from .interpolation import interpolate_distortion
 from hdatt.suite import Suite
 from .fp_rejector import remove_fps
 from .affine import rotation_translation
@@ -109,22 +108,23 @@ class FullAlgorithmSuite(Suite):
         metrics['FPF'] = FPF
 
         # 4. interpolate
-        distortion_grid = interpolate_distortion(TP_A_S, TP_B, ijk_to_xyz, voxels.shape)
+        grid_density_mm = 4.0
+        error_mags = np.linalg.norm(TP_A_S - TP_B, axis=0)
+        coord_min_xyz, distortion_grid = interpolate_distortion(TP_A_S, error_mags, ijk_to_xyz, grid_density_mm)
         context['distortion_grid'] = distortion_grid
 
         # calculate metrics
-        magnitude_mm = np.linalg.norm(distortion_grid, axis=3)
-        is_nan = np.isnan(magnitude_mm)
+        is_nan = np.isnan(distortion_grid)
         num_finite = np.sum(~is_nan)
-        num_total = magnitude_mm.size
+        num_total = distortion_grid.size
 
         metrics['fraction_of_volume_covered'] = num_finite/num_total
-        metrics['max_distortion'] = np.nanmax(magnitude_mm)
-        metrics['median_distortion'] = np.nanmedian(magnitude_mm)
-        metrics['min_distortion'] = np.nanmin(magnitude_mm)
+        metrics['max_distortion'] = np.nanmax(distortion_grid)
+        metrics['median_distortion'] = np.nanmedian(distortion_grid)
+        metrics['min_distortion'] = np.nanmin(distortion_grid)
 
         print('histogram mm')
-        print_histogram(magnitude_mm, 'mm')
+        print_histogram(distortion_grid, 'mm')
 
         return metrics, context
 
