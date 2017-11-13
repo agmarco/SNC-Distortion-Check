@@ -72,7 +72,9 @@ def rigidly_register_and_categorize(A, B, grid_spacing, isocenter_in_B):
     # translations
     xyztpx_a_to_b = xyztpx_a_to_b_i + np.array([*isocenter_in_B, 0, 0, 0])
 
-    rho = lambda bmag: 3
+    # TODO: think of how to avoid duplication between here and within `rigidly_register`
+    rho = build_rho(calculate_g_cutoff(3, grid_spacing))
+
     FN_A_S, TP_A_S, TP_B, FP_B = points_utils.categorize(A_S, B, rho)
 
     return xyztpx_a_to_b, FN_A_S, TP_A_S, TP_B, FP_B
@@ -99,12 +101,10 @@ def rigidly_register(A, B_i, grid_spacing, xtol=registeration_tolerance):
     # We want to encompass at least the middle 125 points in a sphere (we will of course
     # get some extra points too in the corners)
     num_grid_spacings = 3
-    g_cutoff_buffer = 3
-    g_cutoff = grid_spacing*num_grid_spacings*sqrt(3) + g_cutoff_buffer
+    g_cutoff = calculate_g_cutoff(num_grid_spacings, grid_spacing)
     g_near_isocenter = lambda bmag: 1 if bmag < g_cutoff else 0
-    rho = lambda bmag: 3
+    rho = build_rho(g_cutoff)
     f_points_near_isocenter = build_objective_function(A, B_i, g_near_isocenter, rho)
-
 
     # During the grid search, we want to consider ALL points, regardless of how
     # far they are from the isocenter, since we want to ensure that A and B are
@@ -123,6 +123,32 @@ def rigidly_register(A, B_i, grid_spacing, xtol=registeration_tolerance):
         xyztpx_global_minimum = _run_optimizer(f_points_near_isocenter, xyztpx_global_minimum_rough, xtol)
     logger.info('finished rigid registration')
     return xyztpx_global_minimum
+
+
+def calculate_g_cutoff(num_grid_spacings, grid_spacing):
+    '''
+    Determine a cutoff distance that will encompass a cubic grid up to
+    `num_grid_spacings` away from the center.
+    '''
+    g_cutoff_buffer = 3
+    return grid_spacing*num_grid_spacings*sqrt(3) + g_cutoff_buffer
+
+
+def build_rho(g_cutoff):
+    '''
+    The rho function determines how close two points need to be to be
+    considered a "match", as a function of distance from the isocenter, "bmag".
+    Points further from the isocenter are expected to have more distortion, and
+    thus may be further apart while still being considered "matched".
+    '''
+    min_match_distance = 3
+    max_match_distance = 6
+    def rho(bmag):
+        if bmag < g_cutoff:
+            return min_match_distance + min_match_distance*bmag/g_cutoff
+        else:
+            return max_match_distance
+    return rho
 
 
 def build_objective_function(A, B, g, rho):
