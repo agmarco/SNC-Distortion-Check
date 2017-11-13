@@ -82,8 +82,8 @@ class FullAlgorithmSuite(Suite):
         xyztpx, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
             golden_points,
             pruned_points_xyz,
+            phantom_paramaters['grid_spacing'],
             isocenter_in_B,
-            phantom_paramaters['brute_search_slices'],
         )
 
         x, y, z, theta, phi, xi = xyztpx

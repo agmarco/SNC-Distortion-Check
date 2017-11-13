@@ -119,8 +119,8 @@ def process_scan(scan_pk, dicom_archive_url=None):
         _, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
             scan.golden_fiducials.fiducials.fiducials,
             scan.detected_fiducials.fiducials,
+            phantom_paramaters['grid_spacing'],
             isocenter_in_B,
-            phantom_paramaters['brute_search_slices'],
         )
 
         scan.TP_A_S = models.Fiducials.objects.create(fiducials=TP_A_S)

@@ -16,10 +16,6 @@ import math
 # phantoms it is the same along each dimension).
 # - The `keras_model` is the CNN model used to reject FPs.  Each phantom model
 # has its own CNN.
-# - The `brute_search_slices` is a series of 6 slices outlining which phantom
-# orientations should be searched.  Some phantoms can be oriented in multiple
-# ways, and this parameter allows us to indicate the minimal number of
-# variations that we need to search through during our registration algorithm.
 
 deg = math.radians(1)
 
@@ -29,14 +25,6 @@ paramaters = {
         'grid_radius': 1.5,
         'grid_spacing': 15,
         'keras_model': 'data/keras_models/603/weights.h5',
-        'brute_search_slices': [
-            slice(-12, 12, 5j),
-            slice(-12, 12, 5j),
-            slice(-12, 12, 5j),
-            slice(-2*deg, 2*deg, 3j),
-            slice(-2*deg, 2*deg, 3j),
-            slice(-2*deg, 2*deg, 3j),
-        ],
         'description': "The skull is manufactured from a plastic-based bone substitute, and the interstitial and "
                        "surrounding soft tissues are made from a proprietary signal generating water-based polymer. The entire "
                        "phantom is encased in a clear plastic shell to protect gel from desiccation. The phantom is supplied with "
@@ -55,14 +43,6 @@ paramaters = {
         'points_file': 'data/points/604.mat',
         'grid_radius': 1.5,
         'grid_spacing': 20,
-        'brute_search_slices': [
-            slice(0, 0, 1j),
-            slice(0, 0, 1j),
-            slice(0, 0, 1j),
-            slice(0, 0, 1j),
-            slice(0, 0, 1j),
-            slice(0, 0, 1j),
-        ],
         'keras_model': 'data/keras_models/604/weights.h5',
         'description': "The phantom is comprised of a leak-proof PMMA cylinder and measures 330 mm in diameter by 300 "
             "mm long. The entire volume is filled with a unique orthogonal 3D grid of 3 mm diameter rods spaced 20 mm "
