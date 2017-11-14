@@ -67,6 +67,7 @@ class FullAlgorithmSuite(Suite):
         # 1. feature detector
         feature_detector = FeatureDetector(phantom_model, modality, voxels, ijk_to_xyz)
 
+        context['feature_image'] = feature_detector.feature_image
         context['preprocessed_image'] = feature_detector.preprocessed_image
 
         # 2. fp rejector
@@ -216,6 +217,7 @@ class FullAlgorithmSuite(Suite):
         distortion_magnitude[np.isnan(distortion_magnitude)] = nan_value
 
         s = slicer.PointsSlicer(context['preprocessed_image'], context['ijk_to_xyz'], descriptors)
+        s.add_renderer(slicer.render_overlay(context['feature_image']), hidden=True)
         s.add_renderer(slicer.render_points)
         s.add_renderer(slicer.render_cursor)
         s.add_renderer(slicer.render_legend)
