@@ -28,6 +28,7 @@ class cyclic_iterator:
             self.index = len(self.thelist)-1
         return self.thelist[self.index]
 
+
 def show_slices(voxels, overlaid_voxels=None):
     """
     Shows voxels and translucent overlay as overlaid_voxels
@@ -76,6 +77,7 @@ def show_slices(voxels, overlaid_voxels=None):
     slicer.draw()
     plt.show()
     return slicer
+
 
 class Slicer:
     def __init__(self, voxels):

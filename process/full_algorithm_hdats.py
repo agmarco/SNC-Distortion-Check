@@ -160,22 +160,6 @@ class FullAlgorithmSuite(Suite):
         print('min distortion magnitude: {:5.3f}mm'.format(metrics['min_distortion']))
 
         descriptors = [
-            # {
-                # 'points_xyz': context['A'],
-                # 'scatter_kwargs': {
-                    # 'color': 'b',
-                    # 'label': 'Gold Standard Unregistered',
-                    # 'marker': 'o'
-                # }
-            # },
-            {
-                'points_xyz': context['A_I'],
-                'scatter_kwargs': {
-                    'color': 'b',
-                    'label': 'Gold Standard Roughly Registered',
-                    'marker': 'o'
-                }
-            },
             {
                 'points_xyz': context['FN_A_S'],
                 'scatter_kwargs': {
@@ -210,7 +194,7 @@ class FullAlgorithmSuite(Suite):
             },
         ]
 
-        distortion_magnitude = np.linalg.norm(context['distortion_grid'], axis=3)
+        distortion_magnitude = context['distortion_grid']
         min_value = np.nanmin(distortion_magnitude)
         max_value = np.nanmax(distortion_magnitude)
         nan_value = min_value - 0.1*abs(max_value - min_value)
