@@ -185,6 +185,11 @@ class Slicer:
 
 
 def render_overlay(overlay, **additional_imshow_kwargs):
+    # def render_overlay(overlay, overlay_ijk_to_xyz, **additional_imshow_kwargs):
+    # TODO: update this
+    # if slicer.voxels.shape != overlay.shape or orientation_is_different:
+        # overlay = reiterpolate(overlay, overlay_ijk_to_xyz, slicer.ijk_to_xyz)
+
     vmin = np.min(overlay)
     vmax = np.max(overlay)
 

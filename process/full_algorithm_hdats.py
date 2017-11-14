@@ -205,14 +205,14 @@ class FullAlgorithmSuite(Suite):
         s.add_renderer(slicer.render_points)
         s.add_renderer(slicer.render_cursor)
         s.add_renderer(slicer.render_legend)
-        s.add_renderer(slicer.render_overlay(distortion_magnitude, cmap='cool', alpha=0.8))
+        #s.add_renderer(slicer.render_overlay(distortion_magnitude, cmap='cool', alpha=0.8))
         s.draw()
         plt.show()
 
         scatter3({
-            'False Negatives': context['FN_A_S'],
             'Gold Standard': context['TP_A_S'],
-            'True Positives': context['TP_B'],
             'False Positives': context['FP_B'],
+            'True Positives': context['TP_B'],
+            'False Negatives': context['FN_A_S'],
         })
         plt.show()
