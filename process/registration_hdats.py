@@ -5,17 +5,13 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 
-from process import phantoms
-from process.dicom_import import combined_series_from_zip
-from process.feature_detection import FeatureDetector
-from process.fp_rejector import remove_fps
 from . import file_io
 from .registration import rigidly_register_and_categorize
 from hdatt.suite import Suite
 from .visualization import scatter3
 from .phantoms import paramaters
 from . import affine
-from .utils import format_xyztpx, fov_center_xyz
+from .utils import format_xyztpx
 from . import points_utils
 
 
@@ -49,15 +45,6 @@ def no_distortion(x, y, z):
     return (0, 0, 0)
 
 
-def get_FLE_percentiles_near_isocenter(TP_B, TP_A_S, isocenter_in_B):
-    distances_to_isocenter = np.linalg.norm(TP_B - isocenter_in_B.reshape(3, 1), axis=0)
-    distortion_free_radius = 30
-    points_near_isocenter = distances_to_isocenter < distortion_free_radius
-    TP_B_near_isocenter = TP_B[:, points_near_isocenter]
-    TP_A_S_near_isocenter = TP_A_S[:, points_near_isocenter]
-    return points_utils.FLE_percentiles(TP_A_S_near_isocenter, TP_B_near_isocenter)
-
-
 @supress_near_isocenter
 def wavy_distortion(x, y, z):
     return (4*math.sin(x/50 + 30), 4*math.cos(x*y/90 + 30), (x + z)/100)
@@ -68,7 +55,7 @@ def bad_distortion(x, y, z):
     return (x/25, y/19, x/32 + y/20 + z/25)
 
 
-class MockRegistrationSuite(Suite):
+class RegistrationSuite(Suite):
     '''
     The registration HDAT tests register a set of phantom CAD points to a
     modified version of itself.  The set of modified points applies the
@@ -84,7 +71,7 @@ class MockRegistrationSuite(Suite):
 
     The random seed for each test is also specified.
     '''
-    id = 'mock_registration'
+    id = 'registration'
 
     def collect(self):
         cases = {
@@ -192,6 +179,14 @@ class MockRegistrationSuite(Suite):
 
         return B_final, xyztpx_expected
 
+    def FLE_percentiles_near_isocenter(self, TP_B, TP_A_S, isocenter_in_B):
+        distances_to_isocenter = np.linalg.norm(TP_B - isocenter_in_B.reshape(3, 1), axis=0)
+        distortion_free_radius = 30
+        points_near_isocenter = distances_to_isocenter < distortion_free_radius
+        TP_B_near_isocenter = TP_B[:, points_near_isocenter]
+        TP_A_S_near_isocenter = TP_A_S[:, points_near_isocenter]
+        return points_utils.FLE_percentiles(TP_A_S_near_isocenter, TP_B_near_isocenter)
+
     def run(self, case_input):
         metrics = OrderedDict()
         context = OrderedDict()
@@ -228,7 +223,7 @@ class MockRegistrationSuite(Suite):
         context['FP_B'] = FP_B
 
         FLE_percentiles = points_utils.FLE_percentiles(TP_A_S, TP_B)
-        FLE_percentiles_near_isocenter = get_FLE_percentiles_near_isocenter(
+        FLE_percentiles_near_isocenter = self.FLE_percentiles_near_isocenter(
                 TP_A_S, TP_B, isocenter_in_B)
 
         for p in [25, 50, 95, 99, 100]:
@@ -285,163 +280,6 @@ class MockRegistrationSuite(Suite):
         print(format_xyztpx(context['xyztpx_expected']))
         print('diff')
         print(format_xyztpx(context['xyztpx_actual'] - context['xyztpx_expected']))
-        print('stats')
-        print('TP = {}, FP = {}, FN = {}'.format(TP_B.shape[1], FP_B.shape[1], FN_A_S.shape[1]))
-        print('FLE global')
-        print(points_utils.format_FLE_percentile(context['FLE_100']))
-        print(points_utils.format_FLE_percentile(context['FLE_95']))
-        print(points_utils.format_FLE_percentile(context['FLE_50']))
-        print(points_utils.format_FLE_percentile(context['FLE_25']))
-        print('FLE near isocenter')
-        print(points_utils.format_FLE_percentile(context['FLE_100_near_isocenter']))
-        print(points_utils.format_FLE_percentile(context['FLE_95_near_isocenter']))
-        print(points_utils.format_FLE_percentile(context['FLE_50_near_isocenter']))
-        print(points_utils.format_FLE_percentile(context['FLE_25_near_isocenter']))
-
-        A_S = np.hstack((context['FN_A_S'], context['TP_A_S']))
-
-        scatter3({
-            'CAD': context['A'],
-            'CAD Registered to Detected': A_S,
-            'Detected': context['B'],
-            'isocenter': isocenter_in_B,
-        })
-        plt.show()
-
-        distances_to_isocenter = np.linalg.norm(TP_B - isocenter_in_B, axis=0)
-        distortion_free_radius = 60
-        points_near_isocenter = distances_to_isocenter < distortion_free_radius
-        TP_B_near_isocenter = TP_B[:, points_near_isocenter]
-        TP_A_S_near_isocenter = TP_A_S[:, points_near_isocenter]
-
-        scatter3({
-            'CAD Registered to Detected': TP_A_S_near_isocenter,
-            'Detected': TP_B_near_isocenter,
-            'isocenter': isocenter_in_B,
-        })
-        plt.show()
-
-
-class RealRegistrationSuite(Suite):
-    id = 'real_registration'
-
-    def collect(self):
-        return {
-            '604-1': {
-                'dicom': 'data/dicom/604 MRI ST150 in Siemens Vida 3T_at ISO.zip',
-                'modality': 'mri',
-                'phantom': '604',
-            }
-        }
-
-    def run(self, case_input):
-        metrics = OrderedDict()
-        context = OrderedDict()
-
-        phantom_paramaters = phantoms.paramaters[case_input['phantom']]
-        golden_points_filename = phantom_paramaters['points_file']
-        golden_points = file_io.load_points(golden_points_filename)['points']
-        context['A'] = golden_points
-
-        # 0. generate voxel data from zip file
-        voxels, ijk_to_xyz = combined_series_from_zip(case_input['dicom'])
-        phantom = case_input['phantom']
-        modality = case_input['modality']
-        voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
-
-        context['ijk_to_xyz'] = ijk_to_xyz
-
-        # 1. feature detector
-        feature_detector = FeatureDetector(phantom, modality, voxels, ijk_to_xyz)
-
-        context['preprocessed_image'] = feature_detector.preprocessed_image
-
-        # 2. fp rejector
-        points_ijk = feature_detector.points_ijk
-        pruned_points_ijk = remove_fps(points_ijk, voxels, voxel_spacing, phantom)
-        pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
-        context['B'] = pruned_points_xyz
-
-        isocenter_in_B = fov_center_xyz(voxels.shape, ijk_to_xyz)
-        context['isocenter_in_B'] = isocenter_in_B
-
-        context['A_I'] = affine.apply_affine(affine.translation(*isocenter_in_B), context['A'])
-
-        # 3. rigidly register
-        xyztpx, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
-            golden_points,
-            pruned_points_xyz,
-            phantom_paramaters['grid_spacing'],
-            isocenter_in_B,
-        )
-
-        x, y, z, theta, phi, xi = xyztpx
-        metrics['x'] = x
-        metrics['y'] = y
-        metrics['z'] = z
-        metrics['theta_degrees'] = math.degrees(theta)
-        metrics['phi_degrees'] = math.degrees(phi)
-        metrics['xi_degrees'] = math.degrees(xi)
-
-        metrics['registration_shift'] = np.sqrt(x*x + y*y + z*z)
-
-        context['FN_A_S'] = FN_A_S
-        context['TP_A_S'] = TP_A_S
-        context['TP_B'] = TP_B
-        context['FP_B'] = FP_B
-
-        FLE_percentiles = points_utils.FLE_percentiles(TP_A_S, TP_B)
-        FLE_percentiles_near_isocenter = get_FLE_percentiles_near_isocenter(
-                TP_A_S, TP_B, isocenter_in_B)
-
-        for p in [25, 50, 95, 99, 100]:
-            context['FLE_{}'.format(p)] = FLE_percentiles[p]
-            context['FLE_{}_near_isocenter'.format(p)] = FLE_percentiles_near_isocenter[p]
-
-        metrics['FLE_100'] = FLE_percentiles[100]['r']
-        metrics['FLE_50'] = FLE_percentiles[50]['r']
-        metrics['FLE_50_near_isocenter'] = FLE_percentiles[50]['r']
-
-        return metrics, context
-
-    def verify(self, old, new):
-        # TODO: split out these types of assertions into another library
-
-        shift_tolerance = 0.1
-        if not math.isclose(old['x'], new['x'], abs_tol=shift_tolerance):
-            return False, f"{new['x']} is not within {shift_tolerance} of {old['x']}"
-        if not math.isclose(old['y'], new['y'], abs_tol=shift_tolerance):
-            return False, f"{new['y']} is not within {shift_tolerance} of {old['y']}"
-        if not math.isclose(old['z'], new['z'], abs_tol=shift_tolerance):
-            return False, f"{new['z']} is not within {shift_tolerance} of {old['z']}"
-
-        rotation_tolerance = 0.2
-        if not math.isclose(old['theta_degrees'], new['theta_degrees'], abs_tol=rotation_tolerance):
-            return False, f"{new['theta_degrees']} is not within {rotation_tolerance} of {old['theta_degrees']}"
-        if not math.isclose(old['phi_degrees'], new['phi_degrees'], abs_tol=rotation_tolerance):
-            return False, f"{new['phi_degrees']} is not within {rotation_tolerance} of {old['phi_degrees']}"
-        if not math.isclose(old['xi_degrees'], new['xi_degrees'], abs_tol=rotation_tolerance):
-            return False, f"{new['xi_degrees']} is not within {rotation_tolerance} of {old['xi_degrees']}"
-
-        if new['FLE_100'] > old['FLE_100']:
-            return False, f"The FLE_100 value increased"
-        if new['FLE_50'] > old['FLE_50']:
-            return False, f"The FLE_50 value increased"
-        if new['FLE_50_near_isocenter'] > old['FLE_50_near_isocenter']:
-            return False, f"The FLE_50_near_isocenter value increased"
-
-        return True, 'New metrics are as good or better than old metrics'
-
-    def show(self, result):
-        context = result['context']
-        case_input = result['case_input']
-
-        FN_A_S = context['FN_A_S']
-        TP_A_S = context['TP_A_S']
-        TP_B = context['TP_B']
-        FP_B = context['FP_B']
-        isocenter_in_B = context['isocenter_in_B'].reshape(3, 1)
-
         print('stats')
         print('TP = {}, FP = {}, FN = {}'.format(TP_B.shape[1], FP_B.shape[1], FN_A_S.shape[1]))
         print('FLE global')
