@@ -8,6 +8,8 @@ logger = logging.getLogger(__name__)
 
 
 def interpolate_distortion(TP_A_S, error_mags, grid_density_mm):
+    # TODO: add good docstring
+    # TODO: add buffer so that we don't have natural neighbor boundary artifacts
     coord_min_xyz = np.amin(TP_A_S, axis=1)
     coord_max_xyz = np.amax(TP_A_S, axis=1)
 
