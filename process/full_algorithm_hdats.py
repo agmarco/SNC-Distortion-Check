@@ -111,7 +111,7 @@ class FullAlgorithmSuite(Suite):
         # 4. interpolate
         grid_density_mm = 4.0
         error_mags = np.linalg.norm(TP_A_S - TP_B, axis=0)
-        coord_min_xyz, distortion_grid = interpolate_distortion(TP_A_S, error_mags, ijk_to_xyz, grid_density_mm)
+        coord_min_xyz, distortion_grid = interpolate_distortion(TP_A_S, error_mags, grid_density_mm)
         context['distortion_grid'] = distortion_grid
 
         # calculate metrics

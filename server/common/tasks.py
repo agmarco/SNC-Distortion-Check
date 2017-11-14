@@ -261,7 +261,7 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
             TP_A_S = scan.TP_A_S.fiducials
             error_mags = scan.error_mags
 
-            coord_min_xyz, interpolated_error_mags = interpolate_distortion(TP_A_S, error_mags, ijk_to_xyz, GRID_DENSITY_mm)
+            coord_min_xyz, interpolated_error_mags = interpolate_distortion(TP_A_S, error_mags, GRID_DENSITY_mm)
 
             output_dir = tempfile.mkdtemp()
             logger.info("Exporting overlay to dicoms")
