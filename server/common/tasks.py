@@ -22,12 +22,9 @@ from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
 from django.conf import settings
 from django.template import loader
-from naturalneighbor import griddata
-from PIL import Image, ImageDraw, ImageFont
 
 from process import dicom_import, affine, fp_rejector, phantoms
-from process.affine import apply_affine
-from process.dicom_import import image_orientation_from_tmat
+from process.affine import apply_affine_1
 from process.feature_detection import FeatureDetector
 from process.registration import rigidly_register_and_categorize
 from process.reports import generate_reports
@@ -257,24 +254,23 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
 
             scan = models.Scan.objects.get(pk=scan_pk)
             ds = scan.dicom_series
-            ijk_to_xyz = ds.ijk_to_xyz
             TP_A_S = scan.TP_A_S.fiducials
             error_mags = scan.error_mags
 
-            coord_min_xyz, interpolated_error_mags = interpolate_distortion(TP_A_S, error_mags, GRID_DENSITY_mm)
+            overlay_ijk_to_xyz, interpolated_error_mags = interpolate_distortion(TP_A_S, error_mags, GRID_DENSITY_mm)
 
             output_dir = tempfile.mkdtemp()
             logger.info("Exporting overlay to dicoms")
             export_overlay(
                 voxel_array=interpolated_error_mags,
                 voxelSpacing_tup=(GRID_DENSITY_mm, GRID_DENSITY_mm, GRID_DENSITY_mm),
-                voxelPosition_tup=coord_min_xyz,
+                voxelPosition_tup=apply_affine_1(overlay_ijk_to_xyz, np.zeros((3,))),
                 studyInstanceUID=study_instance_uid or ds.study_uid,
                 seriesInstanceUID=generate_uid(),
                 frameOfReferenceUID=frame_of_reference_uid or ds.frame_of_reference_uid,
                 patientID=patient_id or ds.patient_id,
                 output_directory=output_dir,
-                imageOrientationPatient=image_orientation_from_tmat(ijk_to_xyz)
+                imageOrientationPatient=np.array([1, 0, 0, 0, 1, 0]),
             )
             logger.info("Done exporting overlay")
             zip_bytes = io.BytesIO()
@@ -405,7 +401,7 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
         ds.PatientID = patientID
 
         # general study module
-        ds.ContentDate = str(datetime.today()).replace('-','')
+        ds.ContentDate = str(datetime.today()).replace('-', '')
         ds.ContentTime = str(time.time())
         ds.StudyInstanceUID = studyInstanceUID
         ds.StudyDescription = 'Distortion Overlay'
