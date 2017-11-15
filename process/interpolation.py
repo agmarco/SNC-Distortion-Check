@@ -4,6 +4,8 @@ import numpy as np
 import naturalneighbor
 import scipy.interpolate
 
+from process.affine import scaleing, translation
+
 logger = logging.getLogger(__name__)
 
 
@@ -29,7 +31,8 @@ def interpolate_distortion(TP_A_S, error_mags, grid_density_mm):
             np.sum(extrapolated_region), extrapolated_region.size)
 
     interpolated_error_mags[extrapolated_region] = 0.0
-    return coord_min_xyz, interpolated_error_mags
+    ijk_to_xyz = translation(*list(coord_min_xyz)) @ scaleing(grid_density_mm, grid_density_mm, grid_density_mm)
+    return ijk_to_xyz, interpolated_error_mags
 
 
 def convex_hull_region(points, grid_ranges):

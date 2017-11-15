@@ -1,12 +1,14 @@
 import copy
 
 import scipy
+import scipy.interpolate
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import NoNorm
 
 from process import affine
+from process.affine import apply_affine
 
 
 class cyclic_iterator:
@@ -184,11 +186,8 @@ class Slicer:
         plt.draw()
 
 
-def render_overlay(overlay, **additional_imshow_kwargs):
+def render_overlay(overlay, overlay_ijk_to_xyz, **additional_imshow_kwargs):
     # def render_overlay(overlay, overlay_ijk_to_xyz, **additional_imshow_kwargs):
-    # TODO: update this
-    # if slicer.voxels.shape != overlay.shape or orientation_is_different:
-        # overlay = reiterpolate(overlay, overlay_ijk_to_xyz, slicer.ijk_to_xyz)
 
     vmin = np.min(overlay)
     vmax = np.max(overlay)
@@ -203,7 +202,33 @@ def render_overlay(overlay, **additional_imshow_kwargs):
 
     imshow_kwargs = {**base_kwargs, **additional_imshow_kwargs}
 
+    def get_points_ijk(voxels):
+        points = np.empty((voxels.size, 3), dtype=int)
+        for i in range(0, voxels.shape[0]):
+            for j in range(0, voxels.shape[1]):
+                for k in range(0, voxels.shape[2]):
+                    index = i * voxels.shape[1] * voxels.shape[2] + j * voxels.shape[2] + k
+                    points[index, :] = np.array([i, j, k])
+        return points.T
+
     def renderer(slicer):
+        nonlocal overlay
+        nonlocal overlay_ijk_to_xyz
+        if slicer.voxels.shape != overlay.shape or not np.allclose(slicer.ijk_to_xyz, overlay_ijk_to_xyz):
+            overlay_points_ijk = get_points_ijk(overlay)
+            overlay_points_xyz = apply_affine(overlay_ijk_to_xyz, overlay_points_ijk.astype(np.double))
+
+            values = np.empty((overlay.size,), dtype=np.double)
+            for index, (i, j, k) in enumerate(overlay_points_ijk.T):
+                values[index] = overlay[i, j, k]
+
+            slicer_points_ijk = get_points_ijk(slicer.voxels)
+            slicer_points_xyz = apply_affine(slicer.ijk_to_xyz, slicer_points_ijk.astype(np.double))
+
+            overlay = scipy.interpolate.griddata(overlay_points_xyz.T, values, slicer_points_xyz.T, method='nearest')
+            overlay = overlay.reshape(slicer.voxels.shape)
+            overlay_ijk_to_xyz = slicer.ijk_to_xyz
+
         assert slicer.voxels.shape == overlay.shape
         _imshow(slicer, overlay, imshow_kwargs)
 

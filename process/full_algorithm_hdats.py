@@ -111,8 +111,9 @@ class FullAlgorithmSuite(Suite):
         # 4. interpolate
         grid_density_mm = 4.0
         error_mags = np.linalg.norm(TP_A_S - TP_B, axis=0)
-        coord_min_xyz, distortion_grid = interpolate_distortion(TP_A_S, error_mags, grid_density_mm)
+        overlay_ijk_to_xyz, distortion_grid = interpolate_distortion(TP_A_S, error_mags, grid_density_mm)
         context['distortion_grid'] = distortion_grid
+        context['overlay_ijk_to_xyz'] = overlay_ijk_to_xyz
 
         # calculate metrics
         is_nan = np.isnan(distortion_grid)
@@ -199,13 +200,14 @@ class FullAlgorithmSuite(Suite):
         max_value = np.nanmax(distortion_magnitude)
         nan_value = min_value - 0.1*abs(max_value - min_value)
         distortion_magnitude[np.isnan(distortion_magnitude)] = nan_value
+        overlay_ijk_to_xyz = context['overlay_ijk_to_xyz']
 
         s = slicer.PointsSlicer(context['preprocessed_image'], context['ijk_to_xyz'], descriptors)
-        s.add_renderer(slicer.render_overlay(context['feature_image']), hidden=True)
+        s.add_renderer(slicer.render_overlay(context['feature_image'], overlay_ijk_to_xyz), hidden=True)
         s.add_renderer(slicer.render_points)
         s.add_renderer(slicer.render_cursor)
         s.add_renderer(slicer.render_legend)
-        #s.add_renderer(slicer.render_overlay(distortion_magnitude, cmap='cool', alpha=0.8))
+        s.add_renderer(slicer.render_overlay(distortion_magnitude, overlay_ijk_to_xyz, cmap='cool', alpha=0.8))
         s.draw()
         plt.show()
 
