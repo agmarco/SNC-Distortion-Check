@@ -207,7 +207,7 @@ class FullAlgorithmSuite(Suite):
         s.add_renderer(slicer.render_points)
         s.add_renderer(slicer.render_cursor)
         s.add_renderer(slicer.render_legend)
-        s.add_renderer(slicer.render_overlay(distortion_magnitude, overlay_ijk_to_xyz, cmap='cool', alpha=0.8))
+        s.add_renderer(slicer.render_overlay(distortion_magnitude, overlay_ijk_to_xyz, cmap='cool', alpha=0.8), hidden=True)
         s.draw()
         plt.show()
 

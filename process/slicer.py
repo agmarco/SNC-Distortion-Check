@@ -5,6 +5,7 @@ import scipy.interpolate
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import time
 from matplotlib.colors import NoNorm
 
 from process import affine
@@ -210,10 +211,13 @@ def render_overlay(overlay, overlay_ijk_to_xyz, **additional_imshow_kwargs):
                     points[index, :] = np.array([i, j, k])
         return points.T
 
+    # TODO: if this renderer is initially hidden, toggling it the first time will freeze the program until
+    # the reinterpolation is complete
     def renderer(slicer):
         nonlocal firstrun
         nonlocal overlay
         if firstrun and (slicer.voxels.shape != overlay.shape or not np.allclose(slicer.ijk_to_xyz, overlay_ijk_to_xyz)):
+            start = time.time()
             overlay_points_ijk = get_points_ijk(overlay)
             overlay_points_xyz = apply_affine(overlay_ijk_to_xyz, overlay_points_ijk.astype(np.double))
 
@@ -226,6 +230,8 @@ def render_overlay(overlay, overlay_ijk_to_xyz, **additional_imshow_kwargs):
 
             overlay = scipy.interpolate.griddata(overlay_points_xyz.T, values, slicer_points_xyz.T, method='nearest')
             overlay = overlay.reshape(slicer.voxels.shape)
+            end = time.time()
+            print(end - start)
         firstrun = False
 
         assert slicer.voxels.shape == overlay.shape
