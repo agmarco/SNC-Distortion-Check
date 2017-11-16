@@ -203,7 +203,7 @@ class FullAlgorithmSuite(Suite):
         overlay_ijk_to_xyz = context['overlay_ijk_to_xyz']
 
         s = slicer.PointsSlicer(context['preprocessed_image'], context['ijk_to_xyz'], descriptors)
-        s.add_renderer(slicer.render_overlay(context['feature_image'], overlay_ijk_to_xyz), hidden=True)
+        s.add_renderer(slicer.render_overlay(context['feature_image'], context['ijk_to_xyz']), hidden=True)
         s.add_renderer(slicer.render_points)
         s.add_renderer(slicer.render_cursor)
         s.add_renderer(slicer.render_legend)
