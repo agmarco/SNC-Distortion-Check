@@ -187,8 +187,6 @@ class Slicer:
 
 
 def render_overlay(overlay, overlay_ijk_to_xyz, **additional_imshow_kwargs):
-    # def render_overlay(overlay, overlay_ijk_to_xyz, **additional_imshow_kwargs):
-
     vmin = np.min(overlay)
     vmax = np.max(overlay)
 
@@ -201,6 +199,7 @@ def render_overlay(overlay, overlay_ijk_to_xyz, **additional_imshow_kwargs):
     }
 
     imshow_kwargs = {**base_kwargs, **additional_imshow_kwargs}
+    firstrun = True
 
     def get_points_ijk(voxels):
         points = np.empty((voxels.size, 3), dtype=int)
@@ -212,9 +211,9 @@ def render_overlay(overlay, overlay_ijk_to_xyz, **additional_imshow_kwargs):
         return points.T
 
     def renderer(slicer):
+        nonlocal firstrun
         nonlocal overlay
-        nonlocal overlay_ijk_to_xyz
-        if slicer.voxels.shape != overlay.shape or not np.allclose(slicer.ijk_to_xyz, overlay_ijk_to_xyz):
+        if firstrun and (slicer.voxels.shape != overlay.shape or not np.allclose(slicer.ijk_to_xyz, overlay_ijk_to_xyz)):
             overlay_points_ijk = get_points_ijk(overlay)
             overlay_points_xyz = apply_affine(overlay_ijk_to_xyz, overlay_points_ijk.astype(np.double))
 
@@ -227,7 +226,7 @@ def render_overlay(overlay, overlay_ijk_to_xyz, **additional_imshow_kwargs):
 
             overlay = scipy.interpolate.griddata(overlay_points_xyz.T, values, slicer_points_xyz.T, method='nearest')
             overlay = overlay.reshape(slicer.voxels.shape)
-            overlay_ijk_to_xyz = slicer.ijk_to_xyz
+        firstrun = False
 
         assert slicer.voxels.shape == overlay.shape
         _imshow(slicer, overlay, imshow_kwargs)
