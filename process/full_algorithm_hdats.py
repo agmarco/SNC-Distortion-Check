@@ -40,11 +40,46 @@ class FullAlgorithmSuite(Suite):
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
+            '603A-5': {
+                'dicom': 'data/dicom/013_mri_603A_patient_10182017.zip',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
+            '603A-6': {
+                'dicom': 'data/dicom/014_mri_603A_T1_MPRAGE_TRA_P2_ISO_0_8_CORRECTED_DISTORTION_0005.zip',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
+            '603A-7': {
+                'dicom': 'data/dicom/015_mri_603A_T1_MPRAGE_test_2.zip',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
+            '603A-8': {
+                'dicom': 'data/dicom/016_mri_603A_T1_Mprage_test_1.zip',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
+            '603A-9': {
+                'dicom': 'data/dicom/017_mri_603A_t1mpr_tra_Complete_NoExtraFiles.zip',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
+            '603A-10': {
+                'dicom': 'data/dicom/018_mri_603A_vibe_tra_FS.zip',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
             '604-1': {
                 'dicom': 'data/dicom/010_mri_604_LFV-Phantom_E2632-1.zip',
                 'modality': 'mri',
                 'phantom_model': '604',
-            }
+            },
+            '604-2': {
+                'dicom': 'data/dicom/012_mri_604_ST150_in_Siemens_Vida 3T_at_ISO.zip',
+                'modality': 'mri',
+                'phantom_model': '604',
+            },
         }
 
     def run(self, case_input):

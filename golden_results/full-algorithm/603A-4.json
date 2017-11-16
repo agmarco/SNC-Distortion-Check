@@ -1,18 +1,18 @@
 {
     "case_id": "603A-4",
-    "commit": "aba1a484f94319a16193f7da35e95ae16c63b66d",
+    "commit": "c757d0d057d546bc3097bc545863acd379a80751",
     "metrics": {
         "FPF": 0.037383177570093455,
         "TPF": 0.9223880597014925,
         "fraction_of_volume_covered": 1.0,
-        "max_distortion": 1.5019424743231693,
-        "median_distortion": 0.2460526619827918,
+        "max_distortion": 1.3443670320011574,
+        "median_distortion": 0.22058641200325813,
         "min_distortion": 0.0,
         "registration_shift": 32.80701337053043
     },
-    "ran_on": 1510706675.132148,
+    "ran_on": 1510881699.294857,
     "repo_dirty": true,
-    "result_id": "1510706675.132148_aba1a484f94319a16193f7da35e95ae16c63b66d",
-    "status": "unknown",
+    "result_id": "1510881699.294857_c757d0d057d546bc3097bc545863acd379a80751",
+    "status": "fail",
     "suite_id": "full-algorithm"
 }
