@@ -30,7 +30,7 @@ def rotation_z(xi):
     ], dtype='f')
 
 
-def scaleing(x, y, z):
+def scaling(x, y, z):
     return np.array([
         [x, 0, 0, 0],
         [0, y, 0, 0],

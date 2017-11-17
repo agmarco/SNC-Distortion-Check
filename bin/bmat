@@ -1,0 +1,26 @@
+#!/usr/bin/env python
+import sys
+
+import scipy.io
+
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print('Usage: bmat MATFILE [VARNAME...]')
+        sys.exit(1)
+
+    mat_filename, *variable_names = sys.argv[1:]
+    data = scipy.io.loadmat(mat_filename)
+
+    if not variable_names:
+        for name, value in data.items():
+            if not name.startswith('__'):
+                print(name)
+                print(value)
+    else:
+        for name in variable_names:
+            if name in data:
+                print(name)
+                print(data[name])
+            else:
+                print('Variable "{}" does not exist'.format(name))

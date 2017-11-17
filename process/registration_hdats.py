@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from . import file_io
-from .registration import rigidly_register_and_categorize, g_cutoff
+from .registration import rigidly_register_and_categorize
 from hdatt.suite import Suite
 from .visualization import scatter3
 from .phantoms import paramaters
@@ -27,7 +27,7 @@ def supress_near_isocenter(distortion):
     MR Scanners are designed to not have distortion near the isocenter.
 
     This decorator supresses distortion near the isocenter using a sigmoidal
-    function.  Distortions at `g_cutoff` are 1/2 the value they would have been
+    function.  Distortions at 100mm are 1/2 the value they would have been
     without the supression.
     '''
     @wraps(distortion)
@@ -35,7 +35,7 @@ def supress_near_isocenter(distortion):
         dx, dy, dz = distortion(x, y, z)
 
         distances_to_isocenter = math.sqrt(x*x + y*y + z*z)
-        supression_factor = distances_to_isocenter/(g_cutoff + distances_to_isocenter)
+        supression_factor = distances_to_isocenter/(100 + distances_to_isocenter)
         return (dx*supression_factor, dy*supression_factor, dz*supression_factor)
 
     return supressed_distortion
@@ -46,13 +46,13 @@ def no_distortion(x, y, z):
 
 
 @supress_near_isocenter
-def symmetric_x_distortion(x, y, z):
-    return (x/20, 0, 0)
+def wavy_distortion(x, y, z):
+    return (4*math.sin(x/50 + 30), 4*math.cos(x*y/90 + 30), (x + z)/100)
 
 
 @supress_near_isocenter
 def bad_distortion(x, y, z):
-    return (x/15, y/10, x/32 + y/10 + z/15)
+    return (x/25, y/19, x/32 + y/20 + z/25)
 
 
 class RegistrationSuite(Suite):
@@ -75,47 +75,36 @@ class RegistrationSuite(Suite):
 
     def collect(self):
         cases = {
-            # TODO: determine which of these we want to include, then verify them
-            # '603A_trans': {
-                # 'phantom': '603A',
-                # 'seed': 133,
-                # 'false_negative_fraction': 0,
-                # 'distort_point': no_distortion,
-                # 'rotations_in_degrees': (0, 0, 0),
-                # 'translation_magnitude_mm': 5,
-                # 'noise_sigma_mm': 0.3,
-                # 'false_positive_fraction': 0,
-            # },
-            # '603A_trans_pruned': {
-                # 'phantom': '603A',
-                # 'seed': 133,
-                # 'false_negative_fraction': 0.2,
-                # 'distort_point': no_distortion,
-                # 'rotations_in_degrees': (0, 0, 0),
-                # 'translation_magnitude_mm': 5,
-                # 'noise_sigma_mm': 0.3,
-                # 'false_positive_fraction': 0,
-            # },
-            # '603A_rot': {
-                # 'phantom': '603A',
-                # 'seed': 134,
-                # 'false_negative_fraction': 0,
-                # 'distort_point': no_distortion,
-                # 'rotations_in_degrees': (0, 0, 4),
-                # 'translation_magnitude_mm': 0.1,
-                # 'noise_sigma_mm': 0.3,
-                # 'false_positive_fraction': 0,
-            # },
-            # '603A_rot_trans': {
-                # 'phantom': '603A',
-                # 'seed': 134,
-                # 'false_negative_fraction': 0,
-                # 'distort_point': no_distortion,
-                # 'rotations_in_degrees': (2, -2, 4),
-                # 'translation_magnitude_mm': 4,
-                # 'noise_sigma_mm': 0.3,
-                # 'false_positive_fraction': 0,
-            # },
+            '603A_small_trans': {
+                'phantom': '603A',
+                'seed': 133,
+                'false_negative_fraction': 0,
+                'distort_point': no_distortion,
+                'rotations_in_degrees': (0, 0, 0),
+                'translation_magnitude_mm': 5,
+                'noise_sigma_mm': 0.3,
+                'false_positive_fraction': 0,
+            },
+            '603A_trans_pruned': {
+                'phantom': '603A',
+                'seed': 133,
+                'false_negative_fraction': 0.2,
+                'distort_point': no_distortion,
+                'rotations_in_degrees': (0, 0, 0),
+                'translation_magnitude_mm': 5,
+                'noise_sigma_mm': 0.3,
+                'false_positive_fraction': 0,
+            },
+            '603A_rot_trans': {
+                'phantom': '603A',
+                'seed': 134,
+                'false_negative_fraction': 0,
+                'distort_point': wavy_distortion,
+                'rotations_in_degrees': (2, -2, 4),
+                'translation_magnitude_mm': 4,
+                'noise_sigma_mm': 0.3,
+                'false_positive_fraction': 0,
+            },
             '603A_worstcase': {
                 'phantom': '603A',
                 'seed': 134,
@@ -125,6 +114,26 @@ class RegistrationSuite(Suite):
                 'translation_magnitude_mm': 5,
                 'noise_sigma_mm': 0.3,
                 'false_positive_fraction': 0.5,
+            },
+            '604_big_trans': {
+                'phantom': '604',
+                'seed': 133,
+                'false_negative_fraction': 0.1,
+                'distort_point': no_distortion,
+                'rotations_in_degrees': (3.5, 5.6, 3.5),
+                'translation_magnitude_mm': 65,
+                'noise_sigma_mm': 1.4,
+                'false_positive_fraction': 0.1,
+            },
+            '603A_big_trans': {
+                'phantom': '603A',
+                'seed': 133,
+                'false_negative_fraction': 0.15,
+                'distort_point': no_distortion,
+                'rotations_in_degrees': (-4.2, 3.3, 4.5),
+                'translation_magnitude_mm': 54,
+                'noise_sigma_mm': 0.9,
+                'false_positive_fraction': 0.1,
             },
         }
         return cases
@@ -191,11 +200,11 @@ class RegistrationSuite(Suite):
         context['B'] = B
         context['xyztpx_expected'] = xyztpx_expected
 
-        isocenter_in_B = xyztpx_expected[:3]
+        isocenter_in_B = np.array([0, 0, 0], dtype=np.double)
         context['isocenter_in_B'] = isocenter_in_B
 
         xyztpx, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
-                A, B, isocenter_in_B, phantom_paramaters['brute_search_slices'])
+                A, B, phantom_paramaters['grid_spacing'], isocenter_in_B)
 
         context['xyztpx_actual'] = xyztpx
         x, y, z, theta, phi, xi = xyztpx
@@ -295,7 +304,7 @@ class RegistrationSuite(Suite):
         plt.show()
 
         distances_to_isocenter = np.linalg.norm(TP_B - isocenter_in_B, axis=0)
-        distortion_free_radius = 30
+        distortion_free_radius = 60
         points_near_isocenter = distances_to_isocenter < distortion_free_radius
         TP_B_near_isocenter = TP_B[:, points_near_isocenter]
         TP_A_S_near_isocenter = TP_A_S[:, points_near_isocenter]
