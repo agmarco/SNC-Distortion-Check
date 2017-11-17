@@ -46,7 +46,7 @@ def process_scan(scan_pk, dicom_archive_url=None):
     try:
         modality = 'mri'
         phantom_model = scan.phantom.model.model_number
-        phantom_paramaters = phantoms.paramaters[phantom_model]
+        grid_spacing = phantoms.paramaters[phantom_model]['grid_spacing']
         active_gold_standard = scan.phantom.active_gold_standard
         _, num_golden_fiducials = active_gold_standard.fiducials.fiducials.shape
 
@@ -116,7 +116,7 @@ def process_scan(scan_pk, dicom_archive_url=None):
         _, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
             scan.golden_fiducials.fiducials.fiducials,
             scan.detected_fiducials.fiducials,
-            phantom_paramaters['grid_spacing'],
+            grid_spacing,
             isocenter_in_B,
         )
 
@@ -134,10 +134,10 @@ def process_scan(scan_pk, dicom_archive_url=None):
                 f"Only {TPF*100:.1f}% of the {num_golden_fiducials} gold standard points could "
                 f"be matched to one of the {num_fiducials} detected grid intersection locations.  This "
                 f"is less than our minimum allowable {TPF_minimum*100:.1f}%, thus we aborted processing "
-                f"the scan.  Please be sure to (1) orient the phantom correctly with 4° along each axis, "
-                f"(2) position the phantom's center within 5 mm of the isocenter, (3) position the "
-                f"scanner's isocenter in the exact center of the field of view, (4) ensure the pixel "
-                f"size and slice spacing is sufficient to resolve the grid intersections.  If you believe "
+                f"the scan.  Please be sure to (1) orient the phantom within 5° of the expected orientation, "
+                f"(2) the phantom's center is at most {3*grid_spacing:.1f} mm from the isocenter, (3) the "
+                f"scanner's isocenter in the center of the field of view, (4) the pixel "
+                f"size and slice spacing is sufficient to resolve the phantom grid intersections.  If you believe "
                 f"none of these scenarios can explain the failure, please let CIRS support know about "
                 f"the issue."
             )
