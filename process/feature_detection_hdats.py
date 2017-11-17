@@ -4,7 +4,6 @@ from functools import partial
 import matplotlib.pyplot as plt
 import numpy as np
 
-from process import affine
 from . import file_io
 from . import points_utils
 from . import slicer
@@ -13,7 +12,6 @@ from . import affine
 from .fp_rejector import remove_fps
 from hdatt.suite import Suite
 from .feature_detection import FeatureDetector
-from .visualization import scatter3
 
 
 class FeatureDetectionSuite(Suite):

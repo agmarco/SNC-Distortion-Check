@@ -2,13 +2,12 @@ from collections import OrderedDict
 import math
 
 import numpy as np
-from scipy.interpolate.interpnd import LinearNDInterpolator
 import matplotlib.pyplot as plt
 
 from . import points_utils, phantoms, slicer, affine, file_io
 from .utils import fov_center_xyz
 from .visualization import scatter3
-from .interpolate import interpolate_distortion
+from .interpolation import interpolate_distortion
 from hdatt.suite import Suite
 from .fp_rejector import remove_fps
 from .affine import rotation_translation
@@ -41,11 +40,46 @@ class FullAlgorithmSuite(Suite):
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
+            '603A-5': {
+                'dicom': 'data/dicom/013_mri_603A_patient_10182017.zip',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
+            '603A-6': {
+                'dicom': 'data/dicom/014_mri_603A_T1_MPRAGE_TRA_P2_ISO_0_8_CORRECTED_DISTORTION_0005.zip',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
+            '603A-7': {
+                'dicom': 'data/dicom/015_mri_603A_T1_MPRAGE_test_2.zip',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
+            '603A-8': {
+                'dicom': 'data/dicom/016_mri_603A_T1_Mprage_test_1.zip',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
+            '603A-9': {
+                'dicom': 'data/dicom/017_mri_603A_t1mpr_tra_Complete_NoExtraFiles.zip',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
+            '603A-10': {
+                'dicom': 'data/dicom/018_mri_603A_vibe_tra_FS.zip',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
             '604-1': {
                 'dicom': 'data/dicom/010_mri_604_LFV-Phantom_E2632-1.zip',
                 'modality': 'mri',
                 'phantom_model': '604',
-            }
+            },
+            '604-2': {
+                'dicom': 'data/dicom/012_mri_604_ST150_in_Siemens_Vida 3T_at_ISO.zip',
+                'modality': 'mri',
+                'phantom_model': '604',
+            },
         }
 
     def run(self, case_input):
@@ -68,6 +102,7 @@ class FullAlgorithmSuite(Suite):
         # 1. feature detector
         feature_detector = FeatureDetector(phantom_model, modality, voxels, ijk_to_xyz)
 
+        context['feature_image'] = feature_detector.feature_image
         context['preprocessed_image'] = feature_detector.preprocessed_image
 
         # 2. fp rejector
@@ -83,8 +118,8 @@ class FullAlgorithmSuite(Suite):
         xyztpx, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
             golden_points,
             pruned_points_xyz,
+            phantom_paramaters['grid_spacing'],
             isocenter_in_B,
-            phantom_paramaters['brute_search_slices'],
         )
 
         x, y, z, theta, phi, xi = xyztpx
@@ -109,22 +144,24 @@ class FullAlgorithmSuite(Suite):
         metrics['FPF'] = FPF
 
         # 4. interpolate
-        distortion_grid = interpolate_distortion(TP_A_S, TP_B, ijk_to_xyz, voxels.shape)
+        grid_density_mm = 4.0
+        error_mags = np.linalg.norm(TP_A_S - TP_B, axis=0)
+        overlay_ijk_to_xyz, distortion_grid = interpolate_distortion(TP_A_S, error_mags, grid_density_mm)
         context['distortion_grid'] = distortion_grid
+        context['overlay_ijk_to_xyz'] = overlay_ijk_to_xyz
 
         # calculate metrics
-        magnitude_mm = np.linalg.norm(distortion_grid, axis=3)
-        is_nan = np.isnan(magnitude_mm)
+        is_nan = np.isnan(distortion_grid)
         num_finite = np.sum(~is_nan)
-        num_total = magnitude_mm.size
+        num_total = distortion_grid.size
 
         metrics['fraction_of_volume_covered'] = num_finite/num_total
-        metrics['max_distortion'] = np.nanmax(magnitude_mm)
-        metrics['median_distortion'] = np.nanmedian(magnitude_mm)
-        metrics['min_distortion'] = np.nanmin(magnitude_mm)
+        metrics['max_distortion'] = np.nanmax(distortion_grid)
+        metrics['median_distortion'] = np.nanmedian(distortion_grid)
+        metrics['min_distortion'] = np.nanmin(distortion_grid)
 
         print('histogram mm')
-        print_histogram(magnitude_mm, 'mm')
+        print_histogram(distortion_grid, 'mm')
 
         return metrics, context
 
@@ -159,22 +196,6 @@ class FullAlgorithmSuite(Suite):
         print('min distortion magnitude: {:5.3f}mm'.format(metrics['min_distortion']))
 
         descriptors = [
-            # {
-                # 'points_xyz': context['A'],
-                # 'scatter_kwargs': {
-                    # 'color': 'b',
-                    # 'label': 'Gold Standard Unregistered',
-                    # 'marker': 'o'
-                # }
-            # },
-            {
-                'points_xyz': context['A_I'],
-                'scatter_kwargs': {
-                    'color': 'b',
-                    'label': 'Gold Standard Roughly Registered',
-                    'marker': 'o'
-                }
-            },
             {
                 'points_xyz': context['FN_A_S'],
                 'scatter_kwargs': {
@@ -209,24 +230,26 @@ class FullAlgorithmSuite(Suite):
             },
         ]
 
-        distortion_magnitude = np.linalg.norm(context['distortion_grid'], axis=3)
+        distortion_magnitude = context['distortion_grid']
         min_value = np.nanmin(distortion_magnitude)
         max_value = np.nanmax(distortion_magnitude)
         nan_value = min_value - 0.1*abs(max_value - min_value)
         distortion_magnitude[np.isnan(distortion_magnitude)] = nan_value
+        overlay_ijk_to_xyz = context['overlay_ijk_to_xyz']
 
         s = slicer.PointsSlicer(context['preprocessed_image'], context['ijk_to_xyz'], descriptors)
+        s.add_renderer(slicer.render_overlay(context['feature_image'], context['ijk_to_xyz']), hidden=True)
         s.add_renderer(slicer.render_points)
         s.add_renderer(slicer.render_cursor)
         s.add_renderer(slicer.render_legend)
-        s.add_renderer(slicer.render_overlay(distortion_magnitude, cmap='cool', alpha=0.8))
+        s.add_renderer(slicer.render_overlay(distortion_magnitude, overlay_ijk_to_xyz, cmap='cool', alpha=0.8), hidden=True)
         s.draw()
         plt.show()
 
         scatter3({
-            'False Negatives': context['FN_A_S'],
             'Gold Standard': context['TP_A_S'],
-            'True Positives': context['TP_B'],
             'False Positives': context['FP_B'],
+            'True Positives': context['TP_B'],
+            'False Negatives': context['FN_A_S'],
         })
         plt.show()

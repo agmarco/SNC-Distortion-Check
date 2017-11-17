@@ -22,20 +22,18 @@ from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
 from django.conf import settings
 from django.template import loader
-from naturalneighbor import griddata
-from PIL import Image, ImageDraw, ImageFont
 
 from process import dicom_import, affine, fp_rejector, phantoms
-from process.affine import apply_affine
-from process.dicom_import import image_orientation_from_tmat
+from process.affine import apply_affine_1
 from process.feature_detection import FeatureDetector
 from process.registration import rigidly_register_and_categorize
 from process.reports import generate_reports
 from process.utils import fov_center_xyz
+from process.interpolation import interpolate_distortion
 import process.points_utils
 from .dump_raw_scan_data import dump_raw_scan_data
 from . import models
-from .overlay_utilities import add_colorbar_to_slice, convex_hull_region
+from .overlay_utilities import add_colorbar_to_slice
 from process.exceptions import AlgorithmException
 
 logger = logging.getLogger(__name__)
@@ -118,8 +116,8 @@ def process_scan(scan_pk, dicom_archive_url=None):
         _, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
             scan.golden_fiducials.fiducials.fiducials,
             scan.detected_fiducials.fiducials,
+            phantom_paramaters['grid_spacing'],
             isocenter_in_B,
-            phantom_paramaters['brute_search_slices'],
         )
 
         scan.TP_A_S = models.Fiducials.objects.create(fiducials=TP_A_S)
@@ -246,52 +244,33 @@ def task_failure_handler(task_id=None, exception=None, args=None, **kwargs):
     logging.info("{} {} {}".format(task_id, str(exception), str(args)))
 
 
+# TODO: figure out how to avoid passing in domain, site_name, and use_https
 @shared_task(name='common.tasks.process_dicom_overlay')
 def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, patient_id, user_email,
             domain, site_name, use_https):
     try:
         with transaction.atomic():
-            # TODO: Consolidate and split out these constants in the process module.
             GRID_DENSITY_mm = 1.5
 
             scan = models.Scan.objects.get(pk=scan_pk)
             ds = scan.dicom_series
-            ijk_to_xyz = ds.ijk_to_xyz
-            TP_A = scan.TP_A_S.fiducials
-
-            coord_min_xyz = np.amin(TP_A, axis=1)
-            coord_max_xyz = np.amax(TP_A, axis=1)
-
+            TP_A_S = scan.TP_A_S.fiducials
             error_mags = scan.error_mags
-            interp_grid_ranges = [
-                [coord_min_xyz[0], coord_max_xyz[0], GRID_DENSITY_mm],
-                [coord_min_xyz[1], coord_max_xyz[1], GRID_DENSITY_mm],
-                [coord_min_xyz[2], coord_max_xyz[2], GRID_DENSITY_mm],
-            ]
-            output_dimensions = (coord_max_xyz - coord_min_xyz)/GRID_DENSITY_mm
-            msg = "Performing naturalneighbor interpolation from %fx%fx%f to %fx%fx%f with %f resolution"
-            logger.info(msg, *coord_min_xyz, *coord_max_xyz, GRID_DENSITY_mm)
 
-            interpolated_error_mags = griddata(TP_A.T, error_mags.T, interp_grid_ranges)
-
-            extrapolated_region = ~convex_hull_region(TP_A.T, interp_grid_ranges)
-            logger.info("Zeroing %d of %d extrapolated voxels in the overlay",
-                    np.sum(extrapolated_region), extrapolated_region.size)
-
-            interpolated_error_mags[extrapolated_region] = 0.0
+            overlay_ijk_to_xyz, interpolated_error_mags = interpolate_distortion(TP_A_S, error_mags, GRID_DENSITY_mm)
 
             output_dir = tempfile.mkdtemp()
             logger.info("Exporting overlay to dicoms")
             export_overlay(
                 voxel_array=interpolated_error_mags,
                 voxelSpacing_tup=(GRID_DENSITY_mm, GRID_DENSITY_mm, GRID_DENSITY_mm),
-                voxelPosition_tup=coord_min_xyz,
+                voxelPosition_tup=apply_affine_1(overlay_ijk_to_xyz, np.zeros((3,))),
                 studyInstanceUID=study_instance_uid or ds.study_uid,
                 seriesInstanceUID=generate_uid(),
                 frameOfReferenceUID=frame_of_reference_uid or ds.frame_of_reference_uid,
                 patientID=patient_id or ds.patient_id,
                 output_directory=output_dir,
-                imageOrientationPatient=image_orientation_from_tmat(ijk_to_xyz)
+                imageOrientationPatient=np.array([1, 0, 0, 0, 1, 0]),
             )
             logger.info("Done exporting overlay")
             zip_bytes = io.BytesIO()
@@ -422,7 +401,7 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
         ds.PatientID = patientID
 
         # general study module
-        ds.ContentDate = str(datetime.today()).replace('-','')
+        ds.ContentDate = str(datetime.today()).replace('-', '')
         ds.ContentTime = str(time.time())
         ds.StudyInstanceUID = studyInstanceUID
         ds.StudyDescription = 'Distortion Overlay'

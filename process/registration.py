@@ -1,6 +1,6 @@
 import logging
-from math import sqrt
-from math import pi
+from math import sqrt, radians
+from itertools import product
 
 import numpy as np
 import scipy.optimize
@@ -10,14 +10,159 @@ from process import affine
 from process.utils import format_optimization_result, format_xyztpx, format_xyz
 from process.exceptions import AlgorithmException
 
+
 logger = logging.getLogger(__name__)
-import sys; logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
-# TODO: handle this in a "ConsoleApp" class
 
 
-def build_f(A, B, g, rho):
+angle_cutoff = radians(15)
+
+registeration_tolerance = 1e-4
+
+
+def rigidly_register_and_categorize(A, B, grid_spacing, isocenter_in_B):
     '''
-    Create an objective function for our point cloud registration.
+    This is the central function in the registration phase of our algorithm.
+
+    A and B are both sets of points in 3D space, which we would like to
+    register together.
+
+    Set A contains a set of gold-standard points (which may come from a CAD model
+    of the phantom, or may be measured from a CT).  The center of the phantom
+    is assumed to be at the origin (0, 0, 0).
+
+    Set B contains points that were measured from a phantom.  There may be
+    False Negatives (points that are in A, that should be in B).  There may be
+    False Positives (points that are in B, that do not exist in A).  The set of
+    points A may be translated by large amounts (e.g. 60 mm), but not so much
+    such that A and B don't overlap.  It also may be rotated from its correct
+    orientation by up +/- 4 degrees along all three axes.
+
+    The isocenter of the imager is located, within B's coordinate system, at
+    `isocenter_in_B`.  This is important to know, because the points in B may
+    also be distorted from their original locations.  The magnitude of this
+    distortion is smallest near the isocenter, thus, when we perform the
+    registration, we want to weight the points near the isocenter the most.
+
+    We also use the `isocenter_in_B` as our initial "guess" when performing the
+    registration.
+
+    After registering the sets of points, this function also matches and
+    categorizes pairs of points from A and B together; in one sense, this
+    categorization step should be done separately, but because it also relies
+    on `rho`, it seemed prudent to keep it in the registration module.
+    '''
+    # shift B's coordinate system so that its origin is centered at the
+    # isocenter; the lower level registration functions assume B's origin is
+    # the isocenter
+    b_to_b_i_registration_matrix = affine.translation(*(-1*isocenter_in_B))
+    B_i = affine.apply_affine(b_to_b_i_registration_matrix, B)
+    logger.info(f'shifting golden points to isocenter: {format_xyz(*isocenter_in_B)}')
+
+    xyztpx_a_to_b_i = rigidly_register(A, B_i, grid_spacing)
+
+    # now apply both shifts (from A -> B_i and then from B_i -> B) back onto A.
+    # This preservers the original patient coordinate system
+    a_to_b_i_registration_matrix = affine.rotation_translation(*xyztpx_a_to_b_i)
+    b_i_to_b_registration_matrix = affine.translation(*isocenter_in_B)
+    a_to_b_registration_matrix = b_i_to_b_registration_matrix @ a_to_b_i_registration_matrix
+    A_S = affine.apply_affine(a_to_b_registration_matrix, A)
+
+    # note that adding these vectors works because we apply the rotations
+    # first, before the translations, and the second vector ONLY has
+    # translations
+    xyztpx_a_to_b = xyztpx_a_to_b_i + np.array([*isocenter_in_B, 0, 0, 0])
+
+    # TODO: think of how to avoid duplication between here and within `rigidly_register`
+    rho = build_rho(calculate_g_cutoff(3, grid_spacing))
+
+    FN_A_S, TP_A_S, TP_B, FP_B = points_utils.categorize(A_S, B, rho)
+
+    return xyztpx_a_to_b, FN_A_S, TP_A_S, TP_B, FP_B
+
+
+def rigidly_register(A, B_i, grid_spacing, xtol=registeration_tolerance):
+    '''
+    Rigidly register two sets of points, where B has its isocenter located at its origin.
+
+    1. Perform convex optimization on an objective function which will line up
+       the grids of A and B_i.  If the original sets of points were optimized
+       well, then registration may be done after this step, but if the initial
+       datasets were offset by more than a grid intersection, we will likely
+       have found a "local minimum" which has aligned the grids, but perhaps
+       has the grids offset by one or more grid lengths.
+    2. Perform a "grid search", wherein we search for grid shifts that maximize
+       the number of matching points.  This should let us jump out of the
+       valley that step 1 found, and into the valley that contains the correct grid alignment.
+    3. If necessary, run another convex optimization like in step 1, so that we
+       can fine tune the result from step 2.
+    '''
+    logger.info('beginning rigid registration')
+
+    # We want to encompass at least the middle 125 points in a sphere (we will of course
+    # get some extra points too in the corners)
+    num_grid_spacings = 3
+    g_cutoff = calculate_g_cutoff(num_grid_spacings, grid_spacing)
+    g_near_isocenter = lambda bmag: 1 if bmag < g_cutoff else 0
+    rho = build_rho(g_cutoff)
+    f_points_near_isocenter = build_objective_function(A, B_i, g_near_isocenter, rho)
+
+    # During the grid search, we want to consider ALL points, regardless of how
+    # far they are from the isocenter, since we want to ensure that A and B are
+    # overlapping; thus, our g function is 1.0 everywhere; we can't use this in
+    # earlier steps for performance reasons, and because we want to weight
+    # points near the isocenter more during the fine-tuning optimization
+    g_all = lambda bmag: 1.0
+    f_all_points = build_objective_function(A, B_i, g_all, rho)
+
+    xyztpx_initial = np.array([0, 0, 0, 0, 0, 0])
+    xyztpx_initial_local_minimum = _run_optimizer(f_points_near_isocenter, xyztpx_initial, xtol)
+    xyztpx_global_minimum_rough = grid_search(f_all_points, grid_spacing, xyztpx_initial_local_minimum)
+    if np.array_equal(xyztpx_initial_local_minimum, xyztpx_global_minimum_rough):
+        xyztpx_global_minimum = xyztpx_global_minimum_rough
+    else:
+        xyztpx_global_minimum = _run_optimizer(f_points_near_isocenter, xyztpx_global_minimum_rough, xtol)
+    logger.info('finished rigid registration')
+    return xyztpx_global_minimum
+
+
+def calculate_g_cutoff(num_grid_spacings, grid_spacing):
+    '''
+    Determine a cutoff distance that will encompass a cubic grid up to
+    `num_grid_spacings` away from the center.
+    '''
+    g_cutoff_buffer = 3
+    return grid_spacing*num_grid_spacings*sqrt(3) + g_cutoff_buffer
+
+
+def build_rho(g_cutoff):
+    '''
+    The rho function determines how close two points need to be to be
+    considered a "match", as a function of distance from the isocenter, "bmag".
+    Points further from the isocenter are expected to have more distortion, and
+    thus may be further apart while still being considered "matched".
+    '''
+    min_match_distance = 3
+    max_match_distance = 6
+    def rho(bmag):
+        if bmag < g_cutoff:
+            return min_match_distance + min_match_distance*bmag/g_cutoff
+        else:
+            return max_match_distance
+    return rho
+
+
+def build_objective_function(A, B, g, rho):
+    '''
+    Create an objective function that we will optimize during our point cloud
+    registration.
+
+    The g function specifies the relative importance of points near the
+    isocenter vs points away from the isocenter.
+
+    The rho function determines how close two points need to be to be
+    considered a "match", as a function of distance from the isocenter, "bmag".
+    Points further from the isocenter are expected to have more distortion, and
+    thus may be further apart while still being considered "matched".
 
     Do as much of the calculations up front as is possible.
     '''
@@ -59,6 +204,7 @@ def build_f(A, B, g, rho):
         return lambda xyztpx: 0
 
     def f(xyztpx):
+        _, _, _, theta, phi, xi = xyztpx
         affine_matrix = affine.rotation_translation(*xyztpx)
         A1_S = affine_matrix @ A1
         A_S = A1_S[:3, :]
@@ -78,27 +224,11 @@ def build_f(A, B, g, rho):
             g_b = g_consideration_order[closest_b_indice]
 
             summation += g_b*(b_min_to_a_s/rho_b - 1)
-        return summation
+        return summation/((1 + (theta/angle_cutoff)**4)*(1 + (phi/angle_cutoff)**4)*(1 + (xi/angle_cutoff)**4))
     return f
 
 
-def rigidly_register(A, B, g, rho, xtol=1e-4, brute_search_slices=None):
-    '''
-    Assumes that the isocenter is locate at the origin of B.
-    '''
-    logger.info('beginning rigid registration')
-    f = build_f(A, B, g, rho)
-
-    if not brute_search_slices:
-        xyztpx_0 = np.array([0, 0, 0, 0, 0, 0])
-    else:
-        # reproduce grid used in `optimize.brute`, so we know its size
-        brute_search_shape = np.mgrid[brute_search_slices].shape[1:]
-
-        logger.info('beginning brute force search of %s points around the isocenter', brute_search_shape)
-        xyztpx_0 = scipy.optimize.brute(f, brute_search_slices, finish=None, full_output=False)
-        logger.info('finishing brute force search, found %s', format_xyztpx(xyztpx_0))
-
+def _run_optimizer(f, xyztpx, xtol):
     max_iterations = 4000
     ftol = 1e-10
     options = {
@@ -106,76 +236,39 @@ def rigidly_register(A, B, g, rho, xtol=1e-4, brute_search_slices=None):
         'ftol': ftol,
         'maxiter': max_iterations,
     }
-    result = scipy.optimize.minimize(f, xyztpx_0, method='Powell', options=options)
+    result = scipy.optimize.minimize(f, xyztpx, method='Powell', options=options)
     logger.info(format_optimization_result(result))
     logger.info(format_xyztpx(result.x))
 
-    if not result.success:
+    if result.success:
+        return result.x
+    else:
         raise AlgorithmException(
             f'The detected grid intersections could not be registered to the '
             f'golden grid intersection locations within {max_iterations} optimization '
             f'iterations.  Aborting processing.'
         )
 
-    logger.info('finished rigid registration')
-    return result.x
 
+def grid_search(f, grid_spacing, initial_xyztpx, max_iterations=100):
+    logger.info("beginning grid search")
+    origin_26 = np.array([[x, y, z] for x, y, z
+        in product([-1, 0, 1], [-1, 0, 1], [-1, 0, 1])
+        if x != 0 or y != 0 or z != 0], dtype=np.double).T*grid_spacing
 
-# TODO: make g_cutoff adapt to different grid spacings; the 603A and 604
-# phantoms have a grid spacing of 15mm.  We want to encompass the middle 125
-# points in a sphere (we will of course get some extra points too in the corners)
-_typical_grid_spacing = 15
-_num_grid_spacings = 2
-_g_cutoff_buffer = 3
+    current_xyztpx = initial_xyztpx
+    current_f = f(current_xyztpx)
 
-# points further than `g_cutoff` are not considered during registration
-g_cutoff = _typical_grid_spacing*_num_grid_spacings*sqrt(3) + _g_cutoff_buffer
-registeration_tolerance = 1e-4
+    iteration = 0
+    while iteration < max_iterations:
+        surrounding_26 = affine.apply_xyztpx(current_xyztpx, origin_26)
+        surrounding_f = [f(np.hstack((p, current_xyztpx[3:]))) for p in surrounding_26.T]
+        if all(current_f <= f for f in surrounding_f):
+            logger.info(f"finished grid search at {format_xyz(*current_xyztpx[:3])} with {current_f}")
+            return current_xyztpx
+        index_of_min, current_f = min(enumerate(surrounding_f), key=lambda p: p[1])
+        current_xyztpx = np.hstack((surrounding_26[:, index_of_min], current_xyztpx[3:]))
+        logger.info(f"{iteration}: jumping to grid location at {format_xyz(*current_xyztpx[:3])} with {current_f}")
+        iteration += 1
 
-
-def g(bmag):
-    '''
-    The g function specifies the relative importance of points near the
-    isocenter vs points away from the isocenter.
-
-    It should never drop to 0, since if it does, the optimizer may shift the
-    match over by an integer grid_spacing.
-    '''
-    return 1.0 if bmag < g_cutoff else 0.0
-
-
-def rho(bmag):
-    '''
-    The rho function determines how close two points need to be to be
-    considered a "match", as a function of distance from the isocenter, "bmag".
-    Points further from the isocenter are expected to have more distortion, and
-    thus may be further apart while still being considered "matched".
-    '''
-    return 3.0 + 3.0*bmag/g_cutoff if bmag < g_cutoff else 6.0
-
-
-def rigidly_register_and_categorize(A, B, isocenter_in_B, brute_search_slices=None):
-    # shift B's coordinate system so that its origin is centered at the
-    # isocenter; the lower level registration functions assume B's origin is
-    # the isocenter
-    b_to_b_i_registration_matrix = affine.translation(*(-1*isocenter_in_B))
-    B_i = affine.apply_affine(b_to_b_i_registration_matrix, B)
-    logger.info(f'shifting golden points to isocenter: {format_xyz(*isocenter_in_B)}')
-
-    xyztpx_a_to_b_i = rigidly_register(A, B_i, g, rho, registeration_tolerance, brute_search_slices)
-
-    # now apply both shifts (from A -> B_i and then from B_i -> B) back onto A.
-    # This preservers the original patient coordinate system
-    a_to_b_i_registration_matrix = affine.rotation_translation(*xyztpx_a_to_b_i)
-    b_i_to_b_registration_matrix = affine.translation(*isocenter_in_B)
-    a_to_b_registration_matrix =  b_i_to_b_registration_matrix @ a_to_b_i_registration_matrix
-    A_S = affine.apply_affine(a_to_b_registration_matrix, A)
-
-    # note that adding these vectors works because we apply the rotations
-    # first, before the translations, and the second vector ONLY has
-    # translations
-    xyztpx_a_to_b = xyztpx_a_to_b_i + np.array([*isocenter_in_B, 0, 0, 0])
-
-    FN_A_S, TP_A_S, TP_B, FP_B = points_utils.categorize(A_S, B, rho)
-
-    return xyztpx_a_to_b, FN_A_S, TP_A_S, TP_B, FP_B
+    raise AlgorithmException(f'Unable to find a grid minimum after {max_iterations}')
