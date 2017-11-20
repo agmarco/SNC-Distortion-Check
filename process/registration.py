@@ -142,7 +142,8 @@ def build_rho(g_cutoff, grid_spacing):
     thus may be further apart while still being considered "matched".
     '''
     min_match_distance = 3
-    max_match_distance = grid_spacing / 2 - 1
+    overlap_buffer = 1
+    max_match_distance = grid_spacing / 2 - overlap_buffer
 
     def rho(bmag):
         if bmag < g_cutoff:
