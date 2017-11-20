@@ -270,7 +270,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         dataset = datasets[0]
         voxel_dims = voxel_spacing(ijk_to_xyz)
 
-        if getattr(dataset, 'AcquisitionMatrix', None):
+        if hasattr(dataset, 'AcquisitionMatrix'):
             a, b = dataset.AcquisitionMatrix[:2], dataset.AcquisitionMatrix[2:]
             if all(x == 0 for x in a) or all(x != 0 for x in a):
                 raise ValueError("The first 2 numbers in the AcquisitionMatrix must contain one zero and one non-zero value.")
@@ -285,21 +285,21 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
             # (r'Phantom filler T$_1$', ''),
             # (r'Phantom filler T$_2$', ''),
             # ('Phantom filler composition', ''),
-            ('Sequence type', dataset.ScanningSequence),
-            ('Pixel bandwidth', str(dataset.PixelBandwidth) + r' $\frac{Hz}{px}$'),
+            ('Sequence type', getattr(dataset, 'ScanningSequence', 'unknown')),
+            ('Pixel bandwidth', str(dataset.PixelBandwidth) + r' $\frac{Hz}{px}$' if hasattr(dataset, 'PixelBandwidth') else 'unknown'),
             ('Voxel dimensions', ' x '.join(f'{x:.3f} mm' for x in voxel_dims)),
-            ('Sequence repetition time (TR)', f'{dataset.RepetitionTime} ms'),
-            ('Echo delay time (TE)', f'{dataset.EchoTime} ms'),
-            ('Number of signals averaged (NSA)', dataset.NumberOfAverages),
+            ('Sequence repetition time (TR)', f'{dataset.RepetitionTime} ms' if hasattr(dataset, 'RepetitionTime') else 'unknown'),
+            ('Echo delay time (TE)', f'{dataset.EchoTime} ms' if hasattr(dataset, 'EchoTime') else 'unknown'),
+            ('Number of signals averaged (NSA)', getattr(dataset, 'NumberOfAverages', 'unknown')),
             ('Data acquisition matrix size', data_acquisition_matrix_size),
             ('Image matrix size', ' x '.join([str(n) for n in voxels.shape[:2]])),
             ('Field of view size', ' x '.join([f'{n * x:.1f} mm' for n, x in zip(voxels.shape, voxel_dims)])),
-            ('Type of acquisition', dataset.MRAcquisitionType),
+            ('Type of acquisition', getattr(dataset, 'MRAcquisitionType', 'unknown')),
             ('Number of slices', len(datasets)),
             ('Slice orientation', ', '.join([f'{i:.3f}' for i in dataset.ImageOrientationPatient])),
             ('Slice position', ', '.join([f'{i:.3f} mm' for i in dataset.ImagePositionPatient])),
             ('Slice thickness', f'{voxel_dims[2]:.3f} mm'),
-            ('Direction of phase encoding', dataset.InPlanePhaseEncodingDirection),
+            ('Direction of phase encoding', getattr(dataset, 'InPlanePhaseEncodingDirection', 'unknown')),
         ]
         table = ax.table(cellText=rows, loc='center')
         table_props = table.properties()
