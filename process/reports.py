@@ -270,7 +270,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         dataset = datasets[0]
         voxel_dims = voxel_spacing(ijk_to_xyz)
 
-        if dataset.AcquisitionMatrix:
+        if getattr(dataset, 'AcquisitionMatrix', None):
             a, b = dataset.AcquisitionMatrix[:2], dataset.AcquisitionMatrix[2:]
             if all(x == 0 for x in a) or all(x != 0 for x in a):
                 raise ValueError("The first 2 numbers in the AcquisitionMatrix must contain one zero and one non-zero value.")
