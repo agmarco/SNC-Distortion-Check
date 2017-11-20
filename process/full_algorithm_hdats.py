@@ -80,6 +80,11 @@ class FullAlgorithmSuite(Suite):
                 'modality': 'mri',
                 'phantom_model': '604',
             },
+            '604-3': {
+                'dicom': 'data/dicom/019_mri_604_Siemens_Vida_3T_3D_Flash_ND.zip',
+                'modality': 'mri',
+                'phantom_model': '604',
+            },
         }
 
     def run(self, case_input):
