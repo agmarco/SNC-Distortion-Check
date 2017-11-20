@@ -73,7 +73,7 @@ def rigidly_register_and_categorize(A, B, grid_spacing, isocenter_in_B):
     xyztpx_a_to_b = xyztpx_a_to_b_i + np.array([*isocenter_in_B, 0, 0, 0])
 
     # TODO: think of how to avoid duplication between here and within `rigidly_register`
-    rho = build_rho(calculate_g_cutoff(3, grid_spacing))
+    rho = build_rho(calculate_g_cutoff(3, grid_spacing), grid_spacing)
 
     FN_A_S, TP_A_S, TP_B, FP_B = points_utils.categorize(A_S, B, rho)
 
@@ -100,10 +100,10 @@ def rigidly_register(A, B_i, grid_spacing, xtol=registeration_tolerance):
 
     # We want to encompass at least the middle 125 points in a sphere (we will of course
     # get some extra points too in the corners)
-    num_grid_spacings = 3
+    num_grid_spacings = 2
     g_cutoff = calculate_g_cutoff(num_grid_spacings, grid_spacing)
     g_near_isocenter = lambda bmag: 1 if bmag < g_cutoff else 0
-    rho = build_rho(g_cutoff)
+    rho = build_rho(g_cutoff, grid_spacing)
     f_points_near_isocenter = build_objective_function(A, B_i, g_near_isocenter, rho)
 
     # During the grid search, we want to consider ALL points, regardless of how
@@ -134,7 +134,7 @@ def calculate_g_cutoff(num_grid_spacings, grid_spacing):
     return grid_spacing*num_grid_spacings*sqrt(3) + g_cutoff_buffer
 
 
-def build_rho(g_cutoff):
+def build_rho(g_cutoff, grid_spacing):
     '''
     The rho function determines how close two points need to be to be
     considered a "match", as a function of distance from the isocenter, "bmag".
@@ -142,12 +142,14 @@ def build_rho(g_cutoff):
     thus may be further apart while still being considered "matched".
     '''
     min_match_distance = 3
-    max_match_distance = 6
+    max_match_distance = grid_spacing / 2 - 1
+
     def rho(bmag):
         if bmag < g_cutoff:
             return min_match_distance + min_match_distance*bmag/g_cutoff
         else:
             return max_match_distance
+
     return rho
 
 
