@@ -107,6 +107,7 @@ class ScanSerializer(serializers.ModelSerializer):
             'full_report_url',
             'executive_report_url',
             'error_mags',
+            'created_on',
         )
 
     def get_errors_url(self, scan):

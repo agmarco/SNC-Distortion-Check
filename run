@@ -1,5 +1,5 @@
 #!/bin/bash
 set -e
 
-honcho start &
+honcho start --procfile Procfile.dev &
 npm run build:hot
