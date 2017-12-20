@@ -37,7 +37,8 @@ export default class extends React.Component<IScanChartAxesProps, {}> {
             .tickValues(d3.range(yMin, yMax, 0.5))
             .innerTickSize(-clipWidth)
             .outerTickSize(0)
-            .tickPadding(10));
+            .tickPadding(10)
+            .tickFormat(d3.format(".1f")));
     }
 
     renderXAxis() {
