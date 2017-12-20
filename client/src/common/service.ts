@@ -46,6 +46,7 @@ export interface IScanDto {
     full_report_url: string | null;
     executive_report_url: string | null;
     error_mags: number[] | null;
+    created_on: string;
 }
 
 export interface IGoldenFiducialsDto {
