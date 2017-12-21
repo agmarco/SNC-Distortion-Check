@@ -1,8 +1,6 @@
-import zipfile
-
 from django.contrib import admin, messages
 
-from server.common.http import ZipResponse
+from .http import ZipResponse
 from . import models
 
 
