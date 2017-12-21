@@ -53,6 +53,7 @@ def process_scan(scan_pk, dicom_archive_url=None):
         if dicom_archive_url:
             zipped_dicom_files = urlparse(dicom_archive_url).path
             dicom_series = models.DicomSeries(zipped_dicom_files=zipped_dicom_files)
+            dicom_series.save()
             scan.dicom_series = dicom_series
             scan.save()
 
