@@ -176,7 +176,9 @@ class ScanTable extends React.Component<IScanTableProps, IScanTableState> {
                                 <td title={scan.passed ? scanPassHelp : scanFailHelp}>
                                     {scan.passed !== null && <BoolIcon success={scan.passed} />}
                                 </td>
-                                <td title={acquisitionDateHelp}>{format(scan.acquisition_date, 'MMMM D, YYYY')}</td>
+                                <td title={acquisitionDateHelp}>
+                                    {scan.acquisition_date && format(scan.acquisition_date, 'MMMM D, YYYY')}
+                                </td>
                                 <td title={createdOnHelp}>{format(scan.created_on, 'MMMM D, YYYY')}</td>
                                 <td>{scan.phantom.model_number} &mdash; {scan.phantom.serial_number}</td>
                                 <td className="sep" />
