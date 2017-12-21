@@ -184,7 +184,7 @@ class DicomSeries(CommonFieldsMixin):
     frame_of_reference_uid = models.CharField(max_length=64, verbose_name='Frame Of Reference UID', help_text=series_uid_ht, blank=True, null=True)
     patient_id = models.CharField(max_length=64, verbose_name='Patient ID', help_text=series_uid_ht)
     acquisition_date_ht = 'The DICOM Series Instance Acquisition Date'
-    acquisition_date = models.DateField(help_text=acquisition_date_ht)
+    acquisition_date = models.DateField(help_text=acquisition_date_ht, null=True)
 
     def __str__(self):
         return "DICOM Series {}".format(self.series_uid)
