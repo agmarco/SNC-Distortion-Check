@@ -112,7 +112,7 @@ export default class extends React.Component<IScanChartProps, IScanChartState> {
         const data = processedScans.map((scan) => {
             const array = [scan.pk, scan.error_mags] as any;
             array.passed = scan.passed;
-            array.label = format(scan.acquisition_date, 'D MMM YYYY');
+            array.label = scan.acquisition_date && format(scan.acquisition_date, 'D MMM YYYY');
             return array;
         });
 

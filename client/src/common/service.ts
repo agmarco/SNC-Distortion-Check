@@ -37,7 +37,7 @@ export interface IScanDto {
     processing: boolean;
     errors: string | null;
     passed: boolean | null;
-    acquisition_date: string;
+    acquisition_date: string | null;
     errors_url: string;
     delete_url: string;
     dicom_overlay_url: string;
