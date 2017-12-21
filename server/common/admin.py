@@ -62,7 +62,7 @@ class ScanAdmin(admin.ModelAdmin):
         else:
             dicom_series = queryset[0].dicom_series
             if dicom_series is None:
-                self.message_user(request, "The selected scan has no DICOM series.", level=messages.ERROR)
+                self.message_user(request, "The selected scan has no DICOM series.", level=messages.WARNING)
             else:
                 dicom_archive = dicom_series.zipped_dicom_files
                 return ZipResponse(dicom_archive.file, dicom_archive.file.name.split('/')[-1])
