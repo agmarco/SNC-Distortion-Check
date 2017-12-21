@@ -53,6 +53,8 @@ def process_scan(scan_pk, dicom_archive_url=None):
         if dicom_archive_url:
             zipped_dicom_files = urlparse(dicom_archive_url).path
             dicom_series = models.DicomSeries(zipped_dicom_files=zipped_dicom_files)
+            scan.dicom_series = dicom_series
+            scan.save()
 
             # TODO: save condensed DICOM tags onto `dicom_series` on upload so
             # we don't need to load all the zip files just to get at the
@@ -75,7 +77,6 @@ def process_scan(scan_pk, dicom_archive_url=None):
             dicom_series.acquisition_date = models.infer_acquisition_date(ds)
 
             dicom_series.save()
-            scan.dicom_series = dicom_series
         else:
             with zipfile.ZipFile(scan.dicom_series.zipped_dicom_files, 'r') as zf:
                 datasets = dicom_import.dicom_datasets_from_zip(zf)
