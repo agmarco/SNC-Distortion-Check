@@ -12,7 +12,7 @@ class InstitutionAdmin(admin.ModelAdmin):
     def set_active(self, request, queryset):
         if len(queryset) > 1:
             self.message_user(request, "You may only set one institution to active.", level=messages.ERROR)
-        elif len(queryset) == 1:
+        elif queryset.count() == 1:
             request.session['institution'] = queryset[0].pk
         else:
             request.sessoin['institution'] = None
@@ -57,9 +57,15 @@ class ScanAdmin(admin.ModelAdmin):
     actions = ('download_dicom',)
 
     def download_dicom(self, request, queryset):
-        if len(queryset) > 1:
+        if queryset.count() > 1:
             self.message_user(request, "You may only download DICOM files for 1 scan at a time.", level=messages.ERROR)
+        elif queryset.count() == 1:
+            self.message_user(request, "You must select at least one scan.", level=messages.ERROR)
         else:
-            dicom_archive = queryset[0].dicom_series.zipped_dicom_files
-            return ZipResponse(dicom_archive.file, dicom_archive.file.name.split('/')[-1])
+            dicom_series = queryset[0].dicom_series
+            if dicom_series is None:
+                self.message_user(request, "The selected scan has no DICOM series.", level=messages.ERROR)
+            else:
+                dicom_archive = dicom_series.zipped_dicom_files
+                return ZipResponse(dicom_archive.file, dicom_archive.file.name.split('/')[-1])
     download_dicom.short_description = "Download DICOM files for selected scan"
