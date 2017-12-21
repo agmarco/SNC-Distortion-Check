@@ -17,5 +17,5 @@ class CsvResponse(HttpResponse):
 class ZipResponse(HttpResponse):
     def __init__(self, zipfile, filename="archive.zip", *args, **kwargs):
         kwargs.setdefault('content_type', 'application/zip')
-        super(ZipResponse, self).__init__(zipfile.getvalue(), *args, **kwargs)
+        super(ZipResponse, self).__init__(zipfile, *args, **kwargs)
         self['Content-Disposition'] = f'attachment; filename="{filename}"'

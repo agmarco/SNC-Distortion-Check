@@ -1,16 +1,19 @@
-from django.contrib import admin
+import zipfile
 
+from django.contrib import admin, messages
+
+from server.common.http import ZipResponse
 from . import models
 
 
 @admin.register(models.Institution)
 class InstitutionAdmin(admin.ModelAdmin):
     list_display = ('name', 'number_of_licenses')
-    actions = ['set_active']
+    actions = ('set_active',)
 
     def set_active(self, request, queryset):
         if len(queryset) > 1:
-            self.message_user(request, "You may only set one institution to active.")
+            self.message_user(request, "You may only set one institution to active.", level=messages.ERROR)
         elif len(queryset) == 1:
             request.session['institution'] = queryset[0].pk
         else:
@@ -51,4 +54,14 @@ class MachineSequencePairAdmin(admin.ModelAdmin):
 
 @admin.register(models.Scan)
 class ScanAdmin(admin.ModelAdmin):
-    list_display = ('processing', 'creator', 'created_on', 'tolerance', 'errors', 'notes')
+    list_display = ('creator', 'created_on', 'processing', 'tolerance', 'errors', 'notes')
+    exclude = ('dicom_series',)
+    actions = ('download_dicom',)
+
+    def download_dicom(self, request, queryset):
+        if len(queryset) > 1:
+            self.message_user(request, "You may only download DICOM files for 1 scan at a time.", level=messages.ERROR)
+        else:
+            dicom_archive = queryset[0].dicom_series.zipped_dicom_files
+            return ZipResponse(dicom_archive.file, dicom_archive.file.name.split('/')[-1])
+    download_dicom.short_description = "Download DICOM files for selected scan"
