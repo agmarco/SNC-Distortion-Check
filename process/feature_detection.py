@@ -43,7 +43,7 @@ class FeatureDetector:
         logger.info('convolving with gaussian kernel shape=%s, sigma=%.2f', self.kernel.shape, self.grid_radius)
         self.feature_image = signal.fftconvolve(self.preprocessed_image, self.kernel, mode='same')
 
-        search_radius = self.grid_spacing/2.5
+        search_radius = self.grid_spacing/4
         self.points_ijk, self.label_image = peak_detection.detect_peaks(
             self.feature_image,
             self.voxel_spacing,
