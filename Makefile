@@ -5,7 +5,7 @@ SHELL := /bin/bash
 all: $(patsubst data/dicom/%.zip,tmp/%-voxels.mat,$(wildcard data/dicom/*))
 
 tmp/%-voxels.mat: data/dicom/%.zip
-	./process/dicom2voxels $< $@
+	./bin/dicom2voxels $< $@
 
 
 .PHONY: freezedeps
