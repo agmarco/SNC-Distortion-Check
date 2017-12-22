@@ -115,6 +115,13 @@ class FullAlgorithmSuite(Suite):
         pruned_points_ijk = remove_fps(points_ijk, voxels, voxel_spacing, phantom_model)
         pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
 
+        points_ijk_set = set([tuple(x) for x in points_ijk.T])
+        pruned_points_ijk_set = set([tuple(x) for x in pruned_points_ijk.T])
+        rejected_points_ijk_set = points_ijk_set - pruned_points_ijk_set
+        rejected_points_ijk = np.array(list(rejected_points_ijk_set)).T
+        rejected_points_xyz = affine.apply_affine(ijk_to_xyz, rejected_points_ijk)
+        context['FP_B_CNN'] = rejected_points_xyz
+
         isocenter_in_B = fov_center_xyz(voxels.shape, ijk_to_xyz)
 
         context['A_I'] = affine.apply_affine(affine.translation(*isocenter_in_B), context['A'])
@@ -229,7 +236,15 @@ class FullAlgorithmSuite(Suite):
                 'points_xyz': context['FP_B'],
                 'scatter_kwargs': {
                     'color': 'r',
-                    'label': 'False Positives',
+                    'label': 'False Positives (Registration)',
+                    'marker': 'x'
+                }
+            },
+            {
+                'points_xyz': context['FP_B_CNN'],
+                'scatter_kwargs': {
+                    'color': 'm',
+                    'label': 'False Positives (CNN)',
                     'marker': 'x'
                 }
             },
@@ -253,8 +268,9 @@ class FullAlgorithmSuite(Suite):
 
         scatter3({
             'Gold Standard': context['TP_A_S'],
-            'False Positives': context['FP_B'],
+            'False Positives (Registration)': context['FP_B'],
             'True Positives': context['TP_B'],
             'False Negatives': context['FN_A_S'],
+            'False Positives (CNN)': context['FP_B_CNN'],
         })
         plt.show()
