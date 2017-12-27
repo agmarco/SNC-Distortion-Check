@@ -26,7 +26,7 @@ def show(voxels, ijk_to_xyz, point_ijk, cursor):
             'scatter_kwargs': {
                 'color': 'g',
                 'label': 'Gold Standard',
-                'marker': 'x',
+                'marker': 'o',
             }
         },
     ]
@@ -67,7 +67,17 @@ if __name__ == '__main__':
         window_slice_tup = tuple(slice(*bounds) for bounds in window_adjusted)
         voxel_window = voxels[window_slice_tup]
         if voxel_window is not None:  # TODO
+            ijk_offset = np.array([-a for a, b in window_adjusted])
+            translation = np.array([
+                [1, 0, 0, ijk_offset[0]],
+                [0, 1, 0, ijk_offset[1]],
+                [0, 0, 1, ijk_offset[2]],
+                [0, 0, 0, 1],
+            ])
+            point_ijk = affine.apply_affine_1(translation, point_ijk)
+
             cursor = np.array([(b - a) / 2 for a, b in window], dtype=int)
             cursor_offset = np.array([min(a, 0) for a, b in window])
             cursor = np.add(cursor, cursor_offset)
+
             show(voxel_window, ijk_to_xyz, point_ijk, cursor)
