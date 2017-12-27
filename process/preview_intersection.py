@@ -43,9 +43,9 @@ def show(phantom_model, modality, voxels, ijk_to_xyz, point_xyz, cursor):
 
     s = slicer.PointsSlicer(voxels, ijk_to_xyz, descriptors)
     s.cursor = cursor
-    s.add_renderer(slicer.render_overlay(feature_image, ijk_to_xyz), hidden=True)
+    s.add_renderer(slicer.render_overlay(feature_image, ijk_to_xyz))
     s.add_renderer(slicer.render_points)
-    s.add_renderer(slicer.render_cursor)
+    s.add_renderer(slicer.render_cursor, hidden=True)
 
     s.draw()
     plt.show()
