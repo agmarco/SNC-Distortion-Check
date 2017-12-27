@@ -1,10 +1,12 @@
 import argparse
+from scipy import signal
+
 import matplotlib.pyplot as plt
 import numpy as np
 
-from process import file_io, affine, slicer
+from process import file_io, affine, slicer, kernels, phantoms
 from process.affine import apply_affine
-
+from process.feature_detection import modality_grid_radius_factors
 
 cube_size = 45
 window_shape = np.array((cube_size, cube_size, cube_size))
@@ -12,14 +14,15 @@ cube_size_half = window_shape // 2
 
 datasets = {
     '604-1': {
+        'model': '604',
+        'modality': 'mri',
         'voxels': 'tmp/010_mri_604_LFV-Phantom_E2632-1-voxels.mat',
         'points': 'data/points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
     },
 }
 
 
-def show(voxels, ijk_to_xyz, point_ijk, cursor):
-    point_xyz = affine.apply_affine_1(ijk_to_xyz, point_ijk)
+def show(phantom_model, modality, voxels, ijk_to_xyz, point_xyz, cursor):
     descriptors = [
         {
             'points_xyz': np.array([point_xyz]).T,
@@ -31,10 +34,19 @@ def show(voxels, ijk_to_xyz, point_ijk, cursor):
         },
     ]
 
+    voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
+    actual_grid_radius = phantoms.paramaters[phantom_model]['grid_radius']
+    modality_grid_radius_factor = modality_grid_radius_factors[modality]
+    grid_radius = actual_grid_radius * modality_grid_radius_factor
+    kernel = kernels.gaussian(voxel_spacing, grid_radius)
+    feature_image = signal.fftconvolve(voxels, kernel, mode='same')
+
     s = slicer.PointsSlicer(voxels, ijk_to_xyz, descriptors)
     s.cursor = cursor
+    s.add_renderer(slicer.render_overlay(feature_image, ijk_to_xyz), hidden=True)
     s.add_renderer(slicer.render_points)
     s.add_renderer(slicer.render_cursor)
+
     s.draw()
     plt.show()
 
@@ -66,7 +78,7 @@ if __name__ == '__main__':
         )
         window_slice_tup = tuple(slice(*bounds) for bounds in window_adjusted)
         voxel_window = voxels[window_slice_tup]
-        if voxel_window is not None:  # TODO
+        if voxel_window is not None:
             ijk_offset = np.array([-a for a, b in window_adjusted])
             translation = np.array([
                 [1, 0, 0, ijk_offset[0]],
@@ -75,9 +87,10 @@ if __name__ == '__main__':
                 [0, 0, 0, 1],
             ])
             point_ijk = affine.apply_affine_1(translation, point_ijk)
+            point_xyz = affine.apply_affine_1(ijk_to_xyz, point_ijk)
 
             cursor = np.array([(b - a) / 2 for a, b in window], dtype=int)
             cursor_offset = np.array([min(a, 0) for a, b in window])
             cursor = np.add(cursor, cursor_offset)
 
-            show(voxel_window, ijk_to_xyz, point_ijk, cursor)
+            show(dataset['model'], dataset['modality'], voxel_window, ijk_to_xyz, point_xyz, cursor)
