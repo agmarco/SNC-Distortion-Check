@@ -6,7 +6,7 @@ import numpy as np
 
 from process import file_io, affine, slicer, kernels, phantoms
 from process.affine import apply_affine
-from process.feature_detection import modality_grid_radius_factors
+from process.feature_detection import modality_grid_radius_factors, FeatureDetector
 
 cube_size = 45
 window_shape = np.array((cube_size, cube_size, cube_size))
@@ -22,7 +22,7 @@ datasets = {
 }
 
 
-def show(phantom_model, modality, voxels, ijk_to_xyz, point_xyz, cursor):
+def show(phantom_model, modality, voxels, ijk_to_xyz, point_xyz, detected_point_xyz, cursor):
     descriptors = [
         {
             'points_xyz': np.array([point_xyz]).T,
@@ -30,6 +30,14 @@ def show(phantom_model, modality, voxels, ijk_to_xyz, point_xyz, cursor):
                 'color': 'g',
                 'label': 'Gold Standard',
                 'marker': 'o',
+            }
+        },
+        {
+            'points_xyz': np.array([detected_point_xyz]).T,
+            'scatter_kwargs': {
+                'color': 'g',
+                'label': 'Detected',
+                'marker': 'x',
             }
         },
     ]
@@ -64,6 +72,12 @@ if __name__ == '__main__':
     voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
     golden_points = file_io.load_points(dataset['points'])['points']
     points_ijk = apply_affine(xyz_to_ijk, golden_points)
+    phantom_model = dataset['model']
+    modality = dataset['modality']
+
+    feature_detector = FeatureDetector(phantom_model, modality, voxels, ijk_to_xyz)
+    detected_points_ijk = feature_detector.points_ijk
+
     for point_ijk in points_ijk.T:
         i, j, k = np.round(point_ijk).astype(int)
         window = (
@@ -71,26 +85,41 @@ if __name__ == '__main__':
             (j - cube_size_half[1], j + cube_size_half[1]),
             (k - cube_size_half[2], k + cube_size_half[2]),
         )
+
         window_adjusted = (
             (max(window[0][0], 0), min(window[0][1], voxels.shape[0])),
             (max(window[1][0], 0), min(window[1][1], voxels.shape[1])),
             (max(window[2][0], 0), min(window[2][1], voxels.shape[2])),
         )
-        window_slice_tup = tuple(slice(*bounds) for bounds in window_adjusted)
-        voxel_window = voxels[window_slice_tup]
-        if voxel_window is not None:
-            ijk_offset = np.array([-a for a, b in window_adjusted])
-            translation = np.array([
-                [1, 0, 0, ijk_offset[0]],
-                [0, 1, 0, ijk_offset[1]],
-                [0, 0, 1, ijk_offset[2]],
-                [0, 0, 0, 1],
-            ])
-            point_ijk = affine.apply_affine_1(translation, point_ijk)
-            point_xyz = affine.apply_affine_1(ijk_to_xyz, point_ijk)
+
+        ijk_offset = np.array([-a for a, b in window_adjusted])
+        translation = np.array([
+            [1, 0, 0, ijk_offset[0]],
+            [0, 1, 0, ijk_offset[1]],
+            [0, 0, 1, ijk_offset[2]],
+            [0, 0, 0, 1],
+        ])
+
+        point_ijk = affine.apply_affine_1(translation, point_ijk)
+        point_xyz = affine.apply_affine_1(ijk_to_xyz, point_ijk)
+
+        detected_points_ijk_translated = affine.apply_affine(translation, detected_points_ijk)
+        point_ijk_repeat = np.repeat(np.array([point_ijk]).T, detected_points_ijk_translated.shape[1], axis=1)
+        displacements = detected_points_ijk_translated - point_ijk_repeat
+        distances = np.linalg.norm(displacements, axis=0).squeeze()
+        min_index = np.argmin(distances)
+        closest_detected_point_ijk = detected_points_ijk_translated[:, min_index]
+        closest_detected_point_xyz = affine.apply_affine_1(ijk_to_xyz, closest_detected_point_ijk)
+
+        error = np.linalg.norm(closest_detected_point_xyz - point_xyz)
+        error_threshold = 3
+        if error > error_threshold:
+            print(f'Error: {error}')
+            window_slice_tup = tuple(slice(*bounds) for bounds in window_adjusted)
+            voxel_window = voxels[window_slice_tup]
 
             cursor = np.array([(b - a) / 2 for a, b in window], dtype=int)
             cursor_offset = np.array([min(a, 0) for a, b in window])
             cursor = np.add(cursor, cursor_offset)
 
-            show(dataset['model'], dataset['modality'], voxel_window, ijk_to_xyz, point_xyz, cursor)
+            show(phantom_model, modality, voxel_window, ijk_to_xyz, point_xyz, closest_detected_point_xyz, cursor)
