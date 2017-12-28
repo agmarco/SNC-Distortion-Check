@@ -123,7 +123,7 @@ if __name__ == '__main__':
         ])
 
         original_point_ijk = point_ijk
-        original_point_xyz = affine.apply_affine_1(xyz_to_ijk, original_point_ijk)
+        original_point_xyz = affine.apply_affine_1(ijk_to_xyz, original_point_ijk)
         point_ijk = affine.apply_affine_1(translation, point_ijk)
         point_xyz = affine.apply_affine_1(ijk_to_xyz, point_ijk)
 
