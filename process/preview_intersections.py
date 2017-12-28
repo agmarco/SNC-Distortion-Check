@@ -1,8 +1,11 @@
 import argparse
-from scipy import signal
+import os
 
+import scipy.io
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.widgets import Button
+from scipy import signal
 
 from process import file_io, affine, slicer, kernels, phantoms
 from process.affine import apply_affine
@@ -20,6 +23,17 @@ datasets = {
         'points': 'data/points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
     },
 }
+
+rejected_points = np.array([[], [], []])
+
+
+def accept(point):
+    plt.close()
+
+
+def reject(point):
+    np.append(rejected_points, np.array([point]).T, axis=1)
+    plt.close()
 
 
 def show(phantom_model, modality, voxels, ijk_to_xyz, point_xyz, detected_point_xyz, cursor):
@@ -54,6 +68,13 @@ def show(phantom_model, modality, voxels, ijk_to_xyz, point_xyz, detected_point_
     s.add_renderer(slicer.render_overlay(feature_image, ijk_to_xyz))
     s.add_renderer(slicer.render_points)
     s.add_renderer(slicer.render_cursor, hidden=True)
+
+    axaccept = plt.axes([0.7, 0.05, 0.1, 0.075])
+    axreject = plt.axes([0.81, 0.05, 0.1, 0.075])
+    baccept = Button(axaccept, 'Accept')
+    breject = Button(axreject, 'Reject')
+    baccept.on_clicked(lambda e: accept(point_xyz))
+    breject.on_clicked(lambda e: reject(point_xyz))
 
     s.draw()
     plt.show()
@@ -123,3 +144,7 @@ if __name__ == '__main__':
             cursor = np.add(cursor, cursor_offset)
 
             show(phantom_model, modality, voxel_window, ijk_to_xyz, point_xyz, closest_detected_point_xyz, cursor)
+
+    filename = f"{os.path.splitext(os.path.basename(dataset['points']))[0]}.mat"
+    output_path = f"data/rejected_points/{filename}"
+    scipy.io.savemat(output_path, {'rejected_points': rejected_points})
