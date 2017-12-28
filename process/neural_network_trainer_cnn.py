@@ -69,8 +69,8 @@ def intersection_generator(cases, train_or_validation, min_offset, offset_mag):
         voxel_spacing *= random_voxel_spacing_augmentation
         golden_points = file_io.load_points(case['points'])['points']
 
-        if 'rejected_points' in case:
-            rejected_points = file_io.load_points(case['rejected_points'])['points']
+        if 'rejected' in case:
+            rejected_points = file_io.load_points(case['rejected'])['points']
             golden_points_set = set([tuple(x) for x in golden_points.T])
             rejected_points_set = set([tuple(x) for x in rejected_points.T])
             golden_points_set -= rejected_points_set
