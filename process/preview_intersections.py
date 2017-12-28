@@ -32,11 +32,12 @@ def accept(point):
 
 
 def reject(point):
-    np.append(rejected_points, np.array([point]).T, axis=1)
+    global rejected_points
+    rejected_points = np.append(rejected_points, np.array([point]).T, axis=1)
     plt.close()
 
 
-def show(phantom_model, modality, voxels, ijk_to_xyz, point_xyz, detected_point_xyz, cursor):
+def show(phantom_model, modality, voxels, ijk_to_xyz, point_xyz, detected_point_xyz, original_point_xyz, cursor):
     descriptors = [
         {
             'points_xyz': np.array([point_xyz]).T,
@@ -73,8 +74,8 @@ def show(phantom_model, modality, voxels, ijk_to_xyz, point_xyz, detected_point_
     axreject = plt.axes([0.81, 0.05, 0.1, 0.075])
     baccept = Button(axaccept, 'Accept')
     breject = Button(axreject, 'Reject')
-    baccept.on_clicked(lambda e: accept(point_xyz))
-    breject.on_clicked(lambda e: reject(point_xyz))
+    baccept.on_clicked(lambda e: accept(original_point_xyz))
+    breject.on_clicked(lambda e: reject(original_point_xyz))
 
     s.draw()
     plt.show()
@@ -121,6 +122,8 @@ if __name__ == '__main__':
             [0, 0, 0, 1],
         ])
 
+        original_point_ijk = point_ijk
+        original_point_xyz = affine.apply_affine_1(xyz_to_ijk, original_point_ijk)
         point_ijk = affine.apply_affine_1(translation, point_ijk)
         point_xyz = affine.apply_affine_1(ijk_to_xyz, point_ijk)
 
@@ -143,8 +146,17 @@ if __name__ == '__main__':
             cursor_offset = np.array([min(a, 0) for a, b in window])
             cursor = np.add(cursor, cursor_offset)
 
-            show(phantom_model, modality, voxel_window, ijk_to_xyz, point_xyz, closest_detected_point_xyz, cursor)
+            show(
+                phantom_model,
+                modality,
+                voxel_window,
+                ijk_to_xyz,
+                point_xyz,
+                closest_detected_point_xyz,
+                original_point_xyz,
+                cursor,
+            )
 
     filename = f"{os.path.splitext(os.path.basename(dataset['points']))[0]}.mat"
     output_path = f"data/rejected_points/{filename}"
-    scipy.io.savemat(output_path, {'rejected_points': rejected_points})
+    scipy.io.savemat(output_path, {'points': rejected_points})

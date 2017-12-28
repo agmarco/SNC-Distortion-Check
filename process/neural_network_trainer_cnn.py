@@ -48,10 +48,13 @@ phantomName2Datasets = {
         '010': {
             'voxels': 'tmp/010_mri_604_LFV-Phantom_E2632-1-voxels.mat',
             'points': 'data/points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
+            'rejected': 'data/rejected_points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
         },
     },
 }
 phantomName2Datasets['604 and 603'] = {**phantomName2Datasets['604'], **phantomName2Datasets['603']}
+
+
 def intersection_generator(cases, train_or_validation, min_offset, offset_mag):
     start_offset = 0 if train_or_validation == "train" else 1
     while True:
@@ -65,6 +68,14 @@ def intersection_generator(cases, train_or_validation, min_offset, offset_mag):
         random_voxel_spacing_augmentation = (np.random.sample(3) * 0.2 - 0.1) + 1
         voxel_spacing *= random_voxel_spacing_augmentation
         golden_points = file_io.load_points(case['points'])['points']
+
+        if 'rejected_points' in case:
+            rejected_points = file_io.load_points(case['rejected_points'])['points']
+            golden_points_set = set([tuple(x) for x in golden_points.T])
+            rejected_points_set = set([tuple(x) for x in rejected_points.T])
+            golden_points_set -= rejected_points_set
+            golden_points = np.array(list(golden_points_set)).T
+
         point_ijk = apply_affine(xyz_to_ijk, golden_points)
         for point_ijk in point_ijk.T[start_offset::2, :]:
             random_signs = np.array([random.choice([-1,1]), random.choice([-1,1]), random.choice([-1,1])])
@@ -104,6 +115,7 @@ def non_intersection_generator(cases, min_dist_from_annotated=5, num_samples=100
                     voxel_window = (voxel_window - voxel_window.mean())/(voxel_window.std()+0.00001)
                     yield np.expand_dims(voxel_window, axis=3)
 
+
 def augment_voxels(voxels):
     '''
     axis flips, shifts,
@@ -135,9 +147,11 @@ def augment_voxels(voxels):
 
     return voxels
 
+
 def augmented(gen):
     while True:
         yield augment_voxels(next(gen))
+
 
 def training_generator(cases, train_or_validation):
     centered_intersection_generator = augmented(intersection_generator(cases, train_or_validation, 0, 2))
@@ -187,14 +201,17 @@ def visualize_samples(gen):
         print(answer)
         show_slices(np.squeeze(voxels_window))
 
+
 def ensure_dir(path):
     if not os.path.exists(path):
         os.makedirs(path, mode=0o777)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('phantom')
     args = parser.parse_args()
-    assert args.phantom  in phantomName2Datasets
+    assert args.phantom in phantomName2Datasets
     cases = phantomName2Datasets[args.phantom]
     #visualize_samples(training_generator(cases, "train"))
 
