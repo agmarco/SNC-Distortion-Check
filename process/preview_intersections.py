@@ -1,3 +1,8 @@
+"""
+This module is for previewing and selecting grid intersections that the
+CNN should learn to reject due to nearby artifacts.
+"""
+
 import argparse
 import os
 
@@ -68,6 +73,7 @@ def show(phantom_model, modality, voxels, ijk_to_xyz, point_xyz, detected_point_
     s.add_renderer(slicer.render_overlay(feature_image, ijk_to_xyz))
     s.add_renderer(slicer.render_points)
     s.add_renderer(slicer.render_cursor, hidden=True)
+    s.add_renderer(slicer.render_legend)
 
     axaccept = plt.axes([0.7, 0.05, 0.1, 0.075])
     axreject = plt.axes([0.81, 0.05, 0.1, 0.075])
