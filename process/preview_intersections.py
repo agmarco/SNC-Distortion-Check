@@ -92,15 +92,15 @@ if __name__ == '__main__':
     ijk_to_xyz = voxel_data['ijk_to_xyz']
     xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
     voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
-    golden_points = file_io.load_points(dataset['points'])['points']
-    points_ijk = apply_affine(xyz_to_ijk, golden_points)
+    points_xyz = file_io.load_points(dataset['points'])['points']
     phantom_model = dataset['model']
     modality = dataset['modality']
 
     feature_detector = FeatureDetector(phantom_model, modality, voxels, ijk_to_xyz)
     detected_points_ijk = feature_detector.points_ijk
 
-    for point_ijk in points_ijk.T:
+    for point_xyz in points_xyz.T:
+        point_ijk = affine.apply_affine_1(xyz_to_ijk, point_xyz)
         i, j, k = np.round(point_ijk).astype(int)
         window = (
             (i - cube_size_half[0], i + cube_size_half[0]),
@@ -122,8 +122,7 @@ if __name__ == '__main__':
             [0, 0, 0, 1],
         ])
 
-        original_point_ijk = point_ijk
-        original_point_xyz = affine.apply_affine_1(ijk_to_xyz, original_point_ijk)
+        original_point_xyz = point_xyz
         point_ijk = affine.apply_affine_1(translation, point_ijk)
         point_xyz = affine.apply_affine_1(ijk_to_xyz, point_ijk)
 
