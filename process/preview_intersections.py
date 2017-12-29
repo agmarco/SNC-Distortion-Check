@@ -8,7 +8,6 @@ from matplotlib.widgets import Button
 from scipy import signal
 
 from process import file_io, affine, slicer, kernels, phantoms
-from process.affine import apply_affine
 from process.feature_detection import modality_grid_radius_factors, FeatureDetector
 
 cube_size = 45
