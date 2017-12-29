@@ -105,6 +105,11 @@ def non_intersection_generator(cases, min_dist_from_annotated=5, num_samples=100
         random_points = np.array([np.random.randint(cube_size_half, voxels.shape[0]-cube_size_half, num_samples),
                             np.random.randint(cube_size_half, voxels.shape[1]-cube_size_half, num_samples),
                             np.random.randint(cube_size_half, voxels.shape[2]-cube_size_half, num_samples)])
+
+        if 'rejected' in case:
+            rejected_points = file_io.load_points(case['rejected'])['points']
+            random_points = np.append(random_points, rejected_points, axis=1)
+
         for point_ijk in random_points.T:
             distances = np.sum(np.abs(points_ijk.T - point_ijk), axis=1)
             if np.min(distances) > min_dist_from_annotated:
