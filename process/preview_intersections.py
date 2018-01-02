@@ -86,6 +86,8 @@ def show(phantom_model, modality, voxels, ijk_to_xyz, point_xyz, detected_point_
     plt.show()
 
 
+PREVIEW_ALL = False
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('phantom')
@@ -104,63 +106,99 @@ if __name__ == '__main__':
     feature_detector = FeatureDetector(phantom_model, modality, voxels, ijk_to_xyz)
     detected_points_ijk = feature_detector.points_ijk
 
-    for point_xyz in points_xyz.T:
-        point_ijk = affine.apply_affine_1(xyz_to_ijk, point_xyz)
-        i, j, k = np.round(point_ijk).astype(int)
-        window = (
-            (i - cube_size_half[0], i + cube_size_half[0]),
-            (j - cube_size_half[1], j + cube_size_half[1]),
-            (k - cube_size_half[2], k + cube_size_half[2]),
-        )
+    if PREVIEW_ALL:
+        descriptors = [
+            {
+                'points_xyz': points_xyz,
+                'scatter_kwargs': {
+                    'color': 'g',
+                    'label': 'Gold Standard',
+                    'marker': 'o',
+                }
+            },
+            {
+                'points_xyz': affine.apply_affine(ijk_to_xyz, detected_points_ijk),
+                'scatter_kwargs': {
+                    'color': 'g',
+                    'label': 'Detected',
+                    'marker': 'x',
+                }
+            },
+        ]
 
-        window_adjusted = (
-            (max(window[0][0], 0), min(window[0][1], voxels.shape[0])),
-            (max(window[1][0], 0), min(window[1][1], voxels.shape[1])),
-            (max(window[2][0], 0), min(window[2][1], voxels.shape[2])),
-        )
+        voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
+        actual_grid_radius = phantoms.paramaters[phantom_model]['grid_radius']
+        modality_grid_radius_factor = modality_grid_radius_factors[modality]
+        grid_radius = actual_grid_radius * modality_grid_radius_factor
+        kernel = kernels.gaussian(voxel_spacing, grid_radius)
+        feature_image = signal.fftconvolve(voxels, kernel, mode='same')
 
-        ijk_offset = np.array([-a for a, b in window_adjusted])
-        translation = np.array([
-            [1, 0, 0, ijk_offset[0]],
-            [0, 1, 0, ijk_offset[1]],
-            [0, 0, 1, ijk_offset[2]],
-            [0, 0, 0, 1],
-        ])
+        s = slicer.PointsSlicer(voxels, ijk_to_xyz, descriptors)
+        s.add_renderer(slicer.render_overlay(feature_image, ijk_to_xyz))
+        s.add_renderer(slicer.render_points)
+        s.add_renderer(slicer.render_cursor, hidden=True)
+        s.add_renderer(slicer.render_legend)
 
-        original_point_xyz = point_xyz
-        point_ijk = affine.apply_affine_1(translation, point_ijk)
-        point_xyz = affine.apply_affine_1(ijk_to_xyz, point_ijk)
-
-        detected_points_ijk_translated = affine.apply_affine(translation, detected_points_ijk)
-        point_ijk_repeat = np.repeat(np.array([point_ijk]).T, detected_points_ijk_translated.shape[1], axis=1)
-        displacements = detected_points_ijk_translated - point_ijk_repeat
-        distances = np.linalg.norm(displacements, axis=0).squeeze()
-        min_index = np.argmin(distances)
-        closest_detected_point_ijk = detected_points_ijk_translated[:, min_index]
-        closest_detected_point_xyz = affine.apply_affine_1(ijk_to_xyz, closest_detected_point_ijk)
-
-        error = np.linalg.norm(closest_detected_point_xyz - point_xyz)
-        error_threshold = 3
-        if error > error_threshold:
-            print(f'Error: {error}')
-            window_slice_tup = tuple(slice(*bounds) for bounds in window_adjusted)
-            voxel_window = voxels[window_slice_tup]
-
-            cursor = np.array([(b - a) / 2 for a, b in window], dtype=int)
-            cursor_offset = np.array([min(a, 0) for a, b in window])
-            cursor = np.add(cursor, cursor_offset)
-
-            show(
-                phantom_model,
-                modality,
-                voxel_window,
-                ijk_to_xyz,
-                point_xyz,
-                closest_detected_point_xyz,
-                original_point_xyz,
-                cursor,
+        s.draw()
+        plt.show()
+    else:
+        for point_xyz in points_xyz.T:
+            point_ijk = affine.apply_affine_1(xyz_to_ijk, point_xyz)
+            i, j, k = np.round(point_ijk).astype(int)
+            window = (
+                (i - cube_size_half[0], i + cube_size_half[0]),
+                (j - cube_size_half[1], j + cube_size_half[1]),
+                (k - cube_size_half[2], k + cube_size_half[2]),
             )
 
-    filename = f"{os.path.splitext(os.path.basename(dataset['points']))[0]}.mat"
-    output_path = f"data/rejected_points/{filename}"
-    scipy.io.savemat(output_path, {'points': rejected_points})
+            window_adjusted = (
+                (max(window[0][0], 0), min(window[0][1], voxels.shape[0])),
+                (max(window[1][0], 0), min(window[1][1], voxels.shape[1])),
+                (max(window[2][0], 0), min(window[2][1], voxels.shape[2])),
+            )
+
+            ijk_offset = np.array([-a for a, b in window_adjusted])
+            translation = np.array([
+                [1, 0, 0, ijk_offset[0]],
+                [0, 1, 0, ijk_offset[1]],
+                [0, 0, 1, ijk_offset[2]],
+                [0, 0, 0, 1],
+            ])
+
+            original_point_xyz = point_xyz
+            point_ijk = affine.apply_affine_1(translation, point_ijk)
+            point_xyz = affine.apply_affine_1(ijk_to_xyz, point_ijk)
+
+            detected_points_ijk_translated = affine.apply_affine(translation, detected_points_ijk)
+            point_ijk_repeat = np.repeat(np.array([point_ijk]).T, detected_points_ijk_translated.shape[1], axis=1)
+            displacements = detected_points_ijk_translated - point_ijk_repeat
+            distances = np.linalg.norm(displacements, axis=0).squeeze()
+            min_index = np.argmin(distances)
+            closest_detected_point_ijk = detected_points_ijk_translated[:, min_index]
+            closest_detected_point_xyz = affine.apply_affine_1(ijk_to_xyz, closest_detected_point_ijk)
+
+            error = np.linalg.norm(closest_detected_point_xyz - point_xyz)
+            error_threshold = 3
+            if error > error_threshold:
+                print(f'Error: {error}')
+                window_slice_tup = tuple(slice(*bounds) for bounds in window_adjusted)
+                voxel_window = voxels[window_slice_tup]
+
+                cursor = np.array([(b - a) / 2 for a, b in window], dtype=int)
+                cursor_offset = np.array([min(a, 0) for a, b in window])
+                cursor = np.add(cursor, cursor_offset)
+
+                show(
+                    phantom_model,
+                    modality,
+                    voxel_window,
+                    ijk_to_xyz,
+                    point_xyz,
+                    closest_detected_point_xyz,
+                    original_point_xyz,
+                    cursor,
+                )
+
+        filename = f"{os.path.splitext(os.path.basename(dataset['points']))[0]}.mat"
+        output_path = f"data/rejected_points/{filename}"
+        scipy.io.savemat(output_path, {'points': rejected_points})
