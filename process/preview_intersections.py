@@ -24,6 +24,14 @@ datasets = {
         'modality': 'mri',
         'voxels': 'tmp/010_mri_604_LFV-Phantom_E2632-1-voxels.mat',
         'points': 'data/points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
+        'rejected': 'data/rejected_points/010_mri_604_LFV-Phantom_E2632-1-rejected.mat',
+    },
+    '604-2': {
+        'model': '604',
+        'modality': 'mri',
+        'voxels': 'data/voxels/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-voxels.mat',
+        'points': 'data/points/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-golden.mat',
+        'rejected': 'data/rejected_points/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-rejected.mat',
     },
 }
 
@@ -198,8 +206,6 @@ if __name__ == '__main__':
                     cursor,
                 )
 
-        filename = f"{os.path.splitext(os.path.basename(dataset['points']))[0]}.mat"
-        output_path = f"data/rejected_points/{filename}"
-        file_io.save_points(output_path, {
+        file_io.save_points(dataset['rejected'], {
             'points': rejected_points,
         })
