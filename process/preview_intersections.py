@@ -6,7 +6,6 @@ CNN should learn to reject due to nearby artifacts.
 import argparse
 import os
 
-import scipy.io
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.widgets import Button
@@ -201,4 +200,6 @@ if __name__ == '__main__':
 
         filename = f"{os.path.splitext(os.path.basename(dataset['points']))[0]}.mat"
         output_path = f"data/rejected_points/{filename}"
-        scipy.io.savemat(output_path, {'points': rejected_points})
+        file_io.save_points(output_path, {
+            'points': rejected_points,
+        })
