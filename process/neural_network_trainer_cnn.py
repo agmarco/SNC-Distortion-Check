@@ -82,11 +82,11 @@ def intersection_generator(cases, train_or_validation, min_offset, offset_mag):
             golden_points = np.array(list(golden_points_set)).T
 
         points_ijk = apply_affine(xyz_to_ijk, golden_points)
-        for points_ijk in points_ijk.T[start_offset::2, :]:
+        for point_ijk in points_ijk.T[start_offset::2, :]:
             random_signs = np.array([random.choice([-1,1]), random.choice([-1,1]), random.choice([-1,1])])
             # introduces shift invariance
-            points_ijk += random_signs * (np.random.sample(3) * offset_mag + min_offset)
-            voxel_window = window_from_ijk(points_ijk, voxels, voxel_spacing)
+            point_ijk += random_signs * (np.random.sample(3) * offset_mag + min_offset)
+            voxel_window = window_from_ijk(point_ijk, voxels, voxel_spacing)
             if voxel_window is not None:
                 assert voxel_window.shape == (cube_size,cube_size,cube_size)
                 #zero mean, unit std
