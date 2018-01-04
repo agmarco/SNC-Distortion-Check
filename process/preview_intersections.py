@@ -34,7 +34,7 @@ datasets = {
     },
 }
 
-rejected_points = np.array([[], [], []])
+new_rejected_points_xyz = np.array([[], [], []])
 
 PREVIEW_ALL = False
 
@@ -46,8 +46,8 @@ def accept(point):
 
 def reject(point):
     print('reject')
-    global rejected_points
-    rejected_points = np.append(rejected_points, np.array([point]).T, axis=1)
+    global new_rejected_points_xyz
+    new_rejected_points_xyz = np.append(new_rejected_points_xyz, np.array([point]).T, axis=1)
     plt.close()
 
 
@@ -196,6 +196,14 @@ if __name__ == '__main__':
                 s.draw()
                 plt.show()
 
+        golden_points_xyz_set = set([tuple(x) for x in golden_points_xyz.T])
+        new_rejected_points_xyz_set = set([tuple(x) for x in new_rejected_points_xyz.T])
+        new_golden_points_xyz_set = golden_points_xyz_set - new_rejected_points_xyz_set
+        new_golden_points_xyz = np.array(list(new_golden_points_xyz_set)).T
+
+        file_io.save_points(dataset['points'], {
+            'points': new_golden_points_xyz,
+        })
         file_io.save_points(dataset['rejected'], {
-            'points': rejected_points,
+            'points': new_rejected_points_xyz,
         })
