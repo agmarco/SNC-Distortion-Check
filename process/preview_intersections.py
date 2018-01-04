@@ -39,8 +39,20 @@ rejected_points = np.array([[], [], []])
 PREVIEW_ALL = False
 
 
+def accept(point):
+    print('accept')
+    plt.close()
+
+
+def reject(point):
+    print('reject')
+    global rejected_points
+    rejected_points = np.append(rejected_points, np.array([point]).T, axis=1)
+    plt.close()
+
+
 class RejectPointsSlicer(slicer.PointsSlicer):
-    def __init__(self, voxels, ijk_to_xyz, point_xyz, detected_point_xyz, original_point_xyz):
+    def __init__(self, voxels, ijk_to_xyz, point_xyz, detected_point_xyz):
         points_descriptors = [
             {
                 'points_xyz': np.array([point_xyz]).T,
@@ -62,20 +74,17 @@ class RejectPointsSlicer(slicer.PointsSlicer):
         super().__init__(voxels, ijk_to_xyz, points_descriptors)
         axaccept = plt.axes([0.7, 0.05, 0.1, 0.075])
         axreject = plt.axes([0.81, 0.05, 0.1, 0.075])
-        baccept = Button(axaccept, 'Accept')
-        breject = Button(axreject, 'Reject')
-        baccept.on_clicked(lambda e: self.accept(original_point_xyz))
-        breject.on_clicked(lambda e: self.reject(original_point_xyz))
+        self.baccept = Button(axaccept, 'Accept')
+        self.breject = Button(axreject, 'Reject')
 
-    @staticmethod
-    def accept(point):
-        plt.close()
 
-    @staticmethod
-    def reject(point):
-        global rejected_points
-        rejected_points = np.append(rejected_points, np.array([point]).T, axis=1)
-        plt.close()
+def get_feature_image(voxels, ijk_to_xyz, phantom_model, modality):
+    voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
+    actual_grid_radius = phantoms.paramaters[phantom_model]['grid_radius']
+    modality_grid_radius_factor = modality_grid_radius_factors[modality]
+    grid_radius = actual_grid_radius * modality_grid_radius_factor
+    kernel = kernels.gaussian(voxel_spacing, grid_radius)
+    return signal.fftconvolve(voxels, kernel, mode='same')
 
 
 if __name__ == '__main__':
@@ -118,13 +127,7 @@ if __name__ == '__main__':
             },
         ]
 
-        voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
-        actual_grid_radius = phantoms.paramaters[phantom_model]['grid_radius']
-        modality_grid_radius_factor = modality_grid_radius_factors[modality]
-        grid_radius = actual_grid_radius * modality_grid_radius_factor
-        kernel = kernels.gaussian(voxel_spacing, grid_radius)
-        feature_image = signal.fftconvolve(voxels, kernel, mode='same')
-
+        feature_image = get_feature_image(voxels, ijk_to_xyz, phantom_model, modality)
         s = slicer.PointsSlicer(voxels, ijk_to_xyz, descriptors)
         s.add_renderer(slicer.render_overlay(feature_image, ijk_to_xyz))
         s.add_renderer(slicer.render_points)
@@ -180,16 +183,11 @@ if __name__ == '__main__':
                 cursor_offset = np.array([min(a, 0) for a, b in window])
                 cursor = np.add(cursor, cursor_offset)
 
-                voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
-                actual_grid_radius = phantoms.paramaters[phantom_model]['grid_radius']
-                modality_grid_radius_factor = modality_grid_radius_factors[modality]
-                grid_radius = actual_grid_radius * modality_grid_radius_factor
-                kernel = kernels.gaussian(voxel_spacing, grid_radius)
-                feature_image = signal.fftconvolve(voxel_window, kernel, mode='same')
-
-                s = RejectPointsSlicer(
-                    voxel_window, ijk_to_xyz, point_xyz, closest_detected_point_xyz, original_point_xyz)
+                feature_image = get_feature_image(voxel_window, ijk_to_xyz, phantom_model, modality)
+                s = RejectPointsSlicer(voxel_window, ijk_to_xyz, point_xyz, closest_detected_point_xyz)
                 s.cursor = cursor
+                s.baccept.on_clicked(lambda e: accept(original_point_xyz))
+                s.breject.on_clicked(lambda e: reject(original_point_xyz))
                 s.add_renderer(slicer.render_overlay(feature_image, ijk_to_xyz))
                 s.add_renderer(slicer.render_points)
                 s.add_renderer(slicer.render_cursor, hidden=True)
