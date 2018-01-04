@@ -40,7 +40,7 @@ PREVIEW_ALL = False
 
 
 class RejectPointsSlicer(slicer.PointsSlicer):
-    def __init__(self, voxels, ijk_to_xyz, point_xyz, detected_point_xyz):
+    def __init__(self, voxels, ijk_to_xyz, point_xyz, detected_point_xyz, original_point_xyz):
         points_descriptors = [
             {
                 'points_xyz': np.array([point_xyz]).T,
@@ -187,7 +187,8 @@ if __name__ == '__main__':
                 kernel = kernels.gaussian(voxel_spacing, grid_radius)
                 feature_image = signal.fftconvolve(voxels, kernel, mode='same')
 
-                s = RejectPointsSlicer(voxels, ijk_to_xyz, point_xyz, closest_detected_point_xyz)
+                s = RejectPointsSlicer(
+                    voxel_window, ijk_to_xyz, point_xyz, closest_detected_point_xyz, original_point_xyz)
                 s.cursor = cursor
                 s.add_renderer(slicer.render_overlay(feature_image, ijk_to_xyz))
                 s.add_renderer(slicer.render_points)
