@@ -81,12 +81,12 @@ def intersection_generator(cases, train_or_validation, min_offset, offset_mag):
             golden_points_set -= rejected_points_set
             golden_points = np.array(list(golden_points_set)).T
 
-        point_ijk = apply_affine(xyz_to_ijk, golden_points)
-        for point_ijk in point_ijk.T[start_offset::2, :]:
+        points_ijk = apply_affine(xyz_to_ijk, golden_points)
+        for points_ijk in points_ijk.T[start_offset::2, :]:
             random_signs = np.array([random.choice([-1,1]), random.choice([-1,1]), random.choice([-1,1])])
             # introduces shift invariance
-            point_ijk += random_signs * (np.random.sample(3) * offset_mag + min_offset)
-            voxel_window = window_from_ijk(point_ijk, voxels, voxel_spacing)
+            points_ijk += random_signs * (np.random.sample(3) * offset_mag + min_offset)
+            voxel_window = window_from_ijk(points_ijk, voxels, voxel_spacing)
             if voxel_window is not None:
                 assert voxel_window.shape == (cube_size,cube_size,cube_size)
                 #zero mean, unit std
@@ -106,7 +106,6 @@ def non_intersection_generator(cases, min_dist_from_annotated=5, num_samples=100
         voxel_spacing *= random_voxel_spacing_augmentation
         xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
         golden_points = file_io.load_points(case['points'])['points']
-        points_ijk = apply_affine(xyz_to_ijk, golden_points)
         random_points = np.array([np.random.randint(cube_size_half, voxels.shape[0]-cube_size_half, num_samples),
                             np.random.randint(cube_size_half, voxels.shape[1]-cube_size_half, num_samples),
                             np.random.randint(cube_size_half, voxels.shape[2]-cube_size_half, num_samples)])
@@ -114,7 +113,12 @@ def non_intersection_generator(cases, min_dist_from_annotated=5, num_samples=100
         if 'rejected' in case:
             rejected_points = file_io.load_points(case['rejected'])['points']
             random_points = np.append(random_points, rejected_points, axis=1)
+            golden_points_set = set([tuple(x) for x in golden_points.T])
+            rejected_points_set = set([tuple(x) for x in rejected_points.T])
+            golden_points_set -= rejected_points_set
+            golden_points = np.array(list(golden_points_set)).T
 
+        points_ijk = apply_affine(xyz_to_ijk, golden_points)
         for point_ijk in random_points.T:
             distances = np.sum(np.abs(points_ijk.T - point_ijk), axis=1)
             if np.min(distances) > min_dist_from_annotated:
