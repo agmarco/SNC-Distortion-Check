@@ -17,43 +17,68 @@ class AnnotateSlicer(PointsSlicer):
     def __init__(self, voxels, ijk_to_xyz, points_xyz):
         points_descriptors = [{'points_xyz': points_xyz, 'scatter_kwargs': {'color': 'g'}}]
         super().__init__(voxels, ijk_to_xyz, points_descriptors)
+        self.selected_descriptor = None
         self.selected_indice = None
         self.f.canvas.mpl_connect('key_press_event', lambda e: self.on_key_press(e))
 
     def on_button_press(self, event):
         if event.button == 3:  # right click
-            points = self.points_descriptors[0]['points_ijk']
-            num_points = points.shape[1]
-
-            x_dimension, y_dimension, slice_dimension = slicer.axes_dimensions(event.inaxes)
+            x_dimension, y_dimension, slice_dimension = self.axes_dimensions(event.inaxes)
             new_point = np.empty((3, 1), dtype=float)
             new_point[x_dimension] = event.xdata
             new_point[y_dimension] = event.ydata
-            new_point[slice_dimension] = slicer.cursor[slice_dimension]
+            new_point[slice_dimension] = self.cursor[slice_dimension]
 
-            if num_points > 0:
-                closest_indice, _, distance = closest(points, new_point)
-            else:
-                distance = float('inf')
+            closest_indices = []
+            distances = []
+            for descriptor in self.points_descriptors:
+                points = descriptor['points_ijk']
+                num_points = points.shape[1]
+                if num_points > 0:
+                    closest_indice, _, distance = closest(points, new_point)
+                    closest_indices.append(closest_indice)
+                    distances.append(distance)
+                else:
+                    closest_indices.append(-1)
+                    distances.append(float('inf'))
 
-            if distance < 5:
-                log.info("Selecting point {}".format(closest_indice))
+            closest_distance = min(distances)
+
+            if closest_distance < 5:
+                points_descriptor_indice = distances.index(closest_distance)
+                descriptor = self.points_descriptors[points_descriptor_indice]
+                points = descriptor['points_ijk']
+                closest_indice, distance = list(zip(closest_indices, distances))[points_descriptor_indice]
+
+                if 'label' in descriptor['scatter_kwargs']:
+                    descriptor_label = descriptor['scatter_kwargs']['label']
+                else:
+                    descriptor_label = points_descriptor_indice
+                log.info(f"Selecting point {descriptor_label}: {closest_indice}")
+                self.selected_descriptor = points_descriptor_indice
                 self.selected_indice = closest_indice
                 self.cursor = points[:, self.selected_indice].astype(int)
                 self.draw()
             else:
+                points = self.points_descriptors[0]['points_ijk']
                 self.points_descriptors[0]['points_ijk'] = np.append(points, new_point, axis=1)
                 self.draw()
         else:
             super().on_button_press(event)
 
     def on_key_press(self, event):
-        points = self.points_descriptors[0]['points_ijk']
+        if self.selected_descriptor is None:
+            if event.key == 'tab':
+                self.selected_descriptor = 0
+            else:
+                return
+
+        points = self.points_descriptors[self.selected_descriptor]['points_ijk']
         num_points = points.shape[1]
 
         if self.selected_indice is None:
             if event.key == 'tab' and num_points > 0:
-                self.selected_indice = 1
+                self.selected_indice = 0
             else:
                 return
 
@@ -68,13 +93,15 @@ class AnnotateSlicer(PointsSlicer):
         }
 
         if event.key == 'esc':
+            self.selected_descriptor = None
             self.selected_indice = None
         elif event.key in ['d', 'e', 'delete']:
             points_without_selected = points[:, np.arange(num_points) != self.selected_indice]
-            self.points_descriptors[0]['points_ijk'] = points_without_selected
+            self.points_descriptors[self.selected_descriptor]['points_ijk'] = points_without_selected
             points = points_without_selected
             num_points = num_points - 1
             if num_points == 0 or event.key == 'e':
+                self.selected_descriptor = None
                 self.selected_indice = None
             else:
                 self.selected_indice = self.selected_indice % num_points
