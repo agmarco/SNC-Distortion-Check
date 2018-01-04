@@ -4,7 +4,6 @@ CNN should learn to reject due to nearby artifacts.
 """
 
 import argparse
-import os
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -37,63 +36,47 @@ datasets = {
 
 rejected_points = np.array([[], [], []])
 
-
-def accept(point):
-    plt.close()
-
-
-def reject(point):
-    global rejected_points
-    rejected_points = np.append(rejected_points, np.array([point]).T, axis=1)
-    plt.close()
-
-
-def show(phantom_model, modality, voxels, ijk_to_xyz, point_xyz, detected_point_xyz, original_point_xyz, cursor):
-    descriptors = [
-        {
-            'points_xyz': np.array([point_xyz]).T,
-            'scatter_kwargs': {
-                'color': 'g',
-                'label': 'Gold Standard',
-                'marker': 'o',
-            }
-        },
-        {
-            'points_xyz': np.array([detected_point_xyz]).T,
-            'scatter_kwargs': {
-                'color': 'g',
-                'label': 'Detected',
-                'marker': 'x',
-            }
-        },
-    ]
-
-    voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
-    actual_grid_radius = phantoms.paramaters[phantom_model]['grid_radius']
-    modality_grid_radius_factor = modality_grid_radius_factors[modality]
-    grid_radius = actual_grid_radius * modality_grid_radius_factor
-    kernel = kernels.gaussian(voxel_spacing, grid_radius)
-    feature_image = signal.fftconvolve(voxels, kernel, mode='same')
-
-    s = slicer.PointsSlicer(voxels, ijk_to_xyz, descriptors)
-    s.cursor = cursor
-    s.add_renderer(slicer.render_overlay(feature_image, ijk_to_xyz))
-    s.add_renderer(slicer.render_points)
-    s.add_renderer(slicer.render_cursor, hidden=True)
-    s.add_renderer(slicer.render_legend)
-
-    axaccept = plt.axes([0.7, 0.05, 0.1, 0.075])
-    axreject = plt.axes([0.81, 0.05, 0.1, 0.075])
-    baccept = Button(axaccept, 'Accept')
-    breject = Button(axreject, 'Reject')
-    baccept.on_clicked(lambda e: accept(original_point_xyz))
-    breject.on_clicked(lambda e: reject(original_point_xyz))
-
-    s.draw()
-    plt.show()
-
-
 PREVIEW_ALL = False
+
+
+class RejectPointsSlicer(slicer.PointsSlicer):
+    def __init__(self, voxels, ijk_to_xyz, point_xyz, detected_point_xyz):
+        points_descriptors = [
+            {
+                'points_xyz': np.array([point_xyz]).T,
+                'scatter_kwargs': {
+                    'color': 'g',
+                    'label': 'Gold Standard',
+                    'marker': 'o',
+                }
+            },
+            {
+                'points_xyz': np.array([detected_point_xyz]).T,
+                'scatter_kwargs': {
+                    'color': 'g',
+                    'label': 'Detected',
+                    'marker': 'x',
+                }
+            },
+        ]
+        super().__init__(voxels, ijk_to_xyz, points_descriptors)
+        axaccept = plt.axes([0.7, 0.05, 0.1, 0.075])
+        axreject = plt.axes([0.81, 0.05, 0.1, 0.075])
+        baccept = Button(axaccept, 'Accept')
+        breject = Button(axreject, 'Reject')
+        baccept.on_clicked(lambda e: self.accept(original_point_xyz))
+        breject.on_clicked(lambda e: self.reject(original_point_xyz))
+
+    @staticmethod
+    def accept(point):
+        plt.close()
+
+    @staticmethod
+    def reject(point):
+        global rejected_points
+        rejected_points = np.append(rejected_points, np.array([point]).T, axis=1)
+        plt.close()
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -106,7 +89,9 @@ if __name__ == '__main__':
     ijk_to_xyz = voxel_data['ijk_to_xyz']
     xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
     voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
-    points_xyz = file_io.load_points(dataset['points'])['points']
+    golden_points_xyz = file_io.load_points(dataset['points'])['points']
+    rejected_points_xyz = file_io.load_points(dataset['rejected'])['points']
+    points_xyz = np.append(golden_points_xyz, rejected_points_xyz, axis=1)
     phantom_model = dataset['model']
     modality = dataset['modality']
 
@@ -195,16 +180,22 @@ if __name__ == '__main__':
                 cursor_offset = np.array([min(a, 0) for a, b in window])
                 cursor = np.add(cursor, cursor_offset)
 
-                show(
-                    phantom_model,
-                    modality,
-                    voxel_window,
-                    ijk_to_xyz,
-                    point_xyz,
-                    closest_detected_point_xyz,
-                    original_point_xyz,
-                    cursor,
-                )
+                voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
+                actual_grid_radius = phantoms.paramaters[phantom_model]['grid_radius']
+                modality_grid_radius_factor = modality_grid_radius_factors[modality]
+                grid_radius = actual_grid_radius * modality_grid_radius_factor
+                kernel = kernels.gaussian(voxel_spacing, grid_radius)
+                feature_image = signal.fftconvolve(voxels, kernel, mode='same')
+
+                s = RejectPointsSlicer(voxels, ijk_to_xyz, point_xyz, closest_detected_point_xyz)
+                s.cursor = cursor
+                s.add_renderer(slicer.render_overlay(feature_image, ijk_to_xyz))
+                s.add_renderer(slicer.render_points)
+                s.add_renderer(slicer.render_cursor, hidden=True)
+                s.add_renderer(slicer.render_legend)
+
+                s.draw()
+                plt.show()
 
         file_io.save_points(dataset['rejected'], {
             'points': rejected_points,

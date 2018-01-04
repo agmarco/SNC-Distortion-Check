@@ -73,14 +73,6 @@ def intersection_generator(cases, train_or_validation, min_offset, offset_mag):
         random_voxel_spacing_augmentation = (np.random.sample(3) * 0.2 - 0.1) + 1
         voxel_spacing *= random_voxel_spacing_augmentation
         golden_points = file_io.load_points(case['points'])['points']
-
-        if 'rejected' in case:
-            rejected_points = file_io.load_points(case['rejected'])['points']
-            golden_points_set = set([tuple(x) for x in golden_points.T])
-            rejected_points_set = set([tuple(x) for x in rejected_points.T])
-            golden_points_set -= rejected_points_set
-            golden_points = np.array(list(golden_points_set)).T
-
         points_ijk = apply_affine(xyz_to_ijk, golden_points)
         for point_ijk in points_ijk.T[start_offset::2, :]:
             random_signs = np.array([random.choice([-1,1]), random.choice([-1,1]), random.choice([-1,1])])
@@ -113,10 +105,6 @@ def non_intersection_generator(cases, min_dist_from_annotated=5, num_samples=100
         if 'rejected' in case:
             rejected_points = file_io.load_points(case['rejected'])['points']
             random_points = np.append(random_points, rejected_points, axis=1)
-            golden_points_set = set([tuple(x) for x in golden_points.T])
-            rejected_points_set = set([tuple(x) for x in rejected_points.T])
-            golden_points_set -= rejected_points_set
-            golden_points = np.array(list(golden_points_set)).T
 
         points_ijk = apply_affine(xyz_to_ijk, golden_points)
         for point_ijk in random_points.T:

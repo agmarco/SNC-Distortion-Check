@@ -47,13 +47,6 @@ class FeatureDetectionSuite(Suite):
     def run(self, case_input):
         golden_points = file_io.load_points(case_input['points'])['points']
 
-        if 'rejected' in case_input:
-            rejected_points = file_io.load_points(case_input['rejected'])['points']
-            golden_points_set = set([tuple(x) for x in golden_points.T])
-            rejected_points_set = set([tuple(x) for x in rejected_points.T])
-            golden_points_set -= rejected_points_set
-            golden_points = np.array(list(golden_points_set)).T
-
         metrics = OrderedDict()
         context = OrderedDict()
 
