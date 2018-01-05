@@ -14,12 +14,24 @@ log = logging.getLogger(__name__)
 
 
 class AnnotateSlicer(PointsSlicer):
-    def __init__(self, voxels, ijk_to_xyz, points_xyz):
-        points_descriptors = [{'points_xyz': points_xyz, 'scatter_kwargs': {'color': 'g'}}]
+    def __init__(self, voxels, ijk_to_xyz, points_descriptors):
         super().__init__(voxels, ijk_to_xyz, points_descriptors)
         self.selected_descriptor = None
         self.selected_indice = None
         self.f.canvas.mpl_connect('key_press_event', lambda e: self.on_key_press(e))
+        reclassify_lookup_inv = {
+            0: '!',
+            1: '@',
+            2: '#',
+            3: '$',
+            4: '%',
+            5: '^',
+            6: '&',
+            7: '*',
+            8: '(',
+        }
+        reclassify_indices = range(min(len(self.points_descriptors), 9))
+        self.reclassify_lookup = {v: k for k, v in reclassify_lookup_inv.items() if k in reclassify_indices}
 
     def on_button_press(self, event):
         if event.button == 3:  # right click
@@ -115,6 +127,10 @@ class AnnotateSlicer(PointsSlicer):
             nudge_list = nudge_lookup[event.key]
             nudge = np.array(nudge_list, dtype=float)
             points[:, self.selected_indice] += nudge
+        elif event.key in self.reclassify_lookup.keys():
+            new_descriptor_index = self.reclassify_lookup[event.key]
+            self.reclassify_point(new_descriptor_index)
+            points = self.points_descriptors[self.selected_descriptor]['points_ijk']
         else:
             print(event.key)
             return super().on_key_press(event)
@@ -124,6 +140,19 @@ class AnnotateSlicer(PointsSlicer):
             self.ensure_cursor_in_bounds()
 
         self.draw()
+
+    def reclassify_point(self, new_descriptor_index):
+        if self.selected_descriptor != new_descriptor_index:
+            old_points = self.points_descriptors[self.selected_descriptor]['points_ijk']
+            new_points = self.points_descriptors[new_descriptor_index]['points_ijk']
+            num_old_points = old_points.shape[1]
+            selected_point = old_points[:, self.selected_indice]
+            old_points = old_points[:, np.arange(num_old_points) != self.selected_indice]
+            self.points_descriptors[self.selected_descriptor]['points_ijk'] = old_points
+            new_points = np.append(new_points, np.array([selected_point]).T, axis=1)
+            self.points_descriptors[new_descriptor_index]['points_ijk'] = new_points
+            self.selected_descriptor = new_descriptor_index
+            self.selected_indice = new_points.shape[1] - 1
 
 
 if __name__ == '__main__':
@@ -144,7 +173,8 @@ if __name__ == '__main__':
         points_xyz = np.zeros((3, 0))
         log.info('No existing points found in {}'.format(args.points))
 
-    slicer = AnnotateSlicer(voxels, ijk_to_xyz, points_xyz)
+    points_descriptors = [{'points_xyz': points_xyz, 'scatter_kwargs': {'color': 'g'}}]
+    slicer = AnnotateSlicer(voxels, ijk_to_xyz, points_descriptors)
     slicer.add_renderer(render_points)
     slicer.add_renderer(render_cursor)
     slicer.draw()
@@ -156,4 +186,3 @@ if __name__ == '__main__':
         'points': points_xyz,
     })
     log.info('Wrote {} points to {}'.format(points_xyz.shape[1], args.points))
-
