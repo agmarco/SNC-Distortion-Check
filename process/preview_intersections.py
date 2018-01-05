@@ -8,11 +8,10 @@ import logging
 
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy import signal
 
-from process import file_io, affine, slicer, kernels, phantoms
+from process import file_io, affine, slicer
 from process.annotate import AnnotateSlicer
-from process.feature_detection import modality_grid_radius_factors, FeatureDetector
+from process.feature_detection import FeatureDetector
 
 log = logging.getLogger(__name__)
 
