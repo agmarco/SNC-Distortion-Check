@@ -131,6 +131,8 @@ class AnnotateSlicer(PointsSlicer):
             new_descriptor_index = self.reclassify_lookup[event.key]
             self.reclassify_point(new_descriptor_index)
             points = self.points_descriptors[self.selected_descriptor]['points_ijk']
+        elif event.key == 't':
+            self.step_selected_point()
         else:
             print(event.key)
             return super().on_key_press(event)
@@ -142,6 +144,7 @@ class AnnotateSlicer(PointsSlicer):
         self.draw()
 
     def reclassify_point(self, new_descriptor_index):
+        """Move a point from one descriptor to another."""
         if self.selected_descriptor != new_descriptor_index:
             old_points = self.points_descriptors[self.selected_descriptor]['points_ijk']
             new_points = self.points_descriptors[new_descriptor_index]['points_ijk']
@@ -153,6 +156,34 @@ class AnnotateSlicer(PointsSlicer):
             self.points_descriptors[new_descriptor_index]['points_ijk'] = new_points
             self.selected_descriptor = new_descriptor_index
             self.selected_indice = new_points.shape[1] - 1
+
+    def step_selected_point(self):
+        """
+        If there are 2 points in different descriptors very close to each other,
+        step through which point is selected.
+        """
+        if self.selected_descriptor and self.selected_indice:
+            current_descriptor_points = self.points_descriptors[self.selected_descriptor]['points_ijk']
+            selected_point = current_descriptor_points[:, self.selected_indice]
+
+            closest_indices = []
+            distances = []
+            for descriptor in self.points_descriptors:
+                points = descriptor['points_ijk']
+                num_points = points.shape[1]
+                if num_points > 0:
+                    closest_indice, _, distance = closest(points, selected_point)
+                    closest_indices.append(closest_indice)
+                    distances.append(distance)
+                else:
+                    closest_indices.append(-1)
+                    distances.append(float('inf'))
+
+            descriptor_indices_sorted_by_distance = [i for i in list(np.argsort(distances)) if distances[i] < 5]
+            index_of_current_descriptor_index = descriptor_indices_sorted_by_distance.index(self.selected_descriptor)
+            index_of_next_descriptor_index = (index_of_current_descriptor_index + 1) % len(descriptor_indices_sorted_by_distance)
+            self.selected_descriptor = descriptor_indices_sorted_by_distance[index_of_next_descriptor_index]
+            self.selected_indice = closest_indices[self.selected_descriptor]
 
 
 if __name__ == '__main__':
