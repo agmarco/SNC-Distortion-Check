@@ -102,26 +102,25 @@ class RejectPointsSlicer(AnnotateSlicer):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('phantom')
+    parser.add_argument('phantom', choices=datasets.keys())
     args = parser.parse_args()
-    assert args.phantom in datasets
     dataset = datasets[args.phantom]
     phantom_model = dataset['model']
     modality = dataset['modality']
     voxel_data = file_io.load_voxels(dataset['voxels'])
     voxels = voxel_data['voxels']
     ijk_to_xyz = voxel_data['ijk_to_xyz']
-    xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
-    voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
 
     try:
         golden_points_xyz = file_io.load_points(dataset['points'])['points']
     except FileNotFoundError:
+        log.info('Golden points file not found; using empty array.')
         golden_points_xyz = np.array([[], [], []])
 
     try:
         rejected_points_xyz = file_io.load_points(dataset['rejected'])['points']
     except FileNotFoundError:
+        log.info('Rejected points file not found; using empty array.')
         rejected_points_xyz = np.array([[], [], []])
 
     feature_detector = FeatureDetector(phantom_model, modality, voxels, ijk_to_xyz)
@@ -141,12 +140,12 @@ if __name__ == '__main__':
     golden_points_xyz = affine.apply_affine(ijk_to_xyz, golden_points_ijk)
     rejected_points_xyz = affine.apply_affine(ijk_to_xyz, rejected_points_ijk)
 
-    # file_io.save_points(dataset['points'], {
-    #     'points': golden_points_xyz,
-    # })
+    file_io.save_points(dataset['points'], {
+        'points': golden_points_xyz,
+    })
     log.info(f"Wrote {golden_points_xyz.shape[1]} points to {dataset['points']}")
 
-    # file_io.save_points(dataset['rejected'], {
-    #     'points': rejected_points_xyz,
-    # })
+    file_io.save_points(dataset['rejected'], {
+        'points': rejected_points_xyz,
+    })
     log.info(f"Wrote {rejected_points_xyz.shape[1]} points to {dataset['rejected']}")
