@@ -74,6 +74,7 @@ class RejectPointsSlicer(AnnotateSlicer):
         self.selected_indice = new_points.shape[1] - 1
 
     def on_key_press(self, event):
+        nudge = map(str, range(1, 7))
         if self.selected_descriptor is not None and self.selected_indice is not None:
             if event.key == 'y':
                 self.reclassify_point(0)
@@ -92,6 +93,11 @@ class RejectPointsSlicer(AnnotateSlicer):
                     pass
                 elif self.selected_descriptor == 2:
                     self.reclassify_detected_point(new_descriptor_index)
+                else:
+                    super().on_key_press(event)
+            elif event.key in nudge:
+                if self.selected_descriptor == 2:
+                    pass
                 else:
                     super().on_key_press(event)
             else:
