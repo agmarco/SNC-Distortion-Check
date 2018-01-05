@@ -91,10 +91,10 @@ class RejectPointsSlicer(AnnotateSlicer):
 
     def on_key_press(self, event):
         if self.selected_descriptor is not None and self.selected_indice is not None:
-            if event.key == 'g':
+            if event.key == 'y':
                 self.reclassify_point(0)
                 self.draw()
-            elif event.key == 'r':
+            elif event.key == 'n':
                 self.reclassify_point(1)
                 self.draw()
             elif event.key in ['d', 'e', 'delete']:
@@ -108,21 +108,14 @@ class RejectPointsSlicer(AnnotateSlicer):
             super().on_key_press(event)
 
 
-def get_feature_image(voxels, ijk_to_xyz, phantom_model, modality):
-    voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
-    actual_grid_radius = phantoms.paramaters[phantom_model]['grid_radius']
-    modality_grid_radius_factor = modality_grid_radius_factors[modality]
-    grid_radius = actual_grid_radius * modality_grid_radius_factor
-    kernel = kernels.gaussian(voxel_spacing, grid_radius)
-    return signal.fftconvolve(voxels, kernel, mode='same')
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('phantom')
     args = parser.parse_args()
     assert args.phantom in datasets
     dataset = datasets[args.phantom]
+    phantom_model = dataset['model']
+    modality = dataset['modality']
     voxel_data = file_io.load_voxels(dataset['voxels'])
     voxels = voxel_data['voxels']
     ijk_to_xyz = voxel_data['ijk_to_xyz']
@@ -139,19 +132,13 @@ if __name__ == '__main__':
     except FileNotFoundError:
         rejected_points_xyz = np.array([[], [], []])
 
-    phantom_model = dataset['model']
-    modality = dataset['modality']
-
     feature_detector = FeatureDetector(phantom_model, modality, voxels, ijk_to_xyz)
     detected_points_ijk = feature_detector.points_ijk
     detected_points_xyz = affine.apply_affine(ijk_to_xyz, detected_points_ijk)
 
-    feature_image = get_feature_image(voxels, ijk_to_xyz, phantom_model, modality)
-
     s = RejectPointsSlicer(voxels, ijk_to_xyz, golden_points_xyz, rejected_points_xyz, detected_points_xyz)
-    s.add_renderer(slicer.render_overlay(feature_image, ijk_to_xyz))
     s.add_renderer(slicer.render_points)
-    s.add_renderer(slicer.render_cursor, hidden=True)
+    s.add_renderer(slicer.render_cursor)
     s.add_renderer(slicer.render_legend)
 
     s.draw()
