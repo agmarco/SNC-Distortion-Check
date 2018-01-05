@@ -62,8 +62,10 @@ phantomName2Datasets['604 and 603'] = {**phantomName2Datasets['604'], **phantomN
 
 def intersection_generator(cases, train_or_validation, min_offset, offset_mag, points_key='points'):
     start_offset = 0 if train_or_validation == "train" else 1
+    available_cases = [case for case in cases.values() if points_key in case]
+    assert len(available_cases) > 0
     while True:
-        case = random.choice(list(cases.values()))
+        case = random.choice(available_cases)
         voxel_data = file_io.load_voxels(case['voxels'])
         voxels = voxel_data['voxels']
         ijk_to_xyz = voxel_data['ijk_to_xyz']
@@ -153,15 +155,18 @@ def augmented(gen):
 def training_generator(cases, train_or_validation):
     centered_intersection_generator = augmented(intersection_generator(cases, train_or_validation, 0, 2))
     shifted_intersection_generator = augmented(intersection_generator(cases, train_or_validation, 3, 5))
-
-    # TODO: account for no rejected points file
-    rejected_intersection_generator = augmented(intersection_generator(cases, train_or_validation, 0, 2, 'rejected'))
+    rejected_intersection_generator = None
+    if any('rejected' in case for case in cases.values()):
+        rejected_intersection_generator = augmented(intersection_generator(cases, train_or_validation, 0, 2, 'rejected'))
     random_window_generator = augmented(non_intersection_generator(cases))
     while True:
-        yield next(centered_intersection_generator), [0,1]
-        yield next(shifted_intersection_generator), [1,0]
-        yield next(rejected_intersection_generator), [1,0]
-        yield next(random_window_generator), [1,0]
+        yield next(centered_intersection_generator), [0, 1]
+        yield next(shifted_intersection_generator), [1, 0]
+        yield next(centered_intersection_generator), [0, 1]
+        yield next(random_window_generator), [1, 0]
+        if rejected_intersection_generator is not None:
+            yield next(centered_intersection_generator), [0, 1]
+            yield next(rejected_intersection_generator), [1, 0]
 
 
 def batch_generator(batch_size, gen):
