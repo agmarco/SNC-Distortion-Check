@@ -60,7 +60,7 @@ phantomName2Datasets = {
 phantomName2Datasets['604 and 603'] = {**phantomName2Datasets['604'], **phantomName2Datasets['603']}
 
 
-def intersection_generator(cases, train_or_validation, min_offset, offset_mag):
+def intersection_generator(cases, train_or_validation, min_offset, offset_mag, points_key='points'):
     start_offset = 0 if train_or_validation == "train" else 1
     while True:
         case = random.choice(list(cases.values()))
@@ -72,7 +72,7 @@ def intersection_generator(cases, train_or_validation, min_offset, offset_mag):
         # introduces slight scale invariance
         random_voxel_spacing_augmentation = (np.random.sample(3) * 0.2 - 0.1) + 1
         voxel_spacing *= random_voxel_spacing_augmentation
-        golden_points = file_io.load_points(case['points'])['points']
+        golden_points = file_io.load_points(case[points_key])['points']
         points_ijk = apply_affine(xyz_to_ijk, golden_points)
         for point_ijk in points_ijk.T[start_offset::2, :]:
             random_signs = np.array([random.choice([-1,1]), random.choice([-1,1]), random.choice([-1,1])])
@@ -98,15 +98,10 @@ def non_intersection_generator(cases, min_dist_from_annotated=5, num_samples=100
         voxel_spacing *= random_voxel_spacing_augmentation
         xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
         golden_points = file_io.load_points(case['points'])['points']
+        points_ijk = apply_affine(xyz_to_ijk, golden_points)
         random_points = np.array([np.random.randint(cube_size_half, voxels.shape[0]-cube_size_half, num_samples),
                             np.random.randint(cube_size_half, voxels.shape[1]-cube_size_half, num_samples),
                             np.random.randint(cube_size_half, voxels.shape[2]-cube_size_half, num_samples)])
-
-        if 'rejected' in case:
-            rejected_points = file_io.load_points(case['rejected'])['points']
-            random_points = np.append(random_points, rejected_points, axis=1)
-
-        points_ijk = apply_affine(xyz_to_ijk, golden_points)
         for point_ijk in random_points.T:
             distances = np.sum(np.abs(points_ijk.T - point_ijk), axis=1)
             if np.min(distances) > min_dist_from_annotated:
@@ -158,10 +153,14 @@ def augmented(gen):
 def training_generator(cases, train_or_validation):
     centered_intersection_generator = augmented(intersection_generator(cases, train_or_validation, 0, 2))
     shifted_intersection_generator = augmented(intersection_generator(cases, train_or_validation, 3, 5))
+
+    # TODO: account for no rejected points file
+    rejected_intersection_generator = augmented(intersection_generator(cases, train_or_validation, 0, 2, 'rejected'))
     random_window_generator = augmented(non_intersection_generator(cases))
     while True:
         yield next(centered_intersection_generator), [0,1]
         yield next(shifted_intersection_generator), [1,0]
+        yield next(rejected_intersection_generator), [1,0]
         yield next(random_window_generator), [1,0]
 
 
