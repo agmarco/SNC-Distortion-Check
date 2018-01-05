@@ -65,6 +65,7 @@ class RejectPointsSlicer(AnnotateSlicer):
         super().__init__(voxels, ijk_to_xyz, points_descriptors)
 
     def reclassify_detected_point(self, new_descriptor_index):
+        # Rather than delete the detected point, merely add another point in the new descriptor class
         old_points = self.points_descriptors[self.selected_descriptor]['points_ijk']
         new_points = self.points_descriptors[new_descriptor_index]['points_ijk']
         selected_point = old_points[:, self.selected_indice]
