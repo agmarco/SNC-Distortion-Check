@@ -62,32 +62,16 @@ class RejectPointsSlicer(AnnotateSlicer):
                 }
             },
         ]
-        super(AnnotateSlicer, self).__init__(voxels, ijk_to_xyz, points_descriptors)
-        self.selected_descriptor = None
-        self.selected_indice = None
-        self.f.canvas.mpl_connect('key_press_event', lambda e: self.on_key_press(e))
+        super().__init__(voxels, ijk_to_xyz, points_descriptors)
 
-    def reclassify_point(self, new_descriptor_index):
-        if self.selected_descriptor == 2:
-            old_points = self.points_descriptors[self.selected_descriptor]['points_ijk']
-            new_points = self.points_descriptors[new_descriptor_index]['points_ijk']
-            selected_point = old_points[:, self.selected_indice]
-            new_points = np.append(new_points, np.array([selected_point]).T, axis=1)
-            self.points_descriptors[new_descriptor_index]['points_ijk'] = new_points
-            self.selected_descriptor = new_descriptor_index
-            self.selected_indice = new_points.shape[1] - 1
-
-        elif self.selected_descriptor != new_descriptor_index:
-            old_points = self.points_descriptors[self.selected_descriptor]['points_ijk']
-            new_points = self.points_descriptors[new_descriptor_index]['points_ijk']
-            num_old_points = old_points.shape[1]
-            selected_point = old_points[:, self.selected_indice]
-            old_points = old_points[:, np.arange(num_old_points) != self.selected_indice]
-            self.points_descriptors[self.selected_descriptor]['points_ijk'] = old_points
-            new_points = np.append(new_points, np.array([selected_point]).T, axis=1)
-            self.points_descriptors[new_descriptor_index]['points_ijk'] = new_points
-            self.selected_descriptor = new_descriptor_index
-            self.selected_indice = new_points.shape[1] - 1
+    def reclassify_detected_point(self, new_descriptor_index):
+        old_points = self.points_descriptors[self.selected_descriptor]['points_ijk']
+        new_points = self.points_descriptors[new_descriptor_index]['points_ijk']
+        selected_point = old_points[:, self.selected_indice]
+        new_points = np.append(new_points, np.array([selected_point]).T, axis=1)
+        self.points_descriptors[new_descriptor_index]['points_ijk'] = new_points
+        self.selected_descriptor = new_descriptor_index
+        self.selected_indice = new_points.shape[1] - 1
 
     def on_key_press(self, event):
         if self.selected_descriptor is not None and self.selected_indice is not None:
@@ -100,6 +84,14 @@ class RejectPointsSlicer(AnnotateSlicer):
             elif event.key in ['d', 'e', 'delete']:
                 if self.selected_descriptor == 2:
                     pass
+                else:
+                    super().on_key_press(event)
+            elif event.key in self.reclassify_lookup.keys():
+                new_descriptor_index = self.reclassify_lookup[event.key]
+                if new_descriptor_index == 2:
+                    pass
+                elif self.selected_descriptor == 2:
+                    self.reclassify_detected_point(new_descriptor_index)
                 else:
                     super().on_key_press(event)
             else:
