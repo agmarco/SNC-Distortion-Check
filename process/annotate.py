@@ -133,6 +133,7 @@ class AnnotateSlicer(PointsSlicer):
             points = self.points_descriptors[self.selected_descriptor]['points_ijk']
         elif event.key == 't':
             self.step_selected_point()
+            points = self.points_descriptors[self.selected_descriptor]['points_ijk']
         else:
             print(event.key)
             return super().on_key_press(event)
