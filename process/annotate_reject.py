@@ -119,12 +119,16 @@ if __name__ == '__main__':
 
     try:
         golden_points_xyz = file_io.load_points(dataset['points'])['points']
+        if golden_points_xyz.shape == (0, 0):
+            golden_points_xyz = np.array([[], [], []])
     except FileNotFoundError:
         log.info('Golden points file not found; using empty array.')
         golden_points_xyz = np.array([[], [], []])
 
     try:
         rejected_points_xyz = file_io.load_points(dataset['rejected'])['points']
+        if rejected_points_xyz.shape == (0, 0):
+            rejected_points_xyz = np.array([[], [], []])
     except FileNotFoundError:
         log.info('Rejected points file not found; using empty array.')
         rejected_points_xyz = np.array([[], [], []])
