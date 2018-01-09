@@ -271,6 +271,5 @@ class FullAlgorithmSuite(Suite):
             'False Positives (Registration)': context['FP_B'],
             'True Positives': context['TP_B'],
             'False Negatives': context['FN_A_S'],
-            'False Positives (CNN)': context['FP_B_CNN'],
         })
         plt.show()
