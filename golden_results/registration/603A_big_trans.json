@@ -1,0 +1,21 @@
+{
+    "case_id": "603A_big_trans",
+    "commit": "6bc02f8a600b35639bc9a4281695400e8a9a5606",
+    "metrics": {
+        "FLE_100": 4.014198695608363,
+        "FLE_50": 1.3720681223386388,
+        "FLE_50_near_isocenter": 1.3720681223386388,
+        "phi_degrees": 2.7918667197752582,
+        "registration_shift": 53.915507986693335,
+        "theta_degrees": -4.141667093048058,
+        "x": -45.51008361780963,
+        "xi_degrees": 4.3960305801037975,
+        "y": 11.222303373406934,
+        "z": 26.64158774469698
+    },
+    "ran_on": 1515558808.116809,
+    "repo_dirty": true,
+    "result_id": "1515558808.116809_6bc02f8a600b35639bc9a4281695400e8a9a5606",
+    "status": "unknown",
+    "suite_id": "registration"
+}
