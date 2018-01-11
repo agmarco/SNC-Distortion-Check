@@ -26,7 +26,8 @@ from . import models
 from . import serializers
 from . import forms
 from .tasks import process_scan, process_ct_upload, process_dicom_overlay
-from .decorators import validate_institution, login_and_permission_required, institution_required, intro_tutorial
+from .decorators import validate_institution, login_and_permission_required, institution_required, intro_tutorial, \
+    check_license
 from .http import CsvResponse
 
 logger = logging.getLogger(__name__)
@@ -84,6 +85,7 @@ def fake_server_error(request):
 @method_decorator(login_required, name='dispatch')
 @method_decorator(institution_required, name='dispatch')
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class LandingView(TemplateView):
     template_name = 'common/landing.html'
 
@@ -105,6 +107,7 @@ class LandingView(TemplateView):
 @login_and_permission_required('common.configuration')
 @method_decorator(institution_required, name='dispatch')
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class ConfigurationView(UpdateView):
     model = models.Institution
     form_class = forms.InstitutionForm
@@ -125,6 +128,7 @@ class ConfigurationView(UpdateView):
             'phantoms': institution.phantom_set.active().order_by('-last_modified_on'),
             'machines': institution.machine_set.active().order_by('-last_modified_on'),
             'sequences': institution.sequence_set.active().order_by('-last_modified_on'),
+            'institution': institution,
         })
         if self.request.user.has_perm('common.manage_users'):
             context['users'] = institution.user_set.active().order_by('-last_modified_on')
@@ -133,6 +137,7 @@ class ConfigurationView(UpdateView):
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class AccountView(UpdateView):
     model = models.User
     form_class = forms.AccountForm
@@ -151,6 +156,7 @@ class AccountView(UpdateView):
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class MachineSequenceDetailView(DetailView):
     model = models.MachineSequencePair
     template_name = 'common/machine_sequence_detail.html'
@@ -173,6 +179,7 @@ class MachineSequenceDetailView(DetailView):
 @method_decorator(login_required, name='dispatch')
 @method_decorator(institution_required, name='dispatch')
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class UploadScanView(JsonFormMixin, FormView):
     form_class = forms.UploadScanForm
     template_name = 'common/upload_scan.html'
@@ -223,6 +230,7 @@ class UploadScanView(JsonFormMixin, FormView):
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class ScanErrorsView(DetailView):
     model = models.Scan
     template_name = 'common/scan_errors.html'
@@ -232,6 +240,7 @@ class ScanErrorsView(DetailView):
 @method_decorator(institution_required, name='dispatch')
 @validate_institution(model_class=models.Scan)
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class DicomOverlayView(FormView):
     form_class = forms.DicomOverlayForm
     template_name = 'common/dicom_overlay.html'
@@ -267,6 +276,7 @@ class DicomOverlayView(FormView):
 @method_decorator(institution_required, name='dispatch')
 @validate_institution(model_class=models.Scan)
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class DicomOverlaySuccessView(TemplateView):
     template_name = 'common/dicom_overlay_success.html'
 
@@ -282,6 +292,7 @@ class DicomOverlaySuccessView(TemplateView):
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class DeleteScanView(CirsDeleteView):
     model = models.Scan
 
@@ -303,6 +314,7 @@ class DeleteScanView(CirsDeleteView):
 @login_and_permission_required('common.configuration')
 @method_decorator(institution_required, name='dispatch')
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class CreatePhantomView(JsonFormMixin, FormView):
     form_class = forms.CreatePhantomForm
     success_url = reverse_lazy('configuration')
@@ -322,6 +334,7 @@ class CreatePhantomView(JsonFormMixin, FormView):
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class UpdatePhantomView(JsonFormMixin, UpdateView):
     model = models.Phantom
     fields = ('name',)
@@ -357,6 +370,7 @@ class UpdatePhantomView(JsonFormMixin, UpdateView):
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class DeletePhantomView(CirsDeleteView):
     model = models.Phantom
     success_url = reverse_lazy('configuration')
@@ -371,6 +385,7 @@ class DeletePhantomView(CirsDeleteView):
 @login_and_permission_required('common.configuration')
 @method_decorator(institution_required, name='dispatch')
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class CreateMachineView(CreateView):
     form_class = forms.CreateMachineForm
     success_url = reverse_lazy('configuration')
@@ -391,6 +406,7 @@ class CreateMachineView(CreateView):
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class UpdateMachineView(UpdateView):
     model = models.Machine
     fields = ('name', 'model', 'manufacturer')
@@ -406,6 +422,7 @@ class UpdateMachineView(UpdateView):
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class DeleteMachineView(CirsDeleteView):
     model = models.Machine
     success_url = reverse_lazy('configuration')
@@ -419,6 +436,7 @@ class DeleteMachineView(CirsDeleteView):
 @login_and_permission_required('common.configuration')
 @method_decorator(institution_required, name='dispatch')
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class CreateSequenceView(CreateView):
     model = models.Sequence
     form_class = forms.SequenceForm
@@ -437,6 +455,7 @@ class CreateSequenceView(CreateView):
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class UpdateSequenceView(UpdateView):
     model = models.Sequence
     form_class = forms.SequenceForm
@@ -452,6 +471,7 @@ class UpdateSequenceView(UpdateView):
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class DeleteSequenceView(CirsDeleteView):
     model = models.Sequence
     success_url = reverse_lazy('configuration')
@@ -465,6 +485,7 @@ class DeleteSequenceView(CirsDeleteView):
 @login_and_permission_required('common.manage_users')
 @method_decorator(institution_required, name='dispatch')
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class CreateUserView(FormView):
     form_class = forms.CreateUserForm
     success_url = reverse_lazy('configuration')
@@ -496,6 +517,7 @@ class CreateUserView(FormView):
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class DeleteUserView(CirsDeleteView):
     model = models.User
     success_url = reverse_lazy('configuration')
@@ -514,6 +536,7 @@ class DeleteUserView(CirsDeleteView):
 @method_decorator(institution_required, name='dispatch')
 @validate_institution(model_class=models.Phantom, pk_url_kwarg='phantom_pk')
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class UploadCtView(JsonFormMixin, FormView):
     form_class = forms.UploadCtForm
     template_name = 'common/upload_ct.html'
@@ -546,6 +569,7 @@ class UploadCtView(JsonFormMixin, FormView):
 @method_decorator(institution_required, name='dispatch')
 @validate_institution(model_class=models.Phantom, pk_url_kwarg='phantom_pk')
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class UploadRawView(FormView):
     form_class = forms.UploadRawForm
     template_name = 'common/upload_raw.html'
@@ -576,6 +600,7 @@ class UploadRawView(FormView):
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class DeleteGoldStandardView(CirsDeleteView):
     model = models.GoldenFiducials
     pk_url_kwarg = 'gold_standard_pk'
@@ -602,6 +627,7 @@ class DeleteGoldStandardView(CirsDeleteView):
 @method_decorator(institution_required, name='dispatch')
 @validate_institution(model_class=models.GoldenFiducials, pk_url_kwarg='gold_standard_pk')
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class ActivateGoldStandardView(View):
     def post(self, request, *args, phantom_pk=None, gold_standard_pk=None):
         gold_standard = get_object_or_404(models.GoldenFiducials, pk=gold_standard_pk)
@@ -646,6 +672,7 @@ class ActivateGoldStandardView(View):
 @method_decorator(institution_required, name='dispatch')
 @validate_institution(model_class=models.GoldenFiducials, pk_url_kwarg='gold_standard_pk')
 @method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
 class GoldStandardCsvView(View):
     def get(self, request, *args, gold_standard_pk=None, **kwargs):
         gold_standard = get_object_or_404(models.GoldenFiducials, pk=gold_standard_pk)
@@ -663,6 +690,7 @@ class PrivacyPolicyView(TemplateView):
 @login_required
 @institution_required
 @validate_institution(model_class=models.Scan)
+@method_decorator(check_license, name='dispatch')
 def refresh_scan_view(request, pk=None):
     if request.method == 'POST':
         scan = get_object_or_404(models.Scan, pk=pk)

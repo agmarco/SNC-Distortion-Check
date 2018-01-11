@@ -183,6 +183,10 @@ def process_scan(scan_pk, dicom_archive_url=None):
         creator_email = scan.creator.email
         logger.exception(f'Unhandled scan exception occurred while processing scan for "{creator_email}"')
         scan.errors = 'A server error occurred while processing the scan.'
+    else:
+        if scan.institution.scans_remaining is not None:
+            scan.institution.scans_remaining -= 1
+            scan.institution.save()
     finally:
         raw_data_filename = 'raw_data.zip'
         raw_data = dump_raw_scan_data(scan)

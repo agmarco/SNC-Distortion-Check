@@ -47,6 +47,8 @@ class Institution(CommonFieldsMixin):
     number_of_licenses = models.PositiveIntegerField(default=1, help_text=number_of_licenses_ht)
     address = models.TextField()
     phone_number = models.CharField(max_length=255)
+    license_expiration_date = models.DateField(null=True, blank=True)
+    scans_remaining = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self):
         return "{}".format(self.name)

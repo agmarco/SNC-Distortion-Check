@@ -15,6 +15,15 @@
 {% block content %}
   <h1>Configuration</h1>
 
+  <div class="licensing">
+    {% if institution.license_expiration_date != None %}
+        <p><strong>License Expiration Date:</strong> {{ institution.license_expiration_date|date }}</p>
+    {% endif %}
+    {% if institution.scans_remaining != None %}
+        <p><strong>Scans Remaining:</strong> {{ institution.scans_remaining }}</p>
+    {% endif %}
+  </div>
+
   <form method="post" class="cirs-form">
     {% csrf_token %}
     {% include 'includes/form_fields.html' %}
