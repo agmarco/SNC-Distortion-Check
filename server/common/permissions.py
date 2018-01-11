@@ -27,3 +27,8 @@ def validate_institution(model_class=None, pk_url_kwarg='pk'):
 
             return request.user.get_institution(request) == obj.institution
     return ValidateInstitution
+
+
+class CheckLicense(BasePermission):
+    def has_permission(self, request, view):
+        pass

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block breadcrumbs %}
+  <li><a href="{% url 'landing' %}">Home</a></li>
+{% endblock %}
+
+{% block content %}
+  <h1>Expired License</h1>
+  <p>Your license has expired, or you have no scans remaining for this license. Please contact CIRS support to renew your license.</p>
+{% endblock %}

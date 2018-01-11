@@ -2,6 +2,7 @@ import inspect
 from functools import wraps
 import logging
 
+from datetime import datetime, timedelta
 from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.contrib.auth.decorators import login_required, permission_required
@@ -134,5 +135,30 @@ def intro_tutorial(view):
             logger.exception('Exception occurred during check machine sequences decorator')
 
         return response
+    return wrapper
 
+
+def check_license(view):
+    """If the license is expired or there are 0 scans remaining, make the software unavailable."""
+
+    @wraps(view)
+    def wrapper(request, *args, **kwargs):
+        institution = request.user.get_institution(request)
+        license_expiration_date = institution.license_expiration_date
+        scans_remaining = institution.scans_remaining
+        now = datetime.now().date()
+
+        if license_expiration_date is not None and license_expiration_date <= now:
+            return render(request, 'common/license_expired.html')
+        elif scans_remaining == 0:
+            return render(request, 'common/license_expired.html')
+        if license_expiration_date is not None and license_expiration_date <= now + timedelta(days=30):
+            days = (license_expiration_date - now).days
+            msg = f"You have {days} days remaining for this license."
+            messages.warning(request, msg)
+        if scans_remaining is not None and scans_remaining <= 20:
+            msg = f"You have {scans_remaining} scans remaining for this license."
+            messages.warning(request, msg)
+
+        return view(request, *args, **kwargs)
     return wrapper
