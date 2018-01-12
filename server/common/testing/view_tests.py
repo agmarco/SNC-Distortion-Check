@@ -1,6 +1,7 @@
 from urllib.parse import urlparse
 
 import pytest
+from datetime import datetime
 from django.contrib.auth.models import Permission
 from django.urls import RegexURLPattern, reverse
 from django.urls import RegexURLResolver
@@ -11,7 +12,9 @@ from ..urls import urlpatterns
 from .view_config import VIEWS, Crud
 from .utils import validate_create_view, validate_update_view, validate_delete_view, allowed_access, denied_access, \
     get_response
-from .fixtures import permissions_data, institution_data, http_method_data  # import needed for side effect
+
+# import needed for side effect
+from .fixtures import permissions_data, institution_data, http_method_data, license_data
 
 TESTED_VIEWS = [view for view in VIEWS if not view.get('exclude')]
 
@@ -207,3 +210,36 @@ def test_crud(client, view):
         validate_update_view(client, current_user, url, model, post_data, patches)
     elif operation == Crud.DELETE:
         validate_delete_view(client, current_user, url, model, post_data, patches)
+
+
+@pytest.mark.parametrize('view', TESTED_VIEWS)
+def test_license(client, license_data, view):
+    """
+    If the view requires a valid license, check that an expired license or 0 remaining scans makes the view
+    inaccessible.
+    """
+
+    current_user = license_data['current_user']
+    license_expiration_date = current_user.institution.license_expiration_date
+    scans_remaining = current_user.institution.scans_remaining
+    now = datetime.now().date()
+
+    view_data = _view_data(view, current_user)
+    patches = _patches(view)
+    url = _url(view, view_data)
+
+    client.force_login(current_user)
+
+    if view['check_license']:
+        if license_expiration_date is not None and license_expiration_date <= now:
+            for method, method_data in _methods(view, view_data):
+                assert denied_access(client, url, method, method_data, patches)
+        elif scans_remaining == 0:
+            for method, method_data in _methods(view, view_data):
+                assert denied_access(client, url, method, method_data, patches)
+        else:
+            for method, method_data in _methods(view, view_data):
+                assert allowed_access(client, url, method, method_data, patches)
+    else:
+        for method, method_data in _methods(view, view_data):
+            assert allowed_access(client, url, method, method_data, patches)

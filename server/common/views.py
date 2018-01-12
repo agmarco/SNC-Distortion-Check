@@ -690,7 +690,7 @@ class PrivacyPolicyView(TemplateView):
 @login_required
 @institution_required
 @validate_institution(model_class=models.Scan)
-@method_decorator(check_license, name='dispatch')
+@check_license
 def refresh_scan_view(request, pk=None):
     if request.method == 'POST':
         scan = get_object_or_404(models.Scan, pk=pk)

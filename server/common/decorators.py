@@ -149,9 +149,9 @@ def check_license(view):
         now = datetime.now().date()
 
         if license_expiration_date is not None and license_expiration_date <= now:
-            return render(request, 'common/license_expired.html')
+            return render(request, 'common/license_expired.html', status=403)
         elif scans_remaining == 0:
-            return render(request, 'common/license_expired.html')
+            return render(request, 'common/license_expired.html', status=403)
         if license_expiration_date is not None and license_expiration_date <= now + timedelta(days=30):
             days = (license_expiration_date - now).days
             msg = f"You have {days} days remaining for this license."

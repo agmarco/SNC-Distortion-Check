@@ -40,3 +40,5 @@ class CheckLicense(BasePermission):
             return False
         elif scans_remaining == 0:
             return False
+        else:
+            return True
