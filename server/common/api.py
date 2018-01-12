@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
 from .models import MachineSequencePair, Phantom, Scan, GoldenFiducials
-from .permissions import login_and_permission_required, validate_institution
+from .permissions import login_and_permission_required, validate_institution, CheckLicense
 from .validators import validate_phantom_serial_number
 from .serializers import ScanSerializer, GoldenFiducialsSerializer
 
@@ -33,6 +33,7 @@ class UpdateToleranceView(APIView):
     permission_classes = (
         login_and_permission_required('common.configuration'),
         validate_institution(model_class=MachineSequencePair),
+        CheckLicense,
     )
 
     def post(self, request):
@@ -46,6 +47,7 @@ class PollScansView(APIView):
     permission_classes = (
         IsAuthenticated,
         validate_institution(model_class=MachineSequencePair, pk_url_kwarg='machine_sequence_pair_pk'),
+        CheckLicense,
     )
 
     def post(self, request):
@@ -62,6 +64,7 @@ class PollCtView(APIView):
     permission_classes = (
         IsAuthenticated,
         validate_institution(model_class=Phantom, pk_url_kwarg='phantom_pk'),
+        CheckLicense,
     )
 
     def post(self, request):
@@ -77,6 +80,7 @@ class PollCtView(APIView):
 class SignS3View(APIView):
     permission_classes = (
         IsAuthenticated,
+        CheckLicense,
     )
 
     def get(self, request):
