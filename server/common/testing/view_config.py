@@ -23,6 +23,8 @@ from ..models import Phantom, GoldenFiducials, Machine, Sequence, User
 # 'login_required': a boolean representing whether the user must be authenticated.
 # 'permissions': a list of permissions that are required to access the view.
 # 'validate_institution': a boolean representing whether the user's institution must be validated against the view.
+# 'check_license': a boolean representing whether an institution's license, if it exists, must be valid to view this
+#     page.
 # 'methods': a dict containing as keys the HTTP methods that should be tested, and as values the GET or POST data to
 #     send with the request. The values may also be functions that receive the data specified by the 'data' key and
 #     return the GET or POST data.
@@ -204,6 +206,7 @@ VIEWS = (
         'login_required': True,
         'permissions': (),
         'validate_institution': False,
+        'check_license': True,
         'methods': {'GET': None},
     }, {
         'view': views.ConfigurationView,
@@ -211,6 +214,7 @@ VIEWS = (
         'login_required': True,
         'permissions': ('common.configuration',),
         'validate_institution': False,
+        'check_license': True,
         'methods': {'GET': None, 'POST': None},
     }, {
         'view': views.MachineSequenceDetailView,
@@ -219,6 +223,7 @@ VIEWS = (
         'login_required': True,
         'permissions': (),
         'validate_institution': True,
+        'check_license': True,
         'methods': {'GET': None},
     }, {
         'view': views.UploadScanView,
@@ -226,6 +231,7 @@ VIEWS = (
         'login_required': True,
         'permissions': (),
         'validate_institution': False,
+        'check_license': True,
         'methods': {'GET': None, 'POST': None},
         'patches': ('server.common.views.process_scan',),
     }, {
@@ -235,6 +241,7 @@ VIEWS = (
         'login_required': True,
         'permissions': (),
         'validate_institution': True,
+        'check_license': True,
         'methods': {'GET': None, 'POST': None},
     }, {
         'view': views.ScanErrorsView,
@@ -243,6 +250,7 @@ VIEWS = (
         'login_required': True,
         'permissions': (),
         'validate_institution': True,
+        'check_license': True,
         'methods': {'GET': None},
     }, {
         'view': views.CreatePhantomView,
@@ -250,6 +258,7 @@ VIEWS = (
         'login_required': True,
         'permissions': ('common.configuration',),
         'validate_institution': False,
+        'check_license': True,
         'methods': {'GET': None, 'POST': None},
     }, {
         'view': views.UpdatePhantomView,
@@ -259,6 +268,7 @@ VIEWS = (
         'login_required': True,
         'permissions': ('common.configuration',),
         'validate_institution': True,
+        'check_license': True,
         'methods': {'GET': None, 'POST': None},
     }, {
         'view': views.DeletePhantomView,
@@ -268,6 +278,7 @@ VIEWS = (
         'login_required': True,
         'permissions': ('common.configuration',),
         'validate_institution': True,
+        'check_license': True,
         'methods': {'GET': None, 'POST': None},
     }, {
         'view': views.CreateMachineView,
@@ -280,6 +291,7 @@ VIEWS = (
         'login_required': True,
         'permissions': ('common.configuration',),
         'validate_institution': False,
+        'check_license': True,
         'methods': {'GET': None, 'POST': None},
     }, {
         'view': views.UpdateMachineView,
@@ -293,6 +305,7 @@ VIEWS = (
         'login_required': True,
         'permissions': ('common.configuration',),
         'validate_institution': True,
+        'check_license': True,
         'methods': {'GET': None, 'POST': None},
     }, {
         'view': views.DeleteMachineView,
@@ -302,6 +315,7 @@ VIEWS = (
         'login_required': True,
         'permissions': ('common.configuration',),
         'validate_institution': True,
+        'check_license': True,
         'methods': {'GET': None, 'POST': None},
     }, {
         'view': views.CreateSequenceView,
@@ -314,6 +328,7 @@ VIEWS = (
         'login_required': True,
         'permissions': ('common.configuration',),
         'validate_institution': False,
+        'check_license': True,
         'methods': {'GET': None, 'POST': None},
     }, {
         'view': views.UpdateSequenceView,
@@ -327,6 +342,7 @@ VIEWS = (
         'login_required': True,
         'permissions': ('common.configuration',),
         'validate_institution': True,
+        'check_license': True,
         'methods': {'GET': None, 'POST': None},
     }, {
         'view': views.DeleteSequenceView,
@@ -336,6 +352,7 @@ VIEWS = (
         'login_required': True,
         'permissions': ('common.configuration',),
         'validate_institution': True,
+        'check_license': True,
         'methods': {'GET': None, 'POST': None},
     }, {
         'view': views.CreateUserView,
@@ -350,6 +367,7 @@ VIEWS = (
         'login_required': True,
         'permissions': ('common.manage_users',),
         'validate_institution': False,
+        'check_license': True,
         'methods': {'GET': None, 'POST': None},
     }, {
         'view': views.DeleteUserView,
@@ -359,6 +377,7 @@ VIEWS = (
         'login_required': True,
         'permissions': ('common.manage_users',),
         'validate_institution': True,
+        'check_license': True,
         'methods': {'GET': None, 'POST': None},
     }, {
         'view': views.UploadCtView,
@@ -367,6 +386,7 @@ VIEWS = (
         'login_required': True,
         'permissions': ('common.configuration',),
         'validate_institution': True,
+        'check_license': True,
         'methods': {'GET': None, 'POST': None},
         'patches': ('server.common.views.process_ct_upload',),
     }, {
@@ -376,6 +396,7 @@ VIEWS = (
         'login_required': True,
         'permissions': ('common.configuration',),
         'validate_institution': True,
+        'check_license': True,
         'methods': {'GET': None, 'POST': None},
     }, {
         'view': views.DeleteGoldStandardView,
@@ -385,6 +406,7 @@ VIEWS = (
         'login_required': True,
         'permissions': ('common.configuration',),
         'validate_institution': True,
+        'check_license': True,
         'methods': {'GET': None, 'POST': None},
     }, {
         'view': views.ActivateGoldStandardView,
@@ -393,6 +415,7 @@ VIEWS = (
         'login_required': True,
         'permissions': ('common.configuration',),
         'validate_institution': True,
+        'check_license': True,
         'methods': {'POST': None},
     }, {
         'view': views.GoldStandardCsvView,
@@ -401,6 +424,7 @@ VIEWS = (
         'login_required': True,
         'permissions': ('common.configuration',),
         'validate_institution': True,
+        'check_license': True,
         'methods': {'GET': None},
     }, {
         'view': views.DicomOverlayView,
@@ -409,6 +433,7 @@ VIEWS = (
         'login_required': True,
         'permissions': (),
         'validate_institution': True,
+        'check_license': True,
         'methods': {'GET': None, 'POST': None},
     }, {
         'view': views.DicomOverlaySuccessView,
@@ -417,48 +442,8 @@ VIEWS = (
         'login_required': True,
         'permissions': (),
         'validate_institution': True,
+        'check_license': True,
         'methods': {'GET': None},
-    }, {
-        'view': api.ValidateSerialView,
-        'data': lambda user: {'phantom': factories.PhantomFactory(serial_number='SN1')},
-        'url': reverse('validate_serial'),
-        'login_required': False,
-        'permissions': (),
-        'validate_institution': False,
-        'methods': {'POST': lambda data: {'serial_number': data['phantom'].serial_number}},
-    }, {
-        'view': api.UpdateToleranceView,
-        'data': update_tolerance_data,
-        'url': reverse('update_tolerance'),
-        'login_required': True,
-        'permissions': ('common.configuration',),
-        'validate_institution': True,
-        'methods': {'POST': lambda data: {
-            'pk': data['machine_sequence_pair'].pk,
-            'tolerance': 1,
-        }},
-    }, {
-        'view': api.PollScansView,
-        'data': poll_scans_data,
-        'url': reverse('poll_scans'),
-        'login_required': True,
-        'permissions': (),
-        'validate_institution': True,
-        'methods': {'POST': lambda data: {
-            'machine_sequence_pair_pk': data['machine_sequence_pair'].pk,
-            'scan_pks': [data['scan'].pk],
-        }},
-    }, {
-        'view': api.PollCtView,
-        'data': poll_ct_data,
-        'url': reverse('poll_ct'),
-        'login_required': True,
-        'permissions': (),
-        'validate_institution': True,
-        'methods': {'POST': lambda data: {
-            'phantom_pk': data['phantom'].pk,
-            'golden_fiducials_pks': [data['golden_fiducials'].pk],
-        }},
     }, {
         'view': views.refresh_scan_view,
         'data': refresh_scan_data,
@@ -466,6 +451,7 @@ VIEWS = (
         'login_required': True,
         'permissions': (),
         'validate_institution': True,
+        'check_license': True,
         'methods': {'POST': None},
         'patches': ('server.common.views.process_scan',),
     }, {
@@ -474,6 +460,7 @@ VIEWS = (
         'login_required': False,
         'permissions': (),
         'validate_institution': False,
+        'check_license': False,
         'methods': {'GET': None},
     }, {
         'view': views.PrivacyPolicyView,
@@ -481,6 +468,7 @@ VIEWS = (
         'login_required': False,
         'permissions': (),
         'validate_institution': False,
+        'check_license': False,
         'methods': {'GET': None},
     }, {
         'view': views.AccountView,
@@ -488,6 +476,7 @@ VIEWS = (
         'login_required': True,
         'permissions': (),
         'validate_institution': False,
+        'check_license': True,
         'crud': (Crud.UPDATE, User, {
             'first_name': 'First Name',
             'last_name': 'Last Name',
@@ -501,6 +490,7 @@ VIEWS = (
         'login_required': False,
         'permissions': (),
         'validate_institution': False,
+        'check_license': False,
         'methods': {'GET': None, 'POST': lambda data: {
             'phantom_serial_number': data['phantom'].serial_number,
             'institution_name': 'Johns Hopkins',
@@ -517,6 +507,7 @@ VIEWS = (
         'login_required': False,
         'permissions': (),
         'validate_institution': False,
+        'check_license': False,
         'methods': {'GET': None},
     }, {
         'view': views.CreatePasswordView,
@@ -525,6 +516,7 @@ VIEWS = (
         'login_required': False,
         'permissions': (),
         'validate_institution': False,
+        'check_license': False,
         'methods': {'GET': None, 'POST': None},
     }, {
         'view': views.CreatePasswordCompleteView,
@@ -532,10 +524,56 @@ VIEWS = (
         'login_required': False,
         'permissions': (),
         'validate_institution': False,
+        'check_license': False,
         'methods': {'GET': None},
     }, {
         'view': views.fake_server_error,
         'exclude': True,
+    }, {
+        'view': api.ValidateSerialView,
+        'data': lambda user: {'phantom': factories.PhantomFactory(serial_number='SN1')},
+        'url': reverse('validate_serial'),
+        'login_required': False,
+        'permissions': (),
+        'validate_institution': False,
+        'check_license': False,
+        'methods': {'POST': lambda data: {'serial_number': data['phantom'].serial_number}},
+    }, {
+        'view': api.UpdateToleranceView,
+        'data': update_tolerance_data,
+        'url': reverse('update_tolerance'),
+        'login_required': True,
+        'permissions': ('common.configuration',),
+        'validate_institution': True,
+        'check_license': True,
+        'methods': {'POST': lambda data: {
+            'pk': data['machine_sequence_pair'].pk,
+            'tolerance': 1,
+        }},
+    }, {
+        'view': api.PollScansView,
+        'data': poll_scans_data,
+        'url': reverse('poll_scans'),
+        'login_required': True,
+        'permissions': (),
+        'validate_institution': True,
+        'check_license': True,
+        'methods': {'POST': lambda data: {
+            'machine_sequence_pair_pk': data['machine_sequence_pair'].pk,
+            'scan_pks': [data['scan'].pk],
+        }},
+    }, {
+        'view': api.PollCtView,
+        'data': poll_ct_data,
+        'url': reverse('poll_ct'),
+        'login_required': True,
+        'permissions': (),
+        'validate_institution': True,
+        'check_license': True,
+        'methods': {'POST': lambda data: {
+            'phantom_pk': data['phantom'].pk,
+            'golden_fiducials_pks': [data['golden_fiducials'].pk],
+        }},
     }, {
         'view': api.UploadAsDev,
         'exclude': True,
@@ -545,6 +583,7 @@ VIEWS = (
         'login_required': True,
         'permissions': (),
         'validate_institution': False,
+        'check_license': True,
         'methods': {'GET': {
             'file_name': 'test.txt',
             'file_type': 'text/plain',
