@@ -12,7 +12,7 @@ import process.points_utils
 
 @pytest.fixture
 def scan():
-    institution = InstitutionFactory()
+    institution = InstitutionFactory(scans_remaining=100)
     user = UserFactory(institution=institution)
     scan = dicom_overlay_data(user)['scan']
     scan.tolerance = 4.0  # a large enough tolerance to ensure it passes
@@ -23,10 +23,12 @@ def scan():
 @pytest.mark.slow
 @pytest.mark.django_db
 def test_full_working_scan(scan):
+    scans_remaining = scan.institution.scans_remaining
     assert scan.processing
 
     process_scan(scan.pk)
     scan.refresh_from_db()
+    scan.institution.refresh_from_db()
 
     assert not scan.processing
     assert scan.errors is None
@@ -34,11 +36,14 @@ def test_full_working_scan(scan):
     assert scan.raw_data
     assert scan.full_report
     assert scan.executive_report
+    assert scan.institution.scans_remaining == scans_remaining - 1
 
 
 @pytest.mark.slow
 @pytest.mark.django_db
 def test_scan_with_too_few_fiducials(scan):
+    scans_remaining = scan.institution.scans_remaining
+
     def over_eager_remove_fps(points_ijk, voxels, voxel_spacing, phantom_model):
         return points_ijk[:5, :]
 
@@ -49,6 +54,7 @@ def test_scan_with_too_few_fiducials(scan):
         process_scan(scan.pk)
 
     scan.refresh_from_db()
+    scan.institution.refresh_from_db()
 
     assert not scan.processing
     assert scan.errors is not None
@@ -56,11 +62,14 @@ def test_scan_with_too_few_fiducials(scan):
     assert scan.raw_data
     assert not scan.full_report
     assert not scan.executive_report
+    assert scan.institution.scans_remaining == scans_remaining
 
 
 @pytest.mark.slow
 @pytest.mark.django_db
 def test_scan_with_too_low_TPF(scan):
+    scans_remaining = scan.institution.scans_remaining
+
     def patched_metrics(FN_A_S, TP_A_S, TP_B, FP_B):
         _, FPF, FLE_percentiles = process.points_utils.metrics(FN_A_S, TP_A_S, TP_B, FP_B)
         return 0.5, FPF, FLE_percentiles
@@ -69,6 +78,7 @@ def test_scan_with_too_low_TPF(scan):
         process_scan(scan.pk)
 
     scan.refresh_from_db()
+    scan.institution.refresh_from_db()
 
     assert not scan.processing
     assert scan.errors is not None
@@ -76,3 +86,4 @@ def test_scan_with_too_low_TPF(scan):
     assert scan.raw_data
     assert not scan.full_report
     assert not scan.executive_report
+    assert scan.institution.scans_remaining == scans_remaining
