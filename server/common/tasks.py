@@ -186,7 +186,7 @@ def process_scan(scan_pk, dicom_archive_url=None):
         scan.errors = 'A server error occurred while processing the scan.'
     else:
         if scan.institution.scans_remaining is not None:
-            scan.institution.update(scans_remaining=F('scans_remaining') - 1)
+            scan.institution.scans_remaining = F('scans_remaining') - 1
             scan.institution.save()
     finally:
         raw_data_filename = 'raw_data.zip'
