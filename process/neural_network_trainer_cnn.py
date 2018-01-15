@@ -88,13 +88,15 @@ def intersection_generator(cases, train_or_validation, min_offset, offset_mag, p
                 yield np.expand_dims(voxel_window, axis=3)
 
 
-def spoke_non_intersection_generator(cases, train_or_validation, min_offset, phantom_model):
+def spoke_non_intersection_generator(cases, train_or_validation, min_offset, phantom_model, points_key='points'):
     start_offset = 0 if train_or_validation == "train" else 1
+    available_cases = [case for case in cases.values() if points_key in case]
+    assert len(available_cases) > 0
     phantom_parameters = phantoms.paramaters[phantom_model]
     grid_spacing = phantom_parameters['grid_spacing']
     offset_mag = grid_spacing - 2 * min_offset
     while True:
-        case = random.choice(cases)
+        case = random.choice(available_cases)
         voxel_data = file_io.load_voxels(case['voxels'])
         voxels = voxel_data['voxels']
         ijk_to_xyz = voxel_data['ijk_to_xyz']
