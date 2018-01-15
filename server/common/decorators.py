@@ -154,10 +154,10 @@ def check_license(view):
             return render(request, 'common/license_expired.html', status=403)
         if license_expiration_date is not None and license_expiration_date <= now + timedelta(days=30):
             days = (license_expiration_date - now).days
-            msg = f"You have {days} days remaining for this license."
+            msg = f"Your license expires in {days} days. Contact CIRS support to renew your license."
             messages.warning(request, msg)
         if scans_remaining is not None and scans_remaining <= 20:
-            msg = f"You have {scans_remaining} scans remaining for this license."
+            msg = f"You have {scans_remaining} scans remaining. Contact CIRS support to acquire more scans."
             messages.warning(request, msg)
 
         return view(request, *args, **kwargs)

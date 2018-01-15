@@ -6,7 +6,7 @@ from . import models
 
 @admin.register(models.Institution)
 class InstitutionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'number_of_licenses', 'license_expiration_date', 'scans_remaining')
+    list_display = ('name', 'license_expiration_date', 'scans_remaining')
     actions = ('set_active',)
 
     def set_active(self, request, queryset):

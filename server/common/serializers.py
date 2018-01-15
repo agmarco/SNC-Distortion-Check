@@ -8,7 +8,7 @@ from .models import MachineSequencePair, Machine, Sequence, Phantom, Scan, Insti
 class InstitutionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Institution
-        fields = ('pk', 'name', 'number_of_licenses', 'address', 'phone_number')
+        fields = ('pk', 'name', 'address', 'phone_number')
 
 
 class MachineSerializer(serializers.ModelSerializer):
