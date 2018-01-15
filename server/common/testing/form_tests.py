@@ -19,6 +19,3 @@ def test_create_machine_form(client):
     form = CreateMachineForm(data=data, institution=current_user.institution)
     assert form.is_valid()
     form.save()
-
-    form = CreateMachineForm(data=data, institution=current_user.institution)
-    assert not form.is_valid()

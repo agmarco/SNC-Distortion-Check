@@ -247,7 +247,6 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
     def draw_institution_table(ax, cell):
         rows = [
             ('Name', institution.name),
-            ('Number of Licenses', institution.number_of_licenses),
             ('Address', institution.address),
             ('Phone Number', institution.phone_number),
         ]
@@ -584,7 +583,6 @@ if __name__ == '__main__':
 
     class Institution:
         name = "Johns Hopkins"
-        number_of_licenses = 12
         address = "3101 Wyman Park Dr.\nBaltimore, MD 21211"
         phone_number = "555-555-5555"
 
