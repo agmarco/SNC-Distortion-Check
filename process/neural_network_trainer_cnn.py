@@ -57,7 +57,7 @@ phantomName2Datasets = {
         }
     },
 }
-phantomName2Datasets['604 and 603'] = {**phantomName2Datasets['604'], **phantomName2Datasets['603']}
+phantomName2Datasets['603A and 604'] = {**phantomName2Datasets['603A'], **phantomName2Datasets['604']}
 
 
 def intersection_generator(cases, train_or_validation, min_offset, offset_mag, points_key='points'):
