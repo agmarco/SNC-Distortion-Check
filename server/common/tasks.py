@@ -21,6 +21,7 @@ from django.core.files.storage import default_storage
 from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
 from django.conf import settings
+from django.db.models import F
 from django.template import loader
 
 from process import dicom_import, affine, fp_rejector, phantoms
@@ -185,7 +186,7 @@ def process_scan(scan_pk, dicom_archive_url=None):
         scan.errors = 'A server error occurred while processing the scan.'
     else:
         if scan.institution.scans_remaining is not None:
-            scan.institution.scans_remaining -= 1
+            scan.institution.update(scans_remaining=F('scans_remaining') - 1)
             scan.institution.save()
     finally:
         raw_data_filename = 'raw_data.zip'

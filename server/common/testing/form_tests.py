@@ -8,7 +8,7 @@ from ..forms import CreateMachineForm
 
 @pytest.mark.django_db
 def test_create_machine_form(client):
-    johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins", number_of_licenses=1)
+    johns_hopkins = factories.InstitutionFactory.create(name="Johns Hopkins")
     group = factories.GroupFactory.create(name="Group", permissions=Permission.objects.all())
     current_user = factories.UserFactory.create(email='current_user@johnshopkins.edu', institution=johns_hopkins, groups=[group])
 
