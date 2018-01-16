@@ -15,7 +15,7 @@ from keras.layers.normalization import BatchNormalization
 from keras.layers.pooling import MaxPooling3D, GlobalAveragePooling3D
 from keras.models import Sequential
 
-from process import file_io, affine
+from process import file_io, affine, phantoms
 from process.affine import apply_affine
 from process.fp_rejector import window_from_ijk
 from process.slicer import show_slices
@@ -30,7 +30,7 @@ nb_classes = 2
 batch_size = None
 train_to_validation_ratio = 2
 phantomName2Datasets = {
-    '603':{
+    '603A':{
         '001': {
             'voxels': 'tmp/001_ct_603A_E3148_ST1.25-voxels.mat',
             'points': 'data/points/001_ct_603A_E3148_ST1.25-golden.mat',
@@ -57,7 +57,7 @@ phantomName2Datasets = {
         }
     },
 }
-phantomName2Datasets['604 and 603'] = {**phantomName2Datasets['604'], **phantomName2Datasets['603']}
+phantomName2Datasets['603A and 604'] = {**phantomName2Datasets['603A'], **phantomName2Datasets['604']}
 
 
 def intersection_generator(cases, train_or_validation, min_offset, offset_mag, points_key='points'):
@@ -77,18 +77,50 @@ def intersection_generator(cases, train_or_validation, min_offset, offset_mag, p
         golden_points = file_io.load_points(case[points_key])['points']
         points_ijk = apply_affine(xyz_to_ijk, golden_points)
         for point_ijk in points_ijk.T[start_offset::2, :]:
-            random_signs = np.array([random.choice([-1,1]), random.choice([-1,1]), random.choice([-1,1])])
+            random_signs = np.array([random.choice([-1, 1]), random.choice([-1, 1]), random.choice([-1, 1])])
             # introduces shift invariance
             point_ijk += random_signs * (np.random.sample(3) * offset_mag + min_offset)
             voxel_window = window_from_ijk(point_ijk, voxels, voxel_spacing)
             if voxel_window is not None:
-                assert voxel_window.shape == (cube_size,cube_size,cube_size)
+                assert voxel_window.shape == (cube_size, cube_size, cube_size)
                 #zero mean, unit std
                 voxel_window = (voxel_window - voxel_window.mean())/(voxel_window.std()+0.00001)
                 yield np.expand_dims(voxel_window, axis=3)
 
 
-def non_intersection_generator(cases, min_dist_from_annotated=5, num_samples=1000):
+def spoke_non_intersection_generator(cases, train_or_validation, min_offset, phantom_model, points_key='points'):
+    start_offset = 0 if train_or_validation == "train" else 1
+    available_cases = [case for case in cases.values() if points_key in case]
+    assert len(available_cases) > 0
+    phantom_parameters = phantoms.paramaters[phantom_model]
+    grid_spacing = phantom_parameters['grid_spacing']
+    offset_mag = grid_spacing - 2 * min_offset
+    while True:
+        case = random.choice(available_cases)
+        voxel_data = file_io.load_voxels(case['voxels'])
+        voxels = voxel_data['voxels']
+        ijk_to_xyz = voxel_data['ijk_to_xyz']
+        xyz_to_ijk = np.linalg.inv(ijk_to_xyz)
+        voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
+        # introduces slight scale invariance
+        random_voxel_spacing_augmentation = (np.random.sample(3) * 0.2 - 0.1) + 1
+        voxel_spacing *= random_voxel_spacing_augmentation
+        golden_points = file_io.load_points(case['points'])['points']
+        points_ijk = apply_affine(xyz_to_ijk, golden_points)
+        for point_ijk in points_ijk.T[start_offset::2, :]:
+            random_sign = random.choice([-1, 1])
+            random_axis = random.choice([0, 1, 2])
+            # introduces shift invariance along a spoke
+            point_ijk[random_axis] += random_sign * (np.random.sample() * offset_mag + min_offset)
+            voxel_window = window_from_ijk(point_ijk, voxels, voxel_spacing)
+            if voxel_window is not None:
+                assert voxel_window.shape == (cube_size, cube_size, cube_size)
+                # zero mean, unit std
+                voxel_window = (voxel_window - voxel_window.mean())/(voxel_window.std()+0.00001)
+                yield np.expand_dims(voxel_window, axis=3)
+
+
+def random_non_intersection_generator(cases, min_dist_from_annotated=5, num_samples=1000):
     while True:
         case = random.choice(list(cases.values()))
         voxel_data = file_io.load_voxels(case['voxels'])
@@ -109,8 +141,8 @@ def non_intersection_generator(cases, min_dist_from_annotated=5, num_samples=100
             if np.min(distances) > min_dist_from_annotated:
                 voxel_window = window_from_ijk(point_ijk, voxels, voxel_spacing)
                 if voxel_window is not None:
-                    assert voxel_window.shape == (cube_size,cube_size,cube_size)
-                    #zero mean, unit std
+                    assert voxel_window.shape == (cube_size, cube_size, cube_size)
+                    # zero mean, unit std
                     voxel_window = (voxel_window - voxel_window.mean())/(voxel_window.std()+0.00001)
                     yield np.expand_dims(voxel_window, axis=3)
 
@@ -152,21 +184,24 @@ def augmented(gen):
         yield augment_voxels(next(gen))
 
 
-def training_generator(cases, train_or_validation):
-    centered_intersection_generator = augmented(intersection_generator(cases, train_or_validation, 0, 2))
-    shifted_intersection_generator = augmented(intersection_generator(cases, train_or_validation, 3, 5))
-    rejected_intersection_generator = None
+def training_generator(cases, phantom_model, train_or_validation):
+    centered_intersections = augmented(intersection_generator(cases, train_or_validation, 0, 2))
+    shifted_intersections = augmented(intersection_generator(cases, train_or_validation, 3, 5))
+    random_intersections = augmented(random_non_intersection_generator(cases))
+    spoke_intersections = augmented(spoke_non_intersection_generator(cases, train_or_validation, 3, phantom_model))
+    rejected_intersections = None
     if any('rejected' in case for case in cases.values()):
-        rejected_intersection_generator = augmented(intersection_generator(cases, train_or_validation, 0, 2, 'rejected'))
-    random_window_generator = augmented(non_intersection_generator(cases))
+        rejected_intersections = augmented(intersection_generator(cases, train_or_validation, 0, 2, 'rejected'))
     while True:
-        yield next(centered_intersection_generator), [0, 1]
-        yield next(shifted_intersection_generator), [1, 0]
-        yield next(centered_intersection_generator), [0, 1]
-        yield next(random_window_generator), [1, 0]
-        if rejected_intersection_generator is not None:
-            yield next(centered_intersection_generator), [0, 1]
-            yield next(rejected_intersection_generator), [1, 0]
+        yield next(centered_intersections), [0, 1]
+        yield next(shifted_intersections), [1, 0]
+        yield next(centered_intersections), [0, 1]
+        yield next(random_intersections), [1, 0]
+        yield next(centered_intersections), [0, 1]
+        yield next(spoke_intersections), [1, 0]
+        if rejected_intersections is not None:
+            yield next(centered_intersections), [0, 1]
+            yield next(rejected_intersections), [1, 0]
 
 
 def batch_generator(batch_size, gen):
@@ -219,15 +254,15 @@ if __name__ == '__main__':
     args = parser.parse_args()
     assert args.phantom in phantomName2Datasets
     cases = phantomName2Datasets[args.phantom]
-    #visualize_samples(training_generator(cases, "train"))
+    #visualize_samples(training_generator(cases, args.phantom, "train"))
 
     # create complete model
     model = Sequential(feature_layers + classification_layers)
     model.summary()
 
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-    batch_gen_train = batch_generator(512, training_generator(cases, "train"))
-    batch_gen_validation = batch_generator(512, training_generator(cases, "validation"))
+    batch_gen_train = batch_generator(512, training_generator(cases, args.phantom, "train"))
+    batch_gen_validation = batch_generator(512, training_generator(cases, args.phantom, "validation"))
 
     weights_dir = os.path.join('weights', args.phantom)
     ensure_dir(weights_dir)
