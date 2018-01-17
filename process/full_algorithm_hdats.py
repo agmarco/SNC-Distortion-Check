@@ -70,6 +70,16 @@ class FullAlgorithmSuite(Suite):
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
+            '603A-11': {
+                'dicom': 'data/dicom/020_mri_603A_Siemens_3T_Skyra.zip',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
+            '603A-12': {
+                'dicom': 'data/dicom/021_mri_603A_Siemens_3T_Skyra.zip',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
             '604-1': {
                 'dicom': 'data/dicom/010_mri_604_LFV-Phantom_E2632-1.zip',
                 'modality': 'mri',
