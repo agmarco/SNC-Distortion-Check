@@ -240,7 +240,7 @@ def render_overlay(overlay, overlay_ijk_to_xyz, **additional_imshow_kwargs):
     return renderer
 
 
-def render_translucent_overlay(overlay, color, **additional_imshow_kwargs):
+def render_translucent_overlay(overlay, color, ijk_to_xyz, **additional_imshow_kwargs):
     transparent = [0, 0, 0, 0]
     opaque_color = list(color) + [1]
     colormap = matplotlib.colors.ListedColormap([transparent, opaque_color])
@@ -251,7 +251,7 @@ def render_translucent_overlay(overlay, color, **additional_imshow_kwargs):
     }
 
     imshow_kwargs = {**color_imshow_kwargs, **additional_imshow_kwargs}
-    return render_overlay(overlay, **imshow_kwargs)
+    return render_overlay(overlay, ijk_to_xyz, **imshow_kwargs)
 
 
 def format_point(point):

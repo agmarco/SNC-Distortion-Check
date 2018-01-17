@@ -65,6 +65,7 @@ class FeatureDetectionSuite(Suite):
         context['feature_image'] = feature_detector.feature_image
         context['kernel'] = feature_detector.kernel
         context['voxel_spacing'] = voxel_spacing
+        context['ijk_to_xyz'] = ijk_to_xyz
 
         rho = lambda bmag: 2.5
         context['raw'] = self._process_points(golden_points, feature_detector.points_xyz, rho)
@@ -196,13 +197,14 @@ class FeatureDetectionSuite(Suite):
         kernel_big[slices] = kernel_small*np.max(context['feature_image'])
 
         s = slicer.PointsSlicer(context['preprocessed_image'], ijk_to_xyz, descriptors)
-        s.add_renderer(slicer.render_overlay(context['feature_image']), hidden=True)
+        s.add_renderer(slicer.render_overlay(context['feature_image'], context['ijk_to_xyz']), hidden=True)
         s.add_renderer(slicer.render_points)
         s.add_renderer(slicer.render_translucent_overlay(
             context['label_image'] > 0,
-            [0, 1, 0]
+            [0, 1, 0],
+            context['ijk_to_xyz'],
         ))
-        s.add_renderer(slicer.render_translucent_overlay(kernel_big, [1, 0, 0]))
+        s.add_renderer(slicer.render_translucent_overlay(kernel_big, [1, 0, 0], context['ijk_to_xyz']))
         s.add_renderer(partial(render_intersection_square, voxels, voxel_spacing, phantom_model))
         s.add_renderer(slicer.render_cursor)
         s.draw()

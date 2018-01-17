@@ -1,15 +1,15 @@
 {
     "case_id": "603A-2",
-    "commit": "6bc02f8a600b35639bc9a4281695400e8a9a5606",
+    "commit": "e1bdc964021cb0502128f568a5ef8330ba240606",
     "metrics": {
         "FLE_100": 2.0316480593994433,
         "FLE_50": 1.0107581023168186,
         "FPF": 0.07964601769911504,
         "TPF": 0.9629629629629629
     },
-    "ran_on": 1515558356.683591,
+    "ran_on": 1516250017.276764,
     "repo_dirty": true,
-    "result_id": "1515558356.683591_6bc02f8a600b35639bc9a4281695400e8a9a5606",
-    "status": "fail",
+    "result_id": "1516250017.276764_e1bdc964021cb0502128f568a5ef8330ba240606",
+    "status": "pass",
     "suite_id": "feature-detection"
 }
