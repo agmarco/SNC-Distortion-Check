@@ -93,7 +93,7 @@ def rigidly_register(A, B_i, grid_spacing, xtol=registeration_tolerance):
     2. Perform a "grid search", wherein we search for grid shifts that maximize
        the number of matching points.  This should let us jump out of the
        valley that step 1 found, and into the valley that contains the correct grid alignment.
-    3. If necessary, run another convex optimization like in step 1, so that we
+    3. Run another convex optimization like in step 1, so that we
        can fine tune the result from step 2.
     '''
     logger.info('beginning rigid registration')
