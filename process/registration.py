@@ -103,8 +103,8 @@ def rigidly_register(A, B_i, grid_spacing, xtol=registeration_tolerance):
     num_grid_spacings = 2
     g_cutoff = calculate_g_cutoff(num_grid_spacings, grid_spacing)
     g_near_isocenter = lambda bmag: 1 if bmag < g_cutoff else 0
-    rho = build_rho(g_cutoff, grid_spacing)
-    f_points_near_isocenter = build_objective_function(A, B_i, g_near_isocenter, rho)
+    rho_initial = build_rho(0, grid_spacing)
+    f_points_near_isocenter_initial = build_objective_function(A, B_i, g_near_isocenter, rho_initial)
 
     # During the grid search, we want to consider ALL points, regardless of how
     # far they are from the isocenter, since we want to ensure that A and B are
@@ -112,15 +112,14 @@ def rigidly_register(A, B_i, grid_spacing, xtol=registeration_tolerance):
     # earlier steps for performance reasons, and because we want to weight
     # points near the isocenter more during the fine-tuning optimization
     g_all = lambda bmag: 1.0
+    rho = build_rho(g_cutoff, grid_spacing)
     f_all_points = build_objective_function(A, B_i, g_all, rho)
+    f_points_near_isocenter = build_objective_function(A, B_i, g_near_isocenter, rho)
 
     xyztpx_initial = np.array([0, 0, 0, 0, 0, 0])
-    xyztpx_initial_local_minimum = _run_optimizer(f_points_near_isocenter, xyztpx_initial, xtol)
+    xyztpx_initial_local_minimum = _run_optimizer(f_points_near_isocenter_initial, xyztpx_initial, xtol)
     xyztpx_global_minimum_rough = grid_search(f_all_points, grid_spacing, xyztpx_initial_local_minimum)
-    if np.array_equal(xyztpx_initial_local_minimum, xyztpx_global_minimum_rough):
-        xyztpx_global_minimum = xyztpx_global_minimum_rough
-    else:
-        xyztpx_global_minimum = _run_optimizer(f_points_near_isocenter, xyztpx_global_minimum_rough, xtol)
+    xyztpx_global_minimum = _run_optimizer(f_points_near_isocenter, xyztpx_global_minimum_rough, xtol)
     logger.info('finished rigid registration')
     return xyztpx_global_minimum
 
