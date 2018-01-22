@@ -226,6 +226,32 @@ class UploadScanView(JsonFormMixin, FormView):
         return redirect('machine_sequence_detail', scan.machine_sequence_pair.pk)
 
 
+@login_required
+@institution_required
+@validate_institution(model_class=models.Scan)
+@check_license
+def refresh_scan_view(request, pk=None):
+    if request.method == 'POST':
+        scan = get_object_or_404(models.Scan, pk=pk)
+        # TODO new image processing algorithm
+        new_scan = models.Scan.objects.create(
+            machine_sequence_pair=scan.machine_sequence_pair,
+            dicom_series=scan.dicom_series,
+            golden_fiducials=scan.golden_fiducials.phantom.active_gold_standard,
+            tolerance=scan.machine_sequence_pair.tolerance,
+            processing=True,
+            creator=request.user,
+            notes=scan.notes,
+        )
+        process_scan.delay(new_scan.pk)
+        messages.success(request, "Scan is being re-run using the current tolerance threshold, phantom gold standard "
+                                  "grid intersection locations, and image processing algorithm.  Processing will "
+                                  "likely take several minutes.")
+        return redirect('machine_sequence_detail', new_scan.machine_sequence_pair.pk)
+    else:
+        return HttpResponseNotAllowed(['POST'])
+
+
 @method_decorator(login_required, name='dispatch')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution()
@@ -685,32 +711,6 @@ class TermsOfUseView(TemplateView):
 
 class PrivacyPolicyView(TemplateView):
     template_name = 'common/privacy_policy.html'
-
-
-@login_required
-@institution_required
-@validate_institution(model_class=models.Scan)
-@check_license
-def refresh_scan_view(request, pk=None):
-    if request.method == 'POST':
-        scan = get_object_or_404(models.Scan, pk=pk)
-        # TODO new image processing algorithm
-        new_scan = models.Scan.objects.create(
-            machine_sequence_pair=scan.machine_sequence_pair,
-            dicom_series=scan.dicom_series,
-            golden_fiducials=scan.golden_fiducials.phantom.active_gold_standard,
-            tolerance=scan.machine_sequence_pair.tolerance,
-            processing=True,
-            creator=request.user,
-            notes=scan.notes,
-        )
-        process_scan.delay(new_scan.pk)
-        messages.success(request, "Scan is being re-run using the current tolerance threshold, phantom gold standard "
-                                  "grid intersection locations, and image processing algorithm.  Processing will "
-                                  "likely take several minutes.")
-        return redirect('machine_sequence_detail', new_scan.machine_sequence_pair.pk)
-    else:
-        return HttpResponseNotAllowed(['POST'])
 
 
 class RegisterView(JsonFormMixin, FormView):
