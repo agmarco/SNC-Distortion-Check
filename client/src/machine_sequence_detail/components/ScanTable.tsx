@@ -37,7 +37,7 @@ const fullReportHelp = 'Download a detailed PDF report presenting NEMA MS 12 com
     'geometric distortion analysis with additional charts.';
 const acquisitionDateHelp = 'Date when the scan was acquired if the AcquisitionDate DICOM attribute was present, ' +
     'or the date when the file was uploaded if not.';
-const createdOnHelp = 'Date when the scan was processed.';
+const createdOnHelp = 'Date and time when the scan was processed.';
 const passedHelp = 'Was the maximum detected geometric distortion within the tolerance set at the time when ' +
     'this scan was processed?  Note if you change the tolerance, you will need to re-run the scan.';
 const processingHelp = 'Processing may take several minutes.';
@@ -179,7 +179,7 @@ class ScanTable extends React.Component<IScanTableProps, IScanTableState> {
                                 <td title={acquisitionDateHelp}>
                                     {scan.acquisition_date && format(scan.acquisition_date, 'MMMM D, YYYY')}
                                 </td>
-                                <td title={createdOnHelp}>{format(scan.created_on, 'MMMM D, YYYY')}</td>
+                                <td title={createdOnHelp}>{format(scan.created_on, 'MMMM D, YYYY H:mm A')}</td>
                                 <td>{scan.phantom.model_number} &mdash; {scan.phantom.serial_number}</td>
                                 <td className="sep" />
                                 {this.renderScanActions(scan)}
