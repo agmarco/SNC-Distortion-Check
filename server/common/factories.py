@@ -151,18 +151,11 @@ def _get_acquisition_date_generator():
 _get_acquisition_date = _get_acquisition_date_generator()
 
 sample_603A_mri_zip_filename = 'data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip'
-sample_603A_mri = file_io.load_voxels('data/voxels/006_mri_603A_UVA_Axial_2ME2SRS5-voxels.mat')
-sample_603A_mri['voxels'].flags.writeable = False
-sample_603A_mri['ijk_to_xyz'].flags.writeable = False
-
 
 class DicomSeriesFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.DicomSeries"
 
-    voxels = sample_603A_mri['voxels']
-    ijk_to_xyz = sample_603A_mri['ijk_to_xyz']
-    shape = sample_603A_mri['voxels'].shape
     series_uid = '1.2.840.113704.7.32.0.2.18.42499.2016082704404467665110076.0.0.0'
     study_uid = '1.3.12.2.1107.5.2.18.42499.30000016082707192095400000002'
     patient_id = '123$$$6650572'
