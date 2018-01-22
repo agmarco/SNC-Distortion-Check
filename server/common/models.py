@@ -45,9 +45,14 @@ class Institution(CommonFieldsMixin):
     name = models.CharField(max_length=255, help_text=name_ht)
     address = models.TextField()
     phone_number = models.CharField(max_length=255)
-    license_expiration_date_ht = "The date when the institution's license expires; they are warned 30 days before it expires.  If left blank, the license won't expire at a particular date."
+    license_expiration_date_ht = ("The date when the institution's license expires; "
+            "they are warned 30 days before it expires.  If left blank, the license "
+            "won't expire at a particular date.")
     license_expiration_date = models.DateField(null=True, blank=True, help_text=license_expiration_date_ht)
-    scans_remaining_ht = "The number of scans the institution is allowed to complete before needing to purchase more scans.  They are warned when there are 20 scans remaining.  Only successfully completed scans will decrement the count.  If left blank the license will never expire due to the scan count."
+    scans_remaining_ht = ("The number of scans the institution is allowed to complete "
+            "before needing to purchase more scans.  They are warned when there are 20 "
+            "scans remaining.  Only successfully completed scans will decrement the count.  "
+            "If left blank the license will never expire due to the scan count.")
     scans_remaining = models.PositiveIntegerField(null=True, blank=True, help_text=scans_remaining_ht)
 
     def __str__(self):
