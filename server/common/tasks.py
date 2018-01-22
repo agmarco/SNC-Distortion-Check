@@ -78,7 +78,7 @@ def process_scan(scan_pk, dicom_archive_url=None):
 
         _save_detected_fiducials(scan, voxels, ijk_to_xyz)
 
-        active_gold_standard = scan.phantom.active_gold_standard
+        active_gold_standard = scan.golden_fiducials
         _, num_golden_fiducials = active_gold_standard.fiducials.fiducials.shape
         _, num_detected_fiducials = scan.detected_fiducials.fiducials.shape
 
@@ -170,7 +170,7 @@ def _save_registration_results(scan, voxels, ijk_to_xyz):
     grid_spacing = phantoms.paramaters[phantom_model]['grid_spacing']
     isocenter_in_B = fov_center_xyz(voxels.shape, ijk_to_xyz)
 
-    golden_fiducials = scan.phantom.active_gold_standard.fiducials.fiducials
+    golden_fiducials = scan.golden_fiducials.fiducials.fiducials
     detected_fiducials = scan.detected_fiducials.fiducials
 
     _, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(golden_fiducials, detected_fiducials, grid_spacing, isocenter_in_B)
