@@ -72,7 +72,7 @@ def process_scan(scan_pk, dicom_archive_url=None):
 
         dicom_meatadata_saved = scan.dicom_series.patient_id is None
         if not dicom_meatadata_saved:
-            _save_dicom_metadata(scan.dicom_series, datasets)
+            _save_dicom_series_metadata(scan.dicom_series, datasets)
 
         voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
 
@@ -143,7 +143,7 @@ def _save_dicom_series(scan, dicom_archive_url):
     scan.save()
 
 
-def _save_dicom_metadata(dicom_series, datasets):
+def _save_dicom_series_metadata(dicom_series, datasets):
     first_dataset = datasets[0]
     dicom_series.series_uid = first_dataset.SeriesInstanceUID
     dicom_series.study_uid = first_dataset.StudyInstanceUID
