@@ -195,6 +195,14 @@ class DicomSeries(CommonFieldsMixin):
     def filename(self):
         return os.path.basename(self.zipped_dicom_files.name)
 
+    @property
+    def datasets(self):
+        with zipfile.ZipFile(dicom_archive, 'r') as dicom_archive_zipfile:
+            # TODO: save condensed DICOM tags onto `dicom_series` on upload so
+            # we don't need to load all the zip files just to get at the
+            # metadata; this should be a feature of dicom-numpy
+            datasets = dicom_import.dicom_datasets_from_zip(dicom_archive_zipfile)
+
     class Meta:
         verbose_name = 'DICOM Series'
         verbose_name_plural = 'DICOM Series'
@@ -320,7 +328,6 @@ class Global(models.Model):
 
 
 def create_dicom_series(dicom_archive, request=None):
-
     with zipfile.ZipFile(dicom_archive, 'r') as dicom_archive_zipfile:
         dicom_datasets = dicom_import.dicom_datasets_from_zip(dicom_archive_zipfile)
 
@@ -340,33 +347,22 @@ def create_dicom_series(dicom_archive, request=None):
     dicom_series.save()
     return dicom_series
 
-def create_scan(machine, sequence, phantom, creator, dicom_archive=None, notes=''):
+
+def create_scan(machine, sequence, phantom, creator, notes=''):
     machine_sequence_pair, _ = MachineSequencePair.objects.get_or_create(
         machine=machine,
         sequence=sequence,
         defaults={'tolerance': sequence.tolerance},
     )
 
-    if dicom_archive:
-        dicom_series = create_dicom_series(dicom_archive)
-        scan = Scan.objects.create(
-            machine_sequence_pair=machine_sequence_pair,
-            golden_fiducials=phantom.active_gold_standard,
-            tolerance=machine_sequence_pair.tolerance,
-            processing=True,
-            dicom_series=dicom_series,
-            creator=creator,
-            notes=notes,
-        )
-    else:
-        scan = Scan.objects.create(
-            machine_sequence_pair=machine_sequence_pair,
-            golden_fiducials=phantom.active_gold_standard,
-            tolerance=machine_sequence_pair.tolerance,
-            processing=True,
-            creator=creator,
-            notes=notes,
-        )
+    scan = Scan.objects.create(
+        machine_sequence_pair=machine_sequence_pair,
+        golden_fiducials=phantom.active_gold_standard,
+        tolerance=machine_sequence_pair.tolerance,
+        processing=True,
+        creator=creator,
+        notes=notes,
+    )
 
     return scan
 

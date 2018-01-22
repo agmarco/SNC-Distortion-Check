@@ -157,8 +157,6 @@ class Command(BaseCommand):
 
         self.generate_gold_standard_points_demo(phantom_a)
         self.generate_scan_progression_demo(manager, machine_a, sequence_a, 9)
-        self.generate_real_report_demo(machine_b, sequence_b, phantom_d, manager, 'data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip')
-        self.generate_real_report_demo(machine_b, sequence_b, phantom_d, manager, 'data/dicom/yyy_mri_603A_t1_vibe_tra_FS_ND.zip')
 
     def generate_gold_standard_points_demo(self, phantom):
         '''
@@ -183,18 +181,6 @@ class Command(BaseCommand):
             phantom=phantom,
             type=GoldenFiducials.CSV,
         )
-
-    def generate_real_report_demo(self, machine, sequence, phantom, creator, zip_filename):
-        '''
-        Run the process scan task so that we have real pdf reports to
-        demonstrate.
-        '''
-
-        # TODO: this is broken since S3 direct uploads
-        with open(zip_filename, 'rb') as dicom_archive:
-            dicom_archive_file = File(dicom_archive)
-            scan = create_scan(machine, sequence, phantom, creator, dicom_archive_file)
-        process_scan(scan.pk)
 
     def generate_scan_progression_demo(self, creator, machine, sequence, sequence_length):
         '''
