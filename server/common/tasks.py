@@ -42,6 +42,21 @@ logger = logging.getLogger(__name__)
 
 @shared_task(name='common.tasks.process_scan')
 def process_scan(scan_pk, dicom_archive_url=None):
+    '''
+    Analyzed an MRI of a phantom (stored in a zip archive containing a set of DICOM
+    files) and compare the location of the phantom's grid intersections to that
+    of the currently set gold standard intersection locations, then generate a
+    report.
+
+    If `dicom_archive_url` is set, then this is a newly uploaded set of DICOM
+    files, and the DICOM files need to be parsed and some metadata stored in
+    the database.  If `dicom_archive_url` is `None`, then the scan is being
+    "re-run"; in this case, we may be able to use some of the data that is
+    already saved in the database.
+
+    This task saves details periodically, so that in the event of a failure, we
+    have as much data as possible available for debugging purposes.
+    '''
     scan = models.Scan.objects.get(pk=scan_pk)
 
     try:
@@ -55,15 +70,26 @@ def process_scan(scan_pk, dicom_archive_url=None):
             zipped_dicom_files = urlparse(dicom_archive_url).path
             dicom_series = models.DicomSeries(zipped_dicom_files=zipped_dicom_files)
             dicom_series.save()
+
             scan.dicom_series = dicom_series
             scan.save()
 
-            # TODO: save condensed DICOM tags onto `dicom_series` on upload so
-            # we don't need to load all the zip files just to get at the
-            # metadata; this should be a feature of dicom-numpy
             dicom_archive = dicom_series.zipped_dicom_files
+        elif scan.dicom_series is not None:
+            dicom_series = scan.dicom_series
+            dicom_archive = dicom_series.zipped_dicom_files
+        else:
+            raise AlgorithmException(
+                f"Unable to run this scan because there are no DICOM files available; this may "
+                f"mean that there was an issue uploading the DICOM files on the initial upload."
+            )
 
+        dicom_series_processed = scan.dicom_series.patient_id is None
+        if not dicom_series_processed:
             with zipfile.ZipFile(dicom_archive, 'r') as dicom_archive_zipfile:
+                # TODO: save condensed DICOM tags onto `dicom_series` on upload so
+                # we don't need to load all the zip files just to get at the
+                # metadata; this should be a feature of dicom-numpy
                 datasets = dicom_import.dicom_datasets_from_zip(dicom_archive_zipfile)
 
             voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
@@ -180,7 +206,6 @@ def process_scan(scan_pk, dicom_archive_url=None):
 
     except Exception as e:
         scan = models.Scan.objects.get(pk=scan.pk)  # fresh instance
-
         creator_email = scan.creator.email
         logger.exception(f'Unhandled scan exception occurred while processing scan for "{creator_email}"')
         scan.errors = 'A server error occurred while processing the scan.'
