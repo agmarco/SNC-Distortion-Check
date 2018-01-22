@@ -5,6 +5,7 @@ import io
 
 import scipy.io
 from django.conf import settings
+from process import dicom_import
 from rest_framework.renderers import JSONRenderer
 
 from process.file_io import save_voxels
@@ -35,11 +36,13 @@ def dump_raw_scan_data(scan):
         zipped_dicom_files.seek(0)  # rewind the file, as it may have been read earlier
         streams['dicom.zip'] = io.BytesIO(zipped_dicom_files.read())
 
+        datasets = scan.dicom_series.unzip_datasets()
+        voxels, _ = dicom_import.combine_slices(datasets)
         voxels_path = generate_tempory_file_path('.mat')
         voxels_data = {
             'phantom_model': scan.phantom.model.model_number,
             'modality': 'mri',
-            'voxels': scan.dicom_series.voxels,
+            'voxels': voxels,
         }
         save_voxels(voxels_path, voxels_data)
         files['voxels.mat'] = voxels_path
