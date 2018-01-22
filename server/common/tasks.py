@@ -70,14 +70,10 @@ def process_scan(scan_pk, dicom_archive_url=None):
             zipped_dicom_files = urlparse(dicom_archive_url).path
             dicom_series = models.DicomSeries(zipped_dicom_files=zipped_dicom_files)
             dicom_series.save()
-
             scan.dicom_series = dicom_series
             scan.save()
-
-            dicom_archive = dicom_series.zipped_dicom_files
         elif scan.dicom_series is not None:
             dicom_series = scan.dicom_series
-            dicom_archive = dicom_series.zipped_dicom_files
         else:
             raise AlgorithmException(
                 f"Unable to run this scan because there are no DICOM files available; this may "
@@ -85,32 +81,17 @@ def process_scan(scan_pk, dicom_archive_url=None):
             )
 
         dicom_series_processed = scan.dicom_series.patient_id is None
+        datasets = scan.dicom_series.unzip_datasets()
         if not dicom_series_processed:
-            with zipfile.ZipFile(dicom_archive, 'r') as dicom_archive_zipfile:
-                # TODO: save condensed DICOM tags onto `dicom_series` on upload so
-                # we don't need to load all the zip files just to get at the
-                # metadata; this should be a feature of dicom-numpy
-                datasets = dicom_import.dicom_datasets_from_zip(dicom_archive_zipfile)
-
-            voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
             first_dataset = datasets[0]
-
-            dicom_series.voxels = voxels
-            dicom_series.ijk_to_xyz = ijk_to_xyz
-            dicom_series.shape = voxels.shape
             dicom_series.series_uid = first_dataset.SeriesInstanceUID
             dicom_series.study_uid = first_dataset.StudyInstanceUID
             dicom_series.frame_of_reference_uid = first_dataset.FrameOfReferenceUID
             dicom_series.patient_id = first_dataset.PatientID
             dicom_series.acquisition_date = models.infer_acquisition_date(first_dataset)
-
             dicom_series.save()
-        else:
-            with zipfile.ZipFile(scan.dicom_series.zipped_dicom_files, 'r') as zf:
-                datasets = dicom_import.dicom_datasets_from_zip(zf)
 
-        voxels = scan.dicom_series.voxels
-        ijk_to_xyz = scan.dicom_series.ijk_to_xyz
+        voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
         voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
 
         feature_detector = FeatureDetector(
@@ -180,8 +161,8 @@ def process_scan(scan_pk, dicom_archive_url=None):
             TP_A_S,
             TP_B,
             datasets,
-            scan.dicom_series.voxels,
-            scan.dicom_series.ijk_to_xyz,
+            voxels,
+            ijk_to_xyz,
             scan.golden_fiducials.phantom.model.model_number,
             scan.tolerance,
             scan.institution,
@@ -239,9 +220,6 @@ def process_ct_upload(gold_standard_pk, dicom_archive_url):
             voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
             first_dataset = datasets[0]
 
-            dicom_series.voxels = voxels
-            dicom_series.ijk_to_xyz = ijk_to_xyz
-            dicom_series.shape = voxels.shape
             dicom_series.series_uid = first_dataset.SeriesInstanceUID
             dicom_series.study_uid = first_dataset.StudyInstanceUID
             dicom_series.patient_id = first_dataset.PatientID
@@ -254,8 +232,8 @@ def process_ct_upload(gold_standard_pk, dicom_archive_url):
             feature_detector = FeatureDetector(
                 gold_standard.phantom.model.model_number,
                 modality,
-                dicom_series.voxels,
-                dicom_series.ijk_to_xyz
+                voxels,
+                ijk_to_xyz,
             )
 
             # TODO: apply the FP rejector to this stage

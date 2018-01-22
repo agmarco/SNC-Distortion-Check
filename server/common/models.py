@@ -181,10 +181,6 @@ class MachineSequencePair(CommonFieldsMixin):
 
 class DicomSeries(CommonFieldsMixin):
     zipped_dicom_files = models.FileField(upload_to='dicom_series/zipped_dicom_files')
-    #voxels = NdarrayFileField(upload_to='dicom_series/voxels')
-    voxels = NdarrayTextField()
-    ijk_to_xyz = NdarrayTextField()
-    shape = NdarrayTextField()
     series_uid_ht = 'The DICOM Series Instance UID, which should uniquely identify a scan'
     series_uid = models.CharField(max_length=64, verbose_name='Series Instance UID', help_text=series_uid_ht)
     study_uid = models.CharField(max_length=64, verbose_name='Study Instance UID', help_text=series_uid_ht)
@@ -200,13 +196,11 @@ class DicomSeries(CommonFieldsMixin):
     def filename(self):
         return os.path.basename(self.zipped_dicom_files.name)
 
-    @property
-    def datasets(self):
-        with zipfile.ZipFile(dicom_archive, 'r') as dicom_archive_zipfile:
-            # TODO: save condensed DICOM tags onto `dicom_series` on upload so
-            # we don't need to load all the zip files just to get at the
-            # metadata; this should be a feature of dicom-numpy
-            datasets = dicom_import.dicom_datasets_from_zip(dicom_archive_zipfile)
+    def unzip_datasets(self):
+        zipped_dicom_files = self.zipped_dicom_files
+        zipped_dicom_files.seek(0)  # rewind the file, as it may have been read earlier
+        with zipfile.ZipFile(zipped_dicom_files, 'r') as f:
+            return dicom_import.dicom_datasets_from_zip(f)
 
     class Meta:
         verbose_name = 'DICOM Series'
@@ -336,18 +330,14 @@ def create_dicom_series(dicom_archive, request=None):
     with zipfile.ZipFile(dicom_archive, 'r') as dicom_archive_zipfile:
         dicom_datasets = dicom_import.dicom_datasets_from_zip(dicom_archive_zipfile)
 
-    voxels, ijk_to_xyz = dicom_import.combine_slices(dicom_datasets)
-    ds = dicom_datasets[0]
+    first_dataset = dicom_datasets[0]
     dicom_series = DicomSeries.objects.create(
-        voxels=voxels,
         zipped_dicom_files=dicom_archive,
-        ijk_to_xyz=ijk_to_xyz,
-        shape=voxels.shape,
-        series_uid=ds.SeriesInstanceUID,
-        study_uid=ds.StudyInstanceUID,
-        frame_of_reference_uid=ds.FrameOfReferenceUID,
-        patient_id=ds.PatientID,
-        acquisition_date=infer_acquisition_date(ds, request),
+        series_uid=first_dataset.SeriesInstanceUID,
+        study_uid=first_dataset.StudyInstanceUID,
+        frame_of_reference_uid=first_dataset.FrameOfReferenceUID,
+        patient_id=first_dataset.PatientID,
+        acquisition_date=infer_acquisition_date(first_dataset, request),
     )
     dicom_series.save()
     return dicom_series
