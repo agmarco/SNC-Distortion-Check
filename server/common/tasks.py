@@ -93,16 +93,16 @@ def process_scan(scan_pk, dicom_archive_url=None):
                 datasets = dicom_import.dicom_datasets_from_zip(dicom_archive_zipfile)
 
             voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
-            ds = datasets[0]
+            first_dataset = datasets[0]
 
             dicom_series.voxels = voxels
             dicom_series.ijk_to_xyz = ijk_to_xyz
             dicom_series.shape = voxels.shape
-            dicom_series.series_uid = ds.SeriesInstanceUID
-            dicom_series.study_uid = ds.StudyInstanceUID
-            dicom_series.frame_of_reference_uid = ds.FrameOfReferenceUID
-            dicom_series.patient_id = ds.PatientID
-            dicom_series.acquisition_date = models.infer_acquisition_date(ds)
+            dicom_series.series_uid = first_dataset.SeriesInstanceUID
+            dicom_series.study_uid = first_dataset.StudyInstanceUID
+            dicom_series.frame_of_reference_uid = first_dataset.FrameOfReferenceUID
+            dicom_series.patient_id = first_dataset.PatientID
+            dicom_series.acquisition_date = models.infer_acquisition_date(first_dataset)
 
             dicom_series.save()
         else:
@@ -237,16 +237,16 @@ def process_ct_upload(gold_standard_pk, dicom_archive_url):
                 datasets = dicom_import.dicom_datasets_from_zip(zip_file)
 
             voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
-            ds = datasets[0]
+            first_dataset = datasets[0]
 
             dicom_series.voxels = voxels
             dicom_series.ijk_to_xyz = ijk_to_xyz
             dicom_series.shape = voxels.shape
-            dicom_series.series_uid = ds.SeriesInstanceUID
-            dicom_series.study_uid = ds.StudyInstanceUID
-            dicom_series.patient_id = ds.PatientID
-            dicom_series.acquisition_date = models.infer_acquisition_date(ds)
-            dicom_series.frame_of_reference_uid = getattr(ds, 'FrameOfReferenceUID', None)
+            dicom_series.series_uid = first_dataset.SeriesInstanceUID
+            dicom_series.study_uid = first_dataset.StudyInstanceUID
+            dicom_series.patient_id = first_dataset.PatientID
+            dicom_series.acquisition_date = models.infer_acquisition_date(first_dataset)
+            dicom_series.frame_of_reference_uid = getattr(first_dataset, 'FrameOfReferenceUID', None)
 
             dicom_series.save()
             gold_standard.dicom_series = dicom_series
@@ -285,7 +285,7 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
             GRID_DENSITY_mm = 1.5
 
             scan = models.Scan.objects.get(pk=scan_pk)
-            ds = scan.dicom_series
+            dicom_series = scan.dicom_series
             TP_A_S = scan.TP_A_S.fiducials
             error_mags = scan.error_mags
 
@@ -297,10 +297,10 @@ def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, p
                 voxel_array=interpolated_error_mags,
                 voxelSpacing_tup=(GRID_DENSITY_mm, GRID_DENSITY_mm, GRID_DENSITY_mm),
                 voxelPosition_tup=apply_affine_1(overlay_ijk_to_xyz, np.zeros((3,))),
-                studyInstanceUID=study_instance_uid or ds.study_uid,
+                studyInstanceUID=study_instance_uid or dicom_series.study_uid,
                 seriesInstanceUID=generate_uid(),
-                frameOfReferenceUID=frame_of_reference_uid or ds.frame_of_reference_uid,
-                patientID=patient_id or ds.patient_id,
+                frameOfReferenceUID=frame_of_reference_uid or dicom_series.frame_of_reference_uid,
+                patientID=patient_id or dicom_series.patient_id,
                 output_directory=output_dir,
                 imageOrientationPatient=np.array([1, 0, 0, 0, 1, 0]),
             )
@@ -399,17 +399,17 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
         '''
         return '\\'.join(str(val) for val in values)
 
-    def _base_ds():
+    def _base_dataset():
         sopinst = generate_uid()
         file_meta = Dataset()
         file_meta.MediaStorageSOPClassUID = '1.2.840.10008.5.1.4.1.1.2'  # CT Image Storage
         file_meta.TransferSyntaxUID = '1.2.840.10008.1.2'  # Implicit VR Little Endian
         file_meta.MediaStorageSOPInstanceUID = sopinst
         file_meta.ImplementationClassUID = '1.1.1'
-        ds = FileDataset(None, {}, file_meta=file_meta, preamble=b"\0"*128)
-        ds.SOPInstanceUID = sopinst
-        ds.SOPClassUID = '1.2.840.10008.5.1.4.1.1.2'  # CT Image SOP Class
-        return ds
+        dataset = FileDataset(None, {}, file_meta=file_meta, preamble=b"\0"*128)
+        dataset.SOPInstanceUID = sopinst
+        dataset.SOPClassUID = '1.2.840.10008.5.1.4.1.1.2'  # CT Image SOP Class
+        return dataset
 
     def _unstack(voxel_array):
         '''converts array of x,y,z into one of z,x,y to make it easier to slice.'''
@@ -427,47 +427,47 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
         sliceVoxelPosition = (voxelPosition_tup[0],
                               voxelPosition_tup[1],
                               voxelPosition_tup[2] + voxelSpacing_tup[2]*slice_num)
-        ds = _base_ds()
+        dataset = _base_dataset()
         # Patient Module
-        ds.PatientName = ''
-        ds.PatientID = patientID
+        dataset.PatientName = ''
+        dataset.PatientID = patientID
 
         # general study module
-        ds.ContentDate = str(datetime.today()).replace('-', '')
-        ds.ContentTime = str(time.time())
-        ds.StudyInstanceUID = studyInstanceUID
-        ds.StudyDescription = 'Distortion Overlay'
+        dataset.ContentDate = str(datetime.today()).replace('-', '')
+        dataset.ContentTime = str(time.time())
+        dataset.StudyInstanceUID = studyInstanceUID
+        dataset.StudyDescription = 'Distortion Overlay'
 
         # general series module
-        ds.SeriesInstanceUID = seriesInstanceUID
-        ds.Modality = 'PT'
+        dataset.SeriesInstanceUID = seriesInstanceUID
+        dataset.Modality = 'PT'
 
         # Frame of reference module
-        ds.FrameOfReferenceUID = frameOfReferenceUID
+        dataset.FrameOfReferenceUID = frameOfReferenceUID
 
         # Image plane module
         xSpacing_mm, ySpacing_mm, zSpacing_mm = voxelSpacing_tup
-        ds.ImageOrientationPatient = _encode_multival(imageOrientationPatient)  # direction cosines
-        ds.ImagePositionPatient = _encode_multival(sliceVoxelPosition)
-        ds.PixelSpacing = _encode_multival([xSpacing_mm, ySpacing_mm])
-        ds.SliceThickness = str(zSpacing_mm)
-        ds.InstanceNumber = slice_num
+        dataset.ImageOrientationPatient = _encode_multival(imageOrientationPatient)  # direction cosines
+        dataset.ImagePositionPatient = _encode_multival(sliceVoxelPosition)
+        dataset.PixelSpacing = _encode_multival([xSpacing_mm, ySpacing_mm])
+        dataset.SliceThickness = str(zSpacing_mm)
+        dataset.InstanceNumber = slice_num
 
         # image pixel module
         columns, rows = slice_arr.shape
-        ds.SamplesPerPixel = 1
-        ds.PhotometricInterpretation = "MONOCHROME2"
-        ds.PixelRepresentation = 0  # unsigned int
-        ds.HighBit = 15
-        ds.BitsStored = 16
-        ds.BitsAllocated = 16
-        ds.Columns = columns
-        ds.Rows = rows
-        ds.NumberOfFrames = 1
-        ds.RescaleIntercept = rescaleIntercept
-        ds.RescaleSlope = rescaleSlope
+        dataset.SamplesPerPixel = 1
+        dataset.PhotometricInterpretation = "MONOCHROME2"
+        dataset.PixelRepresentation = 0  # unsigned int
+        dataset.HighBit = 15
+        dataset.BitsStored = 16
+        dataset.BitsAllocated = 16
+        dataset.Columns = columns
+        dataset.Rows = rows
+        dataset.NumberOfFrames = 1
+        dataset.RescaleIntercept = rescaleIntercept
+        dataset.RescaleSlope = rescaleSlope
 
         # TODO: Fix incorrect transpositions upstream; also swap back rows and columns
-        ds.PixelData = slice_arr.astype(np.uint16).T.tobytes()  
-        ds.Units = 'mm'
-        dicom.write_file(os.path.join(output_directory, '{}.dcm'.format(ds.SOPInstanceUID)), ds)
+        dataset.PixelData = slice_arr.astype(np.uint16).T.tobytes()
+        dataset.Units = 'mm'
+        dicom.write_file(os.path.join(output_directory, '{}.dcm'.format(dataset.SOPInstanceUID)), dataset)
