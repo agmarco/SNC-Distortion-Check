@@ -179,7 +179,7 @@ class ScanTable extends React.Component<IScanTableProps, IScanTableState> {
                                 <td title={acquisitionDateHelp}>
                                     {scan.acquisition_date && format(scan.acquisition_date, 'MMMM D, YYYY')}
                                 </td>
-                                <td title={createdOnHelp}>{format(scan.created_on, 'MMMM D, YYYY H:mm A')}</td>
+                                <td title={createdOnHelp}>{format(scan.created_on, 'MMMM D, YYYY h:mm A')}</td>
                                 <td>{scan.phantom.model_number} &mdash; {scan.phantom.serial_number}</td>
                                 <td className="sep" />
                                 {this.renderScanActions(scan)}
