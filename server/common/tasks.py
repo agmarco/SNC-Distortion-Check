@@ -90,7 +90,8 @@ def process_scan(scan_pk, dicom_archive_url=None):
                 f"Aborting analysis since the fractional error is larger than {error_cutoff*100:.1f}%."
             )
 
-        TPF = _save_registration_results(scan, voxels, ijk_to_xyz)
+        isocenter_in_B = fov_center_xyz(voxels.shape, ijk_to_xyz)
+        TPF = _save_registration_results(scan, isocenter_in_B, ijk_to_xyz)
 
         TPF_minimum = 0.85
 
@@ -165,10 +166,9 @@ def _save_detected_fiducials(scan, voxels, ijk_to_xyz):
     scan.save()
 
 
-def _save_registration_results(scan, voxels, ijk_to_xyz):
+def _save_registration_results(scan, isocenter_in_B, ijk_to_xyz):
     phantom_model = scan.phantom.model.model_number
     grid_spacing = phantoms.paramaters[phantom_model]['grid_spacing']
-    isocenter_in_B = fov_center_xyz(voxels.shape, ijk_to_xyz)
 
     golden_fiducials = scan.golden_fiducials.fiducials.fiducials
     detected_fiducials = scan.detected_fiducials.fiducials
