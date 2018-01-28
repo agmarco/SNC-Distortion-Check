@@ -197,13 +197,13 @@ class FullAlgorithmSuite(Suite):
 
     def verify(self, old, new):
         # TODO: pull out these assertions into a separate library (should reduce line lengths)
-        if new['TPF'] < old['TPF']:
+        if new['TPF'] + 0.01 < old['TPF']:
             return False, f"The TPF has decreased from {old['TPF']} to {new['TPF']}"
 
-        if new['fraction_of_volume_covered'] < old['fraction_of_volume_covered']:
+        if new['fraction_of_volume_covered'] + 0.01 < old['fraction_of_volume_covered']:
             return False, f"The fraction of volume covered has decreased from {old['fraction_of_volume_covered']} to {new['fraction_of_volume_covered']}"
 
-        if new['FPF'] > old['FPF']:
+        if new['FPF'] - 0.01 > old['FPF']:
             return False, f"The FPF has increased from {old['FPF']} to {new['FPF']}"
 
         shift_tolerance = 0.1
