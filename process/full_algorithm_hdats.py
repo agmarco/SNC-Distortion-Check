@@ -80,6 +80,11 @@ class FullAlgorithmSuite(Suite):
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
+            '603A-13': {
+                'dicom': 'data/dicom/013_mri_603A_big.zip',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
             '604-1': {
                 'dicom': 'data/dicom/010_mri_604_LFV-Phantom_E2632-1.zip',
                 'modality': 'mri',
