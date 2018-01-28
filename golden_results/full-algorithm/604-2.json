@@ -4,7 +4,7 @@
     "metrics": {
         "FPF": 0.006523407521105142,
         "TPF": 0.987037743042318,
-        "fraction_of_volume_covered": 1.0,
+        "fraction_of_volume_covered": 0.8006191368001574,
         "max_distortion": 3.697312571270608,
         "median_distortion": 0.5238039290393404,
         "min_distortion": 0.0,
