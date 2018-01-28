@@ -53,8 +53,6 @@ def dicom_datasets_from_zip(zip_file):
             dataset = dicom.read_file(temp_file)
             datasets.append(dataset)
         except dicom.errors.InvalidDicomError as e:
-            msg = 'Skipping invalid DICOM file "{}": {}'
-            logger.debug(msg.format(entry, e))
             num_skipped_files += 1
 
     if num_skipped_files > 0:
