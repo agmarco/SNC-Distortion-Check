@@ -2,6 +2,7 @@ import logging
 import os
 
 from scipy import signal
+from scipy.ndimage.filters import gaussian_filter
 
 from . import kernels
 from . import peak_detection
@@ -22,9 +23,9 @@ modality_grid_radius_factors = {
 
 
 class FeatureDetector:
-    def __init__(self, phantom_model, modality, image, ijk_to_xyz):
+    def __init__(self, phantom_model, modality, image, ijk_to_xyz, limit_memory_usage=False):
         logger.info('starting feature detection')
-        self.image = image.copy()
+
         self.phantom_model = phantom_model
         self.modality = modality
 
@@ -37,11 +38,13 @@ class FeatureDetector:
 
         self.grid_spacing = phantoms.paramaters[phantom_model]['grid_spacing']
 
-        self.kernel = self._build_kernel()
-        self.preprocessed_image = self._preprocess()
+        self.preprocessed_image = self._preprocess_image(image)
 
-        logger.info('convolving with gaussian kernel shape=%s, sigma=%.2f', self.kernel.shape, self.grid_radius)
-        self.feature_image = signal.fftconvolve(self.preprocessed_image, self.kernel, mode='same')
+        sigmas = self.grid_radius/self.voxel_spacing
+        logger.info('blurring with gaussian kernel, sigma=%.2f %s', self.grid_radius, str(sigmas))
+        self.feature_image = gaussian_filter(self.preprocessed_image, sigmas, mode='reflect')
+
+        if limit_memory_usage: del self.preprocessed_image
 
         search_radius = self.grid_spacing/4
         self.points_ijk, self.label_image = peak_detection.detect_peaks(
@@ -49,16 +52,15 @@ class FeatureDetector:
             self.voxel_spacing,
             search_radius,
         )
+        if limit_memory_usage: del self.label_image
+        if limit_memory_usage: del self.feature_image
 
         self.points_xyz = affine.apply_affine(self.ijk_to_xyz, self.points_ijk)
         logger.info('finishing feature detection')
 
-    def _build_kernel(self):
-        return kernels.gaussian(self.voxel_spacing, self.grid_radius)
-
-    def _preprocess(self):
+    def _preprocess_image(self, image):
         if self.modality == 'mri':
             logger.info('inverting image, modality=%s', self.modality)
-            return invert(self.image)
+            return invert(image)
         else:
-            return self.image
+            return image

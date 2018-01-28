@@ -86,7 +86,9 @@ def detect_peaks(data, voxel_spacing, search_radius):
 
     subvoxel_neighborhood = np.ones((3, 3, 3), dtype=bool)
     dilated_peaks_thresholded = ndimage.binary_dilation(peaks_thresholded, subvoxel_neighborhood)
+    del peaks_thresholded
     labels, num_labels = ndimage.label(dilated_peaks_thresholded)
+    del dilated_peaks_thresholded
     logger.info('found %d independent peaks', num_labels)
 
     peaks = np.empty((len(data.shape), num_labels))

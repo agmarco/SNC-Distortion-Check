@@ -76,6 +76,14 @@ def process_scan(scan_pk, dicom_archive_url=None):
 
         voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
 
+        # delete the datasets to save memory; pydicom lazily loads the pixel
+        # data from each slice, so after reading the voxel files from the
+        # datasets, the datasets are much much larger; thus, although we need
+        # them again later, we delete them and then reload to trade
+        # processing time for peak memory usage
+        # TODO: find a better way; perhaps dicom_import should handle this
+        del datasets
+
         _save_detected_fiducials(scan, voxels, ijk_to_xyz)
 
         active_gold_standard = scan.golden_fiducials
@@ -110,6 +118,7 @@ def process_scan(scan_pk, dicom_archive_url=None):
                 f"the issue."
             )
 
+        datasets = scan.dicom_series.unzip_datasets()
         _save_reports(scan, datasets, voxels, ijk_to_xyz)
 
     except AlgorithmException as e:
@@ -157,7 +166,7 @@ def _save_dicom_series_metadata(dicom_series, datasets):
 def _save_detected_fiducials(scan, voxels, ijk_to_xyz):
     modality = 'mri'
     phantom_model = scan.phantom.model.model_number
-    feature_detector = FeatureDetector(phantom_model, modality, voxels, ijk_to_xyz)
+    feature_detector = FeatureDetector(phantom_model, modality, voxels, ijk_to_xyz, limit_memory_usage=True)
     voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
     points_ijk = feature_detector.points_ijk
     pruned_points_ijk = fp_rejector.remove_fps(points_ijk, voxels, voxel_spacing, phantom_model)
