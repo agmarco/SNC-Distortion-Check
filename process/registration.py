@@ -96,7 +96,9 @@ def rigidly_register(A, B_i, grid_spacing, xtol=registeration_tolerance):
     3. Run another convex optimization like in step 1, so that we
        can fine tune the result from step 2.
     '''
-    logger.info('beginning rigid registration')
+    _, num_golden = A.shape
+    _, num_detected = B_i.shape
+    logger.info('beginning rigid registration of %d golden points against %d detected', num_golden, num_detected)
 
     # We want to encompass at least the middle 125 points in a sphere (we will of course
     # get some extra points too in the corners)
