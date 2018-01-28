@@ -254,7 +254,7 @@ class FullAlgorithmSuite(Suite):
                 'points_xyz': context['FP_B'],
                 'scatter_kwargs': {
                     'color': 'r',
-                    'label': 'False Positives (Registration)',
+                    'label': 'Rejected by Registration',
                     'marker': 'x'
                 }
             },
@@ -262,7 +262,7 @@ class FullAlgorithmSuite(Suite):
                 'points_xyz': context['FP_B_CNN'],
                 'scatter_kwargs': {
                     'color': 'm',
-                    'label': 'False Positives (CNN)',
+                    'label': 'Rejected by CNN',
                     'marker': 'x'
                 }
             },
@@ -286,8 +286,9 @@ class FullAlgorithmSuite(Suite):
 
         scatter3({
             'Gold Standard': context['TP_A_S'],
-            'False Positives (Registration)': context['FP_B'],
+            'Rejected by Registration': context['FP_B'],
             'True Positives': context['TP_B'],
             'False Negatives': context['FN_A_S'],
+            'Rejected by CNN': context['FP_B_CNN'],
         })
         plt.show()
