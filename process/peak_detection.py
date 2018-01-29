@@ -67,7 +67,7 @@ def detect_peaks(data, voxel_spacing, search_radius):
     num_total_peaks = np.sum(peak_heights > 0)
     logger.info('found %d peaks in total, using %s search area', num_total_peaks, search_neighborhood.shape)
 
-    threshold = 0.1*np.percentile(peak_heights[peak_heights > 0], 98)
+    threshold = 0.03*np.percentile(peak_heights[peak_heights > 0], 98)
     peaks_thresholded = peak_heights > threshold
     num_tall_peaks = np.sum(peaks_thresholded)
     logger.info('found %d peaks with amplitude greater than %f', num_tall_peaks, threshold)
@@ -92,13 +92,30 @@ def detect_peaks(data, voxel_spacing, search_radius):
     logger.info('found %d independent peaks', num_labels)
 
     peaks = np.empty((len(data.shape), num_labels))
+    num_big_rois = 0
     for i, object_slices in enumerate(ndimage.measurements.find_objects(labels)):
         slice_corner_ijk = np.array([s.start for s in object_slices])
         roi = data[object_slices]
-        zoom = 7
-        subvoxel_offset = subvoxel_maximum(roi, zoom)
-        peaks[:, i] = slice_corner_ijk + subvoxel_offset
+        if roi.size <= 5*5*5:
+            zoom = 7
+            subvoxel_offset = subvoxel_maximum(roi, zoom)
+            peaks[:, i] = slice_corner_ijk + subvoxel_offset
+        else:
+            # If the ROI is too big then this label is almost certainly not
+            # centered on a real grid intersection.  Chances are something went
+            # wrong during the 3x3 binary dilation step; the dilation step
+            # grows the detected peaks so we can do a sub-voxel zoom, and it
+            # also handles cases where two adjacent voxels are both the maximum
+            # inside the binary search neighborhood (and thus equal).
+            # Occasionally, you can have a whole bunch of peaks that are
+            # adjacent, and after dilation they form a really big ROI.  If this
+            # happens, we just push back the slice corner into `peaks` so that
+            # the CNN can't then reject it
+            num_big_rois += 1
+            peaks[:, i] = slice_corner_ijk
 
+    if num_big_rois > 0:
+        logger.info('skipped over %d peaks that had big rois', num_big_rois)
     logger.info('finished peak detection')
     return peaks, labels
 
