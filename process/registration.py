@@ -72,8 +72,7 @@ def rigidly_register_and_categorize(A, B, grid_spacing, isocenter_in_B):
     # translations
     xyztpx_a_to_b = xyztpx_a_to_b_i + np.array([*isocenter_in_B, 0, 0, 0])
 
-    # TODO: think of how to avoid duplication between here and within `rigidly_register`
-    rho = build_rho(calculate_g_cutoff(3, grid_spacing), grid_spacing)
+    rho = build_rho(calculate_g_cutoff(3, grid_spacing), 3, 0.45*grid_spacing)
 
     FN_A_S, TP_A_S, TP_B, FP_B = points_utils.categorize(A_S, B, rho)
 
@@ -105,7 +104,7 @@ def rigidly_register(A, B_i, grid_spacing, xtol=registeration_tolerance):
     num_grid_spacings = 2
     g_cutoff = calculate_g_cutoff(num_grid_spacings, grid_spacing)
     g_near_isocenter = lambda bmag: 1 if bmag < g_cutoff else 0
-    rho_initial = build_rho(0, grid_spacing)
+    rho_initial = build_rho(0, 3, 0.5*grid_spacing)
     f_points_near_isocenter_initial = build_objective_function(A, B_i, g_near_isocenter, rho_initial)
 
     # During the grid search, we want to consider ALL points, regardless of how
@@ -114,7 +113,7 @@ def rigidly_register(A, B_i, grid_spacing, xtol=registeration_tolerance):
     # earlier steps for performance reasons, and because we want to weight
     # points near the isocenter more during the fine-tuning optimization
     g_all = lambda bmag: 1.0
-    rho = build_rho(g_cutoff, grid_spacing)
+    rho = build_rho(g_cutoff, 3, 0.45*grid_spacing)
     f_all_points = build_objective_function(A, B_i, g_all, rho)
     f_points_near_isocenter = build_objective_function(A, B_i, g_near_isocenter, rho)
 
@@ -135,16 +134,13 @@ def calculate_g_cutoff(num_grid_spacings, grid_spacing):
     return grid_spacing*num_grid_spacings*sqrt(3) + g_cutoff_buffer
 
 
-def build_rho(g_cutoff, grid_spacing):
+def build_rho(g_cutoff, min_match_distance, max_match_distance):
     '''
     The rho function determines how close two points need to be to be
     considered a "match", as a function of distance from the isocenter, "bmag".
     Points further from the isocenter are expected to have more distortion, and
     thus may be further apart while still being considered "matched".
     '''
-    min_match_distance = 3
-    max_match_distance = grid_spacing * 0.45
-
     def rho(bmag):
         if bmag < g_cutoff:
             return min_match_distance + min_match_distance*bmag/g_cutoff
