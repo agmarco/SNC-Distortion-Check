@@ -1,4 +1,5 @@
 import math
+import os
 import logging
 
 import numpy as np
@@ -20,16 +21,11 @@ keras_models = {}
 
 def get_keras_model(phantom_model):
     if phantom_model not in keras_models:
-        import sys
-        stdout = sys.stdout
-        sys.stdout = open('/dev/null', 'w')
-
+        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # surpress tensor flow warnings
         from keras.models import load_model
         model_location = phantoms.paramaters[phantom_model]['keras_model']
         model = load_model(model_location)
         keras_models[phantom_model] = model
-
-        sys.stdout = stdout
 
     return keras_models[phantom_model]
 
@@ -92,6 +88,7 @@ def zoom_like(voxels, to_shape):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         return zoom(voxels, zoom_factor)
+
 
 def window_from_ijk(point_ijk, voxels, voxel_spacing):
     """

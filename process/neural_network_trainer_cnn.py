@@ -4,7 +4,9 @@ import math
 import random
 import os
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # surpress tensor flow warnings
 import keras
+
 import numpy as np
 import scipy
 from keras.callbacks import ReduceLROnPlateau

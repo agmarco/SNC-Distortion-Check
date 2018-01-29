@@ -80,6 +80,11 @@ class FullAlgorithmSuite(Suite):
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
+            '603A-13': {
+                'dicom': 'data/dicom/013_mri_603A_big.zip',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
             '604-1': {
                 'dicom': 'data/dicom/010_mri_604_LFV-Phantom_E2632-1.zip',
                 'modality': 'mri',
@@ -172,12 +177,15 @@ class FullAlgorithmSuite(Suite):
         context['distortion_grid'] = distortion_grid
         context['overlay_ijk_to_xyz'] = overlay_ijk_to_xyz
 
-        # calculate metrics
-        is_nan = np.isnan(distortion_grid)
-        num_finite = np.sum(~is_nan)
+        # we fill in voxels outside the convex hull at 0, although technically, values
+        # inside the convex hull could also be zero; thus, this is a "worst case"
+        # metric and may underestimate the fraction of volume covered if there actually
+        # is 0 distortion (unlikely)
+        is_zero = distortion_grid == 0
+        num_finite = np.sum(~is_zero)
         num_total = distortion_grid.size
+        metrics['fraction_of_volume_covered'] = num_finite/float(num_total)
 
-        metrics['fraction_of_volume_covered'] = num_finite/num_total
         metrics['max_distortion'] = np.nanmax(distortion_grid)
         metrics['median_distortion'] = np.nanmedian(distortion_grid)
         metrics['min_distortion'] = np.nanmin(distortion_grid)
@@ -212,7 +220,7 @@ class FullAlgorithmSuite(Suite):
         metrics = result['metrics']
         context = result['context']
 
-        print('% volume: {:3.2f}%'.format(metrics['fraction_of_volume_covered']))
+        print('% volume: {:3.2f}%'.format(metrics['fraction_of_volume_covered']*100))
         print('max distortion magnitude: {:5.3f}mm'.format(metrics['max_distortion']))
         print('median distortion magnitude: {:5.3f}mm'.format(metrics['median_distortion']))
         print('min distortion magnitude: {:5.3f}mm'.format(metrics['min_distortion']))
@@ -246,7 +254,7 @@ class FullAlgorithmSuite(Suite):
                 'points_xyz': context['FP_B'],
                 'scatter_kwargs': {
                     'color': 'r',
-                    'label': 'False Positives (Registration)',
+                    'label': 'Rejected by Registration',
                     'marker': 'x'
                 }
             },
@@ -254,7 +262,7 @@ class FullAlgorithmSuite(Suite):
                 'points_xyz': context['FP_B_CNN'],
                 'scatter_kwargs': {
                     'color': 'm',
-                    'label': 'False Positives (CNN)',
+                    'label': 'Rejected by CNN',
                     'marker': 'x'
                 }
             },
@@ -278,8 +286,9 @@ class FullAlgorithmSuite(Suite):
 
         scatter3({
             'Gold Standard': context['TP_A_S'],
-            'False Positives (Registration)': context['FP_B'],
+            'Rejected by Registration': context['FP_B'],
             'True Positives': context['TP_B'],
             'False Negatives': context['FN_A_S'],
+            'Rejected by CNN': context['FP_B_CNN'],
         })
         plt.show()
