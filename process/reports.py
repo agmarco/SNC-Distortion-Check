@@ -245,26 +245,17 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         save_then_close_figure(pdf, fig)
 
     def draw_institution_table(ax, cell):
-        rows = [
-            ('Name', institution.name),
-            ('Address', institution.address),
-            ('Phone Number', institution.phone_number),
+        details = [
+            ('Institution Name', institution.name),
+            ('Institution Address', institution.address),
+            ('Institution Phone Number', institution.phone_number),
         ]
-        table = ax.table(cellText=rows, loc='center')
-        table_props = table.properties()
-        table_cells = table_props['child_artists']
-
-        # TODO auto-determine height based on text height?
-        for i, cell in enumerate(table_cells):
-            if i in (4, 5):
-                cell.set_height(0.075)
-            else:
-                cell.set_height(0.05)
 
         ax.axis('off')
-        ax.set_title('Institution Table')
+        ax.set_title('Institution Details')
+        text = "\n\n\n".join('{}:\n\n{}'.format(k, v) for k, v in details)
+        ax.text(0, 0.5, text)
 
-    # TODO add missing rows
     def draw_data_acquisition_table(ax, cell):
         dataset = datasets[0]
         voxel_dims = voxel_spacing(ijk_to_xyz)
@@ -272,9 +263,11 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         if hasattr(dataset, 'AcquisitionMatrix'):
             a, b = dataset.AcquisitionMatrix[:2], dataset.AcquisitionMatrix[2:]
             if all(x == 0 for x in a) or all(x != 0 for x in a):
-                raise ValueError("The first 2 numbers in the AcquisitionMatrix must contain one zero and one non-zero value.")
+                raise ValueError("The first 2 numbers in the AcquisitionMatrix must " + \
+                        "contain one zero and one non-zero value.")
             if all(x == 0 for x in b) or all(x != 0 for x in b):
-                raise ValueError("The second 2 numbers in the AcquisitionMatrix must contain one zero and one non-zero value.")
+                raise ValueError("The second 2 numbers in the AcquisitionMatrix must contain " + \
+                        "one zero and one non-zero value.")
             data_acquisition_matrix_size = f'{max(a)} x {max(b)}'
         else:
             data_acquisition_matrix_size = 'unknown'
