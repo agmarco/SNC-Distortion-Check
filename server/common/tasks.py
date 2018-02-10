@@ -69,13 +69,18 @@ def process_scan(scan_pk, dicom_archive_url=None):
                 f"mean that there was an issue uploading the DICOM files on the initial upload."
             )
 
-        datasets = scan.dicom_series.unzip_datasets()
-
-        dicom_meatadata_saved = scan.dicom_series.patient_id is None
-        if not dicom_meatadata_saved:
-            _save_dicom_series_metadata(scan.dicom_series, datasets)
-
-        voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
+        try:
+            datasets = scan.dicom_series.unzip_datasets()
+            dicom_meatadata_saved = scan.dicom_series.patient_id is None
+            if not dicom_meatadata_saved:
+                _save_dicom_series_metadata(scan.dicom_series, datasets)
+            voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
+        except Exception as e:
+            logger.exception(f'Exception occurred while extracting voxel data from the DICOM files')
+            raise AlgorithmException(
+                f"We were unable to extract the MRI voxels from the uploaded zip-file. "
+                f"Please be sure it is a zip-archive containing DICOM files for a single image series."
+            )
 
         # delete the datasets to save memory; pydicom lazily loads the pixel
         # data from each slice, so after reading the voxel files from the
@@ -96,7 +101,8 @@ def process_scan(scan_pk, dicom_archive_url=None):
             raise AlgorithmException(
                 f"Detected {num_detected_fiducials} grid intersections, but expected to find "
                 f"{num_golden_fiducials}, according to {active_gold_standard.source_summary}. "
-                f"Aborting analysis since the fractional error is larger than {error_cutoff*100:.1f}%."
+                f"Aborting analysis since the fractional error is larger than {error_cutoff*100:.1f}%. "
+                f"Please be sure you have uploaded an MRI (and not a CT) and that it corresponds to selected phantom."
             )
 
         isocenter_in_B = fov_center_xyz(voxels.shape, ijk_to_xyz)
