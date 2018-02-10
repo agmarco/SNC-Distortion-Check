@@ -120,9 +120,7 @@ def process_scan(scan_pk, dicom_archive_url=None):
                 f"the scan.  Please be sure to (1) orient the phantom within 5° of the expected orientation, "
                 f"(2) the phantom's center is at most {3*grid_spacing:.1f} mm from the isocenter, (3) the "
                 f"scanner's isocenter in the center of the field of view, (4) the pixel "
-                f"size and slice spacing is sufficient to resolve the phantom grid intersections.  If you believe "
-                f"none of these scenarios can explain the failure, please let CIRS support know about "
-                f"the issue."
+                f"size and slice spacing is sufficient to resolve the phantom grid intersections."
             )
 
         datasets = scan.dicom_series.unzip_datasets()
