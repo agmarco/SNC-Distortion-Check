@@ -147,7 +147,7 @@ class ScanTable extends React.Component<IScanTableProps, IScanTableState> {
         return (
             <div>
                 <div className="cirs-filters">
-                    <a href={uploadScanUrl} className="btn secondary new-scan">Upload New Scan</a>
+                    <a href={uploadScanUrl} className="btn secondary new-scan">Upload New MRI</a>
                     <span>Filter By</span>
                     <select
                         className="phantom-filter"

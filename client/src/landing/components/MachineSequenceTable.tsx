@@ -81,7 +81,7 @@ export default class extends React.Component<IMachineSequenceTableProps, IMachin
         return (
             <div>
                 <div className="cirs-filters">
-                    <a href={uploadScanUrl} className="btn secondary new-scan">Upload New Scan</a>
+                    <a href={uploadScanUrl} className="btn secondary new-scan">Upload New MRI</a>
                     <span>Filter By</span>
                     <select
                         className="machine-filter"
