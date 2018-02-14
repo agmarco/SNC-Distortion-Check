@@ -232,48 +232,83 @@ def _save_reports(scan, datasets, voxels, ijk_to_xyz):
 
 
 @shared_task(name='common.tasks.process_ct_upload')
-def process_ct_upload(gold_standard_pk, dicom_archive_url):
+def process_ct_upload(gold_standard_pk, dicom_archive_url=None):
     gold_standard = models.GoldenFiducials.objects.get(pk=gold_standard_pk)
 
     try:
         with transaction.atomic():
             modality = 'ct'
 
-            dicom_series = models.DicomSeries(zipped_dicom_files=urlparse(dicom_archive_url).path)
+            if dicom_archive_url:
+                dicom_series = models.DicomSeries(zipped_dicom_files=urlparse(dicom_archive_url).path)
+                dicom_series.save()
+                gold_standard.dicom_series = dicom_series
+                gold_standard.save()
 
-            with zipfile.ZipFile(dicom_series.zipped_dicom_files, 'r') as zip_file:
-                datasets = dicom_import.dicom_datasets_from_zip(zip_file)
+                with zipfile.ZipFile(dicom_series.zipped_dicom_files, 'r') as zip_file:
+                    datasets = dicom_import.dicom_datasets_from_zip(zip_file)
 
-            voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
-            first_dataset = datasets[0]
+                first_dataset = datasets[0]
+                dicom_series.series_uid = first_dataset.SeriesInstanceUID
+                dicom_series.study_uid = first_dataset.StudyInstanceUID
+                dicom_series.patient_id = first_dataset.PatientID
+                dicom_series.acquisition_date = models.infer_acquisition_date(first_dataset)
+                dicom_series.frame_of_reference_uid = getattr(first_dataset, 'FrameOfReferenceUID', None)
+                dicom_series.save()
 
-            dicom_series.series_uid = first_dataset.SeriesInstanceUID
-            dicom_series.study_uid = first_dataset.StudyInstanceUID
-            dicom_series.patient_id = first_dataset.PatientID
-            dicom_series.acquisition_date = models.infer_acquisition_date(first_dataset)
-            dicom_series.frame_of_reference_uid = getattr(first_dataset, 'FrameOfReferenceUID', None)
+                voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
+            else:
+                dicom_series = gold_standard.dicom_series
+                with zipfile.ZipFile(dicom_series.zipped_dicom_files, 'r') as zip_file:
+                    datasets = dicom_import.dicom_datasets_from_zip(zip_file)
 
-            dicom_series.save()
-            gold_standard.dicom_series = dicom_series
+                voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
 
+            voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
             feature_detector = FeatureDetector(
                 gold_standard.phantom.model.model_number,
                 modality,
                 voxels,
                 ijk_to_xyz,
             )
+            pruned_points_ijk = fp_rejector.remove_fps(
+                feature_detector.points_ijk,
+                voxels,
+                voxel_spacing,
+                gold_standard.phantom.model.model_number,
+            )
+            pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
 
-            # TODO: apply the FP rejector to this stage
-
-            fiducials = models.Fiducials.objects.create(fiducials=feature_detector.points_xyz)
+            fiducials = models.Fiducials.objects.create(fiducials=pruned_points_xyz)
             gold_standard.fiducials = fiducials
 
+            _, num_cad_points = gold_standard.phantom.model.cad_fiducials.fiducials.shape
+            _, num_points = pruned_points_xyz.shape
+
+            error_threshold = 0.5
+            fractional_difference = abs(num_points - num_cad_points) / num_cad_points
+            is_ct = gold_standard.type == models.GoldenFiducials.CT
+            if is_ct and fractional_difference > error_threshold:
+                msg = 'There was an error processing the CT upload, and too many or too few points were detected ' + \
+                      f'({num_points} in the upload, vs {num_cad_points} in the CAD model).' + \
+                      'Thus, the points can not be used.  CIRS has been notified of the result, and is looking ' + \
+                      'into the failure.'
+                raise AlgorithmException(msg)
+
+    except AlgorithmException as e:
+        gold_standard = models.GoldenFiducials.objects.get(pk=gold_standard_pk)  # fresh instance
+        logger.exception('Algorithm error')
+        gold_standard.errors = str(e)
+
     except Exception as e:
-        raise e
+        gold_standard = models.GoldenFiducials.objects.get(pk=gold_standard_pk)  # fresh instance
+        logger.exception(f'Unhandled scan exception occurred while processing gold standard.')
+        gold_standard.errors = 'A server error occurred while processing the gold standard.'
 
     finally:
         gold_standard.processing = False
         gold_standard.save()
+        logger.info('finished processing gold standard')
 
 
 @task_failure.connect

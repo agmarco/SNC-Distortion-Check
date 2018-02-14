@@ -59,6 +59,7 @@ export const scanFixture = (phantom?: IPhantomDto, template: Partial<IScanDto> =
     const pk = Number(uniqueId());
     return {
         pk,
+        created_on: '2000-01-01',
         phantom: phantom || phantomFixture(),
         processing: false,
         errors: null,

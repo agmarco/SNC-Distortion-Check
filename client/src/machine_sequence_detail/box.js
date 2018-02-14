@@ -16,7 +16,7 @@ import { quartiles as getQuartiles } from 'common/utils';
             showLabels = true, // whether or not to show text labels
             numBars = 4,
             curBar = 1,
-            tickFormat = function(n) { return n.toFixed(1) };
+            tickFormat = function(n) { return n && n.toFixed(1) };
 
         // For each small multiple…
         function box(g) {

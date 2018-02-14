@@ -60,4 +60,6 @@ export interface IGoldenFiducialsDto {
     csv_url: string;
     activate_url: string;
     delete_url: string;
+    errors: string | null;
+    errors_url: string;
 }

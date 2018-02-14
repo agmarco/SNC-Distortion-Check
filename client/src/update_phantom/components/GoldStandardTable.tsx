@@ -28,14 +28,37 @@ class GoldStandardTable extends React.Component<IScanTableProps, {}> {
                     </td>
                 );
             } else {
-                return (
-                    <td colSpan={4}>
+                return [
+                    <td key={0} colSpan={3}>
                         The data is still being processed...
                         {' '}
-                        <LoadingIcon />
-                    </td>
-                );
+                        <LoadingIcon/>
+                    </td>,
+                    <td key={1} className="action delete">
+                        {!goldStandard.is_active && goldStandard.type !== 'CAD' && (
+                            <a href={goldStandard.delete_url}>
+                                <i className="fa fa-trash-o" aria-hidden="true" />
+                            </a>
+                        )}
+                    </td>,
+                ];
             }
+        } else if (goldStandard.errors) {
+            return [
+                <td key={0} colSpan={3}>
+                    <span className="error">
+                        There was an error while processing the data
+                        (<a href={goldStandard.errors_url}>view details</a>).
+                    </span>
+                </td>,
+                <td key={1} className="action delete">
+                    {!goldStandard.is_active && goldStandard.type !== 'CAD' && (
+                        <a href={goldStandard.delete_url}>
+                            <i className="fa fa-trash-o" aria-hidden="true" />
+                        </a>
+                    )}
+                </td>,
+            ];
         } else {
             return [
                 <td key={0} className="action download-images">
