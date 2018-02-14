@@ -1,6 +1,7 @@
 import unittest
 
 import pytest
+from django.core import files
 
 from server.common.models import GoldenFiducials
 from ..tasks import process_ct_upload
@@ -13,9 +14,16 @@ def ct():
     user = UserFactory(institution=institution)
     phantom = PhantomFactory(institution=user.institution)
     sample_603A_ct_zip_filename = 'data/dicom/001_ct_603A_E3148_ST1.25.zip'
-    dicom_series = DicomSeriesFactory(zipped_dicom_files=sample_603A_ct_zip_filename)
-    golden_fiducials = GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.CT, dicom_series=dicom_series)
-    golden_fiducials.save()
+    path = sample_603A_ct_zip_filename
+    f = open(path, 'rb')
+    content = files.File(f, name=path)
+    dicom_series = DicomSeriesFactory(zipped_dicom_files=files.File(content.file, sample_603A_ct_zip_filename))
+    golden_fiducials = GoldenFiducialsFactory(
+        phantom=phantom,
+        type=GoldenFiducials.CT,
+        dicom_series=dicom_series,
+        processing=True,
+    )
     return golden_fiducials
 
 

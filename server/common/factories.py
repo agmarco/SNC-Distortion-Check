@@ -152,6 +152,7 @@ _get_acquisition_date = _get_acquisition_date_generator()
 
 sample_603A_mri_zip_filename = 'data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip'
 
+
 class DicomSeriesFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "common.DicomSeries"
