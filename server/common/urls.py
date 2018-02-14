@@ -48,6 +48,7 @@ urlpatterns = [
             url(r'^(?P<gold_standard_pk>\d+)/delete/$', views.DeleteGoldStandardView.as_view(), name='delete_gold_standard'),
             url(r'^(?P<gold_standard_pk>\d+)/activate/$', views.ActivateGoldStandardView.as_view(), name='activate_gold_standard'),
             url(r'^(?P<gold_standard_pk>\d+)/csv/$', views.GoldStandardCsvView.as_view(), name='gold_standard_csv'),
+            url(r'^(?P<gold_standard_pk>\d+)/errors/$', views.GoldStandardErrorsView.as_view(), name='gold_standard_errors'),
         ])),
     ])),
 

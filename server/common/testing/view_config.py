@@ -89,6 +89,15 @@ def scan_errors_data(user):
     }
 
 
+def gold_standard_errors_data(user):
+    phantom = factories.PhantomFactory(institution=user.institution)
+    golden_fiducials = factories.GoldenFiducialsFactory(phantom=phantom, type=GoldenFiducials.CT)
+    return {
+        'phantom': phantom,
+        'golden_fiducials': golden_fiducials,
+    }
+
+
 def delete_scan_data(user):
     machine = factories.MachineFactory(institution=user.institution)
     sequence = factories.SequenceFactory(institution=user.institution)
@@ -247,6 +256,15 @@ VIEWS = (
         'view': views.ScanErrorsView,
         'data': scan_errors_data,
         'url': lambda data: reverse('scan_errors', args=(data['scan'].pk,)),
+        'login_required': True,
+        'permissions': (),
+        'validate_institution': True,
+        'check_license': True,
+        'methods': {'GET': None},
+    }, {
+        'view': views.GoldStandardErrorsView,
+        'data': gold_standard_errors_data,
+        'url': lambda data: reverse('gold_standard_errors', args=(data['phantom'].pk, data['golden_fiducials'].pk)),
         'login_required': True,
         'permissions': (),
         'validate_institution': True,

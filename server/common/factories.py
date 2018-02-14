@@ -170,6 +170,7 @@ class GoldenFiducialsFactory(factory.django.DjangoModelFactory):
 
     phantom = factory.SubFactory(PhantomFactory)
     fiducials = factory.SubFactory(Fiducials603ACADFactory)
+    dicom_series = factory.SubFactory(DicomSeriesFactory)
 
 
 class ScanFactory(factory.django.DjangoModelFactory):

@@ -264,6 +264,17 @@ class ScanErrorsView(DetailView):
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(institution_required, name='dispatch')
+@validate_institution()
+@method_decorator(intro_tutorial, name='dispatch')
+@method_decorator(check_license, name='dispatch')
+class GoldStandardErrorsView(DetailView):
+    pk_url_kwarg = 'gold_standard_pk'
+    model = models.GoldenFiducials
+    template_name = 'common/gold_standard_errors.html'
+
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(institution_required, name='dispatch')
 @validate_institution(model_class=models.Scan)
 @method_decorator(intro_tutorial, name='dispatch')
 @method_decorator(check_license, name='dispatch')
@@ -661,22 +672,12 @@ class ActivateGoldStandardView(View):
         _, num_cad_points = gold_standard.phantom.model.cad_fiducials.fiducials.shape
         _, num_points = gold_standard.fiducials.fiducials.shape
         logger.info(f'Setting GoldenFiducials {gold_standard.pk} active, having points {num_points} ' + \
-                f'vs {num_cad_points} in the CAD')
+                    f'vs {num_cad_points} in the CAD')
 
-        # TODO: clean up this code
         warning_threshold = 0.05
-        error_threshold = 0.5
         fractional_difference = abs(num_points - num_cad_points)/num_cad_points
         is_ct = gold_standard.type == models.GoldenFiducials.CT
-        if is_ct and fractional_difference > error_threshold:
-            msg = 'There was an error processing the CT upload, and too many or too few points were detected ' + \
-                    f'({num_points} in the upload, vs {num_cad_points} in the CAD model).' + \
-                    'Thus, the points can not be used.  CIRS has been notified of the result, and is looking ' + \
-                    'into the failure.'
-            messages.error(request, msg)
-            logger.error(msg)
-
-        elif fractional_difference > warning_threshold:
+        if fractional_difference > warning_threshold:
             msg = f'"{gold_standard.source_summary}" is now active.  Note that it ' + \
                     f'contains {num_points} points, but the phantom model {gold_standard.phantom.model.name} ' + \
                     f'is expected to have roughly {num_cad_points} points.'
@@ -686,11 +687,10 @@ class ActivateGoldStandardView(View):
                 logger.error(msg)
 
             messages.warning(request, msg)
-            gold_standard.activate()
         else:
             messages.success(request, f'"{gold_standard.source_summary}" is now active.')
-            gold_standard.activate()
 
+        gold_standard.activate()
         return redirect('update_phantom', phantom_pk)
 
 

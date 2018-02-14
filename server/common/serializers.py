@@ -137,6 +137,7 @@ class GoldenFiducialsSerializer(serializers.ModelSerializer):
     csv_url = serializers.SerializerMethodField()
     activate_url = serializers.SerializerMethodField()
     delete_url = serializers.SerializerMethodField()
+    errors_url = serializers.SerializerMethodField()
 
     class Meta:
         model = GoldenFiducials
@@ -151,6 +152,8 @@ class GoldenFiducialsSerializer(serializers.ModelSerializer):
             'csv_url',
             'activate_url',
             'delete_url',
+            'errors',
+            'errors_url',
         )
 
     def get_zipped_dicom_files_url(self, golden_fiducials):
@@ -167,3 +170,6 @@ class GoldenFiducialsSerializer(serializers.ModelSerializer):
 
     def get_delete_url(self, golden_fiducials):
         return reverse('delete_gold_standard', args=(golden_fiducials.phantom.pk, golden_fiducials.pk))
+
+    def get_errors_url(self, golden_fiducials):
+        return reverse('gold_standard_errors', args=(golden_fiducials.phantom.pk, golden_fiducials.pk))
