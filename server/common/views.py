@@ -684,7 +684,6 @@ class ActivateGoldStandardView(View):
             if is_ct:
                 msg += ' This mismatch in points may be due to issues with the image processing algorithm. ' + \
                         'CIRS has been notified of the result, and is looking into the failure.'
-                logger.error(msg)
 
             messages.warning(request, msg)
         else:
