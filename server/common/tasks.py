@@ -162,7 +162,7 @@ def _save_dicom_series_metadata(dicom_series, datasets):
     first_dataset = datasets[0]
     dicom_series.series_uid = first_dataset.SeriesInstanceUID
     dicom_series.study_uid = first_dataset.StudyInstanceUID
-    dicom_series.frame_of_reference_uid = first_dataset.FrameOfReferenceUID
+    dicom_series.frame_of_reference_uid = getattr(first_dataset, 'FrameOfReferenceUID', None)
     dicom_series.patient_id = first_dataset.PatientID
     dicom_series.acquisition_date = models.infer_acquisition_date(first_dataset)
     dicom_series.save()
@@ -236,8 +236,6 @@ def process_ct_upload(gold_standard_pk, dicom_archive_url=None):
     gold_standard = models.GoldenFiducials.objects.get(pk=gold_standard_pk)
 
     try:
-        modality = 'ct'
-
         if dicom_archive_url:
             dicom_series = models.DicomSeries(zipped_dicom_files=urlparse(dicom_archive_url).path)
             dicom_series.save()
@@ -246,38 +244,21 @@ def process_ct_upload(gold_standard_pk, dicom_archive_url=None):
 
             with zipfile.ZipFile(dicom_series.zipped_dicom_files, 'r') as zip_file:
                 datasets = dicom_import.dicom_datasets_from_zip(zip_file)
-
-            first_dataset = datasets[0]
-            dicom_series.series_uid = first_dataset.SeriesInstanceUID
-            dicom_series.study_uid = first_dataset.StudyInstanceUID
-            dicom_series.patient_id = first_dataset.PatientID
-            dicom_series.acquisition_date = models.infer_acquisition_date(first_dataset)
-            dicom_series.frame_of_reference_uid = getattr(first_dataset, 'FrameOfReferenceUID', None)
-            dicom_series.save()
-
-            voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
+            _save_dicom_series_metadata(dicom_series, datasets)
         else:
             dicom_series = gold_standard.dicom_series
             with zipfile.ZipFile(dicom_series.zipped_dicom_files, 'r') as zip_file:
                 datasets = dicom_import.dicom_datasets_from_zip(zip_file)
 
-            voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
-            del datasets
+        voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
+        del datasets
 
+        modality = 'ct'
         voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
-        feature_detector = FeatureDetector(
-            gold_standard.phantom.model.model_number,
-            modality,
-            voxels,
-            ijk_to_xyz,
-            limit_memory_usage=True
-        )
-        pruned_points_ijk = fp_rejector.remove_fps(
-            feature_detector.points_ijk,
-            voxels,
-            voxel_spacing,
-            gold_standard.phantom.model.model_number,
-        )
+        phantom_model = gold_standard.phantom.model.model_number
+        feature_detector = FeatureDetector(phantom_model, modality, voxels, ijk_to_xyz, limit_memory_usage=True)
+        points_ijk = feature_detector.points_ijk
+        pruned_points_ijk = fp_rejector.remove_fps(points_ijk, voxels, voxel_spacing, phantom_model)
         pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
 
         fiducials = models.Fiducials.objects.create(fiducials=pruned_points_xyz)
