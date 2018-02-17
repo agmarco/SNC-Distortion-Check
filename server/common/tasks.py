@@ -262,6 +262,7 @@ def process_ct_upload(gold_standard_pk, dicom_archive_url=None):
                 datasets = dicom_import.dicom_datasets_from_zip(zip_file)
 
             voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
+            del datasets
 
         voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
         feature_detector = FeatureDetector(
@@ -269,6 +270,7 @@ def process_ct_upload(gold_standard_pk, dicom_archive_url=None):
             modality,
             voxels,
             ijk_to_xyz,
+            limit_memory_usage=True
         )
         pruned_points_ijk = fp_rejector.remove_fps(
             feature_detector.points_ijk,
