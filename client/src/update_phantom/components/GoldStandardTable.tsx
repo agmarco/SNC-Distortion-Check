@@ -21,9 +21,7 @@ class GoldStandardTable extends React.Component<IScanTableProps, {}> {
                 return (
                     <td colSpan={4}>
                         <span className="error">
-                            Something went wrong. Please refresh the page to see if the gold standard has
-                            {' '}
-                            finished processing.
+                            Something went wrong, please refresh the page.
                         </span>
                     </td>
                 );

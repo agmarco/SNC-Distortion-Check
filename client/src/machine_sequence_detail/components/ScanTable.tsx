@@ -65,7 +65,7 @@ class ScanTable extends React.Component<IScanTableProps, IScanTableState> {
                 return [
                     <td key={0} colSpan={5}>
                         <span className="error">
-                            Something went wrong. Please refresh the page to see if the scan has finished processing.
+                            Something went wrong, please refresh the page.
                         </span>
                     </td>,
                     <td key={1} className="action delete">
