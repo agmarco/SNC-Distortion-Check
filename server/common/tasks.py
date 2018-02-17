@@ -102,7 +102,7 @@ def process_scan(scan_pk, dicom_archive_url=None):
                 f"Detected {num_detected_fiducials} grid intersections, but expected to find "
                 f"{num_golden_fiducials}, according to {active_gold_standard.source_summary}. "
                 f"Aborting analysis since the fractional error is larger than {error_cutoff*100:.1f}%. "
-                f"Please be sure you have uploaded an MRI (and not a CT) and that it corresponds to selected phantom."
+                f"Please be sure you have uploaded an MRI (and not a CT) and that it corresponds to the selected phantom."
             )
 
         isocenter_in_B = fov_center_xyz(voxels.shape, ijk_to_xyz)
