@@ -68,6 +68,7 @@ def process_scan(scan_pk, dicom_archive_url=None):
                 f"Unable to run this scan because there are no DICOM files available; this may "
                 f"mean that there was an issue uploading the DICOM files on the initial upload."
             )
+        logger.info("Processing files stored at {}".format(scan.dicom_series.zipped_dicom_files.url))
 
         try:
             datasets = scan.dicom_series.unzip_datasets()
@@ -233,6 +234,7 @@ def _save_reports(scan, datasets, voxels, ijk_to_xyz):
 
 @shared_task(name='common.tasks.process_ct_upload')
 def process_ct_upload(gold_standard_pk, dicom_archive_url=None):
+    logger.info("Beginning processing of CT for golden standard (pk={})".format(gold_standard_pk))
     gold_standard = models.GoldenFiducials.objects.get(pk=gold_standard_pk)
 
     try:
@@ -249,6 +251,7 @@ def process_ct_upload(gold_standard_pk, dicom_archive_url=None):
             dicom_series = gold_standard.dicom_series
             with zipfile.ZipFile(dicom_series.zipped_dicom_files, 'r') as zip_file:
                 datasets = dicom_import.dicom_datasets_from_zip(zip_file)
+        logger.info("Processing files stored at {}".format(dicom_series.zipped_dicom_files.url))
 
         voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
         del datasets
