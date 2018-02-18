@@ -17,6 +17,8 @@ input_shape = (cube_size_ijk, cube_size_ijk, cube_size_ijk, 1)
 
 INTERSECTION_PROB_THRESHOLD = 0.4
 
+NUM_POINTS_PER_CHUNK = 10000
+
 keras_models = {}
 
 def get_keras_model(phantom_model):
@@ -26,7 +28,6 @@ def get_keras_model(phantom_model):
         model_location = phantoms.paramaters[phantom_model]['keras_model']
         model = load_model(model_location)
         keras_models[phantom_model] = model
-
     return keras_models[phantom_model]
 
 
@@ -36,29 +37,41 @@ def has_keras_model(phantom_model):
 
 
 def remove_fps(points_ijk_unfiltered, voxels, voxel_spacing, phantom_model):
-    logger.info("started FP rejection for phantom model %s", phantom_model)
     if not has_keras_model(phantom_model):
-        logger.warn('No associated neural network model available, skipping FP rejection')
+        logger.warn('no associated neural network model available, skipping FP rejection')
         return points_ijk_unfiltered
 
     model = get_keras_model(phantom_model)
 
     num_points = points_ijk_unfiltered.shape[1]
+    num_chunks = math.ceil(num_points/NUM_POINTS_PER_CHUNK)
+    logger.info("started FP rejection for phantom model %s on %d points in %d chunks", phantom_model, num_points, num_chunks)
+
+    is_fp_chunks = []
+    for points_ijk_chunk in np.array_split(points_ijk_unfiltered, num_chunks, axis=1):
+        is_fp_chunk = _remove_fps_from_chunk(points_ijk_chunk, voxels, voxel_spacing, model)
+        is_fp_chunks.append(is_fp_chunk)
+    is_fp = np.concatenate(is_fp_chunks)
+
+    logger.info("finished FP rejection, %d points remaining", np.sum(~is_fp))
+    return points_ijk_unfiltered[:, ~is_fp]
+
+
+def _remove_fps_from_chunk(points_ijk, voxels, voxel_spacing, model):
+    num_points = points_ijk.shape[1]
     is_fp = np.zeros((num_points,), dtype=bool)
     windows = []
-    for i, point_ijk in enumerate(points_ijk_unfiltered.T):
+    for i, point_ijk in enumerate(points_ijk.T):
         window = window_from_ijk(point_ijk, voxels, voxel_spacing)
         if window is None:
             is_fp[i] = True
         else:
-            window = (window - window.mean())/(window.std()+0.00001)
+            window = (window - window.mean())/(window.std() + 0.00001)
             window = np.expand_dims(window, axis=3)
             windows.append(window)
     probablities = model.predict_proba(np.array(windows), verbose=0)
     is_fp[~is_fp] = probablities[:, 1] < INTERSECTION_PROB_THRESHOLD
-
-    logger.info("finished FP rejection, %d points remaining", np.sum(~is_fp))
-    return points_ijk_unfiltered[:, ~is_fp]
+    return is_fp
 
 
 def is_grid_intersection(point_ijk, voxels, voxel_spacing, phantom_model):
