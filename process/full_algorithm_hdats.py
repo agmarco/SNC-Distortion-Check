@@ -91,7 +91,7 @@ class FullAlgorithmSuite(Suite):
                 'phantom_model': '604',
             },
             '604-2': {
-                'dicom': 'data/dicom/012_mri_604_ST150_in_Siemens_Vida 3T_at_ISO.zip',
+                'dicom': 'data/dicom/012_mri_604_ST150_in_Siemens_Vida_3T_at_ISO.zip',
                 'modality': 'mri',
                 'phantom_model': '604',
             },
