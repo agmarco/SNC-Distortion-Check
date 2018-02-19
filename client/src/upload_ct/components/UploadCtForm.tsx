@@ -18,6 +18,18 @@ interface IUploadCtFormProps {
 }
 
 class UploadCtForm extends React.Component<IUploadCtFormProps, {}> {
+    submit: HTMLInputElement;
+
+    componentDidUpdate() {
+        const { formState } = this.props;
+        const dicomArchiveState: FieldState | undefined = formState && formState.dicom_archive &&
+            (formState.dicom_archive as FieldState[])[0];
+        if (dicomArchiveState && !dicomArchiveState.pristine && !dicomArchiveState.pending &&
+            dicomArchiveState.valid) {
+            this.submit.click();
+        }
+    }
+
     handleDicomArchiveChange(event: React.FormEvent<HTMLInputElement>) {
         const { dispatch } = this.props;
         const value = (event.target as any).files;
@@ -64,14 +76,12 @@ class UploadCtForm extends React.Component<IUploadCtFormProps, {}> {
 
                         {dicomArchiveState && dicomArchiveState.pending &&
                         <p>Please wait while your file uploads... <LoadingIcon /></p>}
-
-                        {dicomArchiveState && !dicomArchiveState.pristine && !dicomArchiveState.pending &&
-                        dicomArchiveState.valid && <p className="success">Your file has been uploaded successfully.</p>}
                     </div>
 
                     <div className="form-links">
                         <a href={cancelUrl} className="btn tertiary">Cancel</a>
-                        <input type="submit" value="Upload CT" className="btn secondary"
+                        <input ref={submit => this.submit = submit}
+                               type="submit" value="Upload CT" className="btn secondary"
                                disabled={dicomArchiveState && dicomArchiveState.pending}/>
                     </div>
                 </CirsForm>
