@@ -51,7 +51,6 @@
     "@types/react-dom": "^15.5.0",
     "@types/react-redux": "^4.4.40",
     "@types/redux-actions": "^1.2.6",
-    "@types/redux-thunk": "^2.1.0",
     "@types/webpack-env": "^1.13.0",
     "ajv": "^5.2.2",
     "babel-core": "^6.24.1",

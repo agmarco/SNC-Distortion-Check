@@ -28,6 +28,8 @@ interface IUploadScanFormState {
 }
 
 class UploadScanForm extends React.Component<IUploadScanFormProps, IUploadScanFormState> {
+    submit: HTMLInputElement;
+
     constructor(props: IUploadScanFormProps) {
         super();
         const { initialMachinePk, initialSequencePk, dispatch } = props;
@@ -35,6 +37,16 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, IUploadScanFo
         dispatch!(formActions.change('uploadScan.sequence', initialSequencePk || ''));
         dispatch!(formActions.change('uploadScan.phantom', ''));
         this.state = {dicomArchiveDisabled: false};
+    }
+
+    componentDidUpdate() {
+        const { formState } = this.props;
+        const dicomArchiveState: FieldState | undefined = formState && formState.dicom_archive &&
+            (formState.dicom_archive as FieldState[])[0];
+        if (dicomArchiveState && !dicomArchiveState.pristine && !dicomArchiveState.pending &&
+            dicomArchiveState.valid) {
+            this.submit.click();
+        }
     }
 
     handleSubmit() {
@@ -179,9 +191,6 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, IUploadScanFo
 
                         {dicomArchiveState && dicomArchiveState.pending &&
                         <p>Please wait while your file uploads... <LoadingIcon /></p>}
-
-                        {dicomArchiveState && !dicomArchiveState.pristine && !dicomArchiveState.pending &&
-                        dicomArchiveState.valid && <p className="success">Your file has been uploaded successfully.</p>}
                     </div>
 
                     <div>
@@ -192,7 +201,8 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, IUploadScanFo
 
                     <div className="form-links">
                         <a href={cancelUrl} className="btn tertiary">Cancel</a>
-                        <input type="submit" value="Process Scan" className="btn secondary"
+                        <input ref={submit => this.submit = submit}
+                               type="submit" value="Process Scan" className="btn secondary"
                                disabled={dicomArchiveState && dicomArchiveState.pending} />
                     </div>
                 </CirsForm>
