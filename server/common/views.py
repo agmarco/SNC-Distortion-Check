@@ -1,6 +1,4 @@
 import logging
-import zipfile
-from urllib.parse import urlparse
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
@@ -21,11 +19,10 @@ from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth import views as auth_views
 from rest_framework.renderers import JSONRenderer
 
-from process import dicom_import
 from . import models
 from . import serializers
 from . import forms
-from .tasks import process_scan, process_ct_upload, process_dicom_overlay
+from .tasks import process_scan, process_ct_upload, process_dicom_overlay, CT_WARNING_THRESHOLD
 from .decorators import validate_institution, login_and_permission_required, institution_required, intro_tutorial, \
     check_license
 from .http import CsvResponse
@@ -674,10 +671,9 @@ class ActivateGoldStandardView(View):
         logger.info(f'Setting GoldenFiducials {gold_standard.pk} active, having points {num_points} ' + \
                     f'vs {num_cad_points} in the CAD')
 
-        warning_threshold = 0.05
         fractional_difference = abs(num_points - num_cad_points)/num_cad_points
         is_ct = gold_standard.type == models.GoldenFiducials.CT
-        if fractional_difference > warning_threshold:
+        if fractional_difference > CT_WARNING_THRESHOLD:
             msg = f'"{gold_standard.source_summary}" is now active.  Note that it ' + \
                     f'contains {num_points} points, but the phantom model {gold_standard.phantom.model.name} ' + \
                     f'is expected to have roughly {num_cad_points} points.'
