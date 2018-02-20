@@ -25,6 +25,7 @@ interface IUploadScanFormProps {
 
 interface IUploadScanFormState {
     dicomArchiveDisabled: boolean;
+    submitted: boolean;
 }
 
 class UploadScanForm extends React.Component<IUploadScanFormProps, IUploadScanFormState> {
@@ -36,7 +37,7 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, IUploadScanFo
         dispatch!(formActions.change('uploadScan.machine', initialMachinePk || ''));
         dispatch!(formActions.change('uploadScan.sequence', initialSequencePk || ''));
         dispatch!(formActions.change('uploadScan.phantom', ''));
-        this.state = {dicomArchiveDisabled: false};
+        this.state = {dicomArchiveDisabled: false, submitted: false};
     }
 
     componentDidUpdate() {
@@ -44,8 +45,9 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, IUploadScanFo
         const dicomArchiveState: FieldState | undefined = formState && formState.dicom_archive &&
             (formState.dicom_archive as FieldState[])[0];
         if (dicomArchiveState && !dicomArchiveState.pristine && !dicomArchiveState.pending &&
-            dicomArchiveState.valid) {
+            dicomArchiveState.valid && !this.state.submitted) {
             this.submit.click();
+            this.setState({submitted: true});
         }
     }
 

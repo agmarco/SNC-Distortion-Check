@@ -17,16 +17,26 @@ interface IUploadCtFormProps {
     dispatch?: Dispatch<any>;
 }
 
-class UploadCtForm extends React.Component<IUploadCtFormProps, {}> {
+interface IUploadCtFormState {
+    submitted: boolean;
+}
+
+class UploadCtForm extends React.Component<IUploadCtFormProps, IUploadCtFormState> {
     submit: HTMLInputElement;
+
+    constructor() {
+        super();
+        this.state = {submitted: false};
+    }
 
     componentDidUpdate() {
         const { formState } = this.props;
         const dicomArchiveState: FieldState | undefined = formState && formState.dicom_archive &&
             (formState.dicom_archive as FieldState[])[0];
         if (dicomArchiveState && !dicomArchiveState.pristine && !dicomArchiveState.pending &&
-            dicomArchiveState.valid) {
+            dicomArchiveState.valid && !this.state.submitted) {
             this.submit.click();
+            this.setState({submitted: true});
         }
     }
 
