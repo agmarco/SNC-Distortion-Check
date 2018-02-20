@@ -231,6 +231,7 @@ def _save_reports(scan, datasets, voxels, ijk_to_xyz):
 
     scan.save()
 
+CT_WARNING_THRESHOLD = 0.05
 
 @shared_task(name='common.tasks.process_ct_upload')
 def process_ct_upload(gold_standard_pk, dicom_archive_url=None):
@@ -273,12 +274,15 @@ def process_ct_upload(gold_standard_pk, dicom_archive_url=None):
         error_threshold = 0.5
         fractional_difference = abs(num_points - num_cad_points) / num_cad_points
         is_ct = gold_standard.type == models.GoldenFiducials.CT
-        if is_ct and fractional_difference > error_threshold:
-            msg = 'There was an error processing the CT upload, and too many or too few points were detected ' + \
-                  f'({num_points} in the upload, vs {num_cad_points} in the CAD model).' + \
-                  'Thus, the points can not be used.  CIRS has been notified of the result, and is looking ' + \
-                  'into the failure.'
-            raise AlgorithmException(msg)
+        if is_ct:
+            if fractional_difference > CT_WARNING_THRESHOLD:
+                msg = 'There was an error processing the CT upload, and too many or too few points were detected ' + \
+                      f'({num_points} in the upload, vs {num_cad_points} in the CAD model).' + \
+                      'Thus, the points can not be used.  CIRS has been notified of the result, and is looking ' + \
+                      'into the failure.'
+                logger.error(msg)
+                if fractional_difference > error_threshold:
+                    raise AlgorithmException(msg)
 
     except AlgorithmException as e:
         gold_standard = models.GoldenFiducials.objects.get(pk=gold_standard_pk)  # fresh instance
