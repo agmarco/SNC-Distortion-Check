@@ -30,6 +30,7 @@ class UploadCtForm extends React.Component<IUploadCtFormProps, IUploadCtFormStat
     }
 
     componentDidUpdate() {
+        // Once the file is uploaded to S3, the formState is updated by the uploadToS3 saga
         const { formState } = this.props;
         const dicomArchiveState: FieldState | undefined = formState && formState.dicom_archive &&
             (formState.dicom_archive as FieldState[])[0];
