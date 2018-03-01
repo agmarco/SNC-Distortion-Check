@@ -10,7 +10,7 @@ from . import slicer
 from .slicer_fp_rejector import render_intersection_square
 from . import affine
 from .fp_rejector import remove_fps
-from hdatt.suite import Suite
+from hdat import Suite
 from .feature_detection import FeatureDetector
 
 
@@ -108,7 +108,7 @@ class FeatureDetectionSuite(Suite):
             elif type(v) == float:
                 print("{} = {:06.4f}".format(k, v))
 
-    def verify(self, old_metrics, new_metrics):
+    def check(self, old_metrics, new_metrics):
         # TODO: pull out these assertions into a separate library
         new_TPF = new_metrics['TPF']
         old_TPF = old_metrics['TPF']

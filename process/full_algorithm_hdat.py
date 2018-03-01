@@ -8,7 +8,7 @@ from . import points_utils, phantoms, slicer, affine, file_io
 from .utils import fov_center_xyz
 from .visualization import scatter3
 from .interpolation import interpolate_distortion
-from hdatt.suite import Suite
+from hdat import Suite
 from .fp_rejector import remove_fps
 from .affine import rotation_translation
 from .feature_detection import FeatureDetector
@@ -195,7 +195,7 @@ class FullAlgorithmSuite(Suite):
 
         return metrics, context
 
-    def verify(self, old, new):
+    def check(self, old, new):
         # TODO: pull out these assertions into a separate library (should reduce line lengths)
         if new['TPF'] + 0.01 < old['TPF']:
             return False, f"The TPF has decreased from {old['TPF']} to {new['TPF']}"

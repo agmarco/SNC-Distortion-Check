@@ -7,7 +7,7 @@ import numpy as np
 
 from . import file_io
 from .registration import rigidly_register_and_categorize
-from hdatt.suite import Suite
+from hdat import Suite
 from .visualization import scatter3
 from .phantoms import paramaters
 from . import affine
@@ -236,7 +236,7 @@ class RegistrationSuite(Suite):
 
         return metrics, context
 
-    def verify(self, old, new):
+    def check(self, old, new):
         # TODO: split out these types of assertions into another library
 
         shift_tolerance = 0.1
