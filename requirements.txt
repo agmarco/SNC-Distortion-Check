@@ -13,6 +13,7 @@ celery==4.1.0
 certifi==2017.7.27.1      # via requests
 chardet==3.0.4            # via requests
 cycler==0.10.0            # via matplotlib
+dicom-numpy==0.1.2
 dj-database-url==0.4.2
 django-debug-toolbar==1.8
 django-dotenv==1.4.1
