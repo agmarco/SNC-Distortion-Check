@@ -1,4 +1,4 @@
-pydicom
+pydicom==0.9.9
 orderedset
 keras<2
 tensorflow
@@ -21,3 +21,4 @@ factory_boy
 django-debug-toolbar
 pillow
 naturalneighbor
+dicom-numpy
