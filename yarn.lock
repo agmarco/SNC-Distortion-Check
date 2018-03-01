@@ -101,12 +101,6 @@
   version "1.2.6"
   resolved "https://registry.yarnpkg.com/@types/redux-actions/-/redux-actions-1.2.6.tgz#cfdeea3271ebdabf23cdc237080e752b07171069"
 
-"@types/redux-thunk@^2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@types/redux-thunk/-/redux-thunk-2.1.0.tgz#bc2b6e972961831afb82a9bf4f06726e351f9416"
-  dependencies:
-    redux-thunk "*"
-
 "@types/serve-static@*":
   version "1.7.31"
   resolved "https://registry.yarnpkg.com/@types/serve-static/-/serve-static-1.7.31.tgz#15456de8d98d6b4cff31be6c6af7492ae63f521a"
@@ -5212,10 +5206,6 @@ redux-actions@^2.0.3:
 redux-saga@^0.15.3:
   version "0.15.3"
   resolved "https://registry.yarnpkg.com/redux-saga/-/redux-saga-0.15.3.tgz#be2b86b4ad46bf0d84fcfcb0ca96cfc33db91acb"
-
-redux-thunk@*:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/redux-thunk/-/redux-thunk-2.2.0.tgz#e615a16e16b47a19a515766133d1e3e99b7852e5"
 
 redux@^3.6.0:
   version "3.6.0"
