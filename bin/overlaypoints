@@ -6,7 +6,7 @@ import matplotlib.pylab as plt
 
 from process import file_io
 from slicer import PointsSlicer, render_points, render_cursor, render_legend
-from utils import split_file_variable_arg
+from process.utils import split_file_variable_arg
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
