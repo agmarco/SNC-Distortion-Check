@@ -231,6 +231,7 @@ def _save_reports(scan, datasets, voxels, ijk_to_xyz):
 
     scan.save()
 
+
 CT_WARNING_THRESHOLD = 0.05
 
 @shared_task(name='common.tasks.process_ct_upload')
@@ -265,24 +266,24 @@ def process_ct_upload(gold_standard_pk, dicom_archive_url=None):
         pruned_points_ijk = fp_rejector.remove_fps(points_ijk, voxels, voxel_spacing, phantom_model)
         pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
 
-        fiducials = models.Fiducials.objects.create(fiducials=pruned_points_xyz)
-        gold_standard.fiducials = fiducials
+        cad_fiducials = gold_standard.phantom.model.cad_fiducials.fiducials
 
-        _, num_cad_points = gold_standard.phantom.model.cad_fiducials.fiducials.shape
-        _, num_points = pruned_points_xyz.shape
+        grid_spacing = phantoms.paramaters[phantom_model]['grid_spacing']
 
-        error_threshold = 0.5
-        fractional_difference = abs(num_points - num_cad_points) / num_cad_points
+        isocenter_in_B = np.array([0, 0, 0], dtype=np.double)
+        # TODO: use correct isocenter_in_B (noting that A and B are switched relative to `process_scan`)
+        _, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(pruned_points_xyz, cad_fiducials, grid_spacing, isocenter_in_B)
+
+        TPF, FPF, FLE_percentiles = process.points_utils.metrics(FN_A_S, TP_A_S, TP_B, FP_B)
+        logger.info(process.points_utils.format_point_metrics(TPF, FPF, FLE_percentiles))
+
+        ct_fiducials = TP_B
+        gold_standard.fiducials = models.Fiducials.objects.create(fiducials=ct_fiducials)
+
         is_ct = gold_standard.type == models.GoldenFiducials.CT
+
         if is_ct:
-            if fractional_difference > CT_WARNING_THRESHOLD:
-                msg = 'There was an error processing the CT upload, and too many or too few points were detected ' + \
-                      f'({num_points} in the upload, vs {num_cad_points} in the CAD model).' + \
-                      'Thus, the points can not be used.  CIRS has been notified of the result, and is looking ' + \
-                      'into the failure.'
-                logger.error(msg)
-                if fractional_difference > error_threshold:
-                    raise AlgorithmException(msg)
+            _raise_if_ct_and_cad_are_too_different(ct_fiducials, cad_fiducials)
 
     except AlgorithmException as e:
         gold_standard = models.GoldenFiducials.objects.get(pk=gold_standard_pk)  # fresh instance
@@ -298,6 +299,22 @@ def process_ct_upload(gold_standard_pk, dicom_archive_url=None):
         gold_standard.processing = False
         gold_standard.save()
         logger.info('finished processing gold standard')
+
+
+def _raise_if_ct_and_cad_are_too_different(ct_fiducials, cad_fiducials):
+    _, num_cad_fiducials = cad_fiducials.shape
+    _, num_ct_fiducials = ct_fiducials.shape
+
+    error_threshold = 0.5
+    fractional_difference = abs(num_ct_fiducials - num_cad_fiducials) / num_cad_fiducials
+    if fractional_difference > CT_WARNING_THRESHOLD:
+        msg = 'There was an error processing the CT upload, and too many or too few points were detected ' + \
+              f'({num_ct_fiducials} in the upload, vs {num_cad_fiducials} in the CAD model).' + \
+              'Thus, the points can not be used.  CIRS has been notified of the result, and is looking ' + \
+              'into the failure.'
+        logger.error(msg)
+        if fractional_difference > error_threshold:
+            raise AlgorithmException(msg)
 
 
 @task_failure.connect
