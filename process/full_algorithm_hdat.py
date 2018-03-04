@@ -100,6 +100,21 @@ class FullAlgorithmSuite(Suite):
                 'modality': 'mri',
                 'phantom_model': '604',
             },
+            '603A-CT-1': {
+                'dicom': 'data/dicom/022_ct_603A_Niranjan_Original.zip',
+                'modality': 'ct',
+                'phantom_model': '603A',
+            },
+            '603A-CT-2': {
+                'dicom': 'data/dicom/002_ct_603A_E3148_ST1.5.zip',
+                'modality': 'ct',
+                'phantom_model': '603A',
+            },
+            '603A-CT-3': {
+                'dicom': 'data/dicom/005_ct_603A_UVA_W3ANI1ES.zip',
+                'modality': 'ct',
+                'phantom_model': '603A',
+            },
         }
 
     def run(self, case_input):
