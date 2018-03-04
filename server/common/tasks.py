@@ -320,8 +320,7 @@ def _raise_if_ct_and_cad_are_too_different(ct_fiducials, cad_fiducials):
     if fractional_difference > CT_WARNING_THRESHOLD:
         msg = 'There was an error processing the CT upload, and too many or too few points were detected ' + \
               f'({num_ct_fiducials} in the upload, vs {num_cad_fiducials} in the CAD model).' + \
-              'Thus, the points can not be used.  CIRS has been notified of the result, and is looking ' + \
-              'into the failure.'
+              'Thus, the points can not be used.'
         logger.error(msg)
         if fractional_difference > error_threshold:
             raise AlgorithmException(msg)
