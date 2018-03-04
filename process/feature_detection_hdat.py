@@ -63,7 +63,6 @@ class FeatureDetectionSuite(Suite):
         context['label_image'] = feature_detector.label_image
         context['preprocessed_image'] = feature_detector.preprocessed_image
         context['feature_image'] = feature_detector.feature_image
-        context['kernel'] = feature_detector.kernel
         context['voxel_spacing'] = voxel_spacing
         context['ijk_to_xyz'] = ijk_to_xyz
 
@@ -183,19 +182,6 @@ class FeatureDetectionSuite(Suite):
         voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
         phantom_model = voxel_data['phantom_model']
 
-        kernel_big = np.zeros_like(voxels)
-        kernel_small = context['kernel']
-        kernel_shape = kernel_small.shape
-
-        slices = []
-        for n_image, n_kernel in zip(voxels.shape, kernel_small.shape):
-            assert n_image > n_kernel, 'Image should be bigger than the kernel'
-            start = round(n_image/2 - n_kernel/2)
-            stop = start + n_kernel
-            slices.append(slice(start, stop))
-
-        kernel_big[slices] = kernel_small*np.max(context['feature_image'])
-
         s = slicer.PointsSlicer(context['preprocessed_image'], ijk_to_xyz, descriptors)
         s.add_renderer(slicer.render_overlay(context['feature_image'], context['ijk_to_xyz']), hidden=True)
         s.add_renderer(slicer.render_points)
@@ -204,7 +190,6 @@ class FeatureDetectionSuite(Suite):
             [0, 1, 0],
             context['ijk_to_xyz'],
         ))
-        s.add_renderer(slicer.render_translucent_overlay(kernel_big, [1, 0, 0], context['ijk_to_xyz']))
         s.add_renderer(partial(render_intersection_square, voxels, voxel_spacing, phantom_model))
         s.add_renderer(slicer.render_cursor)
         s.draw()
