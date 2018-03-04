@@ -270,20 +270,30 @@ def process_ct_upload(gold_standard_pk, dicom_archive_url=None):
 
         grid_spacing = phantoms.paramaters[phantom_model]['grid_spacing']
 
-        isocenter_in_B = np.array([0, 0, 0], dtype=np.double)
-        # TODO: use correct isocenter_in_B (noting that A and B are switched relative to `process_scan`)
-        _, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(pruned_points_xyz, cad_fiducials, grid_spacing, isocenter_in_B)
+        isocenter_in_B = fov_center_xyz(voxels.shape, ijk_to_xyz)
+        xyztpx_a_to_b, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
+                cad_fiducials, pruned_points_xyz, grid_spacing, isocenter_in_B)
 
         TPF, FPF, FLE_percentiles = process.points_utils.metrics(FN_A_S, TP_A_S, TP_B, FP_B)
         logger.info(process.points_utils.format_point_metrics(TPF, FPF, FLE_percentiles))
 
         ct_fiducials = TP_B
-        gold_standard.fiducials = models.Fiducials.objects.create(fiducials=ct_fiducials)
+
+        # We want to keep the gold standard points aligned with the original
+        # CAD model (where-in the center of the model is at (0, 0, 0)).  Since
+        # our registration function returns the translation and rotation
+        # necessary to shift the CAD to the CT, we must invert the shift and
+        # apply it to move the CT points back to the CAD's coordinate system.
+        a_to_b = affine.rotation_translation(*xyztpx_a_to_b)
+        b_to_a = np.linalg.inv(a_to_b)
+        ct_fiducials_aligned_with_cad = affine.apply_affine(b_to_a, ct_fiducials)
+
+        gold_standard.fiducials = models.Fiducials.objects.create(fiducials=ct_fiducials_aligned_with_cad)
 
         is_ct = gold_standard.type == models.GoldenFiducials.CT
 
         if is_ct:
-            _raise_if_ct_and_cad_are_too_different(ct_fiducials, cad_fiducials)
+            _raise_if_ct_and_cad_are_too_different(ct_fiducials_aligned_with_cad, cad_fiducials)
 
     except AlgorithmException as e:
         gold_standard = models.GoldenFiducials.objects.get(pk=gold_standard_pk)  # fresh instance
