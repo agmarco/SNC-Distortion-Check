@@ -3,12 +3,12 @@ import math
 
 import numpy as np
 import matplotlib.pyplot as plt
+from hdat import Suite, MetricsChecker
 
 from . import points_utils, phantoms, slicer, affine, file_io
 from .utils import fov_center_xyz
 from .visualization import scatter3
 from .interpolation import interpolate_distortion
-from hdat import Suite
 from .fp_rejector import remove_fps
 from .affine import rotation_translation
 from .feature_detection import FeatureDetector
@@ -211,25 +211,15 @@ class FullAlgorithmSuite(Suite):
         return metrics, context
 
     def check(self, old, new):
-        # TODO: pull out these assertions into a separate library (should reduce line lengths)
-        if new['TPF'] + 0.01 < old['TPF']:
-            return False, f"The TPF has decreased from {old['TPF']} to {new['TPF']}"
-
-        if new['fraction_of_volume_covered'] + 0.01 < old['fraction_of_volume_covered']:
-            return False, f"The fraction of volume covered has decreased from {old['fraction_of_volume_covered']} to {new['fraction_of_volume_covered']}"
-
-        if new['FPF'] - 0.01 > old['FPF']:
-            return False, f"The FPF has increased from {old['FPF']} to {new['FPF']}"
-
+        checker = MetricsChecker(old, new)
+        checker.can_increase('TPF', abs_tol=0.01)
+        checker.close('fraction_of_volume_covered', abs_tol=0.01)
+        checker.can_decrease('FPF', abs_tol=0.01)
         shift_tolerance = 0.1
-        if not math.isclose(old['max_distortion'], new['max_distortion'], abs_tol=shift_tolerance):
-            return False, f"The max distortion changed from {old['max_distortion']} to {new['max_distortion']}"
-        if not math.isclose(old['median_distortion'], new['median_distortion'], abs_tol=shift_tolerance):
-            return False, f"The median distortion changed from {old['median_distortion']} to {new['median_distortion']}"
-        if not math.isclose(old['min_distortion'], new['min_distortion'], abs_tol=shift_tolerance):
-            return False, f"The min distortion changed from {old['min_distortion']} to {new['min_distortion']}"
-
-        return True, 'New metrics are as good or better than old metrics'
+        checker.close('max_distortion', abs_tol=shift_tolerance)
+        checker.close('median_distortion', abs_tol=shift_tolerance)
+        checker.close('min_distortion', abs_tol=shift_tolerance)
+        return checker.result()
 
     def show(self, result):
         metrics = result['metrics']
@@ -304,6 +294,6 @@ class FullAlgorithmSuite(Suite):
             'Rejected by Registration': context['FP_B'],
             'True Positives': context['TP_B'],
             'False Negatives': context['FN_A_S'],
-            'Rejected by CNN': context['FP_B_CNN'],
+            #'Rejected by CNN': context['FP_B_CNN'],
         })
         plt.show()
