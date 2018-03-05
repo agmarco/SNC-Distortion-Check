@@ -3,6 +3,7 @@ from functools import partial
 
 import matplotlib.pyplot as plt
 import numpy as np
+from hdat import Suite, MetricsChecker
 
 from . import file_io
 from . import points_utils
@@ -10,7 +11,6 @@ from . import slicer
 from .slicer_fp_rejector import render_intersection_square
 from . import affine
 from .fp_rejector import remove_fps
-from hdat import Suite
 from .feature_detection import FeatureDetector
 
 
@@ -107,31 +107,13 @@ class FeatureDetectionSuite(Suite):
             elif type(v) == float:
                 print("{} = {:06.4f}".format(k, v))
 
-    def check(self, old_metrics, new_metrics):
-        # TODO: pull out these assertions into a separate library
-        new_TPF = new_metrics['TPF']
-        old_TPF = old_metrics['TPF']
-        if new_TPF < old_TPF:
-            return False, f'The TPF has decreased from {old_TPF} to {new_TPF}'
-
-        new_FPF = new_metrics['FPF']
-        old_FPF = old_metrics['FPF']
-        if new_FPF > old_FPF:
-            return False, f"The FPF has increased from {old_FPF} to {new_FPF}"
-
-        new_FLE_100 = new_metrics['FLE_100']
-        old_FLE_100 = old_metrics['FLE_100']
-        old_FPF = old_metrics['FPF']
-        if new_FLE_100 > old_FLE_100:
-            return False, f"The maximum FLE increased from {old_FLE_100} to {new_FLE_100}."
-
-        new_FLE_50 = new_metrics['FLE_50']
-        old_FLE_50 = old_metrics['FLE_50']
-        old_FPF = old_metrics['FPF']
-        if new_FLE_50 > old_FLE_50:
-            return False, f"The median FLE increased from {old_FLE_50} to {new_FLE_50}."
-
-        return True, 'The results seem as good or better than the existing results'
+    def check(self, old, new):
+        checker = MetricsChecker(old, new)
+        checker.can_increase('TPF', abs_tol=0.01)
+        checker.can_decrease('FPF', abs_tol=0.01)
+        checker.close('FLE_100', abs_tol=0.1)
+        checker.close('FLE_50', abs_tol=0.1)
+        return checker.result()
 
     def show(self, result):
         context = result['context']

@@ -4,10 +4,10 @@ import math
 
 import matplotlib.pyplot as plt
 import numpy as np
+from hdat import Suite, MetricsChecker
 
 from . import file_io
 from .registration import rigidly_register_and_categorize
-from hdat import Suite
 from .visualization import scatter3
 from .phantoms import paramaters
 from . import affine
@@ -237,32 +237,19 @@ class RegistrationSuite(Suite):
         return metrics, context
 
     def check(self, old, new):
-        # TODO: split out these types of assertions into another library
-
+        checker = MetricsChecker(old, new)
         shift_tolerance = 0.1
-        if not math.isclose(old['x'], new['x'], abs_tol=shift_tolerance):
-            return False, f"{new['x']} is not within {shift_tolerance} of {old['x']}"
-        if not math.isclose(old['y'], new['y'], abs_tol=shift_tolerance):
-            return False, f"{new['y']} is not within {shift_tolerance} of {old['y']}"
-        if not math.isclose(old['z'], new['z'], abs_tol=shift_tolerance):
-            return False, f"{new['z']} is not within {shift_tolerance} of {old['z']}"
-
+        checker.close('x', abs_tol=shift_tolerance)
+        checker.close('y', abs_tol=shift_tolerance)
+        checker.close('z', abs_tol=shift_tolerance)
         rotation_tolerance = 0.2
-        if not math.isclose(old['theta_degrees'], new['theta_degrees'], abs_tol=rotation_tolerance):
-            return False, f"{new['theta_degrees']} is not within {rotation_tolerance} of {old['theta_degrees']}"
-        if not math.isclose(old['phi_degrees'], new['phi_degrees'], abs_tol=rotation_tolerance):
-            return False, f"{new['phi_degrees']} is not within {rotation_tolerance} of {old['phi_degrees']}"
-        if not math.isclose(old['xi_degrees'], new['xi_degrees'], abs_tol=rotation_tolerance):
-            return False, f"{new['xi_degrees']} is not within {rotation_tolerance} of {old['xi_degrees']}"
-
-        if new['FLE_100'] > old['FLE_100']:
-            return False, f"The FLE_100 value increased"
-        if new['FLE_50'] > old['FLE_50']:
-            return False, f"The FLE_50 value increased"
-        if new['FLE_50_near_isocenter'] > old['FLE_50_near_isocenter']:
-            return False, f"The FLE_50_near_isocenter value increased"
-
-        return True, 'New metrics are as good or better than old metrics'
+        checker.close('theta_degrees', abs_tol=rotation_tolerance)
+        checker.close('phi_degrees', abs_tol=rotation_tolerance)
+        checker.close('xi_degrees', abs_tol=rotation_tolerance)
+        checker.close('FLE_100', abs_tol=shift_tolerance)
+        checker.close('FLE_50', abs_tol=shift_tolerance)
+        checker.close('FLE_50_near_isocenter', abs_tol=0.02)
+        return checker.result()
 
     def show(self, result):
         context = result['context']
