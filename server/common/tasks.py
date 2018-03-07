@@ -290,10 +290,7 @@ def process_ct_upload(gold_standard_pk, dicom_archive_url=None):
 
         gold_standard.fiducials = models.Fiducials.objects.create(fiducials=ct_fiducials_aligned_with_cad)
 
-        is_ct = gold_standard.type == models.GoldenFiducials.CT
-
-        if is_ct:
-            _raise_if_ct_and_cad_are_too_different(ct_fiducials_aligned_with_cad, cad_fiducials)
+        _raise_if_fiducials_too_different_from_cad(ct_fiducials_aligned_with_cad, cad_fiducials)
 
     except AlgorithmException as e:
         gold_standard = models.GoldenFiducials.objects.get(pk=gold_standard_pk)  # fresh instance
@@ -311,7 +308,7 @@ def process_ct_upload(gold_standard_pk, dicom_archive_url=None):
         logger.info('finished processing gold standard')
 
 
-def _raise_if_ct_and_cad_are_too_different(ct_fiducials, cad_fiducials):
+def _raise_if_fiducials_too_different_from_cad(ct_fiducials, cad_fiducials):
     _, num_cad_fiducials = cad_fiducials.shape
     _, num_ct_fiducials = ct_fiducials.shape
 
