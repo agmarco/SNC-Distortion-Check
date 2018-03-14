@@ -138,6 +138,10 @@ def intro_tutorial(view):
     return wrapper
 
 
+expiration_warning_cutoff_days = 30
+expiration_warning_cutoff_scans = 20
+
+
 def check_license(view):
     """If the license is expired or there are 0 scans remaining, make the software unavailable."""
 
@@ -152,13 +156,38 @@ def check_license(view):
             return render(request, 'common/license_expired.html', status=403)
         elif scans_remaining == 0:
             return render(request, 'common/license_expired.html', status=403)
-        if license_expiration_date is not None and license_expiration_date <= now + timedelta(days=30):
-            days = (license_expiration_date - now).days
-            msg = f"Your license expires in {days} days. Contact CIRS support to renew your license."
-            messages.warning(request, msg)
-        if scans_remaining is not None and scans_remaining <= 20:
-            msg = f"You have {scans_remaining} scans remaining. Contact CIRS support to acquire more scans."
-            messages.warning(request, msg)
+
+        time_warning = license_expiration_date is not None and \
+                license_expiration_date <= now + timedelta(days=expiration_warning_cutoff_days)
+        count_warning = scans_remaining is not None and scans_remaining <= expiration_warning_cutoff_scans
+        days_remaining = (license_expiration_date - now).days
+        msg = None
+        if time_warning and count_warning:
+            msg = f"You have {_pluralize(scans_remaining, 'scan')} remaining and your " + \
+                    f"license expires in {_pluralize(days_remaining, 'day')}. Contact CIRS support to update your license."
+        elif count_warning:
+            msg = f"You have {_pluralize(scans_remaining, 'scan')} remaining. Contact CIRS support to acquire more scans."
+        elif time_warning:
+            msg = f"Your license expires in {_pluralize(days_remaining, 'day')}. Contact CIRS support to renew your license."
+
+        if msg is not None:
+            _add_warning_if_not_present_already(request, msg)
 
         return view(request, *args, **kwargs)
     return wrapper
+
+
+def _pluralize(count, word):
+    return f'{count} {word}s' if count != 1 else f'{count} {word}'
+
+
+def _add_warning_if_not_present_already(request, new_message):
+    storage = messages.get_messages(request)
+    message_exists = False
+    for existing_message in storage:
+        if existing_message.message == new_message:
+            message_exists = True
+            break
+    if not message_exists:
+        messages.warning(request, new_message)
+    storage.used = False
