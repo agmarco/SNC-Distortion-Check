@@ -17,17 +17,8 @@ interface IUploadCtFormProps {
     dispatch?: Dispatch<any>;
 }
 
-interface IUploadCtFormState {
-    submitted: boolean;
-}
-
-class UploadCtForm extends React.Component<IUploadCtFormProps, IUploadCtFormState> {
+class UploadCtForm extends React.Component<IUploadCtFormProps, {}> {
     submit: HTMLInputElement;
-
-    constructor() {
-        super();
-        this.state = {submitted: false};
-    }
 
     componentDidUpdate() {
         // Once the file is uploaded to S3, the formState is updated by the uploadToS3 saga
@@ -35,9 +26,8 @@ class UploadCtForm extends React.Component<IUploadCtFormProps, IUploadCtFormStat
         const dicomArchiveState: FieldState | undefined = formState && formState.dicom_archive &&
             (formState.dicom_archive as FieldState[])[0];
         if (dicomArchiveState && !dicomArchiveState.pristine && !dicomArchiveState.pending &&
-            dicomArchiveState.valid && !this.state.submitted) {
+            dicomArchiveState.valid) {
             this.submit.click();
-            this.setState({submitted: true});
         }
     }
 
