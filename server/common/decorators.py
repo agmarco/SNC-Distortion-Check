@@ -160,7 +160,7 @@ def check_license(view):
         time_warning = license_expiration_date is not None and \
                 license_expiration_date <= now + timedelta(days=expiration_warning_cutoff_days)
         count_warning = scans_remaining is not None and scans_remaining <= expiration_warning_cutoff_scans
-        days_remaining = (license_expiration_date - now).days
+        days_remaining = None if license_expiration_date is None else (license_expiration_date - now).days
         msg = None
         if time_warning and count_warning:
             msg = f"You have {_pluralize(scans_remaining, 'scan')} remaining and your " + \
