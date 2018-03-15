@@ -116,7 +116,7 @@ class FullAlgorithmSuite(Suite):
                 'phantom_model': '603A',
             },
             '604-CT-1': {
-                'dicom': '/Users/johndavidgiese/Downloads/604CT_Water_ST125_120kVp_175mAs.zip',
+                'dicom': 'data/dicom/023_ct_604_Water_ST125_120kVp_175mAs.zip',
                 'modality': 'ct',
                 'phantom_model': '604',
             },
