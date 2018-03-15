@@ -115,6 +115,11 @@ class FullAlgorithmSuite(Suite):
                 'modality': 'ct',
                 'phantom_model': '603A',
             },
+            '604-CT-1': {
+                'dicom': '/Users/johndavidgiese/Downloads/604CT_Water_ST125_120kVp_175mAs.zip',
+                'modality': 'ct',
+                'phantom_model': '604',
+            },
         }
 
     def run(self, case_input):
