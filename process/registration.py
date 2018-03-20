@@ -19,7 +19,7 @@ angle_cutoff = radians(15)
 registeration_tolerance = 1e-4
 
 
-def rigidly_register_and_categorize(A, B, grid_spacing, isocenter_in_B):
+def rigidly_register_and_categorize(A, B, grid_spacing, isocenter_in_B, modality='mri'):
     '''
     This is the central function in the registration phase of our algorithm.
 
@@ -58,7 +58,7 @@ def rigidly_register_and_categorize(A, B, grid_spacing, isocenter_in_B):
     B_i = affine.apply_affine(b_to_b_i_registration_matrix, B)
     logger.info(f'shifting golden points to isocenter: {format_xyz(*isocenter_in_B)}')
 
-    xyztpx_a_to_b_i = rigidly_register(A, B_i, grid_spacing)
+    xyztpx_a_to_b_i = rigidly_register(A, B_i, grid_spacing, modality=modality)
 
     # now apply both shifts (from A -> B_i and then from B_i -> B) back onto A.
     # This preservers the original patient coordinate system
@@ -79,7 +79,7 @@ def rigidly_register_and_categorize(A, B, grid_spacing, isocenter_in_B):
     return xyztpx_a_to_b, FN_A_S, TP_A_S, TP_B, FP_B
 
 
-def rigidly_register(A, B_i, grid_spacing, xtol=registeration_tolerance):
+def rigidly_register(A, B_i, grid_spacing, xtol=registeration_tolerance, modality='mri'):
     '''
     Rigidly register two sets of points, where B has its isocenter located at its origin.
 
@@ -120,7 +120,12 @@ def rigidly_register(A, B_i, grid_spacing, xtol=registeration_tolerance):
     xyztpx_initial = np.array([0, 0, 0, 0, 0, 0])
     xyztpx_initial_local_minimum = _run_optimizer(f_points_near_isocenter_initial, xyztpx_initial, xtol)
     xyztpx_global_minimum_rough = grid_search(f_all_points, grid_spacing, xyztpx_initial_local_minimum)
-    xyztpx_global_minimum = _run_optimizer(f_points_near_isocenter, xyztpx_global_minimum_rough, xtol)
+    if modality == 'mri':
+        xyztpx_global_minimum = _run_optimizer(f_points_near_isocenter, xyztpx_global_minimum_rough, xtol)
+    elif modality == 'ct':
+        xyztpx_global_minimum = _run_optimizer(f_all_points, xyztpx_global_minimum_rough, xtol)
+    else:
+        raise ValueError("The modality must be either 'mri' or 'ct'.")
     logger.info('finished rigid registration')
     return xyztpx_global_minimum
 

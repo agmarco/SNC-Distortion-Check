@@ -167,6 +167,7 @@ class FullAlgorithmSuite(Suite):
             pruned_points_xyz,
             phantom_paramaters['grid_spacing'],
             isocenter_in_B,
+            modality=modality,
         )
 
         x, y, z, theta, phi, xi = xyztpx
@@ -207,6 +208,9 @@ class FullAlgorithmSuite(Suite):
         metrics['fraction_of_volume_covered'] = num_finite/float(num_total)
 
         metrics['max_distortion'] = np.nanmax(distortion_grid)
+        metrics['99_percentile'] = np.nanpercentile(distortion_grid, 99)
+        metrics['95_percentile'] = np.nanpercentile(distortion_grid, 95)
+        metrics['90_percentile'] = np.nanpercentile(distortion_grid, 90)
         metrics['median_distortion'] = np.nanmedian(distortion_grid)
         metrics['min_distortion'] = np.nanmin(distortion_grid)
 
@@ -232,6 +236,9 @@ class FullAlgorithmSuite(Suite):
 
         print('% volume: {:3.2f}%'.format(metrics['fraction_of_volume_covered']*100))
         print('max distortion magnitude: {:5.3f}mm'.format(metrics['max_distortion']))
+        print('99th percentile distortion magnitude: {:5.3f}mm'.format(metrics['99_percentile']))
+        print('95th percentile distortion magnitude: {:5.3f}mm'.format(metrics['95_percentile']))
+        print('90th percentile distortion magnitude: {:5.3f}mm'.format(metrics['90_percentile']))
         print('median distortion magnitude: {:5.3f}mm'.format(metrics['median_distortion']))
         print('min distortion magnitude: {:5.3f}mm'.format(metrics['min_distortion']))
 
