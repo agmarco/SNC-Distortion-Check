@@ -51,6 +51,7 @@ class FeatureDetector:
             self.feature_image,
             self.voxel_spacing,
             search_radius,
+            self.grid_radius,
         )
         if limit_memory_usage: del self.label_image
         if limit_memory_usage: del self.feature_image

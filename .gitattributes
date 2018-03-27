@@ -1,2 +1,2 @@
-
 *.ipynb filter=nbstripout
+data/dicom/*.zip filter=lfs diff=lfs merge=lfs -text
