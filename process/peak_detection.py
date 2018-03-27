@@ -1,5 +1,8 @@
+import itertools
 import logging
 import math
+from functools import reduce
+from operator import mul
 
 import numpy as np
 from scipy import ndimage
@@ -47,7 +50,7 @@ def neighborhood_peaks(data, neighborhood):
     return peak_heights
 
 
-def detect_peaks(data, voxel_spacing, search_radius):
+def detect_peaks(data, voxel_spacing, search_radius, grid_radius):
     """
     Detect peaks using a local maximum filter.  A peak is defined as the
     maximum value within a binary neighborhood.  In order to provide subpixel
@@ -99,7 +102,28 @@ def detect_peaks(data, voxel_spacing, search_radius):
         if roi.size <= 5*5*5:
             zoom = 7
             subvoxel_offset = subvoxel_maximum(roi, zoom)
-            peaks[:, i] = slice_corner_ijk + subvoxel_offset
+            subvoxel_peak = slice_corner_ijk + subvoxel_offset
+
+            #peaks[:, i] = subvoxel_peak
+
+            pi, pj, pk = subvoxel_peak.astype(int)
+            # grid_radius + peak detection uncertainty + ensure ROI surface is far enough away from intersection
+            size_mm = grid_radius + 1.5 + 2.0  + 2.0
+            size_px = size_mm / voxel_spacing
+            ri, rj, rk = size_px.astype(int)
+            rmin = np.array([
+                max(pi-ri, 0),
+                max(pj-rj, 0),
+                max(pk-rk, 0),
+            ])
+            rmax = np.array([
+                min(pi+ri+1, data.shape[0]),
+                min(pj+rj+1, data.shape[1]),
+                min(pk+rk+1, data.shape[2]),
+            ])
+            roi_com = data[rmin[0]:rmax[0], rmin[1]:rmax[1], rmin[2]:rmax[2]]
+            com_offset = center_of_mass_threshold(roi_com)
+            peaks[:, i] = rmin + com_offset
         else:
             # If the ROI is too big then this label is almost certainly not
             # centered on a real grid intersection.  Chances are something went
@@ -127,5 +151,14 @@ def subvoxel_maximum(data, zoom):
     maximum_indice = np.argmax(data_zoomed)
     maximum_coord = np.unravel_index(maximum_indice, data_zoomed.shape)
 
-    return np.array([c*(s - 1)/(zs - 1) for c, s, zs in \
-            zip(maximum_coord, data.shape, data_zoomed.shape)])
+    return np.array([c*(s - 1)/(zs - 1) for c, s, zs in zip(maximum_coord, data.shape, data_zoomed.shape)])
+
+
+def center_of_mass_threshold(roi, p=0.2):
+    roi_surface = roi.copy()
+    roi_surface[1:-1, 1:-1, 1:-1] = np.nan
+    roi_surface_max = np.nanmax(roi_surface)
+    roi_max = roi.max()
+    threshold = roi_surface_max + (roi_max - roi_surface_max) * p
+    com = ndimage.center_of_mass(roi > threshold)
+    return com

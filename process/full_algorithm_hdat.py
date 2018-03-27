@@ -120,6 +120,11 @@ class FullAlgorithmSuite(Suite):
                 'modality': 'ct',
                 'phantom_model': '604',
             },
+            '604-CT-2': {
+                'dicom': 'data/dicom/024_ct_604_Canada_Original.zip',
+                'modality': 'ct',
+                'phantom_model': '604',
+            },
         }
 
     def run(self, case_input):
@@ -243,22 +248,22 @@ class FullAlgorithmSuite(Suite):
         print('min distortion magnitude: {:5.3f}mm'.format(metrics['min_distortion']))
 
         descriptors = [
-            {
-                'points_xyz': context['FN_A_S'],
-                'scatter_kwargs': {
-                    'color': 'y',
-                    'label': 'False Negatives',
-                    'marker': 'o'
-                }
-            },
-            {
-                'points_xyz': context['TP_A_S'],
-                'scatter_kwargs': {
-                    'color': 'g',
-                    'label': 'Gold Standard Registered',
-                    'marker': 'o'
-                }
-            },
+            #{
+            #    'points_xyz': context['FN_A_S'],
+            #    'scatter_kwargs': {
+            #        'color': 'y',
+            #        'label': 'False Negatives',
+            #        'marker': 'o'
+            #    }
+            #},
+            #{
+            #    'points_xyz': context['TP_A_S'],
+            #    'scatter_kwargs': {
+            #        'color': 'g',
+            #        'label': 'Gold Standard Registered',
+            #        'marker': 'o'
+            #    }
+            #},
             {
                 'points_xyz': context['TP_B'],
                 'scatter_kwargs': {
@@ -302,10 +307,10 @@ class FullAlgorithmSuite(Suite):
         plt.show()
 
         scatter3({
-            'Gold Standard': context['TP_A_S'],
-            'Rejected by Registration': context['FP_B'],
+            #'Gold Standard': context['TP_A_S'],
+            #'Rejected by Registration': context['FP_B'],
             'True Positives': context['TP_B'],
-            'False Negatives': context['FN_A_S'],
+            #'False Negatives': context['FN_A_S'],
             #'Rejected by CNN': context['FP_B_CNN'],
         })
         plt.show()
