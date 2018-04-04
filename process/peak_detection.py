@@ -1,8 +1,5 @@
-import itertools
 import logging
 import math
-from functools import reduce
-from operator import mul
 
 import numpy as np
 from scipy import ndimage
@@ -103,27 +100,20 @@ def detect_peaks(data, voxel_spacing, search_radius, grid_radius):
             zoom = 7
             subvoxel_offset = subvoxel_maximum(roi, zoom)
             subvoxel_peak = slice_corner_ijk + subvoxel_offset
-
             #peaks[:, i] = subvoxel_peak
-
-            pi, pj, pk = subvoxel_peak.astype(int)
             # grid_radius + peak detection uncertainty + ensure ROI surface is far enough away from intersection
-            size_mm = grid_radius + 1.5 + 2.0  + 2.0
-            size_px = size_mm / voxel_spacing
-            ri, rj, rk = size_px.astype(int)
-            rmin = np.array([
-                max(pi-ri, 0),
-                max(pj-rj, 0),
-                max(pk-rk, 0),
-            ])
-            rmax = np.array([
-                min(pi+ri+1, data.shape[0]),
-                min(pj+rj+1, data.shape[1]),
-                min(pk+rk+1, data.shape[2]),
-            ])
+            r_mm = grid_radius + 1.5 + 4.0
+            r_px = r_mm / voxel_spacing
+            rmin = np.round(np.maximum(subvoxel_peak - r_px, 0)).astype(int)
+            rmax = np.round(np.minimum(subvoxel_peak + r_px + 1, np.array(data.shape))).astype(int)
             roi_com = data[rmin[0]:rmax[0], rmin[1]:rmax[1], rmin[2]:rmax[2]]
-            com_offset = center_of_mass_threshold(roi_com)
-            peaks[:, i] = rmin + com_offset
+            pi, pj, pk = np.round(subvoxel_peak).astype(int)
+            peak_intensity = data[pi, pj, pk]
+            com_offset = center_of_mass_threshold(roi_com, peak_intensity)
+            if com_offset is not None:
+                peaks[:, i] = rmin + com_offset
+            else:
+                peaks[:, i] = np.array([0, 0, 0])
         else:
             # If the ROI is too big then this label is almost certainly not
             # centered on a real grid intersection.  Chances are something went
@@ -136,7 +126,7 @@ def detect_peaks(data, voxel_spacing, search_radius, grid_radius):
             # happens, we just push back the slice corner into `peaks` so that
             # the CNN can't then reject it
             num_big_rois += 1
-            peaks[:, i] = slice_corner_ijk
+            peaks[:, i] = np.array([0, 0, 0])
 
     if num_big_rois > 0:
         logger.info('skipped over %d peaks that had big rois', num_big_rois)
@@ -154,11 +144,31 @@ def subvoxel_maximum(data, zoom):
     return np.array([c*(s - 1)/(zs - 1) for c, s, zs in zip(maximum_coord, data.shape, data_zoomed.shape)])
 
 
-def center_of_mass_threshold(roi, p=0.2):
-    roi_surface = roi.copy()
-    roi_surface[1:-1, 1:-1, 1:-1] = np.nan
-    roi_surface_max = np.nanmax(roi_surface)
-    roi_max = roi.max()
-    threshold = roi_surface_max + (roi_max - roi_surface_max) * p
-    com = ndimage.center_of_mass(roi > threshold)
+def center_of_mass_threshold(roi, peak_intensity, p=0.6):
+    roi_sides = [
+        roi[0, :, :],
+        roi[-1, :, :],
+        roi[:, 0, :],
+        roi[:, -1, :],
+        roi[:, :, 0],
+        roi[:, :, -1],
+    ]
+    side_maximums = [np.max(side) for side in roi_sides if np.max(side) < peak_intensity]
+    if len(side_maximums) == 0:
+        return None
+
+    roi_surface_max = np.max(side_maximums)
+    threshold = roi_surface_max + (peak_intensity - roi_surface_max) * p
+    labeled_array, num_features = ndimage.label(roi > threshold)
+    labeled_array_surface = labeled_array.copy()
+    labeled_array_surface[1:-1, 1:-1, 1:-1] = 0
+    labels_touching_surface = np.unique(labeled_array_surface)
+    labels_touching_surface = labels_touching_surface[labels_touching_surface > 0]
+    if len(labels_touching_surface) != num_features - 1:
+        return None
+
+    for label in labels_touching_surface:
+        labeled_array[labeled_array == label] = 0
+    labeled_array[labeled_array > 0] = 1
+    com = ndimage.center_of_mass(roi, labeled_array, [1])[0]
     return com

@@ -40,7 +40,7 @@ class FeatureDetector:
 
         self.preprocessed_image = self._preprocess_image(image)
 
-        sigmas = self.grid_radius/self.voxel_spacing
+        sigmas = self.grid_radius / self.voxel_spacing
         logger.info('blurring with gaussian kernel, sigma=%.2f %s', self.grid_radius, str(sigmas))
         self.feature_image = gaussian_filter(self.preprocessed_image, sigmas, mode='reflect')
 
