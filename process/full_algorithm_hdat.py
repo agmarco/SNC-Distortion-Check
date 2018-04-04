@@ -240,6 +240,7 @@ class FullAlgorithmSuite(Suite):
         context = result['context']
 
         print('% volume: {:3.2f}%'.format(metrics['fraction_of_volume_covered']*100))
+        print('number of true positives:', context['TP_B'].shape[1])
         print('max distortion magnitude: {:5.3f}mm'.format(metrics['max_distortion']))
         print('99th percentile distortion magnitude: {:5.3f}mm'.format(metrics['99_percentile']))
         print('95th percentile distortion magnitude: {:5.3f}mm'.format(metrics['95_percentile']))
