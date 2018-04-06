@@ -144,7 +144,7 @@ def subvoxel_maximum(data, zoom):
     return np.array([c*(s - 1)/(zs - 1) for c, s, zs in zip(maximum_coord, data.shape, data_zoomed.shape)])
 
 
-def center_of_mass_threshold(roi, peak_intensity, p=0.6):
+def center_of_mass_threshold(roi, peak_intensity, p=0.5):
     roi_sides = [
         roi[0, :, :],
         roi[-1, :, :],
