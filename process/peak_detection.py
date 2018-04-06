@@ -144,7 +144,7 @@ def subvoxel_maximum(data, zoom):
     return np.array([c*(s - 1)/(zs - 1) for c, s, zs in zip(maximum_coord, data.shape, data_zoomed.shape)])
 
 
-def center_of_mass_threshold(roi, peak_intensity, p=0.6):
+def center_of_mass_threshold(roi, peak_intensity, p1=0.2, p2=0.6):
     roi_sides = [
         roi[0, :, :],
         roi[-1, :, :],
@@ -156,8 +156,8 @@ def center_of_mass_threshold(roi, peak_intensity, p=0.6):
     side_maximums = [np.max(side) for side in roi_sides if np.max(side) < peak_intensity]
     if len(side_maximums) == 0:
         return None
-
     roi_surface_max = np.max(side_maximums)
+    p = p1 if len(side_maximums) == 6 else p2
     threshold = roi_surface_max + (peak_intensity - roi_surface_max) * p
     labeled_array, num_features = ndimage.label(roi > threshold)
     labeled_array_surface = labeled_array.copy()
@@ -166,7 +166,6 @@ def center_of_mass_threshold(roi, peak_intensity, p=0.6):
     labels_touching_surface = labels_touching_surface[labels_touching_surface > 0]
     if len(labels_touching_surface) != num_features - 1:
         return None
-
     for label in labels_touching_surface:
         labeled_array[labeled_array == label] = 0
     labeled_array[labeled_array > 0] = 1
