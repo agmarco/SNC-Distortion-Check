@@ -167,7 +167,6 @@ class FullAlgorithmSuite(Suite):
             pruned_points_xyz,
             phantom_paramaters['grid_spacing'],
             isocenter_in_B,
-            modality=modality,
         )
 
         x, y, z, theta, phi, xi = xyztpx
