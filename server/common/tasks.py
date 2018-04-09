@@ -272,7 +272,7 @@ def process_ct_upload(gold_standard_pk, dicom_archive_url=None):
 
         isocenter_in_B = fov_center_xyz(voxels.shape, ijk_to_xyz)
         xyztpx_a_to_b, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
-                cad_fiducials, pruned_points_xyz, grid_spacing, isocenter_in_B, modality='ct')
+                cad_fiducials, pruned_points_xyz, grid_spacing, isocenter_in_B)
 
         TPF, FPF, FLE_percentiles = process.points_utils.metrics(FN_A_S, TP_A_S, TP_B, FP_B)
         logger.info(process.points_utils.format_point_metrics(TPF, FPF, FLE_percentiles))
