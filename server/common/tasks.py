@@ -109,7 +109,7 @@ def process_scan(scan_pk, dicom_archive_url=None):
         isocenter_in_B = fov_center_xyz(voxels.shape, ijk_to_xyz)
         TPF = _save_registration_results(scan, isocenter_in_B, ijk_to_xyz)
 
-        TPF_minimum = 0.85
+        TPF_minimum = 0.80
 
         if TPF < TPF_minimum:
             phantom_model = scan.phantom.model.model_number
