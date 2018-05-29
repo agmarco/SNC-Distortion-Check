@@ -171,8 +171,8 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, IUploadScanFo
                                           onChange={this.handleDicomArchiveChange.bind(this)}
                                           disabled={dicomArchiveDisabled} />
                         <p>
-                            Please upload a zip-file containing the MRI DICOM files of a scan of the specified phatom,
-                            on the specified machine, using the specified sequence.
+                            Please upload a zip-file containing the MRI or CT DICOM files of a scan of the specified
+                            phatom, on the specified machine, using the specified sequence.
                         </p>
 
                         <CirsErrors model=".dicom_archive.0" required />
