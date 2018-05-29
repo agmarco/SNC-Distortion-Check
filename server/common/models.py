@@ -180,14 +180,54 @@ class MachineSequencePair(CommonFieldsMixin):
 
 
 class DicomSeries(CommonFieldsMixin):
+    M = 'M'
+    F = 'F'
+    O = 'O'
+    PATIENT_SEX_CHOICES = (
+        (M, 'Male'),
+        (F, 'Female'),
+        (O, 'Other'),
+    )
+
+    MR = 'MR'
+    CT = 'CT'
+    SC = 'SC'
+    MODALITY_CHOICES = (
+        (MR, 'Magnetic Resonance'),
+        (CT, 'Computed Tomography'),
+        (SC, 'Secondary Capture'),
+    )
+
     zipped_dicom_files = models.FileField(upload_to='dicom_series/zipped_dicom_files')
     series_uid_ht = 'The DICOM Series Instance UID, which should uniquely identify a scan'
-    series_uid = models.CharField(max_length=64, verbose_name='Series Instance UID', help_text=series_uid_ht)
-    study_uid = models.CharField(max_length=64, verbose_name='Study Instance UID', help_text=series_uid_ht)
-    frame_of_reference_uid = models.CharField(max_length=64, verbose_name='Frame Of Reference UID', help_text=series_uid_ht, blank=True, null=True)
-    patient_id = models.CharField(max_length=64, verbose_name='Patient ID', help_text=series_uid_ht)
+    series_uid = models.CharField(max_length=64, verbose_name='Series Instance UID',
+                                  help_text=series_uid_ht)
+    study_uid_ht = 'The DICOM Study Instance UID'
+    study_uid = models.CharField(max_length=64, verbose_name='Study Instance UID',
+                                 help_text=study_uid_ht)
+    frame_of_reference_uid = models.CharField(max_length=64, verbose_name='Frame Of Reference UID',
+                                              help_text=series_uid_ht, blank=True, null=True)
+    patient_id_ht = "The Patient's ID"
+    patient_id = models.CharField(max_length=64, verbose_name='Patient ID', help_text=patient_id_ht,
+                                  null=True)
+    patient_name_ht = "The Patient's Name"
+    patient_name = models.CharField(max_length=64, help_text=patient_name_ht, null=True)
+    patient_birth_date_ht = "The Patient's Date of Birth"
+    patient_birth_date = models.DateField(help_text=patient_birth_date_ht, null=True)
+    patient_sex_ht = "The Patient's Sex"
+    patient_sex = models.CharField(max_length=1, help_text=patient_sex_ht,
+                                   choices=PATIENT_SEX_CHOICES, null=True)
+    modality_ht = "The DICOM Modality"
+    modality = models.CharField(max_length=2, help_text=modality_ht, choices=MODALITY_CHOICES,
+                                null=True)
     acquisition_date_ht = 'The DICOM Series Instance Acquisition Date'
     acquisition_date = models.DateField(help_text=acquisition_date_ht, null=True)
+    rows_ht = "Number of rows in the image"
+    rows = models.PositiveSmallIntegerField(help_text=rows_ht, null=True)
+    columns_ht = "Number of columns in the image"
+    columns = models.PositiveSmallIntegerField(help_text=columns_ht, null=True)
+    number_of_slices_ht = "Number of slices in the image"
+    number_of_slices = models.PositiveSmallIntegerField(help_text=number_of_slices_ht, null=True)
 
     def __str__(self):
         return "DICOM Series {}".format(self.series_uid)
