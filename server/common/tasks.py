@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 @shared_task(name='common.tasks.process_scan')
 def process_scan(scan_pk, dicom_archive_url=None):
     '''
-    Analyzed an MRI of a phantom (stored in a zip archive containing a set of DICOM
+    Analyze an MRI or CT of a phantom (stored in a zip archive containing a set of DICOM
     files) and compare the location of the phantom's grid intersections to that
     of the currently set gold standard intersection locations, then generate a
     report.
@@ -79,7 +79,7 @@ def process_scan(scan_pk, dicom_archive_url=None):
         except Exception as e:
             logger.exception(f'Exception occurred while extracting voxel data from the DICOM files')
             raise AlgorithmException(
-                f"We were unable to extract the MRI voxels from the uploaded zip-file. "
+                f"We were unable to extract the voxels from the uploaded zip-file. "
                 f"Please be sure it is a zip-archive containing DICOM files for a single image series."
             )
 
@@ -89,9 +89,10 @@ def process_scan(scan_pk, dicom_archive_url=None):
         # them again later, we delete them and then reload to trade
         # processing time for peak memory usage
         # TODO: find a better way; perhaps dicom_import should handle this
+        modality = datasets[0].Modality
         del datasets
 
-        _save_detected_fiducials(scan, voxels, ijk_to_xyz)
+        _save_detected_fiducials(scan, voxels, ijk_to_xyz, modality)
 
         active_gold_standard = scan.golden_fiducials
         _, num_golden_fiducials = active_gold_standard.fiducials.fiducials.shape
@@ -103,7 +104,7 @@ def process_scan(scan_pk, dicom_archive_url=None):
                 f"Detected {num_detected_fiducials} grid intersections, but expected to find "
                 f"{num_golden_fiducials}, according to {active_gold_standard.source_summary}. "
                 f"Aborting analysis since the fractional error is larger than {error_cutoff*100:.1f}%. "
-                f"Please be sure you have uploaded an MRI (and not a CT) and that it corresponds to the selected phantom."
+                f"Please be sure that it corresponds to the selected phantom."
             )
 
         isocenter_in_B = fov_center_xyz(voxels.shape, ijk_to_xyz)
@@ -169,8 +170,13 @@ def _save_dicom_series_metadata(dicom_series, datasets):
     dicom_series.save()
 
 
-def _save_detected_fiducials(scan, voxels, ijk_to_xyz):
-    modality = 'mri'
+def _save_detected_fiducials(scan, voxels, ijk_to_xyz, dicom_modality):
+    if dicom_modality == 'MR':
+        modality = 'mri'
+    elif dicom_modality in ['CT', 'SC']:
+        modality = 'ct'
+    else:
+        raise ValueError('Modality must be either "MR", "CT", or "SC".')
     phantom_model = scan.phantom.model.model_number
     feature_detector = FeatureDetector(phantom_model, modality, voxels, ijk_to_xyz, limit_memory_usage=True)
     voxel_spacing = affine.voxel_spacing(ijk_to_xyz)

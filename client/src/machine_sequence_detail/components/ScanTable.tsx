@@ -147,7 +147,7 @@ class ScanTable extends React.Component<IScanTableProps, IScanTableState> {
         return (
             <div>
                 <div className="cirs-filters">
-                    <a href={uploadScanUrl} className="btn secondary new-scan">Upload New MRI</a>
+                    <a href={uploadScanUrl} className="btn secondary new-scan">Upload New Scan</a>
                     <span>Filter By</span>
                     <select
                         className="phantom-filter"
@@ -165,6 +165,7 @@ class ScanTable extends React.Component<IScanTableProps, IScanTableState> {
                             <th title={passedHelp}>Passed</th>
                             <th title={acquisitionDateHelp}>Date Captured</th>
                             <th title={createdOnHelp}>Date Processed</th>
+                            <th>Modality</th>
                             <th>Phantom</th>
                             <th className="sep" />
                             <th colSpan={6}>Actions</th>
@@ -180,6 +181,7 @@ class ScanTable extends React.Component<IScanTableProps, IScanTableState> {
                                     {scan.acquisition_date && format(scan.acquisition_date, 'MMMM D, YYYY')}
                                 </td>
                                 <td title={createdOnHelp}>{format(scan.created_on, 'MMMM D, YYYY h:mm A')}</td>
+                                <td>{scan.modality}</td>
                                 <td>{scan.phantom.model_number} &mdash; {scan.phantom.serial_number}</td>
                                 <td className="sep" />
                                 {this.renderScanActions(scan)}
