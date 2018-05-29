@@ -3,6 +3,7 @@ import zipfile
 import uuid
 import os
 import tempfile
+import dateutil.parser
 
 import io
 import time
@@ -89,10 +90,9 @@ def process_scan(scan_pk, dicom_archive_url=None):
         # them again later, we delete them and then reload to trade
         # processing time for peak memory usage
         # TODO: find a better way; perhaps dicom_import should handle this
-        modality = datasets[0].Modality
         del datasets
 
-        _save_detected_fiducials(scan, voxels, ijk_to_xyz, modality)
+        _save_detected_fiducials(scan, voxels, ijk_to_xyz)
 
         active_gold_standard = scan.golden_fiducials
         _, num_golden_fiducials = active_gold_standard.fiducials.fiducials.shape
@@ -108,7 +108,7 @@ def process_scan(scan_pk, dicom_archive_url=None):
             )
 
         isocenter_in_B = fov_center_xyz(voxels.shape, ijk_to_xyz)
-        TPF = _save_registration_results(scan, isocenter_in_B, ijk_to_xyz)
+        TPF = _save_registration_results(scan, isocenter_in_B)
 
         TPF_minimum = 0.80
 
@@ -165,20 +165,30 @@ def _save_dicom_series_metadata(dicom_series, datasets):
     dicom_series.series_uid = first_dataset.SeriesInstanceUID
     dicom_series.study_uid = first_dataset.StudyInstanceUID
     dicom_series.frame_of_reference_uid = getattr(first_dataset, 'FrameOfReferenceUID', None)
-    dicom_series.patient_id = first_dataset.PatientID
+    dicom_series.patient_id = getattr(first_dataset, 'PatientID', None)
+    dicom_series.patient_name = getattr(first_dataset, 'PatientName', None)
+    if getattr(first_dataset, 'PatientBirthDate', None):
+        dicom_series.patient_birth_date = dateutil.parser.parse(
+            first_dataset.PatientBirthDate).date()
+    dicom_series.patient_sex = getattr(first_dataset, 'PatientSex', None)
+    dicom_series.modality = getattr(first_dataset, 'Modality', None)
     dicom_series.acquisition_date = models.infer_acquisition_date(first_dataset)
+    dicom_series.rows = getattr(first_dataset, 'Rows', None)
+    dicom_series.columns = getattr(first_dataset, 'Columns', None)
+    dicom_series.number_of_slices = getattr(first_dataset, 'NumberOfSlices', len(datasets))
     dicom_series.save()
 
 
-def _save_detected_fiducials(scan, voxels, ijk_to_xyz, dicom_modality):
-    if dicom_modality == 'MR':
-        modality = 'mri'
-    elif dicom_modality in ['CT', 'SC']:
-        modality = 'ct'
+def _save_detected_fiducials(scan, voxels, ijk_to_xyz):
+    modality = scan.dicom_series.modality
+    if modality == 'MR':
+        modality_key = 'mri'
+    elif modality in ['CT', 'SC']:
+        modality_key = 'ct'
     else:
         raise ValueError('Modality must be either "MR", "CT", or "SC".')
     phantom_model = scan.phantom.model.model_number
-    feature_detector = FeatureDetector(phantom_model, modality, voxels, ijk_to_xyz, limit_memory_usage=True)
+    feature_detector = FeatureDetector(phantom_model, modality_key, voxels, ijk_to_xyz, limit_memory_usage=True)
     voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
     points_ijk = feature_detector.points_ijk
     pruned_points_ijk = fp_rejector.remove_fps(points_ijk, voxels, voxel_spacing, phantom_model)
@@ -187,7 +197,7 @@ def _save_detected_fiducials(scan, voxels, ijk_to_xyz, dicom_modality):
     scan.save()
 
 
-def _save_registration_results(scan, isocenter_in_B, ijk_to_xyz):
+def _save_registration_results(scan, isocenter_in_B):
     phantom_model = scan.phantom.model.model_number
     grid_spacing = phantoms.paramaters[phantom_model]['grid_spacing']
 
