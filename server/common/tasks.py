@@ -3,7 +3,6 @@ import zipfile
 import uuid
 import os
 import tempfile
-import dateutil.parser
 
 import io
 import time
@@ -167,9 +166,7 @@ def _save_dicom_series_metadata(dicom_series, datasets):
     dicom_series.frame_of_reference_uid = getattr(first_dataset, 'FrameOfReferenceUID', None)
     dicom_series.patient_id = getattr(first_dataset, 'PatientID', None)
     dicom_series.patient_name = getattr(first_dataset, 'PatientName', None)
-    if getattr(first_dataset, 'PatientBirthDate', None):
-        dicom_series.patient_birth_date = dateutil.parser.parse(
-            first_dataset.PatientBirthDate).date()
+    dicom_series.patient_birth_date = getattr(first_dataset, 'PatientBirthDate', None)
     dicom_series.patient_sex = getattr(first_dataset, 'PatientSex', None)
     dicom_series.modality = getattr(first_dataset, 'Modality', None)
     dicom_series.acquisition_date = models.infer_acquisition_date(first_dataset)

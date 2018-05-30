@@ -205,16 +205,17 @@ class DicomSeries(CommonFieldsMixin):
     study_uid_ht = 'The DICOM Study Instance UID'
     study_uid = models.CharField(
         max_length=64, verbose_name='Study Instance UID', help_text=study_uid_ht)
+    frame_of_reference_uid_ht = 'The DICOM Frame of Reference UID'
     frame_of_reference_uid = models.CharField(
-        max_length=64, verbose_name='Frame Of Reference UID', help_text=series_uid_ht, blank=True,
-        null=True)
+        max_length=64, verbose_name='Frame Of Reference UID', help_text=frame_of_reference_uid_ht,
+        blank=True, null=True)
     patient_id_ht = "The Patient's ID"
     patient_id = models.CharField(
         max_length=64, verbose_name='Patient ID', help_text=patient_id_ht, null=True)
     patient_name_ht = "The Patient's Name"
     patient_name = models.CharField(max_length=64, help_text=patient_name_ht, null=True)
-    patient_birth_date_ht = "The Patient's Date of Birth"
-    patient_birth_date = models.DateField(help_text=patient_birth_date_ht, null=True)
+    patient_birth_date_ht = "The Patient's Birth Date"
+    patient_birth_date = models.CharField(max_length=64, help_text=patient_birth_date_ht, null=True)
     patient_sex_ht = "The Patient's Sex"
     patient_sex = models.CharField(
         max_length=1, help_text=patient_sex_ht, choices=PATIENT_SEX_CHOICES, null=True)
