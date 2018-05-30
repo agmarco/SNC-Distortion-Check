@@ -166,13 +166,14 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, IUploadScanFo
                     <div>
                         <label htmlFor="upload-scan-dicom-archive">MRI Scan Files</label>
                         {/* TODO: accept=".zip" breaks the input */}
-                        <CirsControl.file type="file" id="upload-scan-dicom-archive" model=".dicom_archive"
-                                          required
-                                          onChange={this.handleDicomArchiveChange.bind(this)}
-                                          disabled={dicomArchiveDisabled} />
+                        <CirsControl.file
+                            type="file" id="upload-scan-dicom-archive" model=".dicom_archive"
+                            required onChange={this.handleDicomArchiveChange.bind(this)}
+                            disabled={dicomArchiveDisabled}
+                        />
                         <p>
                             Please upload a zip-file containing the MRI or CT DICOM files of a scan of the specified
-                            phatom, on the specified machine, using the specified sequence.
+                            phantom, on the specified machine, using the specified sequence.
                         </p>
 
                         <CirsErrors model=".dicom_archive.0" required />
@@ -192,8 +193,10 @@ class UploadScanForm extends React.Component<IUploadScanFormProps, IUploadScanFo
 
                     <div className="form-links">
                         <a href={cancelUrl} className="btn tertiary">Cancel</a>
-                        <input type="submit" value="Process Scan" className="btn secondary"
-                               disabled={dicomArchiveState && dicomArchiveState.pending} />
+                        <input
+                            type="submit" value="Process Scan" className="btn secondary"
+                            disabled={dicomArchiveState && dicomArchiveState.pending}
+                        />
                     </div>
                 </CirsForm>
             </div>
