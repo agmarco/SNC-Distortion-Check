@@ -24,7 +24,7 @@ def populate_dicom_fields(apps, schema_editor):
             dicom_series.columns = getattr(first_dataset, 'Columns', None)
             dicom_series.number_of_slices = getattr(first_dataset, 'NumberOfSlices', len(datasets))
             dicom_series.save()
-        except zipfile.BadZipFile:
+        except (zipfile.BadZipFile, ValueError):
             pass
 
 
