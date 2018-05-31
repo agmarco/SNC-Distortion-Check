@@ -25,6 +25,7 @@ def populate_dicom_fields(apps, schema_editor):
             dicom_series.columns = getattr(first_dataset, 'Columns', None)
             dicom_series.number_of_slices = getattr(first_dataset, 'NumberOfSlices', len(datasets))
             dicom_series.save()
+            del datasets
         except (ValueError, zipfile.BadZipFile, botocore.exceptions.ClientError):
             pass
 
