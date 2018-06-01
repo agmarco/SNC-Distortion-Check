@@ -4,7 +4,8 @@ from __future__ import unicode_literals
 
 import zipfile
 
-import botocore.exceptions
+from botocore.exceptions import ClientError
+from botocore.vendored.requests.packages.urllib3.exceptions import ReadTimeoutError
 from django.db import migrations
 
 from process import dicom_import
@@ -25,7 +26,7 @@ def populate_dicom_fields(apps, schema_editor):
             dicom_series.columns = getattr(first_dataset, 'Columns', None)
             dicom_series.number_of_slices = getattr(first_dataset, 'NumberOfSlices', len(datasets))
             dicom_series.save()
-        except (ValueError, zipfile.BadZipFile, botocore.exceptions.ClientError):
+        except Exception:
             pass
 
 
