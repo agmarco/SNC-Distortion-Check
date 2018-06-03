@@ -230,7 +230,6 @@ class UploadScanView(JsonFormMixin, FormView):
 def refresh_scan_view(request, pk=None):
     if request.method == 'POST':
         scan = get_object_or_404(models.Scan, pk=pk)
-        # TODO new image processing algorithm
         new_scan = models.Scan.objects.create(
             machine_sequence_pair=scan.machine_sequence_pair,
             dicom_series=scan.dicom_series,
