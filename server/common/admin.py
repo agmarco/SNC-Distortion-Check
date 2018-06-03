@@ -55,6 +55,7 @@ class ScanAdmin(admin.ModelAdmin):
     list_display = ('creator', 'pk', 'created_on', 'passed', 'processing', 'tolerance', 'errors', 'notes')
     exclude = ('dicom_series',)
     actions = ('download_dicom',)
+    ordering = ('-created_on',)
 
     def download_dicom(self, request, queryset):
         if queryset.count() > 1:
