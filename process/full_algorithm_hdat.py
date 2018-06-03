@@ -120,6 +120,11 @@ class FullAlgorithmSuite(Suite):
                 'modality': 'ct',
                 'phantom_model': '604',
             },
+            '603A-14': {
+                'dicom': 'data/dicom/025_mri_603A_spc_lukas.zip',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
         }
 
     def run(self, case_input):
