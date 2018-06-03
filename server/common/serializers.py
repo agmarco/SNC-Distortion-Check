@@ -89,6 +89,7 @@ class ScanSerializer(serializers.ModelSerializer):
     full_report_url = serializers.SerializerMethodField()
     executive_report_url = serializers.SerializerMethodField()
     error_mags = serializers.ReadOnlyField()
+    modality = serializers.SerializerMethodField()
 
     class Meta:
         model = Scan
@@ -108,6 +109,7 @@ class ScanSerializer(serializers.ModelSerializer):
             'executive_report_url',
             'error_mags',
             'created_on',
+            'modality',
         )
 
     def get_errors_url(self, scan):
@@ -130,6 +132,9 @@ class ScanSerializer(serializers.ModelSerializer):
 
     def get_executive_report_url(self, scan):
         return scan.executive_report.name and scan.executive_report.url
+
+    def get_modality(self, scan):
+        return scan.dicom_series.modality
 
 
 class GoldenFiducialsSerializer(serializers.ModelSerializer):

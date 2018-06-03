@@ -124,6 +124,10 @@ class FullAlgorithmSuite(Suite):
                 'dicom': 'data/dicom/024_ct_604_Canada_Original.zip',
                 'modality': 'ct',
                 'phantom_model': '604',
+            '603A-14': {
+                'dicom': 'data/dicom/025_mri_603A_spc_lukas.zip',
+                'modality': 'mri',
+                'phantom_model': '603A',
             },
         }
 
