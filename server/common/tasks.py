@@ -181,9 +181,13 @@ def _save_detected_fiducials(scan, voxels, ijk_to_xyz):
     if modality == 'MR':
         modality_key = 'mri'
     elif modality in ['CT', 'SC']:
+        msg = 'The DICOM modality was "SC" (secondary capture); assuming the upload was a CT'
+        logger.warn(msg)
         modality_key = 'ct'
     else:
-        raise ValueError('Modality must be either "MR", "CT", or "SC".')
+        msg = 'Modality should be either "MR", "CT", or "SC", but got %s; defaulting to use "MR"'
+        logger.error(msg, modality)
+        modality_key = 'mri'
     phantom_model = scan.phantom.model.model_number
     feature_detector = FeatureDetector(phantom_model, modality_key, voxels, ijk_to_xyz, limit_memory_usage=True)
     voxel_spacing = affine.voxel_spacing(ijk_to_xyz)
