@@ -369,30 +369,12 @@ class Global(models.Model):
         )
 
 
-def create_dicom_series(dicom_archive, request=None):
-    with zipfile.ZipFile(dicom_archive, 'r') as dicom_archive_zipfile:
-        dicom_datasets = dicom_import.dicom_datasets_from_zip(dicom_archive_zipfile)
-
-    first_dataset = dicom_datasets[0]
-    dicom_series = DicomSeries.objects.create(
-        zipped_dicom_files=dicom_archive,
-        series_uid=first_dataset.SeriesInstanceUID,
-        study_uid=first_dataset.StudyInstanceUID,
-        frame_of_reference_uid=first_dataset.FrameOfReferenceUID,
-        patient_id=first_dataset.PatientID,
-        acquisition_date=infer_acquisition_date(first_dataset, request),
-    )
-    dicom_series.save()
-    return dicom_series
-
-
 def create_scan(machine, sequence, phantom, creator, notes=''):
     machine_sequence_pair, _ = MachineSequencePair.objects.get_or_create(
         machine=machine,
         sequence=sequence,
         defaults={'tolerance': sequence.tolerance},
     )
-
     scan = Scan.objects.create(
         machine_sequence_pair=machine_sequence_pair,
         golden_fiducials=phantom.active_gold_standard,
@@ -401,7 +383,6 @@ def create_scan(machine, sequence, phantom, creator, notes=''):
         creator=creator,
         notes=notes,
     )
-
     return scan
 
 
