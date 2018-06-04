@@ -72,7 +72,7 @@ def process_scan(scan_pk, dicom_archive_url=None):
 
         try:
             datasets = scan.dicom_series.unzip_datasets()
-            dicom_meatadata_saved = scan.dicom_series.patient_id is None
+            dicom_meatadata_saved = scan.dicom_series.patient_id is not None
             if not dicom_meatadata_saved:
                 _save_dicom_series_metadata(scan.dicom_series, datasets)
             voxels, ijk_to_xyz = dicom_import.combine_slices(datasets)
