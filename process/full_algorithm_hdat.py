@@ -30,38 +30,44 @@ class FullAlgorithmSuite(Suite):
 
     def collect(self):
         return {
+            '603A-CT-004': {
+                'dicom': 'data/dicom/004_ct_603A_UVA_IYKOQG2M.zip',
+                'notes': 'High quality; full FOV; slight rotation',
+                'modality': 'ct',
+                'phantom_model': '603A',
+            },
             '603A-2': {
                 'dicom': 'data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip',
+                'notes': 'Medium quality; full FOV; slight rotation',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
+            '603A-2-S': {
+                'dicom': 'data/dicom/007_mri_603A_UVA_Sagittal_XUCWOCNR.zip',
+                'notes': 'Medium quality saggitally sliced',
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
             '603A-4': {
                 'dicom': 'data/dicom/yyy_mri_603A_t1_vibe_tra_FS_ND.zip',
+                'notes': 'Higher quality with the phantom not centered within the axial slices',
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
             '603A-5': {
                 'dicom': 'data/dicom/013_mri_603A_patient_10182017.zip',
+                'notes': 'Very high quality',
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
             '603A-6': {
                 'dicom': 'data/dicom/014_mri_603A_T1_MPRAGE_TRA_P2_ISO_0_8_CORRECTED_DISTORTION_0005.zip',
+                'notes': 'High quality; the grid has funny looking "ripples"',
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
             '603A-7': {
                 'dicom': 'data/dicom/015_mri_603A_T1_MPRAGE_test_2.zip',
-                'modality': 'mri',
-                'phantom_model': '603A',
-            },
-            '603A-8': {
-                'dicom': 'data/dicom/016_mri_603A_T1_Mprage_test_1.zip',
-                'modality': 'mri',
-                'phantom_model': '603A',
-            },
-            '603A-9': {
-                'dicom': 'data/dicom/017_mri_603A_t1mpr_tra_Complete_NoExtraFiles.zip',
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
@@ -72,16 +78,7 @@ class FullAlgorithmSuite(Suite):
             },
             '603A-11': {
                 'dicom': 'data/dicom/020_mri_603A_Siemens_3T_Skyra.zip',
-                'modality': 'mri',
-                'phantom_model': '603A',
-            },
-            '603A-12': {
-                'dicom': 'data/dicom/021_mri_603A_Siemens_3T_Skyra.zip',
-                'modality': 'mri',
-                'phantom_model': '603A',
-            },
-            '603A-13': {
-                'dicom': 'data/dicom/013_mri_603A_big.zip',
+                'notes': 'Extremely high quality; almost looks like a CT',
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
