@@ -50,6 +50,12 @@ class MachineSequencePairAdmin(admin.ModelAdmin):
     pass
 
 
+@admin.register(models.DicomSeries)
+class DicomSeriesAdmin(admin.ModelAdmin):
+    list_display = ('zipped_dicom_files', 'modality', 'acquisition_date', 'rows', 'columns',
+            'number_of_slices', 'series_uid', 'patient_id')
+
+
 @admin.register(models.Scan)
 class ScanAdmin(admin.ModelAdmin):
     list_display = ('creator', 'pk', 'created_on', 'passed', 'processing', 'tolerance', 'errors', 'notes')
