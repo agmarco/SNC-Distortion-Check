@@ -31,7 +31,6 @@ from process.registration import rigidly_register_and_categorize
 from process.reports import generate_reports
 from process.utils import fov_center_xyz
 from process.interpolation import interpolate_distortion
-import process.points_utils
 from .dump_raw_scan_data import dump_raw_scan_data
 from . import models
 from .overlay_utilities import add_colorbar_to_slice
@@ -204,12 +203,7 @@ def _save_registration_results(scan, isocenter_in_B):
     _, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(golden_fiducials, detected_fiducials, grid_spacing, isocenter_in_B)
     scan.TP_A_S = models.Fiducials.objects.create(fiducials=TP_A_S)
     scan.TP_B = models.Fiducials.objects.create(fiducials=TP_B)
-
-    TPF, FPF, FLE_percentiles = process.points_utils.metrics(FN_A_S, TP_A_S, TP_B, FP_B)
-    logger.info(process.points_utils.format_point_metrics(TPF, FPF, FLE_percentiles))
-
     scan.save()
-
     return TPF
 
 
@@ -286,9 +280,6 @@ def process_ct_upload(gold_standard_pk, dicom_archive_url=None):
         isocenter_in_B = fov_center_xyz(voxels.shape, ijk_to_xyz)
         xyztpx_a_to_b, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
                 cad_fiducials, pruned_points_xyz, grid_spacing, isocenter_in_B)
-
-        TPF, FPF, FLE_percentiles = process.points_utils.metrics(FN_A_S, TP_A_S, TP_B, FP_B)
-        logger.info(process.points_utils.format_point_metrics(TPF, FPF, FLE_percentiles))
 
         ct_fiducials = TP_B
 
