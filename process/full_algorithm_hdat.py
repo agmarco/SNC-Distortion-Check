@@ -126,13 +126,13 @@ class FullAlgorithmSuite(Suite):
             },
             '603A-MR-029': {
                 'dicom': 'data/dicom/029_mri_603A_t2_ci3d_tra_iso_0.8mm_ND.zip',
-                'notes': 'The FOV does not cover the phantom'
+                'notes': 'The FOV does not cover the phantom',
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
             '603A-MR-030': {
                 'dicom': 'data/dicom/030_mri_603A_t1_vibe_sag_FS_MRisoMovedAwayFromHead.zip',
-                'notes': 'Saggital view; low quality'
+                'notes': 'Saggital view; low quality',
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
