@@ -36,94 +36,103 @@ class FullAlgorithmSuite(Suite):
                 'modality': 'ct',
                 'phantom_model': '603A',
             },
-            '603A-2': {
+            '603A-MR-006': {
                 'dicom': 'data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip',
                 'notes': 'Medium quality; full FOV; slight rotation',
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
-            '603A-2-S': {
+            '603A-MR-007': {
                 'dicom': 'data/dicom/007_mri_603A_UVA_Sagittal_XUCWOCNR.zip',
                 'notes': 'Medium quality saggitally sliced',
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
-            '603A-4': {
-                'dicom': 'data/dicom/yyy_mri_603A_t1_vibe_tra_FS_ND.zip',
+            '603A-MR-026': {
+                'dicom': 'data/dicom/026_mri_603A_t1_vibe_tra_FS_ND.zip',
                 'notes': 'Higher quality with the phantom not centered within the axial slices',
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
-            '603A-5': {
+            '604-MR-010': {
+                'dicom': 'data/dicom/010_mri_604_LFV-Phantom_E2632-1.zip',
+                'modality': 'mri',
+                'notes': 'old model of the 604 with a central gap; probably no need to support',
+                'phantom_model': '604',
+            },
+            '604-MR-012': {
+                'dicom': 'data/dicom/012_mri_604_ST150_in_Siemens_Vida_3T_at_ISO.zip',
+                'modality': 'mri',
+                'phantom_model': '604',
+            },
+            '603A-MR-013': {
                 'dicom': 'data/dicom/013_mri_603A_patient_10182017.zip',
                 'notes': 'Very high quality',
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
-            '603A-6': {
+            '603A-MR-014': {
                 'dicom': 'data/dicom/014_mri_603A_T1_MPRAGE_TRA_P2_ISO_0_8_CORRECTED_DISTORTION_0005.zip',
                 'notes': 'High quality; the grid has funny looking "ripples"',
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
-            '603A-7': {
-                'dicom': 'data/dicom/015_mri_603A_T1_MPRAGE_test_2.zip',
-                'modality': 'mri',
-                'phantom_model': '603A',
-            },
-            '603A-10': {
+            '603A-MR-018': {
                 'dicom': 'data/dicom/018_mri_603A_vibe_tra_FS.zip',
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
-            '603A-11': {
+            '604-MR-019': {
+                'dicom': 'data/dicom/019_mri_604_Siemens_Vida_3T_3D_Flash_ND.zip',
+                'modality': 'mri',
+                'phantom_model': '604',
+            },
+            '603A-MR-020': {
                 'dicom': 'data/dicom/020_mri_603A_Siemens_3T_Skyra.zip',
                 'notes': 'Extremely high quality; almost looks like a CT',
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
-            '604-1': {
-                'dicom': 'data/dicom/010_mri_604_LFV-Phantom_E2632-1.zip',
-                'modality': 'mri',
-                'phantom_model': '604',
-            },
-            '604-2': {
-                'dicom': 'data/dicom/012_mri_604_ST150_in_Siemens_Vida_3T_at_ISO.zip',
-                'modality': 'mri',
-                'phantom_model': '604',
-            },
-            '604-3': {
-                'dicom': 'data/dicom/019_mri_604_Siemens_Vida_3T_3D_Flash_ND.zip',
-                'modality': 'mri',
-                'phantom_model': '604',
-            },
-            '603A-CT-1': {
+            '603A-CT-022': {
                 'dicom': 'data/dicom/022_ct_603A_Niranjan_Original.zip',
                 'modality': 'ct',
+                'notes': 'This is a large high-quality CT',
                 'phantom_model': '603A',
             },
-            '603A-CT-2': {
-                'dicom': 'data/dicom/002_ct_603A_E3148_ST1.5.zip',
-                'modality': 'ct',
-                'phantom_model': '603A',
-            },
-            '603A-CT-3': {
-                'dicom': 'data/dicom/005_ct_603A_UVA_W3ANI1ES.zip',
-                'modality': 'ct',
-                'phantom_model': '603A',
-            },
-            '604-CT-1': {
+            '604-CT-023': {
                 'dicom': 'data/dicom/023_ct_604_Water_ST125_120kVp_175mAs.zip',
                 'modality': 'ct',
                 'phantom_model': '604',
             },
-            '604-CT-2': {
+            '604-CT-24': {
                 'dicom': 'data/dicom/024_ct_604_Canada_Original.zip',
                 'modality': 'ct',
                 'phantom_model': '604',
             },
-            '603A-14': {
+            '603A-MR-025': {
                 'dicom': 'data/dicom/025_mri_603A_spc_lukas.zip',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
+            '604-CT-027': {
+                'dicom': 'data/dicom/027_ct_604_st125_cheasapeake_imaging.zip',
+                'modality': 'ct',
+                'phantom_model': '604',
+            },
+            '604-MR-028': {
+                'dicom': 'data/dicom/028_mri_604_st150_in_siemens_vida_3T.zip',
+                'modality': 'mri',
+                'phantom_model': '604',
+            },
+            '603A-MR-029': {
+                'dicom': 'data/dicom/029_mri_603A_t2_ci3d_tra_iso_0.8mm_ND.zip',
+                'notes': 'The FOV does not cover the phantom'
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
+            '603A-MR-030': {
+                'dicom': 'data/dicom/030_mri_603A_t1_vibe_sag_FS_MRisoMovedAwayFromHead.zip',
+                'notes': 'Saggital view; low quality'
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
