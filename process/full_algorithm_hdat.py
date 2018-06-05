@@ -252,8 +252,8 @@ class FullAlgorithmSuite(Suite):
 
         print('% volume: {:3.2f}%'.format(metrics['fraction_of_volume_covered']*100))
         print('number of true positives: ', context['TP_B'].shape[1])
-        print('true positive fraction: {:5.3f}'.format(context['TPF']))
-        print('false positive fraction: {:5.3f}'.format(context['FPF']))
+        print('true positive fraction: {:5.3f}'.format(metrics['TPF']))
+        print('false positive fraction: {:5.3f}'.format(metrics['FPF']))
         print('maximum distortion magnitude: {:5.3f}mm'.format(metrics['max_distortion']))
         print('99th percentile distortion magnitude: {:5.3f}mm'.format(metrics['99_distortion']))
         print('95th percentile distortion magnitude: {:5.3f}mm'.format(metrics['95_distortion']))

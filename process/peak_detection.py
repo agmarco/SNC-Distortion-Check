@@ -67,10 +67,14 @@ def detect_peaks(data, voxel_spacing, search_radius, grid_radius):
     num_total_peaks = np.sum(peak_heights > 0)
     logger.info('found %d peaks in total, using %s search area', num_total_peaks, search_neighborhood.shape)
 
-    threshold = 0.03*np.percentile(peak_heights[peak_heights > 0], 98)
+    cutoff_peak_percentile = 98
+    cutoff_peak = np.percentile(peak_heights[peak_heights > 0], cutoff_peak_percentile)
+    cutoff_peak_fraction = 0.03
+    threshold = cutoff_peak_fraction*cutoff_peak
     peaks_thresholded = peak_heights > threshold
     num_tall_peaks = np.sum(peaks_thresholded)
-    logger.info('found %d peaks with amplitude greater than %f', num_tall_peaks, threshold)
+    logger.info('found %d peaks with amplitude greater than %f (using %f times the %f percentile peak)',
+            num_tall_peaks, threshold, cutoff_peak_fraction, cutoff_peak_percentile)
 
     distance_to_edge = [math.ceil(s/2.0) for s in search_neighborhood.shape]
     peaks_thresholded[0:distance_to_edge[0], :, :] = False
