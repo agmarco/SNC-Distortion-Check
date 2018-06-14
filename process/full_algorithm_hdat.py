@@ -295,14 +295,14 @@ class FullAlgorithmSuite(Suite):
                     'marker': 'x'
                 }
             },
-            {
-                'points_xyz': context['FP_B_CNN'],
-                'scatter_kwargs': {
-                    'color': 'm',
-                    'label': 'Rejected by CNN',
-                    'marker': 'x'
-                }
-            },
+            # {
+                # 'points_xyz': context['FP_B_CNN'],
+                # 'scatter_kwargs': {
+                    # 'color': 'm',
+                    # 'label': 'Rejected by CNN',
+                    # 'marker': 'x'
+                # }
+            # },
         ]
 
         distortion_magnitude = context['distortion_grid']
@@ -326,6 +326,6 @@ class FullAlgorithmSuite(Suite):
             'Rejected by Registration': context['FP_B'],
             'True Positives': context['TP_B'],
             'False Negatives': context['FN_A_S'],
-            'Rejected by CNN': context['FP_B_CNN'],
+            # 'Rejected by CNN': context['FP_B_CNN'],
         })
         plt.show()
