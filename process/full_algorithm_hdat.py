@@ -104,7 +104,7 @@ class FullAlgorithmSuite(Suite):
                 'modality': 'ct',
                 'phantom_model': '604',
             },
-            '604-CT-24': {
+            '604-CT-024': {
                 'dicom': 'data/dicom/024_ct_604_Canada_Original.zip',
                 'modality': 'ct',
                 'phantom_model': '604',
