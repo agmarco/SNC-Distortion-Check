@@ -93,10 +93,13 @@ def detect_peaks(data, voxel_spacing, search_radius, grid_radius):
 
     peaks = np.empty((len(data.shape), num_labels))
     rough_peak_locations = ndimage.center_of_mass(peaks_thresholded, labels, list(range(1, num_labels)))
+    num_peaks_with_region_touching_sides = 0
+
+    # grid_radius + peak detection uncertainty + ensure ROI surface is far enough away from intersection
+    r_mm = grid_radius + 1.5 + 4.0
+    r_px = r_mm / voxel_spacing
+    logger.info('performing thresholded COM using r_mm = %f mm [%r]', r_mm, np.round(r_px).astype(int)),
     for i, rough_peak_location in enumerate(rough_peak_locations):
-        # grid_radius + peak detection uncertainty + ensure ROI surface is far enough away from intersection
-        r_mm = grid_radius + 1.5 + 4.0
-        r_px = r_mm / voxel_spacing
         rmin = np.round(np.maximum(rough_peak_location - r_px, 0)).astype(int)
         rmax = np.round(np.minimum(rough_peak_location + r_px + 1, np.array(data.shape))).astype(int)
         roi_com = data[rmin[0]:rmax[0], rmin[1]:rmax[1], rmin[2]:rmax[2]]
@@ -106,9 +109,11 @@ def detect_peaks(data, voxel_spacing, search_radius, grid_radius):
         if com_offset is not None:
             peaks[:, i] = rmin + com_offset
         else:
+            num_peaks_with_region_touching_sides += 1
             peaks[:, i] = np.array([0, 0, 0])
 
-    logger.info('finished peak detection')
+    logger.info('found %d peaks after thresholded COM; finished peak detection',
+            num_labels - num_peaks_with_region_touching_sides)
     return peaks, labels
 
 
