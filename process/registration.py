@@ -78,7 +78,7 @@ def rigidly_register_and_categorize(A, B, grid_spacing, isocenter_in_B):
     FN_A_S, TP_A_S, TP_B, FP_B = points_utils.categorize(A_S, B, rho)
     TPF, FPF, FLE_percentiles = points_utils.metrics(FN_A_S, TP_A_S, TP_B, FP_B)
     num_matched = TP_B.shape[1]
-    num_golden = B_i.shape[1]
+    num_golden = A.shape[1]
     logger.info(f'Matched {num_matched} of {num_golden} points {num_matched/num_golden*100:06.4f}%')
     logger.info(points_utils.format_point_metrics(TPF, FPF, FLE_percentiles))
 
