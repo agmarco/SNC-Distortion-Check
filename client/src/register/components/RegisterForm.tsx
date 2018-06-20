@@ -70,7 +70,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, {}> {
                     <p>
                         In order to registerd a new account, you must provide the serial number of
                         a <a href={cirs603AUrl}>CIRS 603A</a> or <a href={cirs604Url}>CIRS 604</a> phantom. If you
-                        have not puchased either of these phantoms, but would like to know more about the Distortion
+                        have not purchased either of these phantoms, but would like to know more about the Distortion
                         Check software,
                         please <a href="http://www.cirsinc.com/support/contact">contact CIRS support</a> for more
                         information.
