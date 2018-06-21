@@ -27,7 +27,7 @@ uidb64_pattern = r'[0-9A-Za-z_\-]+'
 token_pattern = r'[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20}'
 
 urlpatterns = [
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', admin.site.urls),
     url(r'^login/$', auth_views.LoginView.as_view(redirect_authenticated_user=True), name='login'),
     url(r'^logout/$', auth_views.LogoutView.as_view(next_page=reverse_lazy('login')), name='logout'),
     url(r'^password-reset/$', PasswordResetView.as_view(), name='password_reset'),

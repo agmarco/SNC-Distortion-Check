@@ -1,4 +1,4 @@
-A new user account has been created on CIRS Distortion Check.
+A new user account has been created on CIRS Distortion Check for the institution, "{{ institution.name }}."
 
 Please follow the link below to edit the institution for this user.
 
