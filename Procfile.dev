@@ -1,2 +1,3 @@
 web: gunicorn server.wsgi --timeout 120 --log-file - --reload
 worker: REMAP_SIGTERM=SIGQUIT celery -A server worker --loglevel=INFO -Ofair -E
+files: npm run build:hot
