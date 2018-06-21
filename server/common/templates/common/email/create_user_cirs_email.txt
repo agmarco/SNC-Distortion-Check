@@ -1,0 +1,5 @@
+A new user account has been created on CIRS Distortion Check.
+
+Please follow the link below to edit the institution for this user.
+
+{{ admin_link }}

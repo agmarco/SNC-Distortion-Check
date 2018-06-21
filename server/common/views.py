@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetCompleteView, \
@@ -7,7 +8,9 @@ from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetCom
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
+from django.core.mail import send_mail
 from django.http import HttpResponseRedirect, HttpResponseNotAllowed
+from django.template import loader
 from django.urls import reverse, reverse_lazy
 from django.utils import formats
 from django.utils.decorators import method_decorator
@@ -541,7 +544,8 @@ class CreateUserView(FormView):
             'html_email_template_name': self.html_email_template_name,
             'extra_email_context': self.extra_email_context,
         }
-        self.object = form.save(institution=self.request.user.get_institution(self.request), **opts)
+        institution = self.request.user.get_institution(self.request)
+        self.object = form.save(institution=institution, **opts)
         messages.success(self.request, f"\"{self.object.get_full_name()}\" has been created.")
         return super(CreateUserView, self).form_valid(form)
 
@@ -730,7 +734,27 @@ class RegisterView(JsonFormMixin, FormView):
             'html_email_template_name': self.html_email_template_name,
             'extra_email_context': self.extra_email_context,
         }
-        form.save(**opts)
+        self.object = form.save(**opts)
+
+        institution = self.object.get_institution(self.request)
+        current_site = get_current_site(self.request)
+        protocol = 'https' if self.request.is_secure() else 'http'
+        admin_path = reverse('admin:common_institution_change', args=(institution.pk,))
+        admin_link = f'{protocol}://{current_site.domain}{admin_path}'
+        context = {
+            'admin_link': admin_link,
+        }
+        body = loader.render_to_string('common/email/create_user_cirs_email.txt', context)
+        html_body = loader.render_to_string('common/email/create_user_cirs_email.html', context)
+        send_mail(
+            'New User on CIRS Distortion Check',
+            body,
+            settings.DEFAULT_FROM_EMAIL,
+            [settings.DEFAULT_FROM_EMAIL],
+            fail_silently=False,
+            html_message=html_body,
+        )
+
         return super(RegisterView, self).form_valid(form)
 
 
