@@ -30,6 +30,7 @@ from process.feature_detection import FeatureDetector
 from process.registration import rigidly_register_and_categorize
 from process.reports import generate_reports
 from process.utils import fov_center_xyz
+from process import points_utils
 from process.interpolation import interpolate_distortion
 from .dump_raw_scan_data import dump_raw_scan_data
 from . import models
@@ -205,6 +206,8 @@ def _save_registration_results(scan, isocenter_in_B):
     detected_fiducials = scan.detected_fiducials.fiducials
 
     _, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(golden_fiducials, detected_fiducials, grid_spacing, isocenter_in_B)
+
+    TPF, _, _ = points_utils.metrics(FN_A_S, TP_A_S, TP_B, FP_B)
     scan.TP_A_S = models.Fiducials.objects.create(fiducials=TP_A_S)
     scan.TP_B = models.Fiducials.objects.create(fiducials=TP_B)
     scan.save()
