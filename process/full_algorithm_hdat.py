@@ -136,6 +136,12 @@ class FullAlgorithmSuite(Suite):
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
+            '604-CT-031': {
+                'dicom': 'data/dicom/031_ct_604_water_st125_120kVp_175mAs.zip',
+                'notes': 'Water is the phantom, so the contrast in the casing seems higher',
+                'modality': 'ct',
+                'phantom_model': '604',
+            },
         }
 
     def run(self, case_input):
