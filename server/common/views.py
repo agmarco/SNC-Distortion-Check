@@ -743,11 +743,12 @@ class RegisterView(JsonFormMixin, FormView):
         admin_link = f'{protocol}://{current_site.domain}{admin_path}'
         context = {
             'admin_link': admin_link,
+            'institution': institution,
         }
         body = loader.render_to_string('common/email/create_user_cirs_email.txt', context)
         html_body = loader.render_to_string('common/email/create_user_cirs_email.html', context)
         send_mail(
-            'New User on CIRS Distortion Check',
+            f'New User on CIRS Distortion Check for "{institution.name}"',
             body,
             settings.DEFAULT_FROM_EMAIL,
             [settings.DEFAULT_FROM_EMAIL],
