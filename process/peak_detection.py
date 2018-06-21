@@ -92,7 +92,7 @@ def detect_peaks(data, voxel_spacing, search_radius, grid_radius):
     logger.info('found %d independent peaks', num_labels)
 
     peaks = np.empty((len(data.shape), num_labels))
-    rough_peak_locations = ndimage.center_of_mass(peaks_thresholded, labels, list(range(1, num_labels)))
+    rough_peak_locations = ndimage.center_of_mass(peaks_thresholded, labels, list(range(1, num_labels + 1)))
     num_peaks_with_region_touching_sides = 0
 
     # grid_radius + peak detection uncertainty + ensure ROI surface is far enough away from intersection
