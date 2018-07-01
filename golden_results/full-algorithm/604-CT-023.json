@@ -1,0 +1,22 @@
+{
+    "case_id": "604-CT-023",
+    "commit": "f57c31fd275d5a2c450c661dbd0a3555feff127b",
+    "metrics": {
+        "90_distortion": 1.0472860567760884,
+        "95_distortion": 1.3178018529267224,
+        "99_distortion": 1.6548873098179098,
+        "FPF": 0.0,
+        "TPF": 0.9996187571483035,
+        "fraction_of_volume_covered": 0.7978626667920903,
+        "max_distortion": 1.9316008127671613,
+        "mean_distortion": 0.48213641151007025,
+        "median_distortion": 0.4180477705232103,
+        "min_distortion": 0.0,
+        "registration_shift": 155.38175442341205
+    },
+    "ran_on": 1530482085.390979,
+    "repo_dirty": true,
+    "result_id": "1530482085.390979_f57c31fd275d5a2c450c661dbd0a3555feff127b",
+    "status": "unknown",
+    "suite_id": "full-algorithm"
+}
