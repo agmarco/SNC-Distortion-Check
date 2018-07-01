@@ -47,7 +47,7 @@ def neighborhood_peaks(data, neighborhood):
     return peak_heights
 
 
-def detect_peaks(data, voxel_spacing, search_radius, grid_radius):
+def detect_peaks(data, voxel_spacing, search_radius, r_mm):
     """
     Detect peaks using a local maximum filter.  A peak is defined as the
     maximum value within a binary neighborhood.  In order to provide subpixel
@@ -95,8 +95,6 @@ def detect_peaks(data, voxel_spacing, search_radius, grid_radius):
     rough_peak_locations = ndimage.center_of_mass(peaks_thresholded, labels, list(range(1, num_labels + 1)))
     num_peaks_with_region_touching_sides = 0
 
-    # grid_radius + peak detection uncertainty + ensure ROI surface is far enough away from intersection
-    r_mm = grid_radius + 1.5 + 4.0
     r_px = r_mm / voxel_spacing
     logger.info('performing thresholded COM using r_mm = %f mm [%r]', r_mm, np.round(r_px).astype(int)),
     for i, rough_peak_location in enumerate(rough_peak_locations):
@@ -117,7 +115,7 @@ def detect_peaks(data, voxel_spacing, search_radius, grid_radius):
     return peaks, labels
 
 
-def center_of_mass_threshold(roi, peak_intensity, p1=0.2, p2=0.6):
+def center_of_mass_threshold(roi, peak_intensity, p1=0.2, p2=0.7):
     roi_sides = [
         roi[0, :, :],
         roi[-1, :, :],
