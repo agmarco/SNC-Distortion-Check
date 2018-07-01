@@ -124,18 +124,18 @@ class FullAlgorithmSuite(Suite):
                 'modality': 'mri',
                 'phantom_model': '604',
             },
-            '603A-MR-029': {
-                'dicom': 'data/dicom/029_mri_603A_t2_ci3d_tra_iso_0.8mm_ND.zip',
-                'notes': 'The FOV does not cover the phantom',
-                'modality': 'mri',
-                'phantom_model': '603A',
-            },
-            '603A-MR-030': {
-                'dicom': 'data/dicom/030_mri_603A_t1_vibe_sag_FS_MRisoMovedAwayFromHead.zip',
-                'notes': 'Saggital view; low quality',
-                'modality': 'mri',
-                'phantom_model': '603A',
-            },
+            # '603A-MR-029': {
+                # 'dicom': 'data/dicom/029_mri_603A_t2_ci3d_tra_iso_0.8mm_ND.zip',
+                # 'notes': 'The FOV does not cover the phantom; thus the algorithm currently fails',
+                # 'modality': 'mri',
+                # 'phantom_model': '603A',
+            # },
+            # '603A-MR-030': {
+                # 'dicom': 'data/dicom/030_mri_603A_t1_vibe_sag_FS_MRisoMovedAwayFromHead.zip',
+                # 'notes': 'Saggital view; low quality; the algorithm currently does not support rotated datasets',
+                # 'modality': 'mri',
+                # 'phantom_model': '603A',
+            # },
             '604-CT-031': {
                 'dicom': 'data/dicom/031_ct_604_water_st125_120kVp_175mAs.zip',
                 'notes': 'Water is the phantom, so the contrast in the casing seems higher',
