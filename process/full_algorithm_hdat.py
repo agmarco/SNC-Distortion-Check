@@ -30,100 +30,117 @@ class FullAlgorithmSuite(Suite):
 
     def collect(self):
         return {
-            '603A-2': {
+            '603A-CT-004': {
+                'dicom': 'data/dicom/004_ct_603A_UVA_IYKOQG2M.zip',
+                'notes': 'High quality; full FOV; slight rotation',
+                'modality': 'ct',
+                'phantom_model': '603A',
+            },
+            '603A-MR-006': {
                 'dicom': 'data/dicom/006_mri_603A_UVA_Axial_2ME2SRS5.zip',
+                'notes': 'Medium quality; full FOV; slight rotation',
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
-            '603A-4': {
-                'dicom': 'data/dicom/yyy_mri_603A_t1_vibe_tra_FS_ND.zip',
+            '603A-MR-007': {
+                'dicom': 'data/dicom/007_mri_603A_UVA_Sagittal_XUCWOCNR.zip',
+                'notes': 'Medium quality saggitally sliced',
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
-            '603A-5': {
-                'dicom': 'data/dicom/013_mri_603A_patient_10182017.zip',
+            '603A-MR-026': {
+                'dicom': 'data/dicom/026_mri_603A_t1_vibe_tra_FS_ND.zip',
+                'notes': 'Higher quality with the phantom not centered within the axial slices',
                 'modality': 'mri',
                 'phantom_model': '603A',
             },
-            '603A-6': {
-                'dicom': 'data/dicom/014_mri_603A_T1_MPRAGE_TRA_P2_ISO_0_8_CORRECTED_DISTORTION_0005.zip',
-                'modality': 'mri',
-                'phantom_model': '603A',
-            },
-            '603A-7': {
-                'dicom': 'data/dicom/015_mri_603A_T1_MPRAGE_test_2.zip',
-                'modality': 'mri',
-                'phantom_model': '603A',
-            },
-            '603A-8': {
-                'dicom': 'data/dicom/016_mri_603A_T1_Mprage_test_1.zip',
-                'modality': 'mri',
-                'phantom_model': '603A',
-            },
-            '603A-9': {
-                'dicom': 'data/dicom/017_mri_603A_t1mpr_tra_Complete_NoExtraFiles.zip',
-                'modality': 'mri',
-                'phantom_model': '603A',
-            },
-            '603A-10': {
-                'dicom': 'data/dicom/018_mri_603A_vibe_tra_FS.zip',
-                'modality': 'mri',
-                'phantom_model': '603A',
-            },
-            '603A-11': {
-                'dicom': 'data/dicom/020_mri_603A_Siemens_3T_Skyra.zip',
-                'modality': 'mri',
-                'phantom_model': '603A',
-            },
-            '603A-12': {
-                'dicom': 'data/dicom/021_mri_603A_Siemens_3T_Skyra.zip',
-                'modality': 'mri',
-                'phantom_model': '603A',
-            },
-            '603A-13': {
-                'dicom': 'data/dicom/013_mri_603A_big.zip',
-                'modality': 'mri',
-                'phantom_model': '603A',
-            },
-            '604-1': {
+            '604-MR-010': {
                 'dicom': 'data/dicom/010_mri_604_LFV-Phantom_E2632-1.zip',
                 'modality': 'mri',
+                'notes': 'old model of the 604 with a central gap; probably no need to support',
                 'phantom_model': '604',
             },
-            '604-2': {
+            '604-MR-012': {
                 'dicom': 'data/dicom/012_mri_604_ST150_in_Siemens_Vida_3T_at_ISO.zip',
                 'modality': 'mri',
                 'phantom_model': '604',
             },
-            '604-3': {
+            '603A-MR-013': {
+                'dicom': 'data/dicom/013_mri_603A_patient_10182017.zip',
+                'notes': 'Very high quality',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
+            '603A-MR-014': {
+                'dicom': 'data/dicom/014_mri_603A_T1_MPRAGE_TRA_P2_ISO_0_8_CORRECTED_DISTORTION_0005.zip',
+                'notes': 'High quality; the grid has funny looking "ripples"',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
+            '603A-MR-018': {
+                'dicom': 'data/dicom/018_mri_603A_vibe_tra_FS.zip',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
+            '604-MR-019': {
                 'dicom': 'data/dicom/019_mri_604_Siemens_Vida_3T_3D_Flash_ND.zip',
                 'modality': 'mri',
                 'phantom_model': '604',
             },
-            '603A-CT-1': {
+            '603A-MR-020': {
+                'dicom': 'data/dicom/020_mri_603A_Siemens_3T_Skyra.zip',
+                'notes': 'Extremely high quality; almost looks like a CT',
+                'modality': 'mri',
+                'phantom_model': '603A',
+            },
+            '603A-CT-022': {
                 'dicom': 'data/dicom/022_ct_603A_Niranjan_Original.zip',
                 'modality': 'ct',
+                'notes': 'This is a large high-quality CT',
                 'phantom_model': '603A',
             },
-            '603A-CT-2': {
-                'dicom': 'data/dicom/002_ct_603A_E3148_ST1.5.zip',
-                'modality': 'ct',
-                'phantom_model': '603A',
-            },
-            '603A-CT-3': {
-                'dicom': 'data/dicom/005_ct_603A_UVA_W3ANI1ES.zip',
-                'modality': 'ct',
-                'phantom_model': '603A',
-            },
-            '604-CT-1': {
+            '604-CT-023': {
                 'dicom': 'data/dicom/023_ct_604_Water_ST125_120kVp_175mAs.zip',
                 'modality': 'ct',
                 'phantom_model': '604',
             },
-            '603A-14': {
+            '604-CT-024': {
+                'dicom': 'data/dicom/024_ct_604_Canada_Original.zip',
+                'modality': 'ct',
+                'phantom_model': '604',
+            },
+            '603A-MR-025': {
                 'dicom': 'data/dicom/025_mri_603A_spc_lukas.zip',
                 'modality': 'mri',
                 'phantom_model': '603A',
+            },
+            '604-CT-027': {
+                'dicom': 'data/dicom/027_ct_604_st125_cheasapeake_imaging.zip',
+                'modality': 'ct',
+                'phantom_model': '604',
+            },
+            '604-MR-028': {
+                'dicom': 'data/dicom/028_mri_604_st150_in_siemens_vida_3T.zip',
+                'modality': 'mri',
+                'phantom_model': '604',
+            },
+            # '603A-MR-029': {
+                # 'dicom': 'data/dicom/029_mri_603A_t2_ci3d_tra_iso_0.8mm_ND.zip',
+                # 'notes': 'The FOV does not cover the phantom; thus the algorithm currently fails',
+                # 'modality': 'mri',
+                # 'phantom_model': '603A',
+            # },
+            # '603A-MR-030': {
+                # 'dicom': 'data/dicom/030_mri_603A_t1_vibe_sag_FS_MRisoMovedAwayFromHead.zip',
+                # 'notes': 'Saggital view; low quality; the algorithm currently does not support rotated datasets',
+                # 'modality': 'mri',
+                # 'phantom_model': '603A',
+            # },
+            '604-CT-031': {
+                'dicom': 'data/dicom/031_ct_604_water_st125_120kVp_175mAs.zip',
+                'notes': 'Water is the phantom, so the contrast in the casing seems higher',
+                'modality': 'ct',
+                'phantom_model': '604',
             },
         }
 
@@ -212,9 +229,10 @@ class FullAlgorithmSuite(Suite):
         metrics['fraction_of_volume_covered'] = num_finite/float(num_total)
 
         metrics['max_distortion'] = np.nanmax(distortion_grid)
-        metrics['99_percentile'] = np.nanpercentile(distortion_grid, 99)
-        metrics['95_percentile'] = np.nanpercentile(distortion_grid, 95)
-        metrics['90_percentile'] = np.nanpercentile(distortion_grid, 90)
+        metrics['99_distortion'] = np.nanpercentile(distortion_grid, 99)
+        metrics['95_distortion'] = np.nanpercentile(distortion_grid, 95)
+        metrics['90_distortion'] = np.nanpercentile(distortion_grid, 90)
+        metrics['mean_distortion'] = np.nanmean(distortion_grid)
         metrics['median_distortion'] = np.nanmedian(distortion_grid)
         metrics['min_distortion'] = np.nanmin(distortion_grid)
 
@@ -239,30 +257,34 @@ class FullAlgorithmSuite(Suite):
         context = result['context']
 
         print('% volume: {:3.2f}%'.format(metrics['fraction_of_volume_covered']*100))
-        print('max distortion magnitude: {:5.3f}mm'.format(metrics['max_distortion']))
-        print('99th percentile distortion magnitude: {:5.3f}mm'.format(metrics['99_percentile']))
-        print('95th percentile distortion magnitude: {:5.3f}mm'.format(metrics['95_percentile']))
-        print('90th percentile distortion magnitude: {:5.3f}mm'.format(metrics['90_percentile']))
+        print('number of true positives: ', context['TP_B'].shape[1])
+        print('true positive fraction: {:5.3f}'.format(metrics['TPF']))
+        print('false positive fraction: {:5.3f}'.format(metrics['FPF']))
+        print('maximum distortion magnitude: {:5.3f}mm'.format(metrics['max_distortion']))
+        print('99th percentile distortion magnitude: {:5.3f}mm'.format(metrics['99_distortion']))
+        print('95th percentile distortion magnitude: {:5.3f}mm'.format(metrics['95_distortion']))
+        print('90th percentile distortion magnitude: {:5.3f}mm'.format(metrics['90_distortion']))
+        print('mean distortion magnitude: {:5.3f}mm'.format(metrics['mean_distortion']))
         print('median distortion magnitude: {:5.3f}mm'.format(metrics['median_distortion']))
         print('min distortion magnitude: {:5.3f}mm'.format(metrics['min_distortion']))
 
         descriptors = [
             {
-                'points_xyz': context['FN_A_S'],
-                'scatter_kwargs': {
-                    'color': 'y',
-                    'label': 'False Negatives',
-                    'marker': 'o'
-                }
+               'points_xyz': context['FN_A_S'],
+               'scatter_kwargs': {
+                   'color': 'y',
+                   'label': 'False Negatives',
+                   'marker': 'o'
+               }
             },
-            {
-                'points_xyz': context['TP_A_S'],
-                'scatter_kwargs': {
-                    'color': 'g',
-                    'label': 'Gold Standard Registered',
-                    'marker': 'o'
-                }
-            },
+            #{
+            #    'points_xyz': context['TP_A_S'],
+            #    'scatter_kwargs': {
+            #        'color': 'g',
+            #        'label': 'Gold Standard Registered',
+            #        'marker': 'o'
+            #    }
+            #},
             {
                 'points_xyz': context['TP_B'],
                 'scatter_kwargs': {
@@ -279,14 +301,14 @@ class FullAlgorithmSuite(Suite):
                     'marker': 'x'
                 }
             },
-            {
-                'points_xyz': context['FP_B_CNN'],
-                'scatter_kwargs': {
-                    'color': 'm',
-                    'label': 'Rejected by CNN',
-                    'marker': 'x'
-                }
-            },
+            # {
+                # 'points_xyz': context['FP_B_CNN'],
+                # 'scatter_kwargs': {
+                    # 'color': 'm',
+                    # 'label': 'Rejected by CNN',
+                    # 'marker': 'x'
+                # }
+            # },
         ]
 
         distortion_magnitude = context['distortion_grid']
@@ -310,6 +332,6 @@ class FullAlgorithmSuite(Suite):
             'Rejected by Registration': context['FP_B'],
             'True Positives': context['TP_B'],
             'False Negatives': context['FN_A_S'],
-            #'Rejected by CNN': context['FP_B_CNN'],
+            # 'Rejected by CNN': context['FP_B_CNN'],
         })
         plt.show()

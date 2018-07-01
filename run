@@ -1,5 +1,4 @@
 #!/bin/bash
 set -e
 
-honcho start --procfile Procfile.dev &
-npm run build:hot
+honcho start --procfile Procfile.dev
