@@ -175,6 +175,10 @@ def format_FLE_percentile(error_percentile):
 
 def format_point_metrics(TPF, FPF, FLE_percentiles):
     return (
-        f"TPF={TPF}, FPF={FPF}, FLE_100={FLE_percentiles[100]['r']}, "
-        f"FLE_50={FLE_percentiles[50]['r']}"
+        f"TPF={TPF:06.4f}, FPF={FPF:06.4f}, "
+        f"FLE_100={FLE_percentiles[100]['r']:06.4f}mm, "
+        f"FLE_99={FLE_percentiles[99]['r']:06.4f}mm, "
+        f"FLE_90={FLE_percentiles[90]['r']:06.4f}mm, "
+        f"FLE_75={FLE_percentiles[75]['r']:06.4f}mm, "
+        f"FLE_50={FLE_percentiles[50]['r']:06.4f}mm"
     )

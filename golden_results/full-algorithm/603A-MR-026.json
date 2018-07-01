@@ -1,0 +1,22 @@
+{
+    "case_id": "603A-MR-026",
+    "commit": "f57c31fd275d5a2c450c661dbd0a3555feff127b",
+    "metrics": {
+        "90_distortion": 0.5008322824823737,
+        "95_distortion": 0.5668708440351332,
+        "99_distortion": 0.7043194749264888,
+        "FPF": 0.028037383177570093,
+        "TPF": 0.9313432835820895,
+        "fraction_of_volume_covered": 0.5115995115995116,
+        "max_distortion": 1.3111077831191225,
+        "mean_distortion": 0.20687973021971245,
+        "median_distortion": 0.1816278811426978,
+        "min_distortion": 0.0,
+        "registration_shift": 32.88465892267592
+    },
+    "ran_on": 1530481441.423163,
+    "repo_dirty": true,
+    "result_id": "1530481441.423163_f57c31fd275d5a2c450c661dbd0a3555feff127b",
+    "status": "unknown",
+    "suite_id": "full-algorithm"
+}

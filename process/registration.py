@@ -71,10 +71,16 @@ def rigidly_register_and_categorize(A, B, grid_spacing, isocenter_in_B):
     # first, before the translations, and the second vector ONLY has
     # translations
     xyztpx_a_to_b = xyztpx_a_to_b_i + np.array([*isocenter_in_B, 0, 0, 0])
+    logger.info('finished fine tuning registration: %s', format_xyztpx(xyztpx_a_to_b_i))
 
     rho = build_rho(calculate_g_cutoff(3, grid_spacing), 3, 0.45*grid_spacing)
 
     FN_A_S, TP_A_S, TP_B, FP_B = points_utils.categorize(A_S, B, rho)
+    TPF, FPF, FLE_percentiles = points_utils.metrics(FN_A_S, TP_A_S, TP_B, FP_B)
+    num_matched = TP_B.shape[1]
+    num_golden = A.shape[1]
+    logger.info(f'Matched {num_matched} of {num_golden} points {num_matched/num_golden*100:06.4f}%')
+    logger.info(points_utils.format_point_metrics(TPF, FPF, FLE_percentiles))
 
     return xyztpx_a_to_b, FN_A_S, TP_A_S, TP_B, FP_B
 
