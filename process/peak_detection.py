@@ -47,7 +47,7 @@ def neighborhood_peaks(data, neighborhood):
     return peak_heights
 
 
-def detect_peaks(data, voxel_spacing, search_radius, r_mm):
+def detect_peaks(data, voxel_spacing, search_radius_mm, center_of_mass_radius_mm):
     """
     Detect peaks using a local maximum filter.  A peak is defined as the
     maximum value within a binary neighborhood.  In order to provide subpixel
@@ -59,7 +59,7 @@ def detect_peaks(data, voxel_spacing, search_radius, r_mm):
     Returns the peak locations in ijk coordinates.
     """
     logger.info('started peak detection')
-    search_neighborhood = kernels.rectangle(voxel_spacing, search_radius).astype(bool)
+    search_neighborhood = kernels.rectangle(voxel_spacing, search_radius_mm).astype(bool)
 
     assert np.sum(search_neighborhood) > 1, 'search neighborhood is too small'
 
@@ -86,7 +86,8 @@ def detect_peaks(data, voxel_spacing, search_radius, r_mm):
     peaks_thresholded[:, :, -distance_to_edge[2]:] = False
 
     num_tall_peaks_in_middle = np.sum(peaks_thresholded)
-    logger.info('found %d peaks within %r voxels from the corresponding edges', num_tall_peaks_in_middle, distance_to_edge)
+    logger.info('found %d peaks within %r voxels from the corresponding edges',
+            num_tall_peaks_in_middle, distance_to_edge)
 
     labels, num_labels = ndimage.label(peaks_thresholded)
     logger.info('found %d independent peaks', num_labels)
@@ -95,11 +96,12 @@ def detect_peaks(data, voxel_spacing, search_radius, r_mm):
     rough_peak_locations = ndimage.center_of_mass(peaks_thresholded, labels, list(range(1, num_labels + 1)))
     num_peaks_with_region_touching_sides = 0
 
-    r_px = r_mm / voxel_spacing
-    logger.info('performing thresholded COM using r_mm = %f mm [%r]', r_mm, np.round(r_px).astype(int)),
+    com_r_px = center_of_mass_radius_mm / voxel_spacing
+    logger.info('performing thresholded COM using radius = %f mm [%r]',
+            center_of_mass_radius_mm, np.round(com_r_px).astype(int)),
     for i, rough_peak_location in enumerate(rough_peak_locations):
-        rmin = np.round(np.maximum(rough_peak_location - r_px, 0)).astype(int)
-        rmax = np.round(np.minimum(rough_peak_location + r_px + 1, np.array(data.shape))).astype(int)
+        rmin = np.round(np.maximum(rough_peak_location - com_r_px, 0)).astype(int)
+        rmax = np.round(np.minimum(rough_peak_location + com_r_px + 1, np.array(data.shape))).astype(int)
         roi_com = data[rmin[0]:rmax[0], rmin[1]:rmax[1], rmin[2]:rmax[2]]
         pi, pj, pk = np.round(rough_peak_location).astype(int)
         peak_intensity = data[pi, pj, pk]
