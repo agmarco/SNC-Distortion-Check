@@ -108,7 +108,15 @@ form {
         font-size: 0;  // hide the text (kept for accessibility)
         background: url(../images/logo-horizontal.svg) no-repeat;
         height: 31px;
-        width: (485px / 31px) * 31px;
+        width: 125px; // only show "CIRS"
+      }
+
+      .distortion-logo {
+        font-size: 0;
+        background: url(../images/distortion-logo-white.png) no-repeat;
+        height: 31px;
+        width: calc(100% - 125px);
+        background-size: contain;
       }
     }
   }

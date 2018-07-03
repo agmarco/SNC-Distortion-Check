@@ -11,11 +11,24 @@ body {
 
   h1 {
     margin: 0 0 $base-spacing 0;
-    font-size: 0;
-    background: url(../images/logo-vertical.svg) no-repeat;
-    width: 300px;
-    height: 499px / 1275px * 300px;
-    background-size: contain;
+
+    .logo {
+      font-size: 0; // hide the text (kept for accessibility)
+      background: url(../images/logo-vertical.svg) no-repeat;
+      display: block;
+      width: 300px;
+      height: 70px; // only show "CIRS"
+      background-size: cover;
+    }
+
+    .distortion-logo {
+      font-size: 0;
+      background: url(../images/distortion-logo.jpg) no-repeat;
+      display: block;
+      width: 300px;
+      height: (408px / 1608px) * 300px;
+      background-size: contain;
+    }
   }
 
   .btn {
