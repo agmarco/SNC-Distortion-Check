@@ -134,7 +134,7 @@ class ScanSerializer(serializers.ModelSerializer):
         return scan.executive_report.name and scan.executive_report.url
 
     def get_modality(self, scan):
-        return scan.dicom_series.modality
+        return scan.dicom_series and scan.dicom_series.modality
 
 
 class GoldenFiducialsSerializer(serializers.ModelSerializer):
