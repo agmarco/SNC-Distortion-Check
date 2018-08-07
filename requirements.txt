@@ -32,8 +32,8 @@ keras==1.2.2
 kombu==4.1.0              # via celery
 markdown==2.6.9           # via tensorflow-tensorboard
 matplotlib==2.0.2
-naturalneighbor==0.1.8
 numpy==1.13.1
+naturalneighbor==0.1.8
 olefile==0.44             # via pillow
 orderedset==2.0
 pillow==4.2.1
