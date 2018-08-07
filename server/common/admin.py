@@ -58,7 +58,28 @@ class DicomSeriesAdmin(admin.ModelAdmin):
 
 @admin.register(models.Scan)
 class ScanAdmin(admin.ModelAdmin):
-    list_display = ('creator', 'pk', 'created_on', 'passed', 'processing', 'tolerance', 'errors', 'notes')
+    list_display = (
+        'creator',
+        'pk',
+        'created_on',
+        'passed',
+        'processing',
+        'tolerance',
+        'errors',
+        'notes',
+    )
+    fields = (
+        'deleted',
+        'creator',
+        'machine_sequence_pair',
+        'full_report',
+        'executive_report',
+        'raw_data',
+        'notes',
+        'processing',
+        'errors',
+        'tolerance',
+    )
     exclude = ('dicom_series',)
     actions = ('download_dicom',)
     ordering = ('-created_on',)
