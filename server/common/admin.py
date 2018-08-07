@@ -68,19 +68,7 @@ class ScanAdmin(admin.ModelAdmin):
         'errors',
         'notes',
     )
-    fields = (
-        'deleted',
-        'creator',
-        'machine_sequence_pair',
-        'full_report',
-        'executive_report',
-        'raw_data',
-        'notes',
-        'processing',
-        'errors',
-        'tolerance',
-    )
-    exclude = ('dicom_series',)
+    exclude = ('dicom_series', 'detected_fiducials', 'golden_fiducials', 'TP_A_S', 'TP_B')
     actions = ('download_dicom',)
     ordering = ('-created_on',)
 
