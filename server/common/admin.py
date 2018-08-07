@@ -58,8 +58,17 @@ class DicomSeriesAdmin(admin.ModelAdmin):
 
 @admin.register(models.Scan)
 class ScanAdmin(admin.ModelAdmin):
-    list_display = ('creator', 'pk', 'created_on', 'passed', 'processing', 'tolerance', 'errors', 'notes')
-    exclude = ('dicom_series',)
+    list_display = (
+        'creator',
+        'pk',
+        'created_on',
+        'passed',
+        'processing',
+        'tolerance',
+        'errors',
+        'notes',
+    )
+    exclude = ('dicom_series', 'detected_fiducials', 'golden_fiducials', 'TP_A_S', 'TP_B')
     actions = ('download_dicom',)
     ordering = ('-created_on',)
 
