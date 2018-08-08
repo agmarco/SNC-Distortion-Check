@@ -197,6 +197,7 @@ class RegisterForm(BaseUserForm):
     institution_address = forms.CharField()
     institution_phone = forms.CharField(label="Institution Contact Phone Number")
     email_repeat = forms.EmailField()
+    terms_of_use = forms.BooleanField()
 
     class Meta(BaseUserForm.Meta):
         fields = (
@@ -208,6 +209,7 @@ class RegisterForm(BaseUserForm):
             'last_name',
             'email',
             'email_repeat',
+            'terms_of_use',
         )
 
     def clean(self):

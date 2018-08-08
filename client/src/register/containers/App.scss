@@ -1,0 +1,18 @@
+@import '../../common/base';
+
+.cirs-form {
+  .inline-group {
+    display: flex;
+    margin-bottom: $small-spacing;
+
+    input {
+      margin-right: $small-spacing;
+      margin-bottom: 0;
+    }
+
+    input[type="checkbox"] {
+      margin-top: 4px;
+      margin-bottom: 4px;
+    }
+  }
+}
