@@ -247,13 +247,14 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
     def draw_institution_table(ax, cell):
         details = [
             ('Institution Name', institution.name),
-            ('Institution Address', institution.address),
+            ('Institution Address', institution.address.replace('\r\n', '\n')),
             ('Institution Phone Number', institution.phone_number),
         ]
 
         ax.axis('off')
-        ax.set_title('Institution Details')
+        ax.set_title('Institution Details', fontdict={'fontweight': 'bold'})
         text = "\n\n\n".join('{}:\n\n{}'.format(k, v) for k, v in details)
+        print(text)
         ax.text(0, 0.5, text)
 
     def draw_data_acquisition_table(ax, cell):
@@ -299,10 +300,10 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         for i, cell in enumerate(table_cells):
             cell.set_height(0.05)
         ax.axis('off')
-        ax.set_title('Data Acquisition Table')
+        ax.set_title('Data Acquisition Table', fontdict={'fontweight': 'bold'})
 
     def draw_phantom_description(ax, cell):
-        ax.set_title('Phantom Description')
+        ax.set_title('Phantom Description', fontdict={'fontweight': 'bold'})
         ax.axis('off')
         desc = phantoms.paramaters[phantom_model]['description']
         t = "\n\n".join("\n".join(wrap(p, 95)) for p in desc.split("\n"))
@@ -317,7 +318,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         ax.scatter(distances, error_mags, c=error_mags, cmap=cmap, norm=norm, s=12)
         ax.set_xlabel('Distance from Isocenter [mm]')
         ax.set_ylabel('Distortion Magnitude [mm]')
-        ax.set_title('Scatter Plot of Geometric Distortion vs. Distance from Isocenter')
+        ax.set_title('Scatter Plot of Geometric Distortion vs. Distance from Isocenter', fontdict={'fontweight': 'bold'})
 
     def draw_spacial_mapping(grid_a, grid_b, gridded, ax):
         cmap = colors.ListedColormap(['green', 'red'])
@@ -341,7 +342,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         draw_spacial_mapping(grid_a, grid_b, gridded, ax)
         ax.set_xlabel('x [mm]')
         ax.set_ylabel('y [mm]')
-        ax.set_title('Axial Contour Plot')
+        ax.set_title('Axial Contour Plot', fontdict={'fontweight': 'bold'})
 
     def sagittal_spatial_mapping_data():
         grid_x, grid_y, grid_z = np.meshgrid(np.arange(x_min, x_max, GRID_DENSITY_mm),
@@ -355,7 +356,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         draw_spacial_mapping(grid_a, grid_b, gridded, ax)
         ax.set_xlabel('x [mm]')
         ax.set_ylabel('z [mm]')
-        ax.set_title('Sagittal Contour Plot')
+        ax.set_title('Sagittal Contour Plot', fontdict={'fontweight': 'bold'})
 
     def coronal_spatial_mapping_data():
         grid_x, grid_y, grid_z = np.meshgrid([isocenter[0]],
@@ -369,7 +370,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         draw_spacial_mapping(grid_a, grid_b, gridded, ax)
         ax.set_xlabel('y [mm]')
         ax.set_ylabel('z [mm]')
-        ax.set_title('Coronal Contour Plot')
+        ax.set_title('Coronal Contour Plot', fontdict={'fontweight': 'bold'})
 
     def draw_error_table(rows, ax, cell):
         table = ax.table(
@@ -387,7 +388,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
         for cell in table_cells:
             cell.set_height(0.05)
         ax.axis('off')
-        ax.set_title('Error Table')
+        ax.set_title('Error Table', fontdict={'fontweight': 'bold'})
 
     def generate_roi_view(ax, im, x_bounds, y_bounds, a_S_2D, b_2D, vmin, vmax):
         x_bounds = tuple(b - 0.5 for b in x_bounds)
@@ -427,7 +428,7 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
 
         gs_outer = gridspec.GridSpecFromSubplotSpec(2, 1, height_ratios=[1, 100], subplot_spec=cell)
         title_ax = plt.subplot(gs_outer[0, 0])
-        title_ax.set_title('Top 100 Most Distorted Grid Intersections')
+        title_ax.set_title('Top 100 Most Distorted Grid Intersections', fontdict={'fontweight': 'bold'})
         title_ax.axis('off')
 
         gs_inner = gridspec.GridSpecFromSubplotSpec(num_roi_chunks, 4, width_ratios=[1, 1, 1, 2], subplot_spec=gs_outer[1, 0])
