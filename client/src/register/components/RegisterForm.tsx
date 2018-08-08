@@ -9,6 +9,8 @@ import { IRegisterForm } from '../forms';
 import * as actions from '../actions';
 import { IAppState, ISerialNumberInfoState } from '../reducers';
 
+declare const TERMS_OF_USE_URL: string;
+
 interface IRegisterFormProps {
     cancelUrl: string;
     formErrors: IDjangoFormErrors | null;
@@ -36,7 +38,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, {}> {
     render() {
         const { cancelUrl, formErrors, formAction, formState, form, serialNumberInfo } = this.props;
         const { message, modelNumber} = serialNumberInfo as ISerialNumberInfoState;
-        const { pristine, validating, valid } = (formState as { [name: string]: FieldState }).phantom_serial_number;
+        const { pristine, validating, valid } = formState!.phantom_serial_number;
         const cirs603AUrl = 'http://www.cirsinc.com/products/all/99/mri-distortion-phantom-for-srs/';
         const cirs604Url = 'http://www.cirsinc.com/products/all/118/large-field-mri-distortion-phantom/';
 
@@ -177,12 +179,24 @@ class RegisterForm extends React.Component<IRegisterFormProps, {}> {
                         <CirsErrors model=".email_repeat" required email />
                     </div>
 
+                    <div className="inline-group">
+                        <CirsControl.checkbox
+                            model=".terms_of_use"
+                            type="checkbox"
+                            id="register-tos"
+                            required
+                        />
+                        <label htmlFor="register-tos">
+                            I agree to the <a href={TERMS_OF_USE_URL} target="_blank">Terms of Use</a>
+                        </label>
+                    </div>
+
                     <div className="form-links">
                         <a href={cancelUrl} className="btn tertiary">Cancel</a>
                         <input
                             type="submit"
                             value="Register"
-                            disabled={validating || !valid}
+                            disabled={validating || !valid || !form!.terms_of_use}
                             className="btn secondary"
                         />
                     </div>
