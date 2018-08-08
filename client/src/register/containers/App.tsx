@@ -4,6 +4,8 @@ import { Provider } from 'react-redux';
 import Root from './Root';
 import configureStore from '../store';
 
+import './App.scss';
+
 const store = configureStore();
 
 export default () => (

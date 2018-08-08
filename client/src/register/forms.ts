@@ -7,4 +7,5 @@ export interface IRegisterForm {
     last_name: string;
     email: string;
     email_repeat: string;
+    terms_of_use: boolean;
 }
