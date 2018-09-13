@@ -122,6 +122,14 @@ class Phantom(CommonFieldsMixin):
         return self.goldenfiducials_set.get(is_active=True)
 
 
+class PurchaseOrder(CommonFieldsMixin):
+    number = models.PositiveSmallIntegerField(unique=True)
+    phantom = models.ForeignKey(Phantom, models.CASCADE)
+
+    def __str__(self):
+        return f"Purchase Order {self.number}"
+
+
 class Machine(CommonFieldsMixin):
     name_ht = 'This is how the machine will be identified within the UI'
     name = models.CharField(max_length=255, help_text=name_ht)
