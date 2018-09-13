@@ -744,6 +744,7 @@ class RegisterView(JsonFormMixin, FormView):
         context = {
             'admin_link': admin_link,
             'institution': institution,
+            'phantom_serial_number': form.cleaned_data['phantom_serial_number'],
         }
         body = loader.render_to_string('common/email/create_user_cirs_email.txt', context)
         html_body = loader.render_to_string('common/email/create_user_cirs_email.html', context)
