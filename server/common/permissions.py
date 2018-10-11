@@ -30,15 +30,17 @@ def validate_institution(model_class=None, pk_url_kwarg='pk'):
     return ValidateInstitution
 
 
-class CheckLicense(BasePermission):
-    def has_permission(self, request, view):
-        institution = request.user.get_institution(request)
-        license_expiration_date = institution.license_expiration_date
-        scans_remaining = institution.scans_remaining
-        now = datetime.now().date()
-        if license_expiration_date is not None and license_expiration_date <= now:
-            return False
-        elif scans_remaining == 0:
-            return False
-        else:
-            return True
+def check_license(check_scans=False):
+    class CheckLicense(BasePermission):
+        def has_permission(self, request, view):
+            institution = request.user.get_institution(request)
+            license_expiration_date = institution.license_expiration_date
+            scans_remaining = institution.scans_remaining
+            now = datetime.now().date()
+            if license_expiration_date is not None and license_expiration_date <= now:
+                return False
+            elif check_scans and scans_remaining == 0:
+                return False
+            else:
+                return True
+    return CheckLicense
