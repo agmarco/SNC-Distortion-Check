@@ -69,8 +69,13 @@ export const signS3 = (file: File) => {
 };
 
 export const uploadToS3 = (url: string, body: FormData) => {
+    const headers = process.env.NODE_ENV === "production" ? {} : {
+        'X-CSRFToken': Cookies.get('csrftoken'),
+    };
+
     return fetch(url, {
         method: 'POST',
+        headers,
         body,
     });
 };
