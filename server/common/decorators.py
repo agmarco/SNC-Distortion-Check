@@ -142,39 +142,51 @@ expiration_warning_cutoff_days = 30
 expiration_warning_cutoff_scans = 20
 
 
-def check_license(view):
-    """If the license is expired or there are 0 scans remaining, make the software unavailable."""
+def check_license(check_scans=False):
+    """If the license is expired or there are 0 scans remaining, make the view unavailable."""
 
-    @wraps(view)
-    def wrapper(request, *args, **kwargs):
-        institution = request.user.get_institution(request)
-        license_expiration_date = institution.license_expiration_date
-        scans_remaining = institution.scans_remaining
-        now = datetime.now().date()
+    def decorator(view):
 
-        if license_expiration_date is not None and license_expiration_date <= now:
-            return render(request, 'common/license_expired.html', status=403)
-        elif scans_remaining == 0:
-            return render(request, 'common/license_expired.html', status=403)
+        @wraps(view)
+        def wrapper(request, *args, **kwargs):
+            institution = request.user.get_institution(request)
+            license_expiration_date = institution.license_expiration_date
+            scans_remaining = institution.scans_remaining
+            now = datetime.now().date()
 
-        time_warning = license_expiration_date is not None and \
-                license_expiration_date <= now + timedelta(days=expiration_warning_cutoff_days)
-        count_warning = scans_remaining is not None and scans_remaining <= expiration_warning_cutoff_scans
-        days_remaining = None if license_expiration_date is None else (license_expiration_date - now).days
-        msg = None
-        if time_warning and count_warning:
-            msg = f"You have {_pluralize(scans_remaining, 'scan')} remaining and your " + \
-                    f"license expires in {_pluralize(days_remaining, 'day')}. Contact CIRS support to update your license."
-        elif count_warning:
-            msg = f"You have {_pluralize(scans_remaining, 'scan')} remaining. Contact CIRS support to acquire more scans."
-        elif time_warning:
-            msg = f"Your license expires in {_pluralize(days_remaining, 'day')}. Contact CIRS support to renew your license."
+            if license_expiration_date is not None and license_expiration_date <= now:
+                return render(request, 'common/license_expired.html', status=403)
+            elif check_scans and scans_remaining == 0:
+                return render(request, 'common/license_expired.html', status=403)
 
-        if msg is not None:
-            _add_warning_if_not_present_already(request, msg)
+            expiration_warning_cutoff_date = now + timedelta(days=expiration_warning_cutoff_days)
+            time_warning = (
+                    license_expiration_date is not None
+                    and license_expiration_date <= expiration_warning_cutoff_date
+            )
+            count_warning = (
+                    scans_remaining is not None
+                    and scans_remaining <= expiration_warning_cutoff_scans
+            )
+            days_remaining = None if license_expiration_date is None else (license_expiration_date - now).days
+            msg = None
+            if time_warning and count_warning:
+                msg = f"You have {_pluralize(scans_remaining, 'scan')} remaining and your " + \
+                      f"license expires in {_pluralize(days_remaining, 'day')}. " + \
+                      "Contact CIRS support to update your license."
+            elif count_warning:
+                msg = f"You have {_pluralize(scans_remaining, 'scan')} remaining. " + \
+                      "Contact CIRS support to acquire more scans."
+            elif time_warning:
+                msg = f"Your license expires in {_pluralize(days_remaining, 'day')}. " + \
+                      "Contact CIRS support to renew your license."
 
-        return view(request, *args, **kwargs)
-    return wrapper
+            if msg is not None:
+                _add_warning_if_not_present_already(request, msg)
+
+            return view(request, *args, **kwargs)
+        return wrapper
+    return decorator
 
 
 def _pluralize(count, word):
