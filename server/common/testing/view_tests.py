@@ -232,15 +232,14 @@ def test_license(client, license_data, view):
 
     client.force_login(current_user)
 
-    if view.check_license or view.check_scans:
-        if view.check_license:
-            if license_expiration_date is not None and license_expiration_date <= now:
-                for method, method_data in _methods(view, view_data):
-                    assert denied_access(client, url, method, method_data, patches)
-        elif view.check_scans:
-            if scans_remaining == 0:
-                for method, method_data in _methods(view, view_data):
-                    assert denied_access(client, url, method, method_data, patches)
+    if view.check_license:
+        if license_expiration_date is not None and license_expiration_date <= now:
+            for method, method_data in _methods(view, view_data):
+                assert denied_access(client, url, method, method_data, patches)
+    elif view.check_scans:
+        if scans_remaining == 0:
+            for method, method_data in _methods(view, view_data):
+                assert denied_access(client, url, method, method_data, patches)
     else:
         for method, method_data in _methods(view, view_data):
             assert allowed_access(client, url, method, method_data, patches)
