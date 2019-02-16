@@ -25,9 +25,15 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ('first_name', 'last_name', 'email', 'institution')
 
 
+class PurchaseOrderInline(admin.TabularInline):
+    model = models.PurchaseOrder
+    fields = 'number',
+
+
 @admin.register(models.Phantom)
 class PhantomAdmin(admin.ModelAdmin):
     list_display = ('name', 'institution', 'model', 'serial_number')
+    inlines = PurchaseOrderInline,
 
 
 @admin.register(models.PhantomModel)
