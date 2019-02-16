@@ -16,29 +16,29 @@ from .utils import validate_create_view, validate_update_view, validate_delete_v
 # import needed for side effect
 from .fixtures import permissions_data, institution_data, http_method_data, license_data
 
-TESTED_VIEWS = [view for view in VIEWS if not view.get('exclude')]
+TESTED_VIEWS = [view for view in VIEWS if not view.exclude]
 
 
 def _view_data(view, user):
-    if 'data' in view:
-        return view['data'](user)
+    if view.data is not None:
+        return view.data(user)
     else:
         return None
 
 
 def _patches(view):
-    return view['patches'] if 'patches' in view else None
+    return view.patches if view.patches is not None else None
 
 
 def _url(view, view_data=None):
-    if callable(view['url']):
-        return view['url'](view_data)
+    if callable(view.url):
+        return view.url(view_data)
     else:
-        return view['url']
+        return view.url
 
 
 def _methods(view, view_data=None):
-    for method, method_data in view['methods'].items():
+    for method, method_data in view.methods.items():
         if callable(method_data):
             method_data = method_data(view_data)
         yield method, method_data
@@ -59,12 +59,12 @@ def test_regression():
     Test that each view used in the URLconf is tested.
     """
     views = _get_views_from_urlpatterns(urlpatterns)
-    configured_views = set(view['view'] for view in VIEWS)
+    configured_views = set(view.view for view in VIEWS)
     unconfigured_view_names = [view.__name__ for view in views - configured_views]
     assert views == configured_views, f"The following views have no test configuration: {unconfigured_view_names}"
 
 
-@pytest.mark.parametrize('view', (view for view in TESTED_VIEWS if not view['login_required']))
+@pytest.mark.parametrize('view', (view for view in TESTED_VIEWS if not view.login_required))
 @pytest.mark.django_db
 def test_login_not_required(client, view):
     """
@@ -83,7 +83,7 @@ def test_login_not_required(client, view):
             assert response.status_code == 200
 
 
-@pytest.mark.parametrize('view', (view for view in TESTED_VIEWS if view['login_required']))
+@pytest.mark.parametrize('view', (view for view in TESTED_VIEWS if view.login_required))
 @pytest.mark.django_db
 def test_login_required(client, view):
     """
@@ -110,7 +110,7 @@ def test_login_required(client, view):
         assert allowed_access(client, url, method, method_data, patches)
 
 
-@pytest.mark.parametrize('view', (view for view in TESTED_VIEWS if view['permissions']))
+@pytest.mark.parametrize('view', (view for view in TESTED_VIEWS if view.permissions))
 def test_permissions(client, permissions_data, view):
     """
     For each view that requires some permission, test that a user that has the required permissions is granted access,
@@ -124,7 +124,7 @@ def test_permissions(client, permissions_data, view):
 
     client.force_login(current_user)
 
-    if all(current_user.has_perm(permission) for permission in view['permissions']):
+    if all(current_user.has_perm(permission) for permission in view.permissions):
         for method, method_data in _methods(view, view_data):
             assert allowed_access(client, url, method, method_data, patches)
     else:
@@ -132,7 +132,7 @@ def test_permissions(client, permissions_data, view):
             assert denied_access(client, url, method, method_data, patches)
 
 
-@pytest.mark.parametrize('view', (view for view in TESTED_VIEWS if view['validate_institution']))
+@pytest.mark.parametrize('view', (view for view in TESTED_VIEWS if view.validate_institution))
 def test_institution(client, institution_data, view):
     """
     For each view that requires validation of the institution, test that a user that belongs to a matching institution
@@ -175,8 +175,8 @@ def test_http_methods(client, http_method_data, view):
 
     client.force_login(current_user)
 
-    if method in view['methods']:
-        method_data = view['methods'][method]
+    if method in view.methods:
+        method_data = view.methods[method]
         if callable(method_data):
             method_data = method_data(view_data)
         assert allowed_access(client, url, method, method_data, patches)
@@ -184,7 +184,7 @@ def test_http_methods(client, http_method_data, view):
         assert denied_access(client, url, method, None, patches)
 
 
-@pytest.mark.parametrize('view', (view for view in TESTED_VIEWS if 'crud' in view))
+@pytest.mark.parametrize('view', (view for view in TESTED_VIEWS if view.crud is not None))
 @pytest.mark.django_db
 def test_crud(client, view):
     """
@@ -201,8 +201,8 @@ def test_crud(client, view):
     view_data = _view_data(view, current_user)
     patches = _patches(view)
     url = _url(view, view_data)
-    operation, model, _ = view['crud']
-    post_data = view['crud'][2](view_data) if callable(view['crud'][2]) else view['crud'][2]
+    operation, model, _ = view.crud
+    post_data = view.crud[2](view_data) if callable(view.crud[2]) else view.crud[2]
 
     if operation == Crud.CREATE:
         validate_create_view(client, current_user, url, model, post_data, patches)
@@ -215,8 +215,10 @@ def test_crud(client, view):
 @pytest.mark.parametrize('view', TESTED_VIEWS)
 def test_license(client, license_data, view):
     """
-    If the view requires a valid license, check that an expired license or 0 remaining scans makes the view
+    If the view requires an unexpired license, check that an expired license makes the view
     inaccessible.
+    If the view requires an scans remaining on the license, check that a license with no remaining
+    scans makes the view inaccessible.
     """
 
     current_user = license_data['current_user']
@@ -230,16 +232,14 @@ def test_license(client, license_data, view):
 
     client.force_login(current_user)
 
-    if view['check_license']:
+    if view.check_license:
         if license_expiration_date is not None and license_expiration_date <= now:
             for method, method_data in _methods(view, view_data):
                 assert denied_access(client, url, method, method_data, patches)
-        elif scans_remaining == 0:
+    elif view.check_scans:
+        if scans_remaining == 0:
             for method, method_data in _methods(view, view_data):
                 assert denied_access(client, url, method, method_data, patches)
-        else:
-            for method, method_data in _methods(view, view_data):
-                assert allowed_access(client, url, method, method_data, patches)
     else:
         for method, method_data in _methods(view, view_data):
             assert allowed_access(client, url, method, method_data, patches)
