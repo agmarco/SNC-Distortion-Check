@@ -146,25 +146,20 @@ class TestDetectPeaks:
         d[4, 4, 4] = 1
         voxel_spacing = np.array([1.0, 1.0, 1.0])
         search_radius = 1.1
+        center_of_mass_radius = 11
 
         expected_peaks = np.array([[4, 4, 4]], dtype=float).T
-
-        peaks, labels = detect_peaks(d, voxel_spacing, search_radius)
-
+        peaks, labels = detect_peaks(d, voxel_spacing, search_radius, center_of_mass_radius)
         assert_allclose(expected_peaks, peaks)
 
     def test_performs_subvoxel_peak_detection(self):
         d = np.zeros((7, 9, 11))
         d[4, 4, 4] = 1
         d[4, 4, 5] = 1
-
         voxel_spacing = np.array([1.0, 1.0, 1.0])
         search_radius = 1.1
+        center_of_mass_radius = 11
 
-        # TODO: look into the math behind the spline interpolation to verify
-        # this hardcoded value is correct
-        expected_peaks = np.array([[4, 4, 4.444444]], dtype=float).T
-
-        peaks, labels = detect_peaks(d, voxel_spacing, search_radius)
-
+        expected_peaks = np.array([[4, 4, 4.5]], dtype=float).T
+        peaks, labels = detect_peaks(d, voxel_spacing, search_radius, center_of_mass_radius)
         assert_allclose(expected_peaks, peaks, atol=0.001)
