@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 
-from process.peak_detection import neighborhood_peaks, subvoxel_maximum, detect_peaks
+from process.peak_detection import neighborhood_peaks, detect_peaks
 
 
 class TestDetectPeaks:
@@ -138,47 +138,6 @@ class TestDetectPeaks:
         peaks = neighborhood_peaks(voxels, search_neighborhood)
         assert np.allclose(expected_peaks, peaks)
 
-
-class TestSubvoxelDetectPeaks:
-
-    def test_simple_1d_3_peak_preserved(self):
-        a = np.array([0, 1, 0], dtype=float)
-        assert subvoxel_maximum(a, 3)[0] == 1
-
-    def test_simple_1d_7_peak_preserved(self):
-        a = np.array([0, 0, 0, 2, 0, 0, 0], dtype=float)
-        assert subvoxel_maximum(a, 5)[0] == 3
-
-    def test_simple_1d_6_peak_almost_preserved(self):
-        '''
-        I believe this is a property of splines, that the peak location will get shifted
-        over a bit.
-        '''
-        a = np.array([0, 0, 0, 2, 0, 0], dtype=float)
-        assert math.isclose(subvoxel_maximum(a, 5)[0], 3, abs_tol=0.1)
-
-    def test_simple_2d_3x3_peak_preserved(self):
-        a = np.array([
-            [0, 0, 0],
-            [0, 1, 0],
-            [0, 0, 0],
-        ], dtype=float)
-        assert_allclose(subvoxel_maximum(a, 5), np.array([1, 1]))
-
-    @pytest.mark.xfail(reason="Unclear understanding of the spline interpolation")
-    def test_simple_3d_3x3x4_peak_preserved(self):
-        a = np.array([
-            [[0, 0, 0, 0],
-             [0, 0, 0, 0],
-             [0, 0, 0, 0]],
-            [[0, 0, 0, 0],
-             [0, 1, 1, 0],
-             [0, 0, 0, 0]],
-            [[0, 0, 0, 0],
-             [0, 0, 0, 0],
-             [0, 0, 0, 0]],
-        ], dtype=float)
-        assert_allclose(subvoxel_maximum(a, 5), np.array([1, 1, 1.5]))
 
 class TestDetectPeaks:
     def test_rejects_peaks_on_edge(self):
