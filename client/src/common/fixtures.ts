@@ -60,6 +60,7 @@ export const scanFixture = (phantom?: IPhantomDto, template: Partial<IScanDto> =
     return {
         pk,
         created_on: '2000-01-01',
+        modality: 'CT',
         phantom: phantom || phantomFixture(),
         processing: false,
         errors: null,
