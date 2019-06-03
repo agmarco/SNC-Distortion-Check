@@ -1,8 +1,8 @@
+import sys
 from collections import OrderedDict
 from functools import partial
 
 import matplotlib.pyplot as plt
-import numpy as np
 from hdat import Suite, MetricsChecker
 
 from . import file_io
@@ -18,6 +18,7 @@ class FeatureDetectionSuite(Suite):
     id = 'feature-detection'
 
     def collect(self):
+        sys.setrecursionlimit(10000)  # 603A-1 fails without this
         cases = {
             '603A-1': {
                 'voxels': 'tmp/001_ct_603A_E3148_ST1.25-voxels.mat',
