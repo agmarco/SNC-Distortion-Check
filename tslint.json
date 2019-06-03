@@ -16,6 +16,7 @@
     "max-classes-per-file": [false],
     "no-consecutive-blank-lines": [true, 2],
     "no-console": false,
+    "no-namespace": false,
     "interface-name": false
   }
 }
