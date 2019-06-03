@@ -4,4 +4,5 @@ set -e
 ./droppostgresdb || echo 'Unable to drop Postgres DB'
 ./dropredisdb || echo 'Unable to drop Redis DB'
 rm -rf node_modules
+find . -name "*.pyc" -type f -delete
 ./clean
