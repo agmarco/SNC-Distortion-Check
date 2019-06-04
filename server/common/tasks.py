@@ -252,6 +252,7 @@ CT_WARNING_THRESHOLD = 0.05
 def process_ct_upload(gold_standard_pk, dicom_archive_url=None):
     logger.info("Beginning processing of CT for golden standard (pk={})".format(gold_standard_pk))
     gold_standard = models.GoldenFiducials.objects.get(pk=gold_standard_pk)
+    active_gold_standard = gold_standard.phantom.active_gold_standard
 
     try:
         if dicom_archive_url:
@@ -280,13 +281,13 @@ def process_ct_upload(gold_standard_pk, dicom_archive_url=None):
         pruned_points_ijk = fp_rejector.remove_fps(points_ijk, voxels, voxel_spacing, phantom_model)
         pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
 
-        cad_fiducials = gold_standard.phantom.model.cad_fiducials.fiducials
+        active_gs_fiducials = active_gold_standard.fiducials.fiducials
 
         grid_spacing = phantoms.paramaters[phantom_model]['grid_spacing']
 
         isocenter_in_B = fov_center_xyz(voxels.shape, ijk_to_xyz)
         xyztpx_a_to_b, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
-                cad_fiducials, pruned_points_xyz, grid_spacing, isocenter_in_B)
+                active_gs_fiducials, pruned_points_xyz, grid_spacing, isocenter_in_B)
 
         ct_fiducials = TP_B
 
@@ -297,11 +298,11 @@ def process_ct_upload(gold_standard_pk, dicom_archive_url=None):
         # apply it to move the CT points back to the CAD's coordinate system.
         a_to_b = affine.rotation_translation(*xyztpx_a_to_b)
         b_to_a = np.linalg.inv(a_to_b)
-        ct_fiducials_aligned_with_cad = affine.apply_affine(b_to_a, ct_fiducials)
+        ct_fiducials_aligned_with_active_gs = affine.apply_affine(b_to_a, ct_fiducials)
 
-        gold_standard.fiducials = models.Fiducials.objects.create(fiducials=ct_fiducials_aligned_with_cad)
+        gold_standard.fiducials = models.Fiducials.objects.create(fiducials=ct_fiducials_aligned_with_active_gs)
 
-        _raise_if_fiducials_too_different_from_cad(ct_fiducials_aligned_with_cad, cad_fiducials)
+        _raise_if_fiducials_too_different_from_active_gs(ct_fiducials_aligned_with_active_gs, active_gs_fiducials)
 
     except AlgorithmException as e:
         gold_standard = models.GoldenFiducials.objects.get(pk=gold_standard_pk)  # fresh instance
@@ -319,15 +320,15 @@ def process_ct_upload(gold_standard_pk, dicom_archive_url=None):
         logger.info('finished processing gold standard')
 
 
-def _raise_if_fiducials_too_different_from_cad(ct_fiducials, cad_fiducials):
-    _, num_cad_fiducials = cad_fiducials.shape
+def _raise_if_fiducials_too_different_from_active_gs(ct_fiducials, active_gs_fiducials):
+    _, num_active_gs_fiducials = active_gs_fiducials.shape
     _, num_ct_fiducials = ct_fiducials.shape
 
     error_threshold = 0.5
-    fractional_difference = abs(num_ct_fiducials - num_cad_fiducials) / num_cad_fiducials
+    fractional_difference = abs(num_ct_fiducials - num_active_gs_fiducials) / num_active_gs_fiducials
     if fractional_difference > CT_WARNING_THRESHOLD:
         msg = 'There was an error processing the CT upload, and too many or too few points were detected ' + \
-              f'({num_ct_fiducials} in the upload, vs {num_cad_fiducials} in the CAD model).' + \
+              f'({num_ct_fiducials} in the upload, vs {num_active_gs_fiducials} in the CAD model).' + \
               'Thus, the points can not be used.'
         logger.error(msg)
         if fractional_difference > error_threshold:
