@@ -45,11 +45,17 @@ class CreatePhantomForm(CirsFormMixin, forms.Form):
 
 
 class UploadScanForm(CirsFormMixin, forms.Form):
-    machine = forms.IntegerField()
-    sequence = forms.IntegerField()
-    phantom = forms.IntegerField()
     dicom_archive_url = forms.CharField()
     notes = forms.CharField(required=False)
+
+    def __init__(self, institution, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        machines = Machine.objects.filter(institution=institution).active()
+        sequences = Sequence.objects.filter(institution=institution).active()
+        phantoms = Phantom.objects.filter(institution=institution).active()
+        self.fields['machine'] = forms.ModelChoiceField(machines)
+        self.fields['sequence'] = forms.ModelChoiceField(sequences)
+        self.fields['phantom'] = forms.ModelChoiceField(phantoms)
 
 
 class UploadCtForm(CirsFormMixin, forms.Form):
