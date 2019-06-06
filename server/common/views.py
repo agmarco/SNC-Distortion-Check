@@ -100,7 +100,11 @@ class LandingView(TemplateView):
     def machine_sequence_pairs_data(self):
         institution = self.request.user.get_institution(self.request)
         base_queryset = models.MachineSequencePair.objects.filter(machine__institution=institution)
-        queryset = base_queryset.active().order_by('-last_modified_on')
+        active_queryset = base_queryset.active().filter(
+            machine__deleted=False,
+            sequence__deleted=False,
+        )
+        queryset = active_queryset.order_by('-last_modified_on')
         return serializers.MachineSequencePairSerializer(queryset, many=True).data
 
 
@@ -185,19 +189,17 @@ class UploadScanView(JsonFormMixin, FormView):
     template_name = 'common/upload_scan.html'
     renderer = JSONRenderer()
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['institution'] = self.request.user.get_institution(self.request)
+        return kwargs
+
     def get_context_data(self, **kwargs):
         context = super(UploadScanView, self).get_context_data(**kwargs)
-        institution = self.request.user.get_institution(self.request)
-
-        machines = models.Machine.objects.filter(institution=institution).active()
-        machines_json = serializers.MachineSerializer(machines, many=True)
-
-        sequences = models.Sequence.objects.filter(institution=institution).active()
-        sequences_json = serializers.SequenceSerializer(sequences, many=True)
-
-        phantoms = models.Phantom.objects.filter(institution=institution).active()
-        phantoms_json = serializers.PhantomSerializer(phantoms, many=True)
-
+        form = context['form']
+        machines_json = serializers.MachineSerializer(form.fields['machine'].queryset, many=True)
+        sequences_json = serializers.SequenceSerializer(form.fields['sequence'].queryset, many=True)
+        phantoms_json = serializers.PhantomSerializer(form.fields['phantom'].queryset, many=True)
         context.update({
             'machines_json': self.renderer.render(machines_json.data),
             'sequences_json': self.renderer.render(sequences_json.data),
@@ -206,9 +208,9 @@ class UploadScanView(JsonFormMixin, FormView):
         return context
 
     def form_valid(self, form):
-        machine = models.Machine.objects.get(pk=form.cleaned_data['machine'])
-        sequence = models.Sequence.objects.get(pk=form.cleaned_data['sequence'])
-        phantom = models.Phantom.objects.get(pk=form.cleaned_data['phantom'])
+        machine = form.cleaned_data['machine']
+        sequence = form.cleaned_data['sequence']
+        phantom = form.cleaned_data['phantom']
 
         # TODO: check that the uploaded DICOM is an MRI (we can't support DICOM
         # Secondary Captures here, like we do for CT uploads)
