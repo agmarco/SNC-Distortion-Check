@@ -137,17 +137,19 @@ def process_scan(scan_pk, dicom_archive_url=None):
         creator_email = scan.creator.email
         logger.exception(f'Unhandled scan exception occurred while processing scan for "{creator_email}"')
         scan.errors = 'A server error occurred while processing the scan.'
+
     else:
         if scan.institution.scans_remaining is not None:
             scan.institution.scans_remaining = F('scans_remaining') - 1
             scan.institution.save()
+
     finally:
         raw_data_filename = 'raw_data.zip'
         raw_data = dump_raw_scan_data(scan)
         scan.raw_data.save(raw_data_filename, File(raw_data))
 
         scan.processing = False
-        scan.save()
+        _save_scan(scan)
         logger.info('finished processing scan')
 
 
@@ -156,7 +158,7 @@ def _save_dicom_series(scan, dicom_archive_url):
     dicom_series = models.DicomSeries(zipped_dicom_files=zipped_dicom_files)
     dicom_series.save()
     scan.dicom_series = dicom_series
-    scan.save()
+    _save_scan(scan)
 
 
 def _save_dicom_series_metadata(dicom_series, datasets):
@@ -195,7 +197,7 @@ def _save_detected_fiducials(scan, voxels, ijk_to_xyz):
     pruned_points_ijk = fp_rejector.remove_fps(points_ijk, voxels, voxel_spacing, phantom_model)
     pruned_points_xyz = affine.apply_affine(ijk_to_xyz, pruned_points_ijk)
     scan.detected_fiducials = models.Fiducials.objects.create(fiducials=pruned_points_xyz)
-    scan.save()
+    _save_scan(scan)
 
 
 def _save_registration_results(scan, isocenter_in_B):
@@ -210,7 +212,7 @@ def _save_registration_results(scan, isocenter_in_B):
     TPF, _, _ = points_utils.metrics(FN_A_S, TP_A_S, TP_B, FP_B)
     scan.TP_A_S = models.Fiducials.objects.create(fiducials=TP_A_S)
     scan.TP_B = models.Fiducials.objects.create(fiducials=TP_B)
-    scan.save()
+    _save_scan(scan)
     return TPF
 
 
@@ -243,6 +245,11 @@ def _save_reports(scan, datasets, voxels, ijk_to_xyz):
     with open(executive_report_path, 'rb') as report_file:
         scan.executive_report.save(executive_report_filename, File(report_file))
 
+    _save_scan(scan)
+
+
+def _save_scan(scan):
+    scan.deleted = F('deleted')
     scan.save()
 
 
