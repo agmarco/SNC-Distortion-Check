@@ -56,7 +56,11 @@ class Institution(CommonFieldsMixin):
     scans_remaining = models.PositiveIntegerField(null=True, blank=True, help_text=scans_remaining_ht)
 
     def __str__(self):
-        return "{}".format(self.name)
+        return "{}; {} scans remaining; expires {}".format(
+            self.name,
+            self.scans_remaining,
+            self.license_expiration_date,
+        )
 
 
 class CommonFieldsUserManager(CommonFieldsManager, UserManager):
