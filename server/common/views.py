@@ -100,7 +100,11 @@ class LandingView(TemplateView):
     def machine_sequence_pairs_data(self):
         institution = self.request.user.get_institution(self.request)
         base_queryset = models.MachineSequencePair.objects.filter(machine__institution=institution)
-        queryset = base_queryset.active().order_by('-last_modified_on')
+        active_queryset = base_queryset.active().filter(
+            machine__deleted=False,
+            sequence__deleted=False,
+        )
+        queryset = active_queryset.order_by('-last_modified_on')
         return serializers.MachineSequencePairSerializer(queryset, many=True).data
 
 
