@@ -19,7 +19,8 @@ def grid3x3x3(delta):
         for x, y, z
         in product([-1, 0, 1], [-1, 0, 1], [-1, 0, 1])
     ]
-    return np.array(unit_grid_list, dtype=np.double).T*delta
+    return (np.array(unit_grid_list, dtype=np.double)*delta).T
+
 
 def grid5x5x5(delta):
     unit_grid_list = [
@@ -27,7 +28,7 @@ def grid5x5x5(delta):
         for x, y, z
         in product([-2, -1, 0, 1, 2], [-2, -1, 0, 1, 2], [-2, -1, 0, 1, 2])
     ]
-    return np.array(unit_grid_list, dtype=np.double).T*delta
+    return (np.array(unit_grid_list, dtype=np.double)*delta).T
 
 
 class TestSimpleObjectiveFunction(unittest.TestCase):
@@ -87,7 +88,7 @@ class TestSimpleObjectiveFunction(unittest.TestCase):
 @pytest.mark.slow
 class TestRegistrationPerfectMatch:
     def assert_5x5x5_match(self, xyztpx):
-        grid_spacing = 20
+        grid_spacing = np.array([20, 20, 20])
         A = grid5x5x5(grid_spacing)
         B = apply_xyztpx(xyztpx, A)
 
@@ -111,7 +112,7 @@ class TestRegistrationPerfectMatch:
 
 class TestRegisterAndCategorize:
     def assert_3x3x3_match(self, xyztpx, isocenter):
-        grid_spacing = 20
+        grid_spacing = np.array([20, 20, 20])
         A = grid3x3x3(grid_spacing)
         B = apply_xyztpx(xyztpx, A)
         A_S = B  # since this is an idealized case
@@ -145,22 +146,22 @@ class TestRegisterAndCategorize:
         All of the points close to the isocenter (within g_cutoff) have a shift
         of (0, 0, 0.1), while the points outside the cutoff don't have a shift.
         '''
-        grid_spacing = 1.0
+        grid_spacing = np.array([1.0, 1.0, 1.0])
 
         A = np.array([
             [0, 0, 2.0],
             [0, 0, 3.0],
-            [0, 0, 10*grid_spacing + 11.0],
-            [0, 0, 10*grid_spacing + 12.0],
-            [0, 0, 10*grid_spacing + 13.0]
+            [0, 0, 10*grid_spacing[2] + 11.0],
+            [0, 0, 10*grid_spacing[2] + 12.0],
+            [0, 0, 10*grid_spacing[2] + 13.0]
         ]).T
 
         B = np.array([
             [0, 0, 2.1],
             [0, 0, 3.1],
-            [0, 0, 10*grid_spacing + 11.0],
-            [0, 0, 10*grid_spacing + 12.0],
-            [0, 0, 10*grid_spacing + 13.0]
+            [0, 0, 10*grid_spacing[2] + 11.0],
+            [0, 0, 10*grid_spacing[2] + 12.0],
+            [0, 0, 10*grid_spacing[2] + 13.0]
         ]).T
 
         isocenter = np.array([0, 0, 0])
@@ -184,7 +185,7 @@ class TestRegisterAndCategorize:
         A = np.array([[0, 0, -1], [0, 0, 0.0], [0, 0, 1.0]]).T
         B = np.array([[0, 0, -1.1 + 2], [0, 0, 0.0 + 2], [0, 0, 1.1 + 2]]).T
         isocenter = np.array([0, 0, 0])
-        grid_spacing = 1.0
+        grid_spacing = np.array([1.0, 1.0, 1.0])
 
         tolerance = 1e-5
         xyztpx_actual, FN_A_S, TP_A_S, TP_B, FP_B = rigidly_register_and_categorize(
@@ -209,6 +210,6 @@ def test_grid_search(initial_xyztpx, expected_xyz):
     def f(xyztpx):
         x, y, z, theta, phi, xi = xyztpx
         return (1 + x*x)*(1 + y*y)*(1 + z*z)
-    grid_spacing = 1.0
+    grid_spacing = np.array([1.0, 1.0, 1.0])
     final_xyztpx = grid_search(f, grid_spacing, np.array(initial_xyztpx))
     assert_allclose(final_xyztpx, np.array(expected_xyz + initial_xyztpx[3:]), atol=1e-5)

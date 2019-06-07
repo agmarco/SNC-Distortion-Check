@@ -113,7 +113,7 @@ def spoke_non_intersection_generator(cases, train_or_validation, min_offset, pha
             random_sign = random.choice([-1, 1])
             random_axis = random.choice([0, 1, 2])
             # introduces shift invariance along a spoke
-            point_ijk[random_axis] += random_sign * (np.random.sample() * offset_mag + min_offset)
+            point_ijk[random_axis] += random_sign * (np.random.sample() * offset_mag[random_axis] + min_offset)
             voxel_window = window_from_ijk(point_ijk, voxels, voxel_spacing)
             if voxel_window is not None:
                 assert voxel_window.shape == (cube_size, cube_size, cube_size)

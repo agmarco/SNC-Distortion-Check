@@ -73,7 +73,8 @@ def rigidly_register_and_categorize(A, B, grid_spacing, isocenter_in_B):
     xyztpx_a_to_b = xyztpx_a_to_b_i + np.array([*isocenter_in_B, 0, 0, 0])
     logger.info('finished fine tuning registration: %s', format_xyztpx(xyztpx_a_to_b_i))
 
-    rho = build_rho(calculate_g_cutoff(3, grid_spacing), 3, 0.45*grid_spacing)
+    max_grid_spacing = max(grid_spacing)
+    rho = build_rho(calculate_g_cutoff(3, max_grid_spacing), 3, 0.45*max_grid_spacing)
 
     FN_A_S, TP_A_S, TP_B, FP_B = points_utils.categorize(A_S, B, rho)
     TPF, FPF, FLE_percentiles = points_utils.metrics(FN_A_S, TP_A_S, TP_B, FP_B)
@@ -108,9 +109,10 @@ def rigidly_register(A, B_i, grid_spacing, xtol=registeration_tolerance):
     # We want to encompass at least the middle 125 points in a sphere (we will of course
     # get some extra points too in the corners)
     num_grid_spacings = 2
-    g_cutoff = calculate_g_cutoff(num_grid_spacings, grid_spacing)
+    max_grid_spacing = max(grid_spacing)
+    g_cutoff = calculate_g_cutoff(num_grid_spacings, max_grid_spacing)
     g_near_isocenter = lambda bmag: 1 if bmag < g_cutoff else 0
-    rho_initial = build_rho(0, 3, 0.5*grid_spacing)
+    rho_initial = build_rho(0, 3, 0.5*max_grid_spacing)
     f_points_near_isocenter_initial = build_objective_function(A, B_i, g_near_isocenter, rho_initial)
 
     # During the grid search, we want to consider ALL points, regardless of how
@@ -119,7 +121,7 @@ def rigidly_register(A, B_i, grid_spacing, xtol=registeration_tolerance):
     # earlier steps for performance reasons, and because we want to weight
     # points near the isocenter more during the fine-tuning optimization
     g_all = lambda bmag: 1.0
-    rho = build_rho(g_cutoff, 3, 0.45*grid_spacing)
+    rho = build_rho(g_cutoff, 3, 0.45*max_grid_spacing)
     f_all_points = build_objective_function(A, B_i, g_all, rho)
     f_points_near_isocenter = build_objective_function(A, B_i, g_near_isocenter, rho)
 
@@ -131,13 +133,13 @@ def rigidly_register(A, B_i, grid_spacing, xtol=registeration_tolerance):
     return xyztpx_global_minimum
 
 
-def calculate_g_cutoff(num_grid_spacings, grid_spacing):
+def calculate_g_cutoff(num_grid_spacings, max_grid_spacing):
     '''
     Determine a cutoff distance that will encompass a cubic grid up to
     `num_grid_spacings` away from the center.
     '''
     g_cutoff_buffer = 3
-    return grid_spacing*num_grid_spacings*sqrt(3) + g_cutoff_buffer
+    return max_grid_spacing*num_grid_spacings*sqrt(3) + g_cutoff_buffer
 
 
 def build_rho(g_cutoff, min_match_distance, max_match_distance):
@@ -257,9 +259,9 @@ def _run_optimizer(f, xyztpx, xtol):
 
 def grid_search(f, grid_spacing, initial_xyztpx, max_iterations=100):
     logger.info("beginning grid search")
-    origin_26 = np.array([[x, y, z] for x, y, z
+    origin_26 = (np.array([[x, y, z] for x, y, z
         in product([-1, 0, 1], [-1, 0, 1], [-1, 0, 1])
-        if x != 0 or y != 0 or z != 0], dtype=np.double).T*grid_spacing
+        if x != 0 or y != 0 or z != 0], dtype=np.double)*grid_spacing).T
 
     current_xyztpx = initial_xyztpx
     current_f = f(current_xyztpx)

@@ -1,4 +1,7 @@
 import math
+
+import numpy as np
+
 # TODO: Deduplicate this data
 
 # Some of the information in this file is duplicated in
@@ -12,8 +15,7 @@ import math
 # database.
 #
 # - The `grid_radius` is the radius of the intersecting cylinders.
-# - The `grid_spacing` is the spacing between grid-intersections (for all current
-# phantoms it is the same along each dimension).
+# - The `grid_spacing` is the spacing between grid-intersections.
 # - The `keras_model` is the CNN model used to reject FPs.  Each phantom model
 # has its own CNN.
 
@@ -23,7 +25,7 @@ paramaters = {
     '603A': {
         'points_file': 'data/points/603A.mat',
         'grid_radius': 1.5,
-        'grid_spacing': 15,
+        'grid_spacing': np.array([15, 15, 15]),
         'keras_model': 'data/keras_models/603/weights.h5',
         'description': "The skull is manufactured from a plastic-based bone substitute, and the interstitial and "
                        "surrounding soft tissues are made from a proprietary signal generating water-based polymer. The entire "
@@ -42,7 +44,7 @@ paramaters = {
     '604': {
         'points_file': 'data/points/604.mat',
         'grid_radius': 1.5,
-        'grid_spacing': 20,
+        'grid_spacing': np.array([20, 20, 20]),
         'keras_model': 'data/keras_models/604/weights.h5',
         'description': "The phantom is comprised of a leak-proof PMMA cylinder and measures 330 mm in diameter by 300 "
             "mm long. The entire volume is filled with a unique orthogonal 3D grid of 3 mm diameter rods spaced 20 mm "
