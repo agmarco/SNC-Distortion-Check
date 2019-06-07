@@ -32,8 +32,9 @@ from process.reports import generate_reports
 from process.utils import fov_center_xyz
 from process import points_utils
 from process.interpolation import interpolate_distortion
-from .dump_raw_scan_data import dump_raw_scan_data
 from . import models
+from .utils import log_exception_then_continue
+from .dump_raw_scan_data import dump_raw_scan_data
 from .overlay_utilities import add_colorbar_to_slice
 from process.exceptions import AlgorithmException
 
@@ -132,7 +133,7 @@ def process_scan(scan_pk, dicom_archive_url=None):
         logger.exception('Algorithm error')
         scan.errors = str(e)
 
-    except Exception as e:
+    except Exception:
         scan = models.Scan.objects.get(pk=scan.pk)  # fresh instance
         creator_email = scan.creator.email
         logger.exception(f'Unhandled scan exception occurred while processing scan for "{creator_email}"')
@@ -144,13 +145,10 @@ def process_scan(scan_pk, dicom_archive_url=None):
             scan.institution.save()
 
     finally:
-        try:
+        with log_exception_then_continue():
             raw_data_filename = 'raw_data.zip'
             raw_data = dump_raw_scan_data(scan)
             scan.raw_data.save(raw_data_filename, File(raw_data))
-        except Exception:
-            pass
-
         scan.processing = False
         scan.save()
         logger.info('finished processing scan')
