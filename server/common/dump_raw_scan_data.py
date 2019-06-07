@@ -9,7 +9,9 @@ from process import dicom_import
 from rest_framework.renderers import JSONRenderer
 
 from process.file_io import save_voxels
+from .utils import log_exception_then_continue
 from . import serializers
+
 
 def dump_raw_scan_data(scan):
     '''
@@ -22,36 +24,46 @@ def dump_raw_scan_data(scan):
     files = {}
     streams = {}
 
-    phantom_data = serializers.PhantomSerializer(scan.phantom).data
-    streams['phantom.json'] = jsonify_into_bytes(phantom_data)
-    machine_data = serializers.MachineSerializer(scan.machine_sequence_pair.machine).data
-    streams['machine.json'] = jsonify_into_bytes(machine_data)
-    sequence_data = serializers.SequenceSerializer(scan.machine_sequence_pair.sequence).data
-    streams['sequence.json'] = jsonify_into_bytes(sequence_data)
-    institution_data = serializers.InstitutionSerializer(scan.institution).data
-    streams['institution.json'] = jsonify_into_bytes(institution_data)
+    with log_exception_then_continue():
+        phantom_data = serializers.PhantomSerializer(scan.phantom).data
+        streams['phantom.json'] = jsonify_into_bytes(phantom_data)
+
+    with log_exception_then_continue():
+        machine_data = serializers.MachineSerializer(scan.machine_sequence_pair.machine).data
+        streams['machine.json'] = jsonify_into_bytes(machine_data)
+
+    with log_exception_then_continue():
+        sequence_data = serializers.SequenceSerializer(scan.machine_sequence_pair.sequence).data
+        streams['sequence.json'] = jsonify_into_bytes(sequence_data)
+
+    with log_exception_then_continue():
+        institution_data = serializers.InstitutionSerializer(scan.institution).data
+        streams['institution.json'] = jsonify_into_bytes(institution_data)
 
     if scan.dicom_series:
-        zipped_dicom_files = scan.dicom_series.zipped_dicom_files
-        zipped_dicom_files.seek(0)  # rewind the file, as it may have been read earlier
-        streams['dicom.zip'] = io.BytesIO(zipped_dicom_files.read())
+        with log_exception_then_continue():
+            zipped_dicom_files = scan.dicom_series.zipped_dicom_files
+            zipped_dicom_files.seek(0)  # rewind the file, as it may have been read earlier
+            streams['dicom.zip'] = io.BytesIO(zipped_dicom_files.read())
 
-        datasets = scan.dicom_series.unzip_datasets()
-        voxels, _ = dicom_import.combine_slices(datasets)
-        voxels_path = generate_tempory_file_path('.mat')
-        voxels_data = {
-            'phantom_model': scan.phantom.model.model_number,
-            'modality': 'mri',
-            'voxels': voxels,
-        }
-        save_voxels(voxels_path, voxels_data)
-        files['voxels.mat'] = voxels_path
+        with log_exception_then_continue():
+            datasets = scan.dicom_series.unzip_datasets()
+            voxels, _ = dicom_import.combine_slices(datasets)
+            voxels_path = generate_tempory_file_path('.mat')
+            voxels_data = {
+                'phantom_model': scan.phantom.model.model_number,
+                'modality': 'mri',
+                'voxels': voxels,
+            }
+            save_voxels(voxels_path, voxels_data)
+            files['voxels.mat'] = voxels_path
 
     fiducials_data = collect_fiducial_data(scan)
     if fiducials_data:
-        fiducials_path = generate_tempory_file_path('.mat')
-        scipy.io.savemat(fiducials_path, fiducials_data)
-        files['fiducials.mat'] = fiducials_path
+        with log_exception_then_continue():
+            fiducials_path = generate_tempory_file_path('.mat')
+            scipy.io.savemat(fiducials_path, fiducials_data)
+            files['fiducials.mat'] = fiducials_path
 
     raw_scan_data_zipped = zip_in_memory(files, streams)
     return raw_scan_data_zipped
