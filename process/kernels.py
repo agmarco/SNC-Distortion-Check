@@ -61,7 +61,6 @@ def sphere(voxel_spacing, radius, upsample=3):
     return kernel
 
 
-
 def cylindrical_grid_intersection(voxel_spacing, radius, spacing, upsample=3):
     '''
     Generate a convolution kernel that can be used to detect "cylindrical grid

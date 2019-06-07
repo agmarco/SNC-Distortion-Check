@@ -119,8 +119,8 @@ def process_scan(scan_pk, dicom_archive_url=None):
                 f"Only {TPF*100:.1f}% of the {num_golden_fiducials} gold standard points could "
                 f"be matched to one of the {num_detected_fiducials} detected grid intersection locations.  This "
                 f"is less than our minimum allowable {TPF_minimum*100:.1f}%, thus we aborted processing "
-                f"the scan.  Please be sure to (1) orient the phantom within 5° of the expected orientation, "
-                f"(2) the phantom's center is at most {3*grid_spacing:.1f} mm from the isocenter, (3) the "
+                f"the scan.  Please be sure that (1) the phantom is oriented within 5° of the expected orientation, "
+                f"(2) the phantom's center is at most {3*min(grid_spacing):.1f} mm from the isocenter, (3) the "
                 f"scanner's isocenter in the center of the field of view, (4) the pixel "
                 f"size and slice spacing is sufficient to resolve the phantom grid intersections."
             )
