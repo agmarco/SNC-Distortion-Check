@@ -40,7 +40,7 @@ class FeatureDetectionSuite(Suite):
             #              'old model, we are disregarding for now.',
             # },
             '604-2': {
-                'voxels': 'data/voxels/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-voxels.mat',
+                'voxels': 'tmp/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-voxels.mat',
                 'points': 'data/points/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-golden.mat',
             },
         }

@@ -53,7 +53,7 @@ phantomName2Datasets = {
             'rejected': 'data/rejected_points/010_mri_604_LFV-Phantom_E2632-1-rejected.mat',
         },
         '019': {
-            'voxels': 'data/voxels/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-voxels.mat',
+            'voxels': 'tmp/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-voxels.mat',
             'points': 'data/points/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-golden.mat',
             'rejected': 'data/rejected_points/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-rejected.mat',
         }
