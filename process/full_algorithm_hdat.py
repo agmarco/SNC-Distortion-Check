@@ -142,6 +142,16 @@ class FullAlgorithmSuite(Suite):
                 'modality': 'ct',
                 'phantom_model': '604',
             },
+            '604-CT-032': {
+                'dicom': 'data/dicom/032_ct_604_w_G_w_S_CIRS_05132019.zip',
+                'modality': 'ct',
+                'phantom_model': '604-new',
+            },
+            '604-MR-033': {
+                'dicom': 'data/dicom/033_mri_604_w_G_w_S_Chesapeake_05102019.zip',
+                'modality': 'mri',
+                'phantom_model': '604-new',
+            },
         }
 
     def run(self, case_input):
