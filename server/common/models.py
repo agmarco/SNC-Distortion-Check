@@ -56,11 +56,9 @@ class Institution(CommonFieldsMixin):
     scans_remaining = models.PositiveIntegerField(null=True, blank=True, help_text=scans_remaining_ht)
 
     def __str__(self):
-        return "{}; {} scans remaining; expires {}".format(
-            self.name,
-            self.scans_remaining,
-            self.license_expiration_date,
-        )
+        return (f'{self.name} '
+                f': {self.scans_remaining} scans remaining '
+                f': expires on {self.license_expiration_date}')
 
 
 class CommonFieldsUserManager(CommonFieldsManager, UserManager):
@@ -82,13 +80,16 @@ class User(AbstractUser, CommonFieldsMixin):
         else:
             return None
 
+    def __str__(self):
+        return f'{super().__str__()} : {self.institution}'
+
 
 class Fiducials(CommonFieldsMixin):
     #fiducials = NdarrayFileField(upload_to='fiducials/fiducials')
     fiducials = NdarrayTextField()
 
     def __str__(self):
-        return "Fiducials {}".format(self.id)
+        return str(self.id)
 
     class Meta:
         verbose_name = 'Fiducials'
@@ -104,7 +105,7 @@ class PhantomModel(CommonFieldsMixin):
     cad_fiducials = models.ForeignKey(Fiducials, models.CASCADE, help_text=cad_fiducials_ht)
 
     def __str__(self):
-        return self.name
+        return f'{self.name} : {self.model_number}'
 
 
 class Phantom(CommonFieldsMixin):
@@ -119,7 +120,7 @@ class Phantom(CommonFieldsMixin):
     serial_number = models.CharField(max_length=255, unique=True, help_text=serial_number_ht)
 
     def __str__(self):
-        return "Phantom {} {} {}".format(self.institution, self.model, self.name)
+        return f'{self.institution} : {self.model} : {self.name}'
 
     @property
     def active_gold_standard(self):
@@ -131,7 +132,7 @@ class PurchaseOrder(CommonFieldsMixin):
     phantom = models.ForeignKey(Phantom, models.CASCADE)
 
     def __str__(self):
-        return f"Purchase Order {self.number}"
+        return self.number
 
 
 class Machine(CommonFieldsMixin):
@@ -144,7 +145,7 @@ class Machine(CommonFieldsMixin):
     institution = models.ForeignKey(Institution, models.CASCADE)
 
     def __str__(self):
-        return "{}".format(self.name)
+        return f'{self.name} : {self.manufacturer} : {self.model}'
 
 
 class Sequence(CommonFieldsMixin):
@@ -159,7 +160,7 @@ class Sequence(CommonFieldsMixin):
     tolerance = models.FloatField(default=3.0, help_text=tolerance_ht)
 
     def __str__(self):
-        return "{}".format(self.name)
+        return self.name
 
 
 class MachineSequencePair(CommonFieldsMixin):
@@ -169,7 +170,7 @@ class MachineSequencePair(CommonFieldsMixin):
     tolerance = models.FloatField(help_text=tolerance_ht)
 
     def __str__(self):
-        return "{} : {}".format(self.machine.name, self.sequence.name)
+        return f'{self.machine.name} : {self.sequence.name}'
 
     @cached_property
     def latest_scan(self):
@@ -244,7 +245,7 @@ class DicomSeries(CommonFieldsMixin):
     number_of_slices = models.PositiveSmallIntegerField(help_text=number_of_slices_ht, null=True)
 
     def __str__(self):
-        return "DICOM Series {}".format(self.series_uid)
+        return self.series_uid
 
     @property
     def filename(self):
@@ -282,7 +283,7 @@ class GoldenFiducials(CommonFieldsMixin):
     errors = models.TextField(null=True)
 
     def __str__(self):
-        return "Golden Fiducials {}".format(self.id)
+        return f'{self.id} : {self.type}{" (active)" if self.is_active else ""}'
 
     def activate(self):
         current_gold_standard = self.phantom.active_gold_standard
@@ -335,7 +336,7 @@ class Scan(CommonFieldsMixin):
     tolerance = models.FloatField()
 
     def __str__(self):
-        return f"Scan {self.pk}"
+        return f'{self.pk}{" (processing)" if self.processing else ""}'
 
     @property
     def phantom(self):
