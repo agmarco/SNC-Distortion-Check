@@ -26,7 +26,7 @@ datasets = {
     '604-2': {
         'model': '604',
         'modality': 'mri',
-        'voxels': 'data/voxels/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-voxels.mat',
+        'voxels': 'tmp/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-voxels.mat',
         'points': 'data/points/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-golden.mat',
         'rejected': 'data/rejected_points/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-rejected.mat',
     },
