@@ -43,6 +43,14 @@ class FeatureDetectionSuite(Suite):
                 'voxels': 'tmp/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-voxels.mat',
                 'points': 'data/points/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-golden.mat',
             },
+            '604-3': {
+                'voxels': 'tmp/032_ct_604_w_G_w_S_CIRS_05132019-voxels.mat',
+                'points': 'data/points/032_ct_604_w_G_w_S_CIRS_05132019-golden.mat',
+            },
+            '604-4': {
+                'voxels': 'tmp/033_mri_604_w_G_w_S_Chesapeake_05102019-voxels.mat',
+                'points': 'data/points/033_mri_604_w_G_w_S_Chesapeake_05102019-golden.mat',
+            },
         }
         return cases
 
