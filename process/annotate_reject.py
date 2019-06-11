@@ -21,14 +21,28 @@ datasets = {
         'modality': 'mri',
         'voxels': 'tmp/010_mri_604_LFV-Phantom_E2632-1-voxels.mat',
         'points': 'data/points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
-        'rejected': 'data/rejected_points/010_mri_604_LFV-Phantom_E2632-1-rejected.mat',
+        'rejected': 'data/points/010_mri_604_LFV-Phantom_E2632-1-rejected.mat',
     },
     '604-2': {
         'model': '604',
         'modality': 'mri',
         'voxels': 'tmp/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-voxels.mat',
         'points': 'data/points/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-golden.mat',
-        'rejected': 'data/rejected_points/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-rejected.mat',
+        'rejected': 'data/points/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-rejected.mat',
+    },
+    '604-3': {
+        'model': '604-new',
+        'modality': 'ct',
+        'voxels': 'tmp/032_ct_604_w_G_w_S_CIRS_05132019-voxels.mat',
+        'points': 'data/points/032_ct_604_w_G_w_S_CIRS_05132019-golden.mat',
+        'rejected': 'data/points/032_ct_604_w_G_w_S_CIRS_05132019-rejected.mat',
+    },
+    '604-4': {
+        'model': '604-new',
+        'modality': 'mri',
+        'voxels': 'tmp/033_mri_604_w_G_w_S_Chesapeake_05102019-voxels.mat',
+        'points': 'data/points/033_mri_604_w_G_w_S_Chesapeake_05102019-golden.mat',
+        'rejected': 'data/points/033_mri_604_w_G_w_S_Chesapeake_05102019-rejected.mat',
     },
 }
 
