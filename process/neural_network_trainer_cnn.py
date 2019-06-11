@@ -24,15 +24,15 @@ from process.slicer import show_slices
 
 cube_size = 15
 cube_size_half = math.floor(cube_size / 2)
-input_shape = (cube_size,cube_size,cube_size,1)
+input_shape = (cube_size, cube_size, cube_size, 1)
 num_filters = 16
-kernel_shape = (3,3,3)
-maxpool_size = pool_size=(2, 2, 2)
+kernel_shape = (3, 3, 3)
+maxpool_size = pool_size = (2, 2, 2)
 nb_classes = 2
 batch_size = None
 train_to_validation_ratio = 2
-phantomName2Datasets = {
-    '603A':{
+phantom_name_to_datasets = {
+    '603A': {
         '001': {
             'voxels': 'tmp/001_ct_603A_E3148_ST1.25-voxels.mat',
             'points': 'data/points/001_ct_603A_E3148_ST1.25-golden.mat',
@@ -46,7 +46,7 @@ phantomName2Datasets = {
             'points': 'data/points/011_mri_630A_arterial_TOF_3d_motsa_ND-golden.mat',
         },
     },
-    '604':{
+    '604': {
         '010': {
             'voxels': 'tmp/010_mri_604_LFV-Phantom_E2632-1-voxels.mat',
             'points': 'data/points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
@@ -56,10 +56,21 @@ phantomName2Datasets = {
             'voxels': 'tmp/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-voxels.mat',
             'points': 'data/points/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-golden.mat',
             'rejected': 'data/points/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-rejected.mat',
-        }
+        },
+        '032': {
+            'voxels': 'tmp/032_ct_604_w_G_w_S_CIRS_05132019-voxels.mat',
+            'points': 'data/points/032_ct_604_w_G_w_S_CIRS_05132019-golden.mat',
+        },
+        '033': {
+            'voxels': 'tmp/033_mri_604_w_G_w_S_Chesapeake_05102019-voxels.mat',
+            'points': 'data/points/033_mri_604_w_G_w_S_Chesapeake_05102019-golden.mat',
+        },
     },
 }
-phantomName2Datasets['603A and 604'] = {**phantomName2Datasets['603A'], **phantomName2Datasets['604']}
+phantom_name_to_datasets['603A and 604'] = {
+    **phantom_name_to_datasets['603A'],
+    **phantom_name_to_datasets['604'],
+}
 
 
 def intersection_generator(cases, train_or_validation, min_offset, offset_mag, points_key='points'):
@@ -254,8 +265,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('phantom')
     args = parser.parse_args()
-    assert args.phantom in phantomName2Datasets
-    cases = phantomName2Datasets[args.phantom]
+    assert args.phantom in phantom_name_to_datasets
+    cases = phantom_name_to_datasets[args.phantom]
     #visualize_samples(training_generator(cases, args.phantom, "train"))
 
     # create complete model
