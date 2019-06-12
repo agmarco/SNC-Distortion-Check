@@ -20,34 +20,34 @@ class FeatureDetectionSuite(Suite):
     def collect(self):
         sys.setrecursionlimit(10000)  # 603A-1 fails without this
         cases = {
-            '603A-1': {
+            '603A-CT-001': {
                 'voxels': 'tmp/001_ct_603A_E3148_ST1.25-voxels.mat',
                 'points': 'data/points/001_ct_603A_E3148_ST1.25-golden.mat',
             },
-            '603A-2': {
+            '603A-MR-006': {
                 'voxels': 'tmp/006_mri_603A_UVA_Axial_2ME2SRS5-voxels.mat',
                 'points': 'data/points/006_mri_603A_UVA_Axial_2ME2SRS5-golden.mat',
             },
-            '603A-3': {
+            '603A-MR-011': {
                 'voxels': 'tmp/011_mri_603A_arterial_TOF_3d_motsa_ND-voxels.mat',
                 'points': 'data/points/011_mri_630A_arterial_TOF_3d_motsa_ND-golden.mat',
             },
-            # '604-1': {
+            # '604-MR-010': {
             #     'voxels': 'tmp/010_mri_604_LFV-Phantom_E2632-1-voxels.mat',
             #     'points': 'data/points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
             #     'notes': 'This scan currently fails because the ROI radius used for the center '
             #              'of mass calculations is only 1 px on the z-axis. Since this is the '
             #              'old model, we are disregarding for now.',
             # },
-            '604-2': {
+            '604-MR-019': {
                 'voxels': 'tmp/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-voxels.mat',
                 'points': 'data/points/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-golden.mat',
             },
-            '604-3': {
+            '604-CT-032': {
                 'voxels': 'tmp/032_ct_604_w_G_w_S_CIRS_05132019-voxels.mat',
                 'points': 'data/points/032_ct_604_w_G_w_S_CIRS_05132019-golden.mat',
             },
-            '604-4': {
+            '604-MR-033': {
                 'voxels': 'tmp/033_mri_604_w_G_w_S_Chesapeake_05102019-voxels.mat',
                 'points': 'data/points/033_mri_604_w_G_w_S_Chesapeake_05102019-golden.mat',
             },

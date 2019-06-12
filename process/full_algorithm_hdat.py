@@ -1,5 +1,4 @@
 from collections import OrderedDict
-import math
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,10 +9,8 @@ from .utils import fov_center_xyz
 from .visualization import scatter3
 from .interpolation import interpolate_distortion
 from .fp_rejector import remove_fps
-from .affine import rotation_translation
 from .feature_detection import FeatureDetector
 from .registration import rigidly_register_and_categorize
-from .test_utils import get_test_data_generators, Rotation, show_base_result, Distortion
 from .dicom_import import combined_series_from_zip
 
 
@@ -27,6 +24,7 @@ def print_histogram(data, suffix):
 
 class FullAlgorithmSuite(Suite):
     id = 'full-algorithm'
+    PASS_THRESHOLD = 1.0
 
     def collect(self):
         return {
@@ -278,6 +276,11 @@ class FullAlgorithmSuite(Suite):
         print('median distortion magnitude: {:5.3f}mm'.format(metrics['median_distortion']))
         print('min distortion magnitude: {:5.3f}mm'.format(metrics['min_distortion']))
 
+        error_mags = np.linalg.norm(context['TP_A_S'] - context['TP_B'], axis=0)
+
+        tp_b_passed = error_mags <= FullAlgorithmSuite.PASS_THRESHOLD
+        tp_b_failed = ~tp_b_passed
+
         descriptors = [
             {
                'points_xyz': context['FN_A_S'],
@@ -287,19 +290,27 @@ class FullAlgorithmSuite(Suite):
                    'marker': 'o'
                }
             },
-            #{
-            #    'points_xyz': context['TP_A_S'],
-            #    'scatter_kwargs': {
-            #        'color': 'g',
-            #        'label': 'Gold Standard Registered',
-            #        'marker': 'o'
-            #    }
-            #},
             {
-                'points_xyz': context['TP_B'],
+                'points_xyz': context['TP_A_S'],
                 'scatter_kwargs': {
                     'color': 'g',
-                    'label': 'True Positives',
+                    'label': 'Gold Standard Registered',
+                    'marker': 'o'
+                }
+            },
+            {
+                'points_xyz': context['TP_B'][:, tp_b_passed],
+                'scatter_kwargs': {
+                    'color': 'g',
+                    'label': f'True Positives (<= {FullAlgorithmSuite.PASS_THRESHOLD} mm distortion)',
+                    'marker': 'x'
+                }
+            },
+            {
+                'points_xyz': context['TP_B'][:, tp_b_failed],
+                'scatter_kwargs': {
+                    'color': 'k',
+                    'label': f'True Positives (> {FullAlgorithmSuite.PASS_THRESHOLD} mm distortion)',
                     'marker': 'x'
                 }
             },
@@ -312,12 +323,12 @@ class FullAlgorithmSuite(Suite):
                 }
             },
             # {
-                # 'points_xyz': context['FP_B_CNN'],
-                # 'scatter_kwargs': {
-                    # 'color': 'm',
-                    # 'label': 'Rejected by CNN',
-                    # 'marker': 'x'
-                # }
+            #     'points_xyz': context['FP_B_CNN'],
+            #     'scatter_kwargs': {
+            #         'color': 'm',
+            #         'label': 'Rejected by CNN',
+            #         'marker': 'x'
+            #     }
             # },
         ]
 

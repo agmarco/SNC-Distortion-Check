@@ -16,28 +16,28 @@ from process.feature_detection import FeatureDetector
 log = logging.getLogger(__name__)
 
 datasets = {
-    '604-1': {
+    '604-MR-010': {
         'model': '604',
         'modality': 'mri',
         'voxels': 'tmp/010_mri_604_LFV-Phantom_E2632-1-voxels.mat',
         'points': 'data/points/010_mri_604_LFV-Phantom_E2632-1-golden.mat',
         'rejected': 'data/points/010_mri_604_LFV-Phantom_E2632-1-rejected.mat',
     },
-    '604-2': {
+    '604-MR-019': {
         'model': '604',
         'modality': 'mri',
         'voxels': 'tmp/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-voxels.mat',
         'points': 'data/points/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-golden.mat',
         'rejected': 'data/points/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-rejected.mat',
     },
-    '604-3': {
+    '604-CT-032': {
         'model': '604-new',
         'modality': 'ct',
         'voxels': 'tmp/032_ct_604_w_G_w_S_CIRS_05132019-voxels.mat',
         'points': 'data/points/032_ct_604_w_G_w_S_CIRS_05132019-golden.mat',
         'rejected': 'data/points/032_ct_604_w_G_w_S_CIRS_05132019-rejected.mat',
     },
-    '604-4': {
+    '604-MR-033': {
         'model': '604-new',
         'modality': 'mri',
         'voxels': 'tmp/033_mri_604_w_G_w_S_Chesapeake_05102019-voxels.mat',
