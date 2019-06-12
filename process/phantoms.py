@@ -51,8 +51,8 @@ paramaters = {
             "apart to provide complete geometric data throughout the imaging volume.  The phantom is marked for ease of "
             "alignment to positioning lasers and is designed for use with both curved and flat gantry tables.",
     },
-    '604-new': {
-        'points_file': 'data/points/604-new.mat',
+    '604-GS': {
+        'points_file': 'data/points/604-GS.mat',
         'grid_radius': 1.5,
         'grid_spacing': np.array([21.5, 20.5, 20.3]),
         'keras_model': 'data/keras_models/604/weights.h5',  # TODO: retrain CNN

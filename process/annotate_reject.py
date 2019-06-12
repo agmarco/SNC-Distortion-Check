@@ -31,14 +31,14 @@ datasets = {
         'rejected': 'data/points/019_mri_604_Siemens_Vida_3T_3D_Flash_ND-rejected.mat',
     },
     '604-CT-032': {
-        'model': '604-new',
+        'model': '604-GS',
         'modality': 'ct',
         'voxels': 'tmp/032_ct_604_w_G_w_S_CIRS_05132019-voxels.mat',
         'points': 'data/points/032_ct_604_w_G_w_S_CIRS_05132019-golden.mat',
         'rejected': 'data/points/032_ct_604_w_G_w_S_CIRS_05132019-rejected.mat',
     },
     '604-MR-033': {
-        'model': '604-new',
+        'model': '604-GS',
         'modality': 'mri',
         'voxels': 'tmp/033_mri_604_w_G_w_S_Chesapeake_05102019-voxels.mat',
         'points': 'data/points/033_mri_604_w_G_w_S_Chesapeake_05102019-golden.mat',
