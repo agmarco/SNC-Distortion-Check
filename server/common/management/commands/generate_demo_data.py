@@ -101,6 +101,13 @@ class Command(BaseCommand):
             cad_fiducials__fiducials=cad_fiducials_604,
         )
 
+        cad_fiducials_604_GS = load_points('data/points/604-GS.mat')['points']
+        phantom_model_604_GS = factories.PhantomModelFactory(
+            name='CIRS 604-GS',
+            model_number='604-GS',
+            cad_fiducials__fiducials=cad_fiducials_604_GS,
+        )
+
         phantom_a = factories.PhantomFactory(
             name='Head Phantom With Various Gold Standards',
             model=phantom_model_603A,
@@ -117,29 +124,44 @@ class Command(BaseCommand):
             institution=demo_institution,
         )
         phantom_d = factories.PhantomFactory(
+            name='Body Phantom (GS)',
+            model=phantom_model_604_GS,
+            institution=demo_institution,
+        )
+        phantom_e = factories.PhantomFactory(
             name='Head Phantom 1',
             model=phantom_model_603A,
         )
-        phantom_e = factories.PhantomFactory(
+        phantom_f = factories.PhantomFactory(
             name='Head Phantom 2',
             model=phantom_model_603A,
         )
-        phantom_f = factories.PhantomFactory(
+        phantom_g = factories.PhantomFactory(
             name='Body Phantom',
             model=phantom_model_604,
         )
+        phantom_h = factories.PhantomFactory(
+            name='Body Phantom (GS)',
+            model=phantom_model_604_GS,
+        )
 
         # lots of test phantoms
-        for t in range(20):
+        for _ in range(20):
+            factories.PhantomFactory(
+                name='Head Phantom',
+                model=phantom_model_603A,
+            )
+
+        for _ in range(20):
             factories.PhantomFactory(
                 name='Body Phantom',
                 model=phantom_model_604,
             )
 
-        for t in range(20):
+        for _ in range(20):
             factories.PhantomFactory(
-                name='Head Phantom',
-                model=phantom_model_603A,
+                name='Body Phantom (GS)',
+                model=phantom_model_604_GS,
             )
 
         sequence_a = factories.SequenceFactory(
