@@ -55,7 +55,7 @@ paramaters = {
         'points_file': 'data/points/604-GS.mat',
         'grid_radius': 1.5,
         'grid_spacing': np.array([21.5, 20.5, 20.3]),
-        'keras_model': 'data/keras_models/604/weights.h5',  # TODO: retrain CNN
+        'keras_model': 'data/keras_models/604-GS/weights.h5',
         'description': "",
     },
 }
