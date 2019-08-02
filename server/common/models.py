@@ -356,7 +356,7 @@ class Scan(CommonFieldsMixin):
 
     @property
     def passed(self):
-        if not self.processing and self.errors is None:
+        if not self.processing and self.errors is None and self.error_mags is not None:
             return self.error_mags.max() < self.tolerance
         else:
             return None

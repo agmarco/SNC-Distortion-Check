@@ -131,7 +131,7 @@ def process_scan(scan_pk, dicom_archive_url=None):
     except AlgorithmException as e:
         scan = models.Scan.objects.get(pk=scan.pk)  # fresh instance
         logger.exception('Algorithm error')
-        scan.errors = str(e)
+        scan.errors = f'Algorithm Error: {e}'
 
     except Exception:
         scan = models.Scan.objects.get(pk=scan.pk)  # fresh instance
