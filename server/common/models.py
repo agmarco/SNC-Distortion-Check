@@ -81,7 +81,10 @@ class User(AbstractUser, CommonFieldsMixin):
             return None
 
     def __str__(self):
-        return f'{super().__str__()} : {self.institution.name}'
+        if self.institution is None:
+            return f'{super().__str__()}'
+        else:
+            return f'{super().__str__()}: {self.institution.name}'
 
 
 class Fiducials(CommonFieldsMixin):
