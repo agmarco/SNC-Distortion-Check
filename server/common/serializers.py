@@ -90,6 +90,7 @@ class ScanSerializer(serializers.ModelSerializer):
     executive_report_url = serializers.SerializerMethodField()
     error_mags = serializers.ReadOnlyField()
     modality = serializers.SerializerMethodField()
+    notes = serializers.ReadOnlyField()
 
     class Meta:
         model = Scan
@@ -110,6 +111,7 @@ class ScanSerializer(serializers.ModelSerializer):
             'error_mags',
             'created_on',
             'modality',
+            'notes',
         )
 
     def get_errors_url(self, scan):
