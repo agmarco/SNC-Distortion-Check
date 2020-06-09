@@ -108,6 +108,13 @@ class Command(BaseCommand):
             cad_fiducials__fiducials=cad_fiducials_604_GS,
         )
 
+        cad_fiducials_603A_GS = load_points('data/points/603-GS.mat')['points']
+        phantom_model_603A_GS = factories.PhantomModelFactory(
+            name='CIRS 603-GS',
+            model_number='603-GS',
+            cad_fiducials__fiducials=cad_fiducials_603A_GS,
+        )
+
         phantom_a = factories.PhantomFactory(
             name='Head Phantom With Various Gold Standards',
             model=phantom_model_603A,
@@ -129,20 +136,9 @@ class Command(BaseCommand):
             institution=demo_institution,
         )
         phantom_e = factories.PhantomFactory(
-            name='Head Phantom 1',
-            model=phantom_model_603A,
-        )
-        phantom_f = factories.PhantomFactory(
-            name='Head Phantom 2',
-            model=phantom_model_603A,
-        )
-        phantom_g = factories.PhantomFactory(
-            name='Body Phantom',
-            model=phantom_model_604,
-        )
-        phantom_h = factories.PhantomFactory(
-            name='Body Phantom (GS)',
-            model=phantom_model_604_GS,
+            name='Head Phantom (GS)',
+            model=phantom_model_603A_GS,
+            institution=demo_institution,
         )
 
         # lots of test phantoms
@@ -162,6 +158,12 @@ class Command(BaseCommand):
             factories.PhantomFactory(
                 name='Body Phantom (GS)',
                 model=phantom_model_604_GS,
+            )
+
+        for _ in range(20):
+            factories.PhantomFactory(
+                name='Head Phantom (GS)',
+                model=phantom_model_603A_GS,
             )
 
         sequence_a = factories.SequenceFactory(
