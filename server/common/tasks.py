@@ -238,6 +238,7 @@ def _save_reports(scan, datasets, voxels, ijk_to_xyz):
         scan.dicom_series.acquisition_date,
         full_report_path,
         executive_report_path,
+        scan.golden_fiducials.source_summary,
     )
 
     with open(full_report_path, 'rb') as report_file:
