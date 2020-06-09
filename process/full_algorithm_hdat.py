@@ -150,6 +150,11 @@ class FullAlgorithmSuite(Suite):
                 'modality': 'mri',
                 'phantom_model': '604-GS',
             },
+            '603GS-MR-034': {
+                'dicom': 'data/dicom/034_ct_603GS_test1_1_25.zip',
+                'modality': 'ct',
+                'phantom_model': '603-GS',
+            },
         }
 
     def run(self, case_input):
