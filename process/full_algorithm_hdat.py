@@ -6,7 +6,7 @@ from hdat import Suite, MetricsChecker
 
 from . import points_utils, phantoms, slicer, affine, file_io
 from .utils import fov_center_xyz
-from .visualization import scatter3
+from .visualization import scatter3, quiver3
 from .interpolation import interpolate_distortion
 from .fp_rejector import remove_fps
 from .feature_detection import FeatureDetector
@@ -360,4 +360,7 @@ class FullAlgorithmSuite(Suite):
             'False Negatives': context['FN_A_S'],
             # 'Rejected by CNN': context['FP_B_CNN'],
         })
+        plt.show()
+
+        quiver3(context['TP_A_S'], context['TP_B'])
         plt.show()
