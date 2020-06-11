@@ -150,13 +150,8 @@ class FullAlgorithmSuite(Suite):
                 'modality': 'mri',
                 'phantom_model': '604-GS',
             },
-            '603GS-CT-034': {
-                'dicom': 'data/dicom/034_ct_603GS_test1_1_25.zip',
-                'modality': 'ct',
-                'phantom_model': '603-GS',
-            },
             '603GS-CT-035': {
-                'dicom': 'data/dicom/035_ct_603GS_test1_0_625.zip',
+                'dicom': 'data/dicom/035_ct_603-GS_test1_0_625.zip',
                 'modality': 'ct',
                 'phantom_model': '603-GS',
             },
