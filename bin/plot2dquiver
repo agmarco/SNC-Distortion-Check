@@ -1,0 +1,40 @@
+#!/usr/bin/env python
+import sys
+
+import scipy.io
+import numpy as np
+from matplotlib import pyplot as plt
+
+# THIS WAS USED FOR DEBUGGING A PARTICULAR FILE; NOT GENERAL PURPOSE
+
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print('Usage: plotdists MATFILE [MATFILE...]')
+        sys.exit(1)
+
+    mat_filenames = sys.argv[1:]
+    for mat_filename in mat_filenames:
+        data = scipy.io.loadmat(mat_filename)
+        golden = data['matched_golden_fiducials_registered']
+        actual = data['matched_detected_fiducials']
+        z = golden[2, :]
+        for i in range(-4, 9):
+            zmin = -120 + 10*i
+            zmax = -110 + 10*i
+            indices = np.logical_and(z > zmin, z < zmax)
+
+            x = golden[0, indices]
+            y = golden[1, indices]
+            diff = actual - golden
+            dx = diff[0, indices]
+            dy = diff[1, indices]
+
+            plt.figure()
+            plt.quiver(x, y, dx, dy, angles='xy', scale_units='xy', scale=0.1, linewidth=0.001)
+
+            plt.xlabel('x [mm]')
+            plt.ylabel('y [mm]')
+
+            plt.title(f'x-y disp (z between {zmin} and {zmax})')
+            plt.savefig(f'/Users/johndavidgiese/Desktop/0.625_quiver2_{i+4:03}.pdf')

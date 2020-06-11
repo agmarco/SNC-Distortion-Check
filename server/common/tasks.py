@@ -9,9 +9,9 @@ import time
 from datetime import datetime
 from urllib.parse import urlparse
 
-import dicom
-from dicom.dataset import Dataset, FileDataset
-from dicom.UID import generate_uid
+import pydicom
+from pydicom.dataset import Dataset, FileDataset
+from pydicom.uid import generate_uid
 
 import numpy as np
 from celery import shared_task
@@ -238,6 +238,7 @@ def _save_reports(scan, datasets, voxels, ijk_to_xyz):
         scan.dicom_series.acquisition_date,
         full_report_path,
         executive_report_path,
+        scan.golden_fiducials.source_summary,
     )
 
     with open(full_report_path, 'rb') as report_file:
@@ -542,4 +543,4 @@ def export_overlay(voxel_array, voxelSpacing_tup, voxelPosition_tup, studyInstan
         # TODO: Fix incorrect transpositions upstream; also swap back rows and columns
         dataset.PixelData = slice_arr.astype(np.uint16).T.tobytes()
         dataset.Units = 'mm'
-        dicom.write_file(os.path.join(output_directory, '{}.dcm'.format(dataset.SOPInstanceUID)), dataset)
+        pydicom.write_file(os.path.join(output_directory, '{}.dcm'.format(dataset.SOPInstanceUID)), dataset)

@@ -22,6 +22,25 @@ def scatter3(label_to_points, ax=None):
     plt.legend()
 
 
+def quiver3(golden, actual, ax=None):
+    if ax is None:
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+    x = golden[0, :]
+    y = golden[1, :]
+    z = golden[2, :]
+    diff = actual - golden
+    dx = diff[0, :]
+    dy = diff[1, :]
+    dz = diff[2, :]
+    ax.quiver(x, y, z, dx, dy, dz, normalize=True)
+
+    ax.set_xlabel('x [mm]')
+    ax.set_ylabel('y [mm]')
+    ax.set_zlabel('z [mm]')
+
+
 def slices(data, x, y, z, cmap='Greys_r'):
     plt.figure(figsize=(8, 15))
 

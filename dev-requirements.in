@@ -1,4 +1,5 @@
-pip-tools
+-c requirements.txt
+pip-tools==5.2.1
 ipython
 pytest
 pytest-django

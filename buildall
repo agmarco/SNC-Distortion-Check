@@ -7,7 +7,7 @@ postgres --version 2>&1 | grep -q 9.[0-9] || { echo "Need Postgres 9.0 or greate
 redis-server --version 2>&1 | grep -q 3.[0-9] || { echo "Need Redis 3.0 or greater" && exit 1; }
 
 if [ ! -f .env ]; then cp .sample.env .env; fi;
-pip install pip-tools
+pip install pip-tools setuptools==41.0.0
 pip-sync requirements.txt dev-requirements.txt
 npm install -g yarn
 yarn

@@ -135,7 +135,7 @@ def set_bold_title(ax, title):
 # TODO: refactor this somehow, so it doesn't require so many arguments
 def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, threshold,
             institution, machine_name, sequence_name, phantom_name, acquisition_date,
-            full_report_path, executive_report_path):
+            full_report_path, executive_report_path, golden_fidicuals_source_summary):
     """
     Given the set of matched and registered points, generate a NEMA report.
 
@@ -281,6 +281,8 @@ def generate_reports(TP_A_S, TP_B, datasets, voxels, ijk_to_xyz, phantom_model, 
             # (r'Phantom filler T$_1$', ''),
             # (r'Phantom filler T$_2$', ''),
             # ('Phantom filler composition', ''),
+            ('Series instance UID', getattr(dataset, 'SeriesInstanceUID', 'unknown')),
+            ('Golden fiducials source', golden_fidicuals_source_summary),
             ('Sequence type', getattr(dataset, 'ScanningSequence', 'unknown')),
             ('Pixel bandwidth', str(dataset.PixelBandwidth) + r' $\frac{Hz}{px}$' if hasattr(dataset, 'PixelBandwidth') else 'unknown'),
             ('Voxel dimensions', ' x '.join(f'{x:.3f} mm' for x in voxel_dims)),
@@ -584,4 +586,4 @@ if __name__ == '__main__':
         phone_number = "555-555-5555"
 
     generate_reports(A, B, datasets, voxels, ijk_to_xyz, '603A', 2.5, Institution, 'Machine A', 'Sequence A', 'Phantom A',
-                     datetime.now(), 'tmp/full_report.pdf', 'tmp/executive_report.pdf')
+                     datetime.now(), 'tmp/full_report.pdf', 'tmp/executive_report.pdf', 'Golden Fiducials source summary')
