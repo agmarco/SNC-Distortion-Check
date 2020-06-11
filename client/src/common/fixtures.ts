@@ -74,6 +74,7 @@ export const scanFixture = (phantom?: IPhantomDto, template: Partial<IScanDto> =
         full_report_url: null,
         executive_report_url: null,
         error_mags: [],
+        notes: 'notes',
         ...template,
     };
 };

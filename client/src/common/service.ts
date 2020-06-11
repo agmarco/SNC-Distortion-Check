@@ -48,6 +48,7 @@ export interface IScanDto {
     error_mags: number[] | null;
     created_on: string;
     modality: string;
+    notes: string;
 }
 
 export interface IGoldenFiducialsDto {

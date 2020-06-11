@@ -6,7 +6,7 @@ from hdat import Suite, MetricsChecker
 
 from . import points_utils, phantoms, slicer, affine, file_io
 from .utils import fov_center_xyz
-from .visualization import scatter3
+from .visualization import scatter3, quiver3
 from .interpolation import interpolate_distortion
 from .fp_rejector import remove_fps
 from .feature_detection import FeatureDetector
@@ -149,6 +149,11 @@ class FullAlgorithmSuite(Suite):
                 'dicom': 'data/dicom/033_mri_604_w_G_w_S_Chesapeake_05102019.zip',
                 'modality': 'mri',
                 'phantom_model': '604-GS',
+            },
+            '603GS-CT-035': {
+                'dicom': 'data/dicom/035_ct_603-GS_test1_0_625.zip',
+                'modality': 'ct',
+                'phantom_model': '603-GS',
             },
         }
 
@@ -355,4 +360,7 @@ class FullAlgorithmSuite(Suite):
             'False Negatives': context['FN_A_S'],
             # 'Rejected by CNN': context['FP_B_CNN'],
         })
+        plt.show()
+
+        quiver3(context['TP_A_S'], context['TP_B'])
         plt.show()

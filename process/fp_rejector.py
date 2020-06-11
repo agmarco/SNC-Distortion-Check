@@ -23,7 +23,8 @@ keras_models = {}
 
 def get_keras_model(phantom_model):
     if phantom_model not in keras_models:
-        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # surpress tensor flow warnings
+        # TODO: upgrade the Keras + Tensorflow to 2.0 so avoid crazy number of warnings
+        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # attempt surpress tensor flow warnings
         from keras.models import load_model
         model_location = phantoms.paramaters[phantom_model]['keras_model']
         model = load_model(model_location)
