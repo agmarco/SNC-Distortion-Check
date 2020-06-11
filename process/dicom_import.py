@@ -4,7 +4,7 @@ import logging
 import tempfile
 
 from dicom_numpy import DicomImportException, combine_slices
-import dicom
+import pydicom as dicom
 import numpy as np
 
 from .utils import invert
