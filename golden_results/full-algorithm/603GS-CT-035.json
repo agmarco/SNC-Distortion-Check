@@ -1,0 +1,22 @@
+{
+    "case_id": "603GS-CT-035",
+    "commit": "a08cedd3b75620b96bbdc4611eff0949bd1144f3",
+    "metrics": {
+        "90_distortion": 0.31258438344576406,
+        "95_distortion": 0.3480266525178507,
+        "99_distortion": 0.3995280984640859,
+        "FPF": 0.011507479861910242,
+        "TPF": 1.0,
+        "fraction_of_volume_covered": 0.479796298761816,
+        "max_distortion": 0.5412749433210627,
+        "mean_distortion": 0.11043331167295829,
+        "median_distortion": 0.0,
+        "min_distortion": 0.0,
+        "registration_shift": 97.57156148366596
+    },
+    "ran_on": 1591911355.899268,
+    "repo_dirty": true,
+    "result_id": "1591911355.899268_a08cedd3b75620b96bbdc4611eff0949bd1144f3",
+    "status": "unknown",
+    "suite_id": "full-algorithm"
+}
