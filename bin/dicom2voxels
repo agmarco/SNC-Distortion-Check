@@ -2,8 +2,9 @@
 import argparse
 import os
 
-from process import file_io
 from process.dicom_import import combined_series_from_zip
+
+from process import file_io
 
 
 def parse_file_name(file_path):
