@@ -19,7 +19,7 @@ modality_sigmas_mm = {
     ('mri', '604'): 1.65,
     ('mri', '604-GS'): 1.65,
     ('ct', '603A'): 1.2,
-    ('ct', '603-GS'): 1.5,  # due to spheres at intersections
+    ('ct', '603-GS'): 1.4,  # due to spheres at intersections
     ('ct', '604'): 1.2,
     ('ct', '604-GS'): 1.2,  # TODO: see if this should be larger
 }
