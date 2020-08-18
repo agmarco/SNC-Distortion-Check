@@ -21,6 +21,7 @@ export interface IScanTableState {
     phantoms: IPhantomDto[];
 }
 
+const scanIdHelp = 'An arbitrary numerical identifier for the scan.';
 const scanFailHelp = 'The maximum geometric distortion was greater than the allowed tolerance ' +
     'when the scan was analyzed.  The ROI charts in the full report may have details as to the ' +
     'cause of the failure.';
@@ -162,6 +163,7 @@ class ScanTable extends React.Component<IScanTableProps, IScanTableState> {
                 <table className="cirs-table results">
                     <thead>
                         <tr>
+                            <th title={scanIdHelp}>ID</th>
                             <th title={passedHelp}>Passed</th>
                             <th title={acquisitionDateHelp}>Date Captured</th>
                             <th title={createdOnHelp}>Date Processed</th>
@@ -175,6 +177,7 @@ class ScanTable extends React.Component<IScanTableProps, IScanTableState> {
                     <tbody>
                         {scans.map((scan, i) => (
                             <tr key={scan.pk}>
+                                <td title={scanIdHelp}>{scan.pk}</td>
                                 <td title={scan.passed ? scanPassHelp : scanFailHelp}>
                                     {scan.passed !== null && <BoolIcon success={scan.passed} />}
                                 </td>
