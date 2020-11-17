@@ -4,7 +4,7 @@ from server.celery import app
 
 
 def worker_is_on():
-    bash_command = "heroku ps --app cirs-production worker --json"
+    bash_command = "heroku ps --app cirs-dev worker --json"
     process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
     worker_response = json.loads(output.decode('utf-8'))
@@ -22,13 +22,13 @@ def no_jobs_in_queue():
 
 def start_worker():
     if not worker_is_on():
-        bash_command = "heroku ps:restart --app cirs-production worker --json"
+        bash_command = "heroku ps:restart --app cirs-dev worker"
         subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
     return
 
 
 def stop_worker():
     if worker_is_on():
-        bash_command = "heroku ps:stop --app cirs-production worker --json"
+        bash_command = "heroku ps:stop --app cirs-dev worker"
         subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
     return
