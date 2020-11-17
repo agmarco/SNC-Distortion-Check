@@ -37,10 +37,11 @@ from .utils import log_exception_then_continue
 from .dump_raw_scan_data import dump_raw_scan_data
 from .overlay_utilities import add_colorbar_to_slice
 from process.exceptions import AlgorithmException
+from .decorators import manage_worker_server
 
 logger = logging.getLogger(__name__)
 
-
+@manage_worker_server
 @shared_task(name='common.tasks.process_scan')
 def process_scan(scan_pk, dicom_archive_url=None):
     '''
@@ -257,6 +258,7 @@ def _save_scan(scan):
 
 CT_WARNING_THRESHOLD = 0.05
 
+@manage_worker_server
 @shared_task(name='common.tasks.process_ct_upload')
 def process_ct_upload(gold_standard_pk, dicom_archive_url=None):
     logger.info("Beginning processing of CT for golden standard (pk={})".format(gold_standard_pk))
@@ -350,6 +352,7 @@ def task_failure_handler(task_id=None, exception=None, args=None, **kwargs):
 
 
 # TODO: figure out how to avoid passing in domain, site_name, and use_https
+@manage_worker_server
 @shared_task(name='common.tasks.process_dicom_overlay')
 def process_dicom_overlay(scan_pk, study_instance_uid, frame_of_reference_uid, patient_id, user_email,
             domain, site_name, use_https):
