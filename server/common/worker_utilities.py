@@ -1,0 +1,34 @@
+import json
+import subprocess
+from server.celery import app
+
+
+def worker_is_on():
+    bash_command = "heroku ps --app cirs-production worker --json"
+    process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
+    output, error = process.communicate()
+    worker_response = json.loads(output.decode('utf-8'))
+    return worker_response[0].get('state') == 'up'
+
+
+def no_jobs_in_queue():
+    celery_info = app.control.inspect()
+    worker_status = celery_info.app.current_worker_task
+    if not worker_status:
+        return True
+    else:
+        return False
+
+
+def start_worker():
+    if not worker_is_on():
+        bash_command = "heroku ps:restart --app cirs-production worker --json"
+        subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
+    return
+
+
+def stop_worker():
+    if worker_is_on():
+        bash_command = "heroku ps:stop --app cirs-production worker --json"
+        subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
+    return
