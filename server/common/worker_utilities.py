@@ -8,7 +8,7 @@ def worker_is_on():
     process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
     worker_response = json.loads(output.decode('utf-8'))
-    return worker_response[0].get('state') == 'up'
+    return worker_response.get('state') == 'up'
 
 
 def no_jobs_in_queue():
@@ -22,13 +22,13 @@ def no_jobs_in_queue():
 
 def start_worker():
     if not worker_is_on():
-        bash_command = "heroku ps:restart --app cirs-dev worker.1"
+        bash_command = "heroku ps:scale --app cirs-dev worker=1:performance-l"
         subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
     return
 
 
 def stop_worker():
     if worker_is_on():
-        bash_command = "heroku ps:stop --app cirs-dev worker.1"
+        bash_command = "heroku ps:scale --app cirs-dev worker=0:performance-l"
         subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
     return
