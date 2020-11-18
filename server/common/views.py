@@ -27,7 +27,7 @@ from . import serializers
 from . import forms
 from .tasks import process_scan, process_ct_upload, process_dicom_overlay, CT_WARNING_THRESHOLD
 from .decorators import validate_institution, login_and_permission_required, institution_required, intro_tutorial, \
-    check_license, manage_worker_server
+    check_license
 from .http import CsvResponse
 
 logger = logging.getLogger(__name__)
@@ -228,7 +228,6 @@ class UploadScanView(JsonFormMixin, FormView):
         return redirect('machine_sequence_detail', scan.machine_sequence_pair.pk)
 
 
-@manage_worker_server
 @login_required
 @institution_required
 @validate_institution(model_class=models.Scan)
