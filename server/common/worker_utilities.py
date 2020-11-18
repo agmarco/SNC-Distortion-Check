@@ -4,7 +4,7 @@ from server.celery import app
 
 
 def worker_is_on():
-    bash_command = "heroku ps --app cirs-dev worker=1:Performance-L --json"
+    bash_command = "heroku ps --app cirs-dev --json"
     process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
     worker_response = json.loads(output.decode('utf-8'))
