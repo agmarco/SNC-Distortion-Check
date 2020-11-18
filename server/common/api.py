@@ -14,6 +14,7 @@ from .models import MachineSequencePair, Phantom, Scan, GoldenFiducials
 from .permissions import login_and_permission_required, validate_institution, check_license
 from .validators import validate_phantom_serial_number
 from .serializers import ScanSerializer, GoldenFiducialsSerializer
+from .worker_utilities import start_worker
 
 
 class ValidateSerialView(APIView):
@@ -49,6 +50,7 @@ class PollScansView(APIView):
         validate_institution(model_class=MachineSequencePair, pk_url_kwarg='machine_sequence_pair_pk'),
         check_license(),
     )
+    start_worker()
 
     def post(self, request):
         scans = Scan.objects.filter(
