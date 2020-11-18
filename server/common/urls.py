@@ -19,14 +19,14 @@ urlpatterns = [
     url(r'^account/$', views.AccountView.as_view(), name='account'),
     url(r'^machine-sequences/(?P<pk>\d+)/$', views.MachineSequenceDetailView.as_view(), name='machine_sequence_detail'),
 
-    url(r'^api/', include([
-        url(r'^validate-serial/$', api.ValidateSerialView.as_view(), name='validate_serial'),
-        url(r'^update-tolerance/$', api.UpdateToleranceView.as_view(), name='update_tolerance'),
-        url(r'^poll-scans/$', api.PollScansView.as_view(), name='poll_scans'),
-        url(r'^poll-ct/$', api.PollCtView.as_view(), name='poll_ct'),
-        url(r'^sign-s3/$', api.SignS3View.as_view(), name='sign_s3'),
-        url(r'^upload-as-dev/$', api.UploadAsDev.as_view(), name='upload_as_dev'),
-    ])),
+    # url(r'^api/', include([
+    #     url(r'^validate-serial/$', api.ValidateSerialView.as_view(), name='validate_serial'),
+    #     url(r'^update-tolerance/$', api.UpdateToleranceView.as_view(), name='update_tolerance'),
+    #     url(r'^poll-scans/$', api.PollScansView.as_view(), name='poll_scans'),
+    #     url(r'^poll-ct/$', api.PollCtView.as_view(), name='poll_ct'),
+    #     url(r'^sign-s3/$', api.SignS3View.as_view(), name='sign_s3'),
+    #     url(r'^upload-as-dev/$', api.UploadAsDev.as_view(), name='upload_as_dev'),
+    # ])),
 
     url(r'^scans/', include([
         url(r'^add/$', views.UploadScanView.as_view(), name='upload_scan'),
