@@ -8,7 +8,7 @@ def worker_is_on():
     process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
     worker_response = json.loads(output.decode('utf-8'))
-    return worker_response.get('state') == 'up'
+    return worker_response[0].get('state') == 'up' or 'starting'
 
 
 def no_jobs_in_queue():
