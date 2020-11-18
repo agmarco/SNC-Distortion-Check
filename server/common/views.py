@@ -27,8 +27,9 @@ from . import serializers
 from . import forms
 from .tasks import process_scan, process_ct_upload, process_dicom_overlay, CT_WARNING_THRESHOLD
 from .decorators import validate_institution, login_and_permission_required, institution_required, intro_tutorial, \
-    check_license, manage_worker_server
+    check_license
 from .http import CsvResponse
+from .worker_utilities import worker_is_on, start_worker
 
 logger = logging.getLogger(__name__)
 
@@ -161,12 +162,13 @@ class AccountView(UpdateView):
 @validate_institution()
 @method_decorator(intro_tutorial, name='dispatch')
 @method_decorator(check_license(), name='dispatch')
-@method_decorator(manage_worker_server(), name='dispatch')
 class MachineSequenceDetailView(DetailView):
     model = models.MachineSequencePair
     template_name = 'common/machine_sequence_detail.html'
 
     def get_context_data(self, **kwargs):
+        if not worker_is_on():
+            start_worker()
         context = super(MachineSequenceDetailView, self).get_context_data(**kwargs)
         machine_sequence_pair_json = serializers.MachineSequencePairSerializer(self.object)
         scans = models.Scan.objects.filter(machine_sequence_pair=self.object).active()
