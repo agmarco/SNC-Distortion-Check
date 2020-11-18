@@ -27,7 +27,7 @@ from . import serializers
 from . import forms
 from .tasks import process_scan, process_ct_upload, process_dicom_overlay, CT_WARNING_THRESHOLD
 from .decorators import validate_institution, login_and_permission_required, institution_required, intro_tutorial, \
-    check_license
+    check_license, manage_worker_server
 from .http import CsvResponse
 
 logger = logging.getLogger(__name__)
@@ -179,7 +179,7 @@ class MachineSequenceDetailView(DetailView):
         })
         return context
 
-
+@method_decorator(manage_worker_server, name='dispatch')
 @method_decorator(login_required, name='dispatch')
 @method_decorator(institution_required, name='dispatch')
 @method_decorator(intro_tutorial, name='dispatch')
@@ -228,6 +228,7 @@ class UploadScanView(JsonFormMixin, FormView):
         return redirect('machine_sequence_detail', scan.machine_sequence_pair.pk)
 
 
+@manage_worker_server
 @login_required
 @institution_required
 @validate_institution(model_class=models.Scan)
@@ -279,6 +280,7 @@ class GoldStandardErrorsView(DetailView):
 @validate_institution(model_class=models.Scan)
 @method_decorator(intro_tutorial, name='dispatch')
 @method_decorator(check_license(), name='dispatch')
+@method_decorator(manage_worker_server, name='dispatch')
 class DicomOverlayView(FormView):
     form_class = forms.DicomOverlayForm
     template_name = 'common/dicom_overlay.html'
@@ -575,6 +577,7 @@ class DeleteUserView(CirsDeleteView):
 @validate_institution(model_class=models.Phantom, pk_url_kwarg='phantom_pk')
 @method_decorator(intro_tutorial, name='dispatch')
 @method_decorator(check_license(check_scans=True), name='dispatch')
+@method_decorator(manage_worker_server, name='dispatch')
 class UploadCtView(JsonFormMixin, FormView):
     form_class = forms.UploadCtForm
     template_name = 'common/upload_ct.html'
