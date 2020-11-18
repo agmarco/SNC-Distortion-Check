@@ -190,18 +190,16 @@ def check_license(check_scans=False):
     return decorator
 
 
-def manage_worker_server():
-    def decorator(view):
-
-        @wraps(view)
-        def wrapper(request, *args, **kwargs):
-            if worker_is_on():
-                return view(request, *args, **kwargs)
-            else:
-                start_worker()
-                return view(request, *args, **kwargs)
-        return wrapper
-    return decorator
+# def manage_worker_server(arg=None):
+#     def decorator(view):
+#         def wrapper(request, *args, **kwargs):
+#             if worker_is_on():
+#                 return view(request, *args, **kwargs)
+#             else:
+#                 start_worker()
+#                 return view(request, *args, **kwargs)
+#         return wrapper
+#     return decorator
 
 
 def _pluralize(count, word):
