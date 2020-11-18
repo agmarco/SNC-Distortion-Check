@@ -27,7 +27,7 @@ from . import serializers
 from . import forms
 from .tasks import process_scan, process_ct_upload, process_dicom_overlay, CT_WARNING_THRESHOLD
 from .decorators import validate_institution, login_and_permission_required, institution_required, intro_tutorial, \
-    check_license
+    check_license, manage_worker_server
 from .http import CsvResponse
 
 logger = logging.getLogger(__name__)
@@ -161,6 +161,7 @@ class AccountView(UpdateView):
 @validate_institution()
 @method_decorator(intro_tutorial, name='dispatch')
 @method_decorator(check_license(), name='dispatch')
+@method_decorator(manage_worker_server(), name='dispatch')
 class MachineSequenceDetailView(DetailView):
     model = models.MachineSequencePair
     template_name = 'common/machine_sequence_detail.html'
