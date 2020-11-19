@@ -13,7 +13,6 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 
 from server.common.models import Machine, Sequence
-from .worker_utilities import worker_is_on, start_worker
 
 
 logger = logging.getLogger(__name__)
@@ -189,17 +188,17 @@ def check_license(check_scans=False):
         return wrapper
     return decorator
 
-
-def manage_worker_server(view):
-
-    @wraps(view)
-    def wrapper(request, *args, **kwargs):
-        if worker_is_on():
-            return view(request, *args, **kwargs)
-        else:
-            start_worker()
-            return view(request, *args, **kwargs)
-    return wrapper
+#
+# def manage_worker_server(view):
+#
+#     @wraps(view)
+#     def wrapper(request, *args, **kwargs):
+#         if worker_is_on():
+#             return view(request, *args, **kwargs)
+#         else:
+#             start_worker()
+#             return view(request, *args, **kwargs)
+#     return wrapper
 
 
 def _pluralize(count, word):
