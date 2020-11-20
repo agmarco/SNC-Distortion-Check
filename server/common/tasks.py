@@ -40,6 +40,7 @@ from process.exceptions import AlgorithmException
 
 logger = logging.getLogger(__name__)
 
+
 @shared_task(name='common.tasks.process_scan')
 def process_scan(scan_pk, dicom_archive_url=None):
     '''

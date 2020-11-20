@@ -15,4 +15,3 @@ collected_static
 dist
 dump.rdb
 .spyproject/
-data/dicom/*.zip
