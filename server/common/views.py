@@ -182,6 +182,7 @@ class MachineSequenceDetailView(DetailView):
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(institution_required, name='dispatch')
+@manage_worker_server()
 @method_decorator(intro_tutorial, name='dispatch')
 @method_decorator(check_license(check_scans=True), name='dispatch')
 class UploadScanView(JsonFormMixin, FormView):
@@ -278,6 +279,7 @@ class GoldStandardErrorsView(DetailView):
 @method_decorator(login_required, name='dispatch')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution(model_class=models.Scan)
+@manage_worker_server()
 @method_decorator(intro_tutorial, name='dispatch')
 @method_decorator(check_license(), name='dispatch')
 class DicomOverlayView(FormView):
@@ -574,6 +576,7 @@ class DeleteUserView(CirsDeleteView):
 @login_and_permission_required('common.configuration')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution(model_class=models.Phantom, pk_url_kwarg='phantom_pk')
+@manage_worker_server()
 @method_decorator(intro_tutorial, name='dispatch')
 @method_decorator(check_license(check_scans=True), name='dispatch')
 class UploadCtView(JsonFormMixin, FormView):
