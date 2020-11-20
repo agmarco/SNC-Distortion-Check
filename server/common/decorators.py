@@ -1,6 +1,7 @@
 import inspect
 from functools import wraps
 import logging
+import os
 
 from datetime import datetime, timedelta
 from django.contrib import messages
@@ -194,12 +195,13 @@ def check_license(check_scans=False):
 def manage_worker_server(view):
 
     @wraps(view)
-    def wrapper(request, *args, **kwargs):
-        if not worker_is_on():
-            start_worker()
-            return view(request, *args, **kwargs)
-        else:
-            return view(request, *args, **kwargs)
+    def wrapper():
+        if os.getenv('HEROKU_APP_NAME'):
+            if not worker_is_on():
+                start_worker()
+                return
+            else:
+                return
     return wrapper
 
 
