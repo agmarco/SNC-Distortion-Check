@@ -180,7 +180,6 @@ class MachineSequenceDetailView(DetailView):
         return context
 
 
-@manage_worker_server
 @method_decorator(login_required, name='dispatch')
 @method_decorator(institution_required, name='dispatch')
 @method_decorator(intro_tutorial, name='dispatch')
@@ -573,7 +572,6 @@ class DeleteUserView(CirsDeleteView):
             return response
 
 
-@manage_worker_server
 @login_and_permission_required('common.configuration')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution(model_class=models.Phantom, pk_url_kwarg='phantom_pk')
