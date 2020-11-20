@@ -23,7 +23,6 @@ def start_worker():
     if not worker_is_on():
         return heroku_app.process_formation()['worker'].scale(1)
 
-
 def stop_worker():
     if no_jobs_in_queue() and worker_is_on():
         return heroku_app.process_formation()['worker'].scale(0)
