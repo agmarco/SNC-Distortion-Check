@@ -577,7 +577,7 @@ class DeleteUserView(CirsDeleteView):
 @validate_institution(model_class=models.Phantom, pk_url_kwarg='phantom_pk')
 @method_decorator(intro_tutorial, name='dispatch')
 @method_decorator(check_license(check_scans=True), name='dispatch')
-# @method_decorator(manage_worker_server, name='dispatch')
+@method_decorator(manage_worker_server, name='dispatch')
 class UploadCtView(JsonFormMixin, FormView):
     form_class = forms.UploadCtForm
     template_name = 'common/upload_ct.html'

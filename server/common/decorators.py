@@ -13,7 +13,9 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 
 from server.common.models import Machine, Sequence
-from server.common.worker_utilities import start_worker, worker_is_on
+
+from .worker_utilities import worker_is_on, start_worker
+
 
 logger = logging.getLogger(__name__)
 
