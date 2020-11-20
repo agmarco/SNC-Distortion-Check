@@ -1,9 +1,13 @@
+import os
+
 import heroku3
 
 from server.celery import app
 
-heroku_connection = heroku3.from_key('c442f7d9-b279-4d36-9051-34bf0f9a9c65')
+
+heroku_connection = heroku3.from_key(os.getenv('HEROKU_API_KEY'))
 heroku_app = heroku_connection.apps()['cirs-dev']
+celery_info = app.control.inspect()
 
 
 def worker_is_on():
@@ -12,12 +16,7 @@ def worker_is_on():
 
 
 def no_jobs_in_queue():
-    celery_info = app.control.inspect()
-    worker_status = celery_info.app.current_worker_task
-    if not worker_status:
-        return True
-    else:
-        return False
+    return not celery_info.app.current_worker_task
 
 
 def start_worker():
