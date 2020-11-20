@@ -192,6 +192,7 @@ def check_license(check_scans=False):
 
 
 def manage_worker_server(view):
+
     @wraps(view)
     def wrapper(request, *args, **kwargs):
         if not worker_is_on():
