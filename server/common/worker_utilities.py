@@ -1,17 +1,14 @@
-import json
-import subprocess
+import heroku3
+
 from server.celery import app
+
+heroku_connection = heroku3.from_key('c442f7d9-b279-4d36-9051-34bf0f9a9c65')
+heroku_app = heroku_connection.apps()['cirs-dev']
 
 
 def worker_is_on():
-    bash_command = "heroku ps --app cirs-dev worker --json"
-    process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
-    output, error = process.communicate()
-    if output:
-        worker_response = json.loads(output.decode('utf-8'))
-        return worker_response[0].get('state') == 'up' or 'starting'
-    else:
-        return False
+    active_dynos = heroku_app.dynos()
+    return len(active_dynos) == 2
 
 
 def no_jobs_in_queue():
@@ -25,13 +22,9 @@ def no_jobs_in_queue():
 
 def start_worker():
     if not worker_is_on():
-        bash_command = "heroku ps:scale --app cirs-dev worker=1:performance-l"
-        subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
-    return
+        return heroku_app.process_formation()['worker'].scale(1)
 
 
 def stop_worker():
-    if worker_is_on():
-        bash_command = "heroku ps:scale --app cirs-dev worker=0:performance-l"
-        subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
-    return
+    if no_jobs_in_queue() and worker_is_on():
+        return heroku_app.process_formation()['worker'].scale(0)
