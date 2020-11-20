@@ -191,18 +191,16 @@ def check_license(check_scans=False):
     return decorator
 
 
-def manage_worker_server():
-    def decorator(view):
+def manage_worker_server(view):
 
-        @wraps(view)
-        def wrapper(request, *args, **kwargs):
-            if not worker_is_on():
-                return start_worker()
-            else:
-                start_worker()
-                return view(request, *args, **kwargs)
-        return wrapper
-    return decorator
+    @wraps(view)
+    def wrapper(request, *args, **kwargs):
+        if not worker_is_on():
+            return start_worker()
+        else:
+            start_worker()
+            return view(request, *args, **kwargs)
+    return wrapper
 
 
 def _pluralize(count, word):
