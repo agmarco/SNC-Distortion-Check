@@ -9,4 +9,4 @@ class Command(BaseCommand):
         if worker_is_on() and no_jobs_in_queue():
             stop_worker()
         else:
-            pass
+            print('worker server is not on')
