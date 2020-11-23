@@ -20,7 +20,7 @@ def worker_is_on():
         return 'worker' in active_dynos
     except Exception:
         if heroku_app_name:
-            logger.debug("""{0} was thrown when checking dynos on {1} app in Heroku. Check to make sure the app name 
+            logger.error("""{0} was thrown when checking dynos on {1} app in Heroku. Check to make sure the app name 
             matches an app in the cirs heroku dashboard.""".format(
                 Exception, heroku_app_name))
         else:
@@ -34,7 +34,7 @@ def no_jobs_in_queue():
         celery_info = app.control.inspect()
         return not celery_info.active() or celery_info.scheduled() or celery_info.registered()
     except CeleryError:
-        logger.debug('The celery queue was not checked because it threw this exception: {0}'.format(CeleryError))
+        logger.error('The celery queue was not checked because it threw this exception: {0}'.format(CeleryError))
         return False
 
 
@@ -43,7 +43,7 @@ def start_worker():
         try:
             return heroku_app.process_formation()['worker'].scale(1)
         except Exception:
-            logger.debug(
+            logger.error(
                 '{0} was thrown when trying to scale up the worker dyno on {1}.'.format(Exception, heroku_app_name))
 
 
@@ -52,5 +52,5 @@ def stop_worker():
         if worker_is_on():
             return heroku_app.process_formation()['worker'].scale(0)
     except Exception:
-        logger.debug(
+        logger.error(
             '{0} was thrown when trying to scale down the worker dyno on {1}.'.format(Exception, heroku_app_name))
