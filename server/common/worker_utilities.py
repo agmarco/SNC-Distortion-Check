@@ -17,7 +17,7 @@ def worker_is_on():
         active_dynos = [dyno.type for dyno in heroku_app.dynos()]
         return 'worker' in active_dynos
     except Exception:
-        if os.getenv('HEROKU_APP_NAME'):
+        if heroku_app_name:
             warnings.warn("""{0} was thrown when checking dynos on {1} app in Heroku. Check to make sure the app name 
             matches an app in the cirs heroku dashboard and the dynos are configured""".format(
                            Exception, heroku_app_name))
