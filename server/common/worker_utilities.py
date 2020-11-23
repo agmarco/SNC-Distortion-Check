@@ -11,6 +11,7 @@ heroku_app_name = os.getenv('HEROKU_APP_NAME')
 heroku_app = heroku_connection.apps()[heroku_app_name]
 
 
+# Base exception thrown because heroku3 exceptions are not defined in documentation
 def worker_is_on():
     try:
         active_dynos = [dyno.type for dyno in heroku_app.dynos()]
@@ -18,7 +19,7 @@ def worker_is_on():
     except Exception:
         if os.getenv('HEROKU_APP_NAME'):
             warnings.warn("""{0} was thrown when checking dynos on {1} app in Heroku. Check to make sure the app name 
-            is matches an app in the cirs heroku dashboard, and the dynos are configured""".format(
+            matches an app in the cirs heroku dashboard and the dynos are configured""".format(
                            Exception, heroku_app_name))
         else:
             warnings.warn("""{0} was thrown because you have not set HEROKU_APP_NAME in your .env file. To 
