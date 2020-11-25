@@ -195,10 +195,11 @@ def check_license(check_scans=False):
 def manage_worker_server(view):
 
     @wraps(view)
-    def wrapper():
+    def wrapper(request, *args, **kwargs):
         if os.getenv('HEROKU_APP_NAME'):
             if not worker_is_on():
                 start_worker()
+        return view(request, *args, **kwargs)
     return wrapper
 
 
