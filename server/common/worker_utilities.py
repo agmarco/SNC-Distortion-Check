@@ -47,9 +47,9 @@ def start_worker():
                 '{0} was thrown when trying to scale up the worker dyno.'.format(type(Exception).__name__))
 
 
-def stop_worker(self):
+def stop_worker():
     try:
-        if self.worker_is_on():
+        if worker_is_on():
             heroku_connection = HerokuConnect()
             return heroku_connection.heroku_app.process_formation()['worker'].scale(0)
     except Exception:
