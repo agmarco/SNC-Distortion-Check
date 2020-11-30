@@ -6,9 +6,6 @@ import heroku3
 
 from server.celery import app
 
-heroku_connection = heroku3.from_key(os.getenv('HEROKU_API_KEY'))
-heroku_app_name = os.getenv('APP_NAME')
-heroku_app = heroku_connection.apps()[heroku_app_name]
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +13,9 @@ logger = logging.getLogger(__name__)
 # Base exception thrown because heroku3 exceptions are not defined in documentation
 def worker_is_on():
     try:
+        heroku_connection = heroku3.from_key(os.getenv('HEROKU_API_KEY'))
+        heroku_app_name = os.getenv('APP_NAME')
+        heroku_app = heroku_connection.apps()[heroku_app_name]
         active_dynos = [dyno.type for dyno in heroku_app.dynos()]
         return 'worker' in active_dynos
     except Exception:
@@ -41,6 +41,9 @@ def no_jobs_in_queue():
 def start_worker():
     if not worker_is_on():
         try:
+            heroku_connection = heroku3.from_key(os.getenv('HEROKU_API_KEY'))
+            heroku_app_name = os.getenv('APP_NAME')
+            heroku_app = heroku_connection.apps()[heroku_app_name]
             return heroku_app.process_formation()['worker'].scale(1)
         except Exception:
             logger.error(
@@ -50,6 +53,9 @@ def start_worker():
 def stop_worker():
     try:
         if worker_is_on():
+            heroku_connection = heroku3.from_key(os.getenv('HEROKU_API_KEY'))
+            heroku_app_name = os.getenv('APP_NAME')
+            heroku_app = heroku_connection.apps()[heroku_app_name]
             return heroku_app.process_formation()['worker'].scale(0)
     except Exception:
         logger.error(
