@@ -7,7 +7,7 @@ import heroku3
 from server.celery import app
 
 heroku_connection = heroku3.from_key(os.getenv('HEROKU_API_KEY'))
-heroku_app_name = os.getenv('HEROKU_APP_NAME')
+heroku_app_name = os.getenv('APP_NAME')
 heroku_app = heroku_connection.apps()[heroku_app_name]
 
 logger = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ def worker_is_on():
             matches an app in the cirs heroku dashboard.""".format(
                 Exception, heroku_app_name))
         else:
-            logger.debug("""{0} was thrown because you have not set HEROKU_APP_NAME in your .env file. To 
+            logger.debug("""{0} was thrown because you have not set APP_NAME in your .env file. To 
             resolve this error, set the key to 'cirs-dev' or 'cirs-production'.""".format(Exception))
         return False
 
