@@ -44,7 +44,7 @@ def start_worker():
             return heroku_connection.heroku_app.process_formation()['worker'].scale(1)
         except Exception:
             logger.error(
-                '{0} was thrown when trying to scale up the worker dyno on {1}.'.format(type(Exception).__name__, heroku_connection.heroku_app_name))
+                '{0} was thrown when trying to scale up the worker dyno.'.format(type(Exception).__name__))
 
 
 def stop_worker(self):
@@ -54,4 +54,4 @@ def stop_worker(self):
             return heroku_connection.heroku_app.process_formation()['worker'].scale(0)
     except Exception:
         logger.error(
-            '{0} was thrown when trying to scale down the worker dyno on {1}.'.format(type(Exception).__name__, heroku_connection.heroku_app_name))
+            '{0} was thrown when trying to scale down the worker dyno.'.format(type(Exception).__name__))
