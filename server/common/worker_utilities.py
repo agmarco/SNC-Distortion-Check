@@ -23,13 +23,8 @@ def worker_is_on():
         active_dynos = [dyno.type for dyno in heroku_connection.heroku_app.dynos()]
         return 'worker' in active_dynos
     except Exception:
-        if heroku_connection.heroku_app_name:
-            logger.error("""{0} was thrown when checking dynos on {1} app in Heroku. Check to make sure the app name 
-            matches an app in the cirs heroku dashboard.""".format(
-                Exception, heroku_connection.heroku_app_name))
-        else:
-            logger.debug("""{0} was thrown because you have not set APP_NAME in your .env file. To 
-            resolve this error, set the key to 'cirs-dev' or 'cirs-production'.""".format(type(Exception).__name__))
+        logger.debug("""{0} was thrown because you have not set APP_NAME in your .env file. To 
+        resolve this error, set the key to 'cirs-dev' or 'cirs-production'.""".format(type(Exception).__name__))
         return False
 
 
