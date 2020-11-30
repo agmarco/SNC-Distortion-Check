@@ -196,7 +196,7 @@ def manage_worker_server(view):
 
     @wraps(view)
     def wrapper(request, *args, **kwargs):
-        if os.getenv('HEROKU_APP_NAME'):
+        if os.getenv('APP_NAME'):
             if not worker_is_on():
                 start_worker()
         return view(request, *args, **kwargs)
