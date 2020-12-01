@@ -8,14 +8,14 @@ from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import PermissionDenied
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.utils.decorators import method_decorator
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
 from server.common.models import Machine, Sequence
 
-from .worker_utilities import worker_is_on, start_worker
+from .heroku_api import HerokuConnect
 
 
 logger = logging.getLogger(__name__)
@@ -196,10 +196,15 @@ def manage_worker_server(view):
 
     @wraps(view)
     def wrapper(request, *args, **kwargs):
-        if os.getenv('APP_NAME'):
-            if not worker_is_on():
-                start_worker()
-        return view(request, *args, **kwargs)
+        try:
+            heroku_connection = HerokuConnect()
+            if not heroku_connection.worker_is_on():
+                heroku_connection.start_worker()
+            return view(request, *args, **kwargs)
+        except Exception:
+            messages.warning(request, '''There has been an error on our end. We have notfied our team and they will fix 
+            this as soon as they can.''')
+            return redirect('/')
     return wrapper
 
 
