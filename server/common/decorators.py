@@ -202,10 +202,8 @@ def manage_worker_server(view):
                 heroku_connection.start_worker()
             return view(request, *args, **kwargs)
         except Exception:
-            messages.warning(request, 'There has been an error on our end. Our technical staff have been '
-                                      'notified and will be looking into this with the utmost urgency. '
-                                      'If you have questions {0}'
-                                      .format('<a href="http://www.cirsinc.com/support/contact">Contact Us</a>'))
+            messages.warning(request, '''A server error occurred. Our technical staff have been
+                                      notified and will be looking into this with the utmost urgency.''')
             return redirect('/')
     return wrapper
 

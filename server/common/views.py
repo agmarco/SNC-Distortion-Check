@@ -232,7 +232,7 @@ class UploadScanView(JsonFormMixin, FormView):
 @manage_worker_server
 @login_required
 @institution_required
-@validate_institution(model_class=models.Scan)
+# @validate_institution(model_class=models.Scan)
 @check_license(check_scans=True)
 def refresh_scan_view(request, pk=None):
     if request.method == 'POST':
