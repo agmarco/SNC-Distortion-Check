@@ -204,7 +204,7 @@ def manage_worker_server(view):
         except Exception:
             messages.warning(request, '''A server error occurred. Our technical staff have been
                                       notified and will be looking into this with the utmost urgency.''')
-            return redirect('machine_sequence_detail')
+            return redirect('machine_sequence_detail', kwargs['pk'])
     return wrapper
 
 

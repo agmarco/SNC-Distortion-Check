@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class HerokuAPI:
     def __init__(self):
         self.heroku_connection = heroku3.from_key(os.getenv('HEROKU_API_KEY'))
-        self.heroku_app_name = os.getenv('APP_NAME')
+        self.heroku_app_name = os.getenv('HEROKU_APP_NAME')
         self.heroku_app = self.heroku_connection.apps()[self.heroku_app_name]
 
     @staticmethod
