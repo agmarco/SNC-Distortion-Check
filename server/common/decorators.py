@@ -40,6 +40,7 @@ def validate_institution(model_class=None, pk_url_kwarg='pk'):
                     obj = get_object_or_404(model_class, pk=kwargs[pk_url_kwarg])
                 elif callable(getattr(instance, 'get_object', None)):
                     obj = instance.get_object()
+
                 else:
                     raise Exception("You must either specify the model_class, or implement the get_object method.")
 
@@ -202,10 +203,9 @@ def manage_worker_server(view):
                 heroku_connection.start_worker()
             return view(request, *args, **kwargs)
         except Exception:
-            redirect('/')
             messages.warning(request, '''A server error occurred. We can not process or refresh any scans at the moment. 
             Our technical staff have been notified and will be looking into this with the utmost urgency.''')
-            return
+            return view(request, *args, **kwargs)
     return wrapper
 
 
