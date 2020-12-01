@@ -15,7 +15,7 @@ from django.utils.safestring import mark_safe
 
 from server.common.models import Machine, Sequence
 
-from .heroku_api import HerokuConnect
+from .heroku_api import HerokuAPI
 
 
 logger = logging.getLogger(__name__)
@@ -197,13 +197,15 @@ def manage_worker_server(view):
     @wraps(view)
     def wrapper(request, *args, **kwargs):
         try:
-            heroku_connection = HerokuConnect()
+            heroku_connection = HerokuAPI()
             if not heroku_connection.worker_is_on():
                 heroku_connection.start_worker()
             return view(request, *args, **kwargs)
         except Exception:
-            messages.warning(request, '''There has been an error on our end. We have notfied our team and they will fix 
-            this as soon as they can.''')
+            messages.warning(request, 'There has been an error on our end. Our technical staff have been '
+                                      'notified and will be looking into this with the utmost urgency. '
+                                      'If you have questions {0}'
+                                      .format('<a href="http://www.cirsinc.com/support/contact">Contact Us</a>'))
             return redirect('/')
     return wrapper
 
