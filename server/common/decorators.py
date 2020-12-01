@@ -202,9 +202,10 @@ def manage_worker_server(view):
                 heroku_connection.start_worker()
             return view(request, *args, **kwargs)
         except Exception:
-            messages.warning(request, '''A server error occurred. Our technical staff have been
-                                      notified and will be looking into this with the utmost urgency.''')
-            return redirect('machine_sequence_detail', kwargs['pk'])
+            redirect('/')
+            messages.warning(request, '''A server error occurred. We can not process or refresh any scans at the moment. 
+            Our technical staff have been notified and will be looking into this with the utmost urgency.''')
+            return
     return wrapper
 
 
