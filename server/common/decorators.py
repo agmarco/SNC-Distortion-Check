@@ -1,14 +1,13 @@
 import inspect
 from functools import wraps
 import logging
-import os
 
 from datetime import datetime, timedelta
 from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import PermissionDenied
-from django.shortcuts import get_object_or_404, render, redirect
+from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.urls import reverse
 from django.utils.safestring import mark_safe
@@ -40,7 +39,6 @@ def validate_institution(model_class=None, pk_url_kwarg='pk'):
                     obj = get_object_or_404(model_class, pk=kwargs[pk_url_kwarg])
                 elif callable(getattr(instance, 'get_object', None)):
                     obj = instance.get_object()
-
                 else:
                     raise Exception("You must either specify the model_class, or implement the get_object method.")
 
