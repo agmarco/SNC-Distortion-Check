@@ -180,9 +180,9 @@ class MachineSequenceDetailView(DetailView):
         return context
 
 
+@method_decorator(manage_worker_server, name='dispatch')
 @method_decorator(login_required, name='dispatch')
 @method_decorator(institution_required, name='dispatch')
-@method_decorator(manage_worker_server, name='dispatch')
 @method_decorator(intro_tutorial, name='dispatch')
 @method_decorator(check_license(check_scans=True), name='dispatch')
 class UploadScanView(JsonFormMixin, FormView):
@@ -229,10 +229,10 @@ class UploadScanView(JsonFormMixin, FormView):
         return redirect('machine_sequence_detail', scan.machine_sequence_pair.pk)
 
 
+@manage_worker_server
 @login_required
 @institution_required
 @validate_institution(model_class=models.Scan)
-@manage_worker_server
 @check_license(check_scans=True)
 def refresh_scan_view(request, pk=None):
     if request.method == 'POST':
@@ -276,10 +276,10 @@ class GoldStandardErrorsView(DetailView):
     template_name = 'common/gold_standard_errors.html'
 
 
+@method_decorator(manage_worker_server, name='dispatch')
 @method_decorator(login_required, name='dispatch')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution(model_class=models.Scan)
-@method_decorator(manage_worker_server, name='dispatch')
 @method_decorator(intro_tutorial, name='dispatch')
 @method_decorator(check_license(), name='dispatch')
 class DicomOverlayView(FormView):
@@ -573,10 +573,10 @@ class DeleteUserView(CirsDeleteView):
             return response
 
 
+@method_decorator(manage_worker_server, name='dispatch')
 @login_and_permission_required('common.configuration')
 @method_decorator(institution_required, name='dispatch')
 @validate_institution(model_class=models.Phantom, pk_url_kwarg='phantom_pk')
-@method_decorator(manage_worker_server, name='dispatch')
 @method_decorator(intro_tutorial, name='dispatch')
 @method_decorator(check_license(check_scans=True), name='dispatch')
 class UploadCtView(JsonFormMixin, FormView):
