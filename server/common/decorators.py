@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import PermissionDenied
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.urls import reverse
@@ -28,7 +29,6 @@ def validate_institution(model_class=None, pk_url_kwarg='pk'):
     provided, or view.get_object() otherwise.
     If decoratee is a function, the object is obtained using the specified model_class and pk_url_kwarg.
     """
-
     def decorator(view):
         if inspect.isclass(view):
             old_dispatch = view.dispatch
@@ -42,13 +42,11 @@ def validate_institution(model_class=None, pk_url_kwarg='pk'):
                     obj = instance.get_object()
                 else:
                     raise Exception("You must either specify the model_class, or implement the get_object method.")
-
                 if not hasattr(obj, 'institution'):
                     raise Exception(f"The property 'institution' was not found on the object {obj}.")
 
                 if obj.institution != request.user.get_institution(request):
                     raise PermissionDenied
-
                 return old_dispatch(instance, request, *args, **kwargs)
 
             view.dispatch = new_dispatch
@@ -202,10 +200,12 @@ def manage_worker_server(view):
                 heroku_connection.start_worker()
             return view(request, *args, **kwargs)
         except Exception:
-            if not os.getenv('DEBUG'):
+            if os.getenv('DEBUG'):
                 messages.warning(request, '''A server error occurred. We can not process or refresh any scans at the moment. 
                 Our technical staff have been notified and will be looking into this with the utmost urgency.''')
-            return view(request, *args, **kwargs)
+                return HttpResponseRedirect('/')
+            else:
+                return view(request, *args, **kwargs)
     return wrapper
 
 
