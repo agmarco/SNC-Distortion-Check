@@ -19,6 +19,7 @@ class HerokuAPI:
         max_time = time.time() + timeout
         while time.time() < max_time:
             if condition:
+                print(condition)
                 return True
             time.sleep(period)
         return False

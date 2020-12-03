@@ -14,10 +14,9 @@ from django.utils.decorators import method_decorator
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
-from server.common.models import Machine, Sequence
+from server.common.models import Machine, Sequence, Institution
 
 from .heroku_api import HerokuAPI
-
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +28,7 @@ def validate_institution(model_class=None, pk_url_kwarg='pk'):
     provided, or view.get_object() otherwise.
     If decoratee is a function, the object is obtained using the specified model_class and pk_url_kwarg.
     """
+
     def decorator(view):
         if inspect.isclass(view):
             old_dispatch = view.dispatch
@@ -44,7 +44,9 @@ def validate_institution(model_class=None, pk_url_kwarg='pk'):
                     raise Exception("You must either specify the model_class, or implement the get_object method.")
                 if not hasattr(obj, 'institution'):
                     raise Exception(f"The property 'institution' was not found on the object {obj}.")
-
+                if obj.institution is None:
+                    messages.warning(request, '''Please log out of admin to process scans''')
+                    return HttpResponseRedirect('/')
                 if obj.institution != request.user.get_institution(request):
                     raise PermissionDenied
                 return old_dispatch(instance, request, *args, **kwargs)
@@ -65,7 +67,9 @@ def validate_institution(model_class=None, pk_url_kwarg='pk'):
                     raise PermissionDenied
 
                 return view(request, *args, **kwargs)
+
             return wrapper
+
     return decorator
 
 
@@ -74,9 +78,11 @@ def login_and_permission_required(permission, **kwargs):
 
     def decorator(view):
         if inspect.isclass(view):
-            return method_decorator((login_required, permission_required(permission, raise_exception=True, **kwargs)), name='dispatch')(view)
+            return method_decorator((login_required, permission_required(permission, raise_exception=True, **kwargs)),
+                                    name='dispatch')(view)
         else:
             return login_required(permission_required(permission, raise_exception=True, **kwargs)(view))
+
     return decorator
 
 
@@ -126,7 +132,7 @@ def intro_tutorial(view):
             else:
                 if no_machines or no_sequences:
                     msg = "A user with configuration privileges must setup at least one machine and one sequence " + \
-                            "must be configured before you can begin uploading MRIs to analyze."
+                          "must be configured before you can begin uploading MRIs to analyze."
 
             storage = get_messages(request)
             if msg and msg not in [m.message for m in storage]:
@@ -136,6 +142,7 @@ def intro_tutorial(view):
             logger.exception('Exception occurred during check machine sequences decorator')
 
         return response
+
     return wrapper
 
 
@@ -186,12 +193,13 @@ def check_license(check_scans=False):
                 _add_warning_if_not_present_already(request, msg)
 
             return view(request, *args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
 def manage_worker_server(view):
-
     @wraps(view)
     def wrapper(request, *args, **kwargs):
         try:
@@ -200,12 +208,13 @@ def manage_worker_server(view):
                 heroku_connection.start_worker()
             return view(request, *args, **kwargs)
         except Exception:
-            if os.getenv('DEBUG'):
+            if not os.getenv('DEBUG'):
                 messages.warning(request, '''A server error occurred. We can not process or refresh any scans at the moment. 
                 Our technical staff have been notified and will be looking into this with the utmost urgency.''')
                 return HttpResponseRedirect('/')
             else:
                 return view(request, *args, **kwargs)
+
     return wrapper
 
 
