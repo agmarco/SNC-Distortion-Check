@@ -45,7 +45,7 @@ def validate_institution(model_class=None, pk_url_kwarg='pk'):
                 if not hasattr(obj, 'institution'):
                     raise Exception(f"The property 'institution' was not found on the object {obj}.")
                 if obj.institution is None:
-                    messages.warning(request, '''Please log out of admin to process scans''')
+                    messages.warning(request, '''Please log out of admin to process scans.''')
                     return HttpResponseRedirect('/')
                 if obj.institution != request.user.get_institution(request):
                     raise PermissionDenied
@@ -200,22 +200,22 @@ def check_license(check_scans=False):
 
 
 def manage_worker_server(view):
-    @wraps(view)
-    def wrapper(request, *args, **kwargs):
-        try:
-            heroku_connection = HerokuAPI()
-            if not heroku_connection.worker_is_on():
-                heroku_connection.start_worker()
-            return view(request, *args, **kwargs)
-        except Exception:
-            if not os.getenv('DEBUG'):
+    if not os.getenv('HEROKU_APP_NAME'):
+        return view
+    else:
+        @wraps(view)
+        def wrapper(request, *args, **kwargs):
+            try:
+                heroku_connection = HerokuAPI()
+                if not heroku_connection.worker_is_on():
+                    heroku_connection.start_worker()
+                return view(request, *args, **kwargs)
+            except Exception:
                 messages.warning(request, '''A server error occurred. We can not process or refresh any scans at the moment. 
                 Our technical staff have been notified and will be looking into this with the utmost urgency.''')
                 return HttpResponseRedirect('/')
-            else:
-                return view(request, *args, **kwargs)
 
-    return wrapper
+        return wrapper
 
 
 def _pluralize(count, word):
