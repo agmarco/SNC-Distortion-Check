@@ -46,10 +46,6 @@ def validate_institution(model_class=None, pk_url_kwarg='pk'):
                 if not hasattr(obj, 'institution'):
                     raise Exception(f"The property 'institution' was not found on the object {obj}.")
 
-                if obj.institution is None:
-                    messages.warning(request, '''Please log out of admin to process scans.''')
-                    return HttpResponseRedirect('/')
-
                 if obj.institution != request.user.get_institution(request):
                     raise PermissionDenied
 
