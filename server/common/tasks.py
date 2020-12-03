@@ -57,7 +57,6 @@ def process_scan(scan_pk, dicom_archive_url=None):
     This task saves details periodically, so that in the event of a failure, we
     have as much data as possible available for debugging purposes.
     '''
-    print('HERE!!')
     logger.info("Beginning processing of scan (pk={})".format(scan_pk))
     scan = models.Scan.objects.get(pk=scan_pk)
 
