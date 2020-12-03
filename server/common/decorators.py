@@ -14,7 +14,7 @@ from django.utils.decorators import method_decorator
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
-from server.common.models import Machine, Sequence, Institution
+from server.common.models import Machine, Sequence
 
 from .heroku_api import HerokuAPI
 
