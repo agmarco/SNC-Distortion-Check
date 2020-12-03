@@ -42,13 +42,17 @@ def validate_institution(model_class=None, pk_url_kwarg='pk'):
                     obj = instance.get_object()
                 else:
                     raise Exception("You must either specify the model_class, or implement the get_object method.")
+
                 if not hasattr(obj, 'institution'):
                     raise Exception(f"The property 'institution' was not found on the object {obj}.")
+
                 if obj.institution is None:
                     messages.warning(request, '''Please log out of admin to process scans.''')
                     return HttpResponseRedirect('/')
+
                 if obj.institution != request.user.get_institution(request):
                     raise PermissionDenied
+
                 return old_dispatch(instance, request, *args, **kwargs)
 
             view.dispatch = new_dispatch
@@ -67,9 +71,7 @@ def validate_institution(model_class=None, pk_url_kwarg='pk'):
                     raise PermissionDenied
 
                 return view(request, *args, **kwargs)
-
             return wrapper
-
     return decorator
 
 
@@ -82,7 +84,6 @@ def login_and_permission_required(permission, **kwargs):
                                     name='dispatch')(view)
         else:
             return login_required(permission_required(permission, raise_exception=True, **kwargs)(view))
-
     return decorator
 
 
@@ -142,7 +143,6 @@ def intro_tutorial(view):
             logger.exception('Exception occurred during check machine sequences decorator')
 
         return response
-
     return wrapper
 
 
@@ -193,9 +193,7 @@ def check_license(check_scans=False):
                 _add_warning_if_not_present_already(request, msg)
 
             return view(request, *args, **kwargs)
-
         return wrapper
-
     return decorator
 
 
