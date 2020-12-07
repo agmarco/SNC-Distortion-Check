@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class Command(BaseCommand):
     help = 'Manage worker state'
 
-   @staticmethod
+    @staticmethod
     def _no_jobs_in_queue():
         try:
             celery_info = app.control.inspect()
