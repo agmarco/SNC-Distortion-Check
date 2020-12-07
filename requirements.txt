@@ -30,6 +30,7 @@ gast==0.2.2               # via tensorflow
 google-pasta==0.2.0       # via tensorflow
 grpcio==1.29.0            # via tensorboard, tensorflow
 gunicorn==19.7.1          # via -r requirements.in
+heroku3==4.2.3             # via -r requirements.in
 h5py==2.10.0              # via keras-applications
 idna==2.6                 # via requests
 importlib-metadata==1.6.1  # via kombu, markdown

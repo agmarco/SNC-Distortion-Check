@@ -1,4 +1,5 @@
 import inspect
+import os
 from functools import wraps
 import logging
 
@@ -7,14 +8,15 @@ from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import PermissionDenied
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
 from server.common.models import Machine, Sequence
-from .worker_utilities import worker_is_on, start_worker
 
+from .heroku_api import HerokuAPI
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +76,8 @@ def login_and_permission_required(permission, **kwargs):
 
     def decorator(view):
         if inspect.isclass(view):
-            return method_decorator((login_required, permission_required(permission, raise_exception=True, **kwargs)), name='dispatch')(view)
+            return method_decorator((login_required, permission_required(permission, raise_exception=True, **kwargs)),
+                                    name='dispatch')(view)
         else:
             return login_required(permission_required(permission, raise_exception=True, **kwargs)(view))
     return decorator
@@ -126,7 +129,7 @@ def intro_tutorial(view):
             else:
                 if no_machines or no_sequences:
                     msg = "A user with configuration privileges must setup at least one machine and one sequence " + \
-                            "must be configured before you can begin uploading MRIs to analyze."
+                          "must be configured before you can begin uploading MRIs to analyze."
 
             storage = get_messages(request)
             if msg and msg not in [m.message for m in storage]:
@@ -191,15 +194,22 @@ def check_license(check_scans=False):
 
 
 def manage_worker_server(view):
+    if not os.getenv('HEROKU_APP_NAME'):
+        return view
+    else:
+        @wraps(view)
+        def wrapper(request, *args, **kwargs):
+            try:
+                heroku_connection = HerokuAPI()
+                if not heroku_connection.worker_is_on():
+                    heroku_connection.start_worker()
+                return view(request, *args, **kwargs)
+            except Exception:
+                messages.warning(request, '''A server error occurred. We can not process or refresh any scans at the moment. 
+                Our technical staff have been notified and will be looking into this with the utmost urgency.''')
+                return HttpResponseRedirect('/')
 
-    @wraps(view)
-    def wrapper(request, *args, **kwargs):
-        if worker_is_on():
-            return view(request, *args, **kwargs)
-        else:
-            start_worker()
-            return view(request, *args, **kwargs)
-    return wrapper
+        return wrapper
 
 
 def _pluralize(count, word):
