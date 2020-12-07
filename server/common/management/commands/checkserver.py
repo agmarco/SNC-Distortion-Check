@@ -2,6 +2,7 @@ import logging
 
 from celery.exceptions import CeleryError
 from django.core.management.base import BaseCommand
+from itertools import chain
 
 from server.common.heroku_api import HerokuAPI
 from server.celery import app
