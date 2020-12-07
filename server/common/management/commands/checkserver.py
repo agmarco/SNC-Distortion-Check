@@ -23,7 +23,8 @@ class Command(BaseCommand):
     def handle(self, **options):
         heroku_connection = HerokuAPI()
         if heroku_connection.worker_is_on() and self._no_jobs_in_queue():
-            return heroku_connection.stop_worker()
+            heroku_connection.stop_worker()
+            return logger.info('Worker server scaled to 0.')
         elif not self._no_jobs_in_queue():
             logger.info('Jobs in queue. Keeping worker server on.')
         else:
