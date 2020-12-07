@@ -12,13 +12,18 @@ logger = logging.getLogger(__name__)
 class Command(BaseCommand):
     help = 'Manage worker state'
 
-    @staticmethod
+   @staticmethod
     def _no_jobs_in_queue():
         try:
             celery_info = app.control.inspect()
-            return not celery_info.active() or celery_info.scheduled() or celery_info.registered()
+            if celery_info.active() or celery_info.scheduled() or celery_info.registered():
+                logger.info(f"""There are {celery_info.scheduled()} celery tasks scheduled; {celery_info.active()} 
+                tasks active and {celery_info.registered()} tasks registered.""")
+                return False
+            else:
+                return True
         except CeleryError:
-            logging.error('Celery app not detected.')
+            logger.error('Celery app not detected.')
 
     def handle(self, **options):
         heroku_connection = HerokuAPI()
