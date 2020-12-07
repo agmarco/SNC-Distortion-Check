@@ -179,11 +179,12 @@ class MachineSequenceDetailView(DetailView):
         })
         return context
 
-@method_decorator(manage_worker_server, name='dispatch')
+
 @method_decorator(login_required, name='dispatch')
 @method_decorator(institution_required, name='dispatch')
 @method_decorator(intro_tutorial, name='dispatch')
 @method_decorator(check_license(check_scans=True), name='dispatch')
+@method_decorator(manage_worker_server, name='dispatch')
 class UploadScanView(JsonFormMixin, FormView):
     form_class = forms.UploadScanForm
     template_name = 'common/upload_scan.html'
@@ -228,11 +229,11 @@ class UploadScanView(JsonFormMixin, FormView):
         return redirect('machine_sequence_detail', scan.machine_sequence_pair.pk)
 
 
-@manage_worker_server
 @login_required
 @institution_required
 @validate_institution(model_class=models.Scan)
 @check_license(check_scans=True)
+@manage_worker_server
 def refresh_scan_view(request, pk=None):
     if request.method == 'POST':
         scan = get_object_or_404(models.Scan, pk=pk)

@@ -100,7 +100,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, {}> {
                     <p>
                         Please provide the following details about the institution that purchased the phantom. If there
                         are any issues registering the account, a CIRS representative will contact you at the
-                        institution phone number your provide.
+                        institution phone number you provide.
                     </p>
 
                     <div>

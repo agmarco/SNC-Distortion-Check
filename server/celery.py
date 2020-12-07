@@ -1,13 +1,12 @@
 import os
-import sys
 
 from celery import Celery
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "server.settings")
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'server.settings')
 
 from django.conf import settings
 
-app = Celery("cirs")
+app = Celery(os.getenv('CELERY_APP_NAME'))
 
 app.conf.accept_content = {'json'}
 app.conf.broker_url = os.getenv('REDIS_URL')
