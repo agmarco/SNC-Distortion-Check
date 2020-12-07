@@ -14,16 +14,17 @@ class Command(BaseCommand):
     help = 'Manage worker state'
 
     @staticmethod
-    def jobs_in_queue():
+    def _jobs_in_queue():
         try:
             celery_inspect = app.control.inspect()
-            celery_info = {
-                'scheduled': len(list(chain(*celery_inspect.scheduled().values()))),
-                'active': len(list(chain(*celery_inspect.scheduled().values())))
-            }
-            if celery_info['active'] or celery_info['scheduled']:
-                logger.info(f'There are {celery_info["scheduled"]} celery tasks scheduled and {celery_info["scheduled"]} tasks active.')
-                return True
+            if celery_inspect.scheduled() or celery_inspect.active():
+                celery_info = {
+                    'scheduled': len(list(chain(*celery_inspect.scheduled().values()))),
+                    'active': len(list(chain(*celery_inspect.active().values())))
+                }
+                logger.info(
+                    f'There are {celery_info["scheduled"]} celery tasks scheduled and {celery_info["active"]} tasks active.')
+                return bool(celery_info["scheduled"] and celery_info["active"])
             else:
                 return False
         except CeleryError:
@@ -31,7 +32,7 @@ class Command(BaseCommand):
 
     def handle(self, **options):
         heroku_connection = HerokuAPI()
-        if heroku_connection.worker_is_on() and not self.jobs_in_queue():
+        if heroku_connection.worker_is_on() and not self._jobs_in_queue():
             heroku_connection.stop_worker()
             return logger.info('Worker server scaled to 0.')
         elif self.jobs_in_queue():
