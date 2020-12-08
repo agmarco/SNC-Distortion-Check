@@ -9,7 +9,6 @@ from server.celery import app
 
 logger = logging.getLogger(__name__)
 
-
 class Command(BaseCommand):
     help = 'Manage worker state'
 
@@ -24,7 +23,10 @@ class Command(BaseCommand):
                 }
                 logger.info(
                     f'There are {celery_info["scheduled"]} celery tasks scheduled and {celery_info["active"]} tasks active.')
-                return bool(celery_info["scheduled"] and celery_info["active"])
+                if not celery_info["scheduled"] and not celery_info["active"]:
+                    return False
+                else:
+                    return True
             else:
                 return False
         except CeleryError:
@@ -35,7 +37,7 @@ class Command(BaseCommand):
         if heroku_connection.worker_is_on() and not self._jobs_in_queue():
             heroku_connection.stop_worker()
             return logger.info('Worker server scaled to 0.')
-        elif self.jobs_in_queue():
+        elif self._jobs_in_queue():
             logger.info('Jobs in queue. Keeping worker server on.')
         else:
             logger.info('Worker is already off.')
