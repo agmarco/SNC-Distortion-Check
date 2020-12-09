@@ -2,42 +2,39 @@ import logging
 
 from celery.exceptions import CeleryError
 from django.core.management.base import BaseCommand
-from itertools import chain
 
 from server.common.heroku_api import HerokuAPI
 from server.celery import app
 
 logger = logging.getLogger(__name__)
 
+
 class Command(BaseCommand):
     help = 'Manage worker state'
 
     @staticmethod
-    def _jobs_in_queue():
+    def celery_count(queue_property):
+        celery_app = list(queue_property.keys())[0]
+        return len(queue_property[celery_app])
+
+    def count_queue(self):
+        inspect = app.control.inspect()
+        return self.celery_count(inspect.active()) + self.celery_count(inspect.scheduled()) + self.celery_count(
+            inspect.reserved())
+
+    def _jobs_in_queue(self):
         try:
-            celery_inspect = app.control.inspect()
-            if celery_inspect.scheduled() or celery_inspect.active():
-                celery_info = {
-                    'scheduled': len(list(chain(*celery_inspect.scheduled().values()))),
-                    'active': len(list(chain(*celery_inspect.active().values())))
-                }
-                logger.info(
-                    f'There are {celery_info["scheduled"]} celery tasks scheduled and {celery_info["active"]} tasks active.')
-                if not celery_info["scheduled"] and not celery_info["active"]:
-                    return False
-                else:
-                    return True
-            else:
-                return False
+            return bool(self.count_queue())
         except CeleryError:
             logger.error('Celery app not detected.')
 
     def handle(self, **options):
         heroku_connection = HerokuAPI()
-        if heroku_connection.worker_is_on() and not self._jobs_in_queue():
-            heroku_connection.stop_worker()
-            return logger.info('Worker server scaled to 0.')
-        elif self._jobs_in_queue():
-            logger.info('Jobs in queue. Keeping worker server on.')
+        if heroku_connection.worker_is_on():
+            if self._jobs_in_queue():
+                return logger.info(f'There are {self.count_queue()} jobs in queue. Keeping worker server on.')
+            else:
+                heroku_connection.stop_worker()
+                return logger.info('There are no jobs in queue. Worker server scaled to 0.')
         else:
-            logger.info('Worker is already off.')
+            return logger.info('Worker is already off.')
