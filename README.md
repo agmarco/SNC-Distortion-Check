@@ -108,4 +108,20 @@ work; see `matplotlibrc` for details.
 53. Navigate to "/fake-server-error" and verify that the Server Error page is displayed.
 54. Navigate to "/missing-page" and verify that that the 404 page is displayed.
 
+### Test Heroku Dyno Scaling (best in low-traffic times)
+1. Navigate to the [Heroku Dashboard](https://dashboard.heroku.com/apps/cirs-production).
+2. On the Overview page, check the status of the worker dyno.
+    - If the worker dyno is scaled to 1, check [Heroku Scheduler](https://dashboard.heroku.com/apps/cirs-production/scheduler) to see when heroku will scale down the worker dyno.
+    - If the worker dyno is scaled to 0, move to the next step.
+3. Click "View Details" on a registered machine.
+4. Refresh an existing scan.
+5. Navigate to the [Heroku Dashboard](https://dashboard.heroku.com/apps/cirs-production) and ensure the worker dyno is scaled to 1 (you may have to refresh the page).
+6. Wait to see the scan complete.
+7. Check the next time [Heroku Scheduler](https://dashboard.heroku.com/apps/cirs-production/scheduler) runs and see if the command scales the dyno to 0 when no scans are being processed (the server may not turn off if another user is running a scan, so watch the (logs)[https://dashboard.heroku.com/apps/cirs-production/logs] for more info).
+8. Repeat step 7, but refresh a scan just before [Heroku Scheduler](https://dashboard.heroku.com/apps/cirs-production/scheduler) runs and make sure the dyno remains scaled to 1.
+9. If errors occur in this process, check:
+    - `server/heroku_api.py` or `server/management/commands/checkserver.py`
+    - The `HEROKU_API_KEY`, `HEROKU_APP_NAME`, `CELERY_APP_NAME`, `HEROKU_APP_NAME`
+    - [Heroku Scheduler](https://dashboard.heroku.com/apps/cirs-production/scheduler) is running `server/manage.py checkserver`
+
 [comment]: <> (TODO test filters on landing page and machine-sequence detail page)
