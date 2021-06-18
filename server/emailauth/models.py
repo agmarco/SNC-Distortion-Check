@@ -47,9 +47,8 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
     email = models.EmailField(
         _('email address'),
-        blank=True,
         #unique=True,
-        #help_text=_('Required.'),
+        help_text=_('Required.'),
         #error_messages={
         #    'unique': _("A user with that email already exists."),
         #},
