@@ -13,6 +13,8 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
+
+from django.contrib.admin.views.decorators import staff_member_required
 from django.conf import settings
 from django.conf.urls import url, include
 from django.contrib import admin
@@ -22,6 +24,8 @@ from django.urls import reverse_lazy
 from .common.views import PasswordResetView
 
 admin.site.site_header = 'CIRS Distortion Check Admin'
+
+admin.site.login = staff_member_required(admin.site.login, login_url=settings.LOGIN_URL)
 
 uidb64_pattern = r'[0-9A-Za-z_\-]+'
 token_pattern = r'[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20}'
