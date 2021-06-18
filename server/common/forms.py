@@ -223,7 +223,6 @@ class RegisterForm(BaseUserForm):
         cleaned_data = super(RegisterForm, self).clean()
         email = cleaned_data.get('email')
         email_repeat = cleaned_data.get('email_repeat')
-        email = 'biped70800@0ranges.com'
 
         if email != email_repeat:
             raise ValidationError("Emails do not match.")
