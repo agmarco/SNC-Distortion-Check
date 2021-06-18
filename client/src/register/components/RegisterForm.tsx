@@ -163,6 +163,7 @@ class RegisterForm extends React.Component<IRegisterFormProps, {}> {
                             model=".email"
                             type="email"
                             id="register-email"
+                            required
                         />
                         <CirsErrors model=".email" required email />
                     </div>
