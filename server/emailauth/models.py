@@ -50,7 +50,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         unique=True,
         help_text=_('Required.'),
         error_messages={
-            'unique': _("A user with that email already exists."),
+            'unique': _("Invalid Input."),
         },
     )
     first_name = models.CharField(_('first name'), max_length=30, blank=True)
