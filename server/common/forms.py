@@ -7,6 +7,7 @@ import numpy as np
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
+from django.shortcuts import redirect
 
 from .models import Phantom, Institution, User, Machine, Sequence
 from .validators import validate_phantom_serial_number
@@ -225,7 +226,12 @@ class RegisterForm(BaseUserForm):
 
         if email != email_repeat:
             raise ValidationError("Emails do not match.")
-        return cleaned_data
+        try:
+            match = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return cleaned_data
+        response = redirect('register_done')
+        return response
 
     def save(self, **kwargs):
         institution = Institution.objects.create(name=self.cleaned_data['institution_name'],
