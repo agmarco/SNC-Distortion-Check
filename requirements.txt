@@ -4,7 +4,7 @@
 #
 #    pip-compile --output-file=requirements.txt requirements.in
 #
-absl-py==0.9.0            # via tensorboard, tensorflow
+absl-py==1.0.0            # via tensorboard, tensorflow
 amqp==2.6.0               # via kombu
 astor==0.8.1              # via tensorflow
 billiard==3.6.3.0         # via celery
