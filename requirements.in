@@ -1,11 +1,11 @@
 pydicom==2.0.0
 orderedset==2.0.3
-keras<2
-tensorflow<2
-matplotlib==2.0.2
-numpy==1.16.0
+keras
+tensorflow
+matplotlib==3.3.1
+numpy==1.26.0
 django==1.11.17
-celery==4.4.5
+celery==5.3.5
 gunicorn==19.7.1
 boto3==1.4.6
 dj-database-url==0.4.2
@@ -14,7 +14,7 @@ psycopg2-binary==2.8.5
 redis==3.2.0
 django-storages==1.6.5
 djangorestframework==3.6.4
-requests==2.18.4
+requests
 whitenoise==3.3.0
 factory_boy==2.9.2
 django-debug-toolbar==1.8
