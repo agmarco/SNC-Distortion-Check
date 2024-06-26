@@ -118,8 +118,6 @@ ml-dtypes==0.3.2
     #   tensorflow
 namex==0.0.8
     # via keras
-naturalneighbor==0.2.1
-    # via -r requirements.in
 numpy==1.26.0
     # via
     #   -r requirements.in
@@ -128,7 +126,6 @@ numpy==1.26.0
     #   keras
     #   matplotlib
     #   ml-dtypes
-    #   naturalneighbor
     #   opt-einsum
     #   tensorboard
     #   tensorflow
