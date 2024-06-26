@@ -127,6 +127,7 @@ numpy==1.26.0
     #   matplotlib
     #   ml-dtypes
     #   opt-einsum
+    #   scipy
     #   tensorboard
     #   tensorflow
 opt-einsum==3.3.0
@@ -185,6 +186,8 @@ rich==13.7.1
     # via keras
 s3transfer==0.1.13
     # via boto3
+scipy==1.14.0
+    # via -r requirements.in
 six==1.16.0
     # via
     #   astunparse

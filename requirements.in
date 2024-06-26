@@ -20,6 +20,7 @@ factory_boy==2.9.2
 django-debug-toolbar==1.8
 pillow==7.1.2
 #naturalneighbor==0.2.1
+scipy
 dicom-numpy==0.6.5
 heroku3==4.2.3
 pip-tools
