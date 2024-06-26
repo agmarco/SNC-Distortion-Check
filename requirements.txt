@@ -11,6 +11,8 @@ absl-py==2.1.0
     #   tensorflow
 amqp==5.2.0
     # via kombu
+asgiref==3.8.1
+    # via django
 astunparse==1.6.3
     # via tensorflow
 billiard==4.2.0
@@ -50,7 +52,7 @@ dicom-numpy==0.6.5
     # via -r requirements.in
 dj-database-url==0.4.2
     # via -r requirements.in
-django==1.11.17
+django==3.2
     # via
     #   -r requirements.in
     #   django-debug-toolbar
@@ -196,7 +198,9 @@ six==1.16.0
     #   tensorboard
     #   tensorflow
 sqlparse==0.5.0
-    # via django-debug-toolbar
+    # via
+    #   django
+    #   django-debug-toolbar
 tensorboard==2.16.2
     # via tensorflow
 tensorboard-data-server==0.7.2
@@ -213,6 +217,7 @@ tomli==2.0.1
     #   pip-tools
 typing-extensions==4.12.2
     # via
+    #   asgiref
     #   optree
     #   tensorflow
 tzdata==2024.1
