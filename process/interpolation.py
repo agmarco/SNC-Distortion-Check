@@ -1,7 +1,7 @@
 import logging
 
 import numpy as np
-import naturalneighbor
+#import naturalneighbor
 import scipy.interpolate
 
 from process.affine import scaling, translation
@@ -24,7 +24,13 @@ def interpolate_distortion(TP_A_S, error_mags, grid_density_mm):
     msg = "Performing naturalneighbor interpolation from %fx%fx%f to %fx%fx%f with %f resolution"
     logger.info(msg, *coord_min_xyz, *coord_max_xyz, grid_density_mm)
 
-    interpolated_error_mags = naturalneighbor.griddata(TP_A_S.T, error_mags.T, interp_grid_ranges)
+    # interpolated_error_mags = naturalneighbor.griddata(TP_A_S.T, error_mags.T, interp_grid_ranges)
+    grids = tuple(np.mgrid[
+        interp_grid_ranges[0][0]:interp_grid_ranges[0][1]:interp_grid_ranges[0][2],
+        interp_grid_ranges[1][0]:interp_grid_ranges[1][1]:interp_grid_ranges[1][2],
+        interp_grid_ranges[2][0]:interp_grid_ranges[2][1]:interp_grid_ranges[2][2],
+    ])
+    interpolated_error_mags = scipy.interpolate.griddata(TP_A_S.T, error_mags.T, grids, method='nearest')
 
     extrapolated_region = ~convex_hull_region(TP_A_S.T, interp_grid_ranges)
     logger.info("Zeroing %d of %d extrapolated voxels in the overlay",

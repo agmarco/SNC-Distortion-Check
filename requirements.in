@@ -2,10 +2,10 @@ pydicom==2.0.0
 orderedset==2.0.3
 keras
 tensorflow
-matplotlib==3.3.1
-numpy==1.26.0
+matplotlib
+numpy
 django==1.11.17
-celery==5.3.5
+celery
 gunicorn==19.7.1
 boto3==1.4.6
 dj-database-url==0.4.2
@@ -19,7 +19,7 @@ whitenoise==3.3.0
 factory_boy==2.9.2
 django-debug-toolbar==1.8
 pillow==7.1.2
-naturalneighbor==0.2.1
+#naturalneighbor==0.2.1
 dicom-numpy==0.6.5
 heroku3==4.2.3
 pip-tools
