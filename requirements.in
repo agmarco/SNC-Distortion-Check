@@ -4,7 +4,7 @@ keras
 tensorflow
 matplotlib
 numpy
-django==1.11.17
+django==3.2
 celery
 gunicorn==19.7.1
 boto3==1.4.6
