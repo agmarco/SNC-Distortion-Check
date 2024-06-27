@@ -1,10 +1,10 @@
 pydicom==2.0.0
 orderedset==2.0.3
-keras
-tensorflow
+keras==2.15.0
+tensorflow==2.15.0
 matplotlib
 numpy
-django==3.2
+django==1.11.29
 celery
 gunicorn==19.7.1
 boto3==1.4.6
