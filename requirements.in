@@ -1,7 +1,7 @@
 pydicom==2.0.0
 orderedset==2.0.3
 keras==2.15.0
-tensorflow==2.15.0
+#tensorflow==2.15.0
 matplotlib
 numpy
 django==1.11.29
