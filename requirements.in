@@ -5,7 +5,7 @@ keras==2.15.0
 matplotlib
 numpy
 django==1.11.29
-celery
+celery==4.4.5
 gunicorn==19.7.1
 boto3==1.4.6
 dj-database-url==0.4.2
