@@ -1,0 +1,71 @@
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: cirs       # This creates a user with the name 'cirs'
+      POSTGRES_PASSWORD: cirs_password  # Password for the 'cirs' user
+      POSTGRES_DB: cirs        # This creates a database named 'cirs'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432" # Expose port 5432
+    healthcheck:
+      # if this is failing after changes to auth delete the volume  and container and retry
+      test: ["CMD", "pg_isready", "-U", "cirs"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+  client:
+    image: node:7.8
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      DEBUG: True
+      BASE_URL: http://client:8000
+      PORT: 8000
+      REDIS_URL: redis://
+    command: >
+      sh -c "rm -f /usr/local/bin/yarn /usr/local/bin/yarnpkg &&
+             npm install -g yarn &&
+             yarn &&
+             yarn build:dev"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "test -f /app/requirements.txt"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+  backend:
+    image: python:3.9
+    working_dir: /app
+    hostname: distortioncheck
+    volumes:
+        - .:/app  # Mount the same directory for consistency
+    environment:
+      DATABASE_URL: postgres://cirs:cirs_password@postgres/cirs
+      DEBUG: True
+      BASE_URL: http://client:8000
+      PORT: 8000
+      REDIS_URL: redis://
+    command: >
+      sh -c " apt-get update && apt-get install -y libhdf5-dev &&
+             pip install --upgrade pip setuptools &&
+             pip install -r requirements.txt &&
+             python server/manage.py migrate &&
+             python server/manage.py generate_demo_data &&
+             python server/manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      client:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  app:
