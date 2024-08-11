@@ -15,24 +15,14 @@ COPY --from=client-build /app /app
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y postgresql postgresql-contrib \
-    libhdf5-dev && rm -rf /var/lib/apt/lists/*
-
-# Modify PostgreSQL configuration for password authentication
-RUN sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/g" /etc/postgresql/15/main/postgresql.conf && \
-    echo "host all all 127.0.0.1/32 md5" >> /etc/postgresql/15/main/pg_hba.conf && \
-    echo "host all all ::1/128 md5" >> /etc/postgresql/15/main/pg_hba.conf
-
-#RUN service postgresql start
-
 COPY dev.env /app/.env
-
 
 # Install Python dependencies
 RUN pip install --upgrade pip setuptools
-
 RUN pip install -r requirements.txt
-
+# run db migration 
+RUN  python server/manage.py migrate
+RUN python server/manage.py generate_demo_data
 # Expose the port
 EXPOSE 8000
 
