@@ -37,8 +37,8 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'development_secret_key')
 DEBUG = bool(os.getenv('DEBUG'))
 
 TESTING = 'pytest' in sys.argv[0] or 'py.test' in sys.argv[0]
-
-ALLOWED_HOSTS = [os.getenv('HOSTNAME', '*')]
+# TODO: Fix the allowed hosts to use the build's setting
+ALLOWED_HOSTS = [os.getenv('HOSTNAME', '*'), 'localhost', '127.0.0.1', 'distortioncheck']
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
