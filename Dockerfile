@@ -23,7 +23,10 @@ RUN sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/g" /etc/pos
     echo "host all all 127.0.0.1/32 md5" >> /etc/postgresql/15/main/pg_hba.conf && \
     echo "host all all ::1/128 md5" >> /etc/postgresql/15/main/pg_hba.conf
 
-RUN service postgresql start
+#RUN service postgresql start
+
+COPY dev.env /app/.env
+
 
 # Install Python dependencies
 RUN pip install --upgrade pip setuptools
@@ -34,7 +37,6 @@ RUN pip install -r requirements.txt
 EXPOSE 8000
 
 # Set the working directory to the server
-
-
+WORKDIR /app/server
 # # Run the Django development server
-CMD ["python", "/server/manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
