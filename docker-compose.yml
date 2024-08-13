@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:latest
@@ -26,10 +24,10 @@ services:
     volumes:
       - .:/app
     environment:
-      DEBUG: 1
-      BASE_URL: http://distortioncheck:8000
-      PORT: 8000
-      REDIS_URL: redis://
+      DEBUG: ${DEBUG}
+      BASE_URL: ${BASE_URL}
+      PORT: ${PORT}
+      REDIS_URL: ${REDIS_URL}
     command: >
       sh -c "rm -f /usr/local/bin/yarn /usr/local/bin/yarnpkg &&
              npm install -g yarn &&
@@ -47,17 +45,17 @@ services:
   backend:
     image: python:3.9
     working_dir: /app
-    hostname: distortioncheck
+    hostname: ${HOSTNAME}
     volumes:
         - .:/app
     environment:
-      DATABASE_URL: postgres://cirs:cirs_password@postgres/cirs
-      DEBUG: 1
-      BASE_URL: http://localhost:8000
-      PORT: 8000
-      REDIS_URL: redis://
+      DATABASE_URL: ${DATABASE_URL}
+      DEBUG: ${DEBUG}
+      BASE_URL: ${BASE_URL}
+      PORT: ${PORT}
+      REDIS_URL: ${REDIS_URL}
     command: >
-      sh -c "./post-backend.sh"
+      sh -c "chmod +x ./post-backend.sh && ./post-backend.sh"
     ports:
       - "8000:8000"
     depends_on:
