@@ -27,7 +27,7 @@ RUN pip install --upgrade pip setuptools
 COPY . .
 
 # Copy the frontend build files into the appropriate static directory
-COPY --from=frontend-build /app/build /app/build/
+COPY --from=frontend-build /app/build /app/static/
 
 # Install Python dependencies
 RUN pip install -r requirements.txt
