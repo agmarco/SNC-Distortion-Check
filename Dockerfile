@@ -1,32 +1,43 @@
-FROM node:7.8 AS client-build
+# Stage 1: Build the frontend
+FROM node:7.8 AS frontend-build
 
 WORKDIR /app
 
-RUN rm -f /usr/local/bin/yarn /usr/local/bin/yarnpkg && npm install -g yarn
+# Copy all files (backend and frontend)
+COPY . .
 
-COPY . /app
-RUN yarn 
+# Install dependencies and build the frontend
+RUN rm -f /usr/local/bin/yarn /usr/local/bin/yarnpkg && \
+    npm install -g yarn && \
+    yarn && \
+    yarn build:dev
 
-RUN yarn build:dev
-
-FROM python:3.9 AS backend-build
-
-COPY --from=client-build /app /app
+# Stage 2: Set up the backend
+FROM python:3.9
 
 WORKDIR /app
 
-COPY dev.env /app/.env
+# Install system dependencies
+RUN apt-get update && apt-get install -y libhdf5-dev postgresql-client
+
+# Upgrade pip and setuptools
+RUN pip install --upgrade pip setuptools
+
+# Copy all files (backend and frontend builds)
+COPY . .
+
+# Copy the frontend build files into the appropriate static directory
+COPY --from=frontend-build /app/build /app/static/
 
 # Install Python dependencies
-RUN pip install --upgrade pip setuptools
 RUN pip install -r requirements.txt
-# run db migration 
-RUN  python server/manage.py migrate
-RUN python server/manage.py generate_demo_data
-# Expose the port
+
+# Expose the necessary port
 EXPOSE 8000
 
-# Set the working directory to the server
-WORKDIR /app/server
-# # Run the Django development server
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Copy the post-backend script and make it executable
+COPY post-backend.sh /app/post-backend.sh
+RUN chmod +x /app/post-backend.sh
+
+# Define the entry point for the container
+ENTRYPOINT ["./post-backend.sh", "prod"]
