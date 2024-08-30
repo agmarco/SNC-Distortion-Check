@@ -21,4 +21,4 @@ fi
 
 # Run docker-compose with the appropriate environment file
 echo "Using $ENV_FILE"
-docker-compose --env-file $ENV_FILE up
+docker compose --env-file $ENV_FILE up

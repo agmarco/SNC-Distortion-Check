@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # Install required packages (already done in the Dockerfile)
-# apt-get update && apt-get install -y libhdf5-dev postgresql-client
+apt-get update && apt-get install -y libhdf5-dev postgresql-client
 
 # Upgrade pip and setuptools (already done in the Dockerfile)
-# pip install --upgrade pip setuptools
+pip install --upgrade pip setuptools
 
 # Install Python dependencies (already done in the Dockerfile)
-# pip install -r requirements.txt
+pip install -r requirements.txt
 
 # Set the environment file based on the parameter
 if [ "$1" == "dev" ]; then
@@ -15,8 +15,7 @@ if [ "$1" == "dev" ]; then
 elif [ "$1" == "prod" ]; then
   ENV_FILE="prod.env"
 else
-  echo "Invalid environment specified. Please use 'dev' or 'prod'."
-  exit 1
+  ENV_FILE="dev.env"
 fi
 
 echo "Using $ENV_FILE"
@@ -52,7 +51,7 @@ export PGDATABASE=$DB_NAME
 export PGPASSWORD=$DB_PASSWORD
 
 # Wait until the database is ready
-until pg_isready -h cirstesting.postgres.database.azure.com -p 5432 -U cirs; do
+until pg_isready -h $DB_HOST -p 5432 -U $DB_USER; do
   echo "Waiting for database $DB_NAME to be ready..."
   sleep 2
 done
@@ -61,7 +60,7 @@ echo "Database $DB_NAME is ready."
 
 # Check if migrations have already been applied
 export PGPASSWORD="$DB_PASSWORD"
-MIGRATION_CHECK=$(psql -h cirstesting.postgres.database.azure.com -p 5432 -U cirs postgres -tAc "SELECT 1 FROM django_migrations LIMIT 1;")
+MIGRATION_CHECK=$(psql -h $DB_HOST -p 5432 -U $DB_USER $DB_NAME -tAc "SELECT 1 FROM django_migrations LIMIT 1;")
 
 if [ "$MIGRATION_CHECK" = "1" ]; then
   echo "Migrations are already applied. Skipping migrations and demo data generation."
