@@ -40,4 +40,4 @@ COPY post-backend.sh /app/post-backend.sh
 RUN chmod +x /app/post-backend.sh
 
 # Define the entry point for the container
-# ENTRYPOINT ["./post-backend.sh", "prod"]
+ENTRYPOINT ["./post-backend.sh", "prod"]
