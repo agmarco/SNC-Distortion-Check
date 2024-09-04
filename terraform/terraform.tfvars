@@ -1,0 +1,8 @@
+docker_username       = "mohhamedSamu"
+debug                 = "True"
+database_url          = "postgres://cirs:a7xtrGHx1IBqku@cirstesting.postgres.database.azure.com/postgres"
+base_url              = "https://distortioncheck-container.politedesert-0c4230d2.eastus.azurecontainerapps.io:8000"
+port                  = "8000"
+redis_url             = "redis://"
+administrator_login   = "cirs"
+administrator_password = "a7xtrGHx1IBqku"
