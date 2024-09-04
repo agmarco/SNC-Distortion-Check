@@ -17,4 +17,4 @@ dump.rdb
 .spyproject/
 cirs*
 
-/terraform/.terraform/
+/terraform/.terraform/**
